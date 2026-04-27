@@ -1,0 +1,60 @@
+@use "../abstract"as *;
+
+/*----------------------------------------
+    05. page-title CSS
+----------------------------------------*/
+// page-title style
+.page-title-area {
+	border-top: 0;
+	border-bottom: 1px solid var(--clr-common-border);
+	padding: 58px 0;
+}
+
+.breadcrumb-title {
+	font-size: 36px;
+
+	@media #{$xs} {
+		font-size: 30px;
+	}
+
+	@media #{$xsl} {
+		font-size: 36px;
+	}
+}
+
+// breadcrumb style
+
+.page-title {
+	.trail-items {
+		.trail-item {
+			display: inline-block;
+
+			a {
+				padding-right: 22px;
+				position: relative;
+				color: var(--clr-theme-1) !important;
+				font-size: 15px;
+				font-weight: 700;
+				color: var(--clr-common-body-text);
+
+				&::before {
+					position: absolute;
+					content: "\f105";
+					font-size: 20px;
+					color: var(--clr-common-heading);
+					top: 50%;
+					transform: translateY(-50%);
+					right: 7px;
+					font-family: "Font Awesome 5 Pro";
+					font-weight: 300;
+				}
+			}
+
+			span {
+				font-size: 15px;
+				font-weight: 700;
+				color: var(--clr-common-body-text);
+			}
+		}
+	}
+}

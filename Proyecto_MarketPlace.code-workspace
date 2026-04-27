@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../ecommerceGTBackEnd"
+		},
+		{
+			"path": "../ecommerceGT"
+		}
+	],
+	"settings": {}
+}

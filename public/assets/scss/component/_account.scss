@@ -1,0 +1,51 @@
+@use "../abstract" as *;
+/*----------------------------------------
+    11. account CSS
+----------------------------------------*/
+/* b-creator style */
+.b-creator-text {
+	p {
+		font-size: 18px;
+		color: var(--clr-common-white);
+		margin-bottom: 0;
+	}
+	h4 {
+		font-size: 36px;
+		color: var(--clr-common-white);
+		margin-bottom: 0;
+	}
+}
+.b-creator-wrapper {
+	border-radius: 15px;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+.b-creator-content {
+	padding: 70px 80px 70px 440px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	@media #{$xl} {
+		padding: 70px 80px 70px 360px;
+	}
+	@media #{$lg} {
+		padding: 70px 80px 70px 240px;
+	}
+	@media #{$md} {
+		padding: 70px 30px 70px 80px;
+	}
+	@media #{$sm,$xs} {
+		padding: 70px 30px 70px 30px;
+		display: inherit;
+	}
+}
+.b-creator-btn {
+	@media #{$sm,$xs} {
+		margin-top: 30px;
+	}
+	.fill-btn {
+		color: var(--clr-common-heading);
+		background: var(--clr-common-white);
+	}
+}
