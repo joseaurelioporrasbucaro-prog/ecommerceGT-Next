@@ -1,24 +1,59 @@
-"use client "
+"use client";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import { login_schema } from "@/utils/validation-schema";
 import ErrorMessage from "@/utils/ErrorMessage";
+
+// Importaciones nuevas para tu lógica
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { ApiFetch } from "@/utils/Api";
+import { useAuth } from "@/utils/AuthContext";
+
 const LoginFrom = () => {
+  const router = useRouter();
+  const { checkAuth } = useAuth();
+  const [loading, setLoading] = useState(false);
+
   // use formik
   const { handleChange, handleSubmit, handleBlur, errors, values, touched } =
     useFormik({
       initialValues: {
         email: "",
         password: "",
-        username: "",
+        // Removimos "username" de aquí porque tu API no lo necesita para el login
       },
       validationSchema: login_schema,
-      onSubmit: (values, { resetForm }) => {
-        resetForm();
-        console.log(values)
+      onSubmit: async (values, { resetForm }) => {
+        setLoading(true);
+        try {
+          // 1. Llamada a tu backend en Node.js (Puerto 4000)
+          const res = await ApiFetch.post("/login", {
+            email: values.email,
+            password: values.password,
+          });
+
+          // 2. Manejo de la respuesta de tu base de datos
+          if (res.idpwd === 1) {
+            toast.success(res.message || "¡Inicio de sesión exitoso!");
+            await checkAuth(); 
+            resetForm();
+            router.push("/"); 
+          } else if (res.idpwd === 5) {
+            toast.warning("Debes cambiar tu contraseña temporal");
+            // AQUÍ: Cambiamos a la ruta correcta de tu proyecto viejo
+            router.push("/forgotpwd"); 
+          }
+        } catch (error: any) {
+          toast.error("Credenciales incorrectas o error de servidor");
+          console.error("Error en login:", error);
+        } finally {
+          setLoading(false);
+        }
       },
     });
+
   return (
     <>
       <form onSubmit={handleSubmit} className="login-form" action="#">
@@ -34,26 +69,12 @@ const LoginFrom = () => {
                 type="email"
                 placeholder="Enter Your Email"
               />
-              {touched.email && <ErrorMessage error={errors.email} />}
+              {touched.email && errors.email && <ErrorMessage error={errors.email} />}
             </div>
           </div>
-          <div className="col-md-6">
-            <div className="single-input-unit">
-              <label htmlFor="username">Username</label>
-              <input
-                type="text"
-                name="username"
-                id="username"
-                placeholder="Username"
-                defaultValue={values.username}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-              />
-               {touched.username && <ErrorMessage error={errors.username} />}
-            </div>
-          </div>
-          <div className="col-md-6">
+          
+          {/* Cambiamos a col-md-12 para que ocupe el ancho completo sin el username */}
+          <div className="col-md-12">
             <div className="single-input-unit">
               <label htmlFor="password">Password</label>
               <input
@@ -65,12 +86,19 @@ const LoginFrom = () => {
                 placeholder="Password"
                 id="password"
               />
-              {touched.password && <ErrorMessage error={errors.password} />}
+              {touched.password && errors.password && <ErrorMessage error={errors.password} />}
             </div>
           </div>
         </div>
+        
         <div className="login-btn">
-          <button className="fill-btn">Sign in Account</button>
+          <button 
+            type="submit" 
+            className="fill-btn" 
+            disabled={loading}
+          >
+            {loading ? "Cargando..." : "Sign in Account"}
+          </button>
           <div className="note">
             Not yet registered?{" "}
             <Link className="text-btn" href="/register">

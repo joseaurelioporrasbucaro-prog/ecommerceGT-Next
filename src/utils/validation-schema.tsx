@@ -21,7 +21,6 @@ export const contact_schema = Yup.object().shape({
 export const login_schema = Yup.object().shape({
   email: Yup.string().required().email().label("Email"),
   password: Yup.string().required().min(6).label("Password"),
-  username: Yup.string().required().label("UserName"),
+  // Eliminamos la línea de username
 });
-
 

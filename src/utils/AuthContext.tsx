@@ -25,7 +25,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await ApiFetch.get("/verifyMe"); // Tu ruta de backend actual
+      // AQUÍ: Cambiamos de "/verifyMe" a "/me"
+      const res = await ApiFetch.get("/me"); 
       if (res.user) {
         setUser({
           id: res.user.id,

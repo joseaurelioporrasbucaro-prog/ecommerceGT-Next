@@ -3,7 +3,8 @@ import "../style/index.scss";
 import AppProvider from "@/contextApi/AppProvider";
 import { ToastContainer } from "react-toastify";
 // Importamos tu nuevo AuthProvider
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider } from "@/utils/AuthContext";
+import 'react-toastify/dist/ReactToastify.css'; 
 
 export const metadata = {
   title: "E-Shop Marketplace", // Cambiamos el título por defecto
@@ -40,7 +41,11 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </AppProvider>
-        <ToastContainer />
+        <ToastContainer 
+          position="bottom-right" 
+          autoClose={3000} 
+          theme="dark" 
+        />
       </body>
     </html>
   );
