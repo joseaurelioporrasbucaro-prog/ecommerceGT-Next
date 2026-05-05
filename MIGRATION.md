@@ -120,7 +120,7 @@ El backend está estable y se comparte. La regla:
 | Fase | Objetivo | Estado | Tiempo estimado |
 | --- | --- | --- | --- |
 | **0** | Fundación técnica: env, React Query, ApiFetch endurecido, tipos API, este documento | ✅ Completada | 1–2 días |
-| **1** | Auth completa + middleware de protección de rutas | ⬜ Pendiente | 1 día |
+| **1** | Auth completa + middleware de protección de rutas | ✅ Completada | 1 día |
 | **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ⬜ Pendiente | 0.5 día |
 | **3** | Catálogo público y detalle de publicaciones | ⬜ Pendiente | 3 días |
 | **4** | Acciones de usuario logueado (favoritos, mis publicaciones, perfil) | ⬜ Pendiente | 2 días |
@@ -232,6 +232,57 @@ Sin React Query, cada componente de las próximas fases tendría que reinventar 
 1. **Default genérico `<T = unknown>`** en `ApiFetch` (no `any`) para forzar tipado explícito en cada callsite. Hace ruido en el primer commit pero deja el estándar correcto para todas las fases siguientes.
 2. **`QueryProvider` envuelve a `AuthProvider`** (y no al revés) para que el `useCurrentUser` de Fase 1 pueda usar React Query desde dentro del `AuthContext`.
 3. **Tipos del backend reflejan la realidad cruda** (incluyendo typos `levell`/`sizee` y minúsculas `firstname` en `getInfoCus`). La normalización a camelCase limpio se hará en los hooks de cada fase, no en los tipos base.
+
+---
+
+### Fase 1 — Auth completa + middleware de protección de rutas
+
+**Objetivo:** ninguna ruta privada accesible sin sesión; logout correcto (POST al backend + limpieza local + caché); eliminar `any` del módulo de auth; sentar la base para hooks de API de fases siguientes.
+
+**Por qué esta fase antes de cualquier feature:**
+Sin middleware, cualquier usuario puede navegar a `/my-publications` o `/messages` sin estar logueado. Sin logout correcto (era GET en lugar de POST), el backend nunca destruía la cookie. Sin `AuthUser` completo, `PersonalInfoTab` usaba `(user as any)?.birthday` — un bug silencioso esperando crecer.
+
+**Sub-tareas:**
+
+1. **`src/middleware.ts`** (nuevo): verifica la cookie `token` en rutas privadas y redirige a `/login?from=<ruta>` si falta. La cookie la genera el backend; el middleware no valida el JWT (confía en su existencia), la validez real la verifica cada endpoint autenticado.
+2. **`src/hooks/api/useCurrentUser.ts`** (nuevo): hook React Query sobre `GET /me`, reutilizable desde Fase 3+ sin pasar por `AuthContext`.
+3. **`src/hooks/api/useLogout.ts`** (nuevo): thin wrapper que llama `AuthContext.logout()` y luego hace `router.push('/login')`.
+4. **`src/utils/AuthContext.tsx`** (actualizado):
+   - `User` local eliminada; usa `AuthUser` de `src/types/api.ts` directamente (incluye `address`, `phone`, `birthday`, `genid`, `lang`).
+   - `logout()` agregado al contexto: llama `POST /logout`, setea `user` a null, remueve la query de React Query.
+   - Usa `useQueryClient()` del `QueryProvider` que ya lo envuelve.
+   - Nota de arquitectura en comentario: el estado del usuario vive temporalmente en dos lugares (useState + React Query); se unificará en una fase futura.
+5. **`src/layout/header/HeaderOne.tsx`** (actualizado): `handleLogout` usa `useAuth().logout()` + `router.push`. Se eliminó `ApiFetch.get("/logout")` (incorrecto) y `setUser` importado (innecesario).
+6. **`src/components/Creator-Profile-info/PersonalInfoTab.tsx`** (actualizado): eliminados todos los `(user as any)?.birthday/genid/lang/phone/address` — ahora typesafe gracias al `AuthUser` completo.
+7. **`src/app/verify/[token]/page.tsx`** (actualizado): el catch reemplaza `error?.response?.data?.message` (patrón axios) por `error instanceof ApiError ? error.message : fallback`.
+
+**Rutas privadas protegidas por el middleware:**
+- `/my-publications`
+- `/favorites`
+- `/messages`
+- `/creator-profile-info-personal` (se renombrará a `/profile` en Fase 4)
+- `/publications/new` y `/publications/[id]/edit`
+
+#### Resultado
+
+- `tsc --noEmit` limpio.
+- `next build` pasa; el middleware aparece compilado (`ƒ Middleware 19.7 kB`).
+- Logout ahora llama `POST /logout` (correcto) en lugar de `GET /logout` (bug anterior).
+
+#### Archivos creados (3)
+
+- `src/middleware.ts`
+- `src/hooks/api/useCurrentUser.ts`
+- `src/hooks/api/useLogout.ts`
+
+#### Archivos modificados (4)
+
+- `src/utils/AuthContext.tsx`
+- `src/layout/header/HeaderOne.tsx`
+- `src/components/Creator-Profile-info/PersonalInfoTab.tsx`
+- `src/app/verify/[token]/page.tsx`
+
+---
 
 #### Follow-ups detectados (no parte de Fase 0)
 

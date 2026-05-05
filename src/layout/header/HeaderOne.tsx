@@ -9,7 +9,6 @@ import useGlobalContext from '@/hooks/use-context';
 import Image from 'next/image';
 import HeaderOneMenu from './component/HeaderOneMenu';
 import MobileMenu from '@/utils/MobileMenu';
-import { ApiFetch } from '@/utils/Api';
 import { useRouter } from 'next/navigation';
 
 // --- NUEVAS IMPORTACIONES PARA LA MAGIA ---
@@ -22,9 +21,9 @@ const HeaderOne = ({ HeaderStatic }:any) => {
  const [isActive11, setActive11] = useState(false);
 
  // --- HOOKS DE AUTENTICACIÓN E IDIOMAS ---
- const { user, setUser } = useAuth(); // Ahora traemos setUser
+ const { user, logout } = useAuth();
  const { i18n, t } = useTranslation();
- const router = useRouter(); // Instanciamos el router de Next.js
+ const router = useRouter();
 
  const handleToggle11 = () => {
     setActive11(!isActive11);
@@ -35,21 +34,12 @@ const HeaderOne = ({ HeaderStatic }:any) => {
     i18n.changeLanguage(lng);
  };
 
- const handleLogout = async (e: any) => {
+ const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    toast.info(t('auth.login.singout') + "...");
-    
-    // 1. Le avisamos al backend que destruya la cookie segura
-    try {
-        await ApiFetch.get("/logout"); 
-    } catch (error) {
-        // Ignoramos si el backend no tiene esta ruta configurada aún
-    }
-
-    // 2. Destruimos al usuario en el frontend para que la foto desaparezca INMEDIATAMENTE
-    setUser(null);
-
-    // 3. Redirección rápida usando Next.js (sin recargar toda la página)
+    toast.info(t('auth.login.singout') + '...');
+    // logout() hace: POST /logout → limpia user → remueve React Query cache.
+    // La redirección la hacemos aquí para que HeaderOne controle el UX.
+    await logout();
     router.push('/login');
  };
 

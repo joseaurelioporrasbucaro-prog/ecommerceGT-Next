@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ApiFetch } from "@/utils/Api"; 
+import { ApiFetch, ApiError } from "@/utils/Api";
 import { toast } from "react-toastify";
 
 // Opcional: Si quieres que tenga la barra superior y los colores del tema
@@ -32,10 +32,10 @@ export default function VerifyPage() {
                     router.push('/login');
                 }, 3000);
 
-            } catch (error: any) {
-                console.error("Error en verificación:", error);
+            } catch (error) {
                 setStatus("error");
-                const errorMsg = error?.response?.data?.message || "¡Token inválido o expirado!";
+                const errorMsg =
+                    error instanceof ApiError ? error.message : "¡Token inválido o expirado!";
                 setMessage(errorMsg);
                 toast.error(errorMsg);
             }

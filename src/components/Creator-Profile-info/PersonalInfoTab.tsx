@@ -30,13 +30,11 @@ const PersonalInfoTab = () => {
         initialValues: {
             firstName: user?.firstName || '',
             lastName: user?.lastName || '',
-            // OJO: Estas 5 variables de abajo deberás agregarlas a tu interface User en AuthContext.tsx
-            // para que TypeScript no se queje si 'user' no las tiene aún en memoria.
-            birthday: (user as any)?.birthday ? new Date((user as any).birthday).toISOString().split('T')[0] : '', 
-            genid: (user as any)?.genid || '',
-            lang: (user as any)?.lang || 'es',
-            phone: (user as any)?.phone || '',
-            address: (user as any)?.address || '',
+            birthday: user?.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
+            genid: user?.genid ?? '',
+            lang: user?.lang || 'es',
+            phone: user?.phone || '',
+            address: user?.address || '',
         },
         validationSchema: Yup.object({
             firstName: Yup.string().required('El nombre es obligatorio'),
