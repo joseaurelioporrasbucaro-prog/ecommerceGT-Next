@@ -32,7 +32,7 @@ const ForgotForm = () => {
     onSubmit: async (values, { setSubmitting }) => {
       setSubmitting(true);
       try {
-        const res = await ApiFetch.post("/recoverypass", { email: values.email });
+        const res = await ApiFetch.post<{ message?: string }>("/recoverypass", { email: values.email });
         toast.success(res.message || "Solicitud enviada");
         // Si tu backend requiere que pasemos a la pantalla de "Nueva Contraseña" inmediatamente:
         // (Adaptalo si tu flujo depende de que el usuario haga clic en un link en su correo)
@@ -64,7 +64,7 @@ const ForgotForm = () => {
     onSubmit: async (values, { setSubmitting }) => {
       setSubmitting(true);
       try {
-        const res = await ApiFetch.post("/recoverypassnew", {
+        const res = await ApiFetch.post<{ message?: string }>("/recoverypassnew", {
           email: userForgot?.email, // Sacamos el email del contexto temporal
           npassword: values.password,
         });

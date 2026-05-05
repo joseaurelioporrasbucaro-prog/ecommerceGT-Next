@@ -30,7 +30,7 @@ const AccountSettingsTab = () => {
         onSubmit: async (values, { resetForm }) => {
             setLoading(true);
             try {
-                const res = await ApiFetch.post('/changepwd', {
+                const res = await ApiFetch.post<{ message?: string }>('/changepwd', {
                     lastPwd: values.lastPwd,
                     password: values.password
                 });

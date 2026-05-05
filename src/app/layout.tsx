@@ -4,7 +4,8 @@ import AppProvider from "@/contextApi/AppProvider";
 import { ToastContainer } from "react-toastify";
 // Importamos tu nuevo AuthProvider
 import { AuthProvider } from "@/utils/AuthContext";
-import 'react-toastify/dist/ReactToastify.css'; 
+import QueryProvider from "@/utils/QueryProvider";
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata = {
   title: "E-Shop Marketplace", // Cambiamos el título por defecto
@@ -36,10 +37,13 @@ export default function RootLayout({
 
       <body className="body-bg" suppressHydrationWarning={true}>
         <AppProvider>
-          {/* Envolvemos children con tu contexto de sesión */}
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          {/* QueryProvider envuelve a AuthProvider para que los hooks de React Query
+              (incluido el futuro useCurrentUser de Fase 1) tengan QueryClient disponible. */}
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </QueryProvider>
         </AppProvider>
         <ToastContainer 
           position="bottom-right" 

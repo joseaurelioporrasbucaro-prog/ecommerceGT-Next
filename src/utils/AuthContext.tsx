@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { ApiFetch } from '../utils/Api';
+import type { MeResponse } from '@/types/api';
 import '../i18n';
 
 interface User {
@@ -32,14 +33,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await ApiFetch.get("/me"); 
+      const res = await ApiFetch.get<MeResponse>("/me");
       if (res.user) {
         setUser({
           id: res.user.id,
           firstName: res.user.firstName,
           lastName: res.user.lastName,
           email: res.user.email,
-          imagenu: res.user.imagenu,
+          imagenu: res.user.imagenu ?? undefined,
           isAdmin: res.user.isAdmin
         });
       }

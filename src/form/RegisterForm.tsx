@@ -84,7 +84,7 @@ const RegisterForm = () => {
         }
 
         // Llamada a la API
-        const res = await ApiFetch.post("/register", payload);
+        const res = await ApiFetch.post<{ message?: string }>("/register", payload);
         
         toast.success(res.message || "¡Cuenta creada exitosamente!");
         resetForm();

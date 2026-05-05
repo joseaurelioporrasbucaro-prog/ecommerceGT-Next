@@ -5,17 +5,18 @@ import { ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import type { Gender } from '@/types/api';
 
 const PersonalInfoTab = () => {
     const { user, checkAuth } = useAuth();
     const [loading, setLoading] = useState(false);
-    const [genders, setGenders] = useState<any[]>([]);
+    const [genders, setGenders] = useState<Gender[]>([]);
 
     // Cargar Catálogo de Géneros
     useEffect(() => {
         const fetchGender = async () => {
             try {
-                const res = await ApiFetch.get("/cat/gender");
+                const res = await ApiFetch.get<Gender[]>("/cat/gender");
                 setGenders(res);
             } catch (error) {
                 console.error("Error cargando generos:", error);

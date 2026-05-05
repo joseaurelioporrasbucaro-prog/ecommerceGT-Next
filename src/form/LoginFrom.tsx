@@ -9,6 +9,7 @@ import ErrorMessage from "@/utils/ErrorMessage";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { ApiFetch } from "@/utils/Api";
+import type { LoginResponse } from "@/types/api";
 import { useAuth } from "@/utils/AuthContext";
 
 const LoginFrom = () => {
@@ -30,7 +31,7 @@ const LoginFrom = () => {
         setLoading(true);
         try {
           // 1. Llamada a tu backend en Node.js (Puerto 4000)
-          const res = await ApiFetch.post("/login", {
+          const res = await ApiFetch.post<LoginResponse>("/login", {
             email: values.email,
             password: values.password,
           });
