@@ -1,145 +1,251 @@
-"use client"
-import { Gender } from "@/data/nice-select-data";
-import { useFormik } from "formik";
+"use client";
+import React from "react";
 import Link from "next/link";
-import React,{useState} from "react";
-import { register_schema } from "@/utils/validation-schema";
-import ErrorMessage from "@/utils/ErrorMessage";
-import NiceSelectForm from "@/elements/niceSelect/NiceSelectForm";
-const RegisterForm = () => {
-  const [selelectForm, setSelelectForm] = useState<string>("")
-  const { handleChange, handleSubmit, handleBlur, errors, values, touched } =
-    useFormik({
-      initialValues: {
-        name: "",
-        lastname: "",
-        email: "",
-        password: "",
-        username: "",
-        selelectForm
-      },
-      validationSchema: register_schema, 
-      onSubmit: (values, { resetForm }) => {
-        resetForm();
-        console.log(values,selelectForm);
-      },
-    });
+import { useRouter } from "next/navigation";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { ApiFetch } from "@/utils/Api";
 
-  const selectHandler = () => {}
+const RegisterForm = () => {
+  const router = useRouter();
+  const { t } = useTranslation();
+
+  // 1. Esquema de Validación Dinámico (Usa 't' para los idiomas en tiempo real)
+  const registerSchema = Yup.object().shape({
+    isBusiness: Yup.boolean(),
+    
+    // Validaciones condicionales: Solo se exigen si isBusiness es TRUE
+    noIdentification: Yup.string().when("isBusiness", {
+      is: true,
+      then: (schema) => schema.required(t("auth.validation.requiredAll")),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    busNameC: Yup.string().when("isBusiness", {
+      is: true,
+      then: (schema) => schema.required(t("auth.validation.requiredAll")),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    busName: Yup.string().when("isBusiness", {
+      is: true,
+      then: (schema) => schema.required(t("auth.validation.requiredAll")),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    // Validaciones estándar
+    firstName: Yup.string().required(t("auth.validation.requiredAll")),
+    lastName: Yup.string().required(t("auth.validation.requiredAll")),
+    email: Yup.string()
+      .email(t("auth.validation.invalidEmailDomain"))
+      .required(t("auth.validation.requiredAll")),
+    password: Yup.string()
+      .min(8, t("auth.validation.passwordLength"))
+      .matches(/[A-Z]/, t("auth.validation.passwordUppercase"))
+      .matches(/[0-9]/, t("auth.validation.passwordNumber"))
+      .required(t("auth.validation.requiredAll")),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), null as any], t("auth.validation.passwordMismatch"))
+      .required(t("auth.validation.requiredAll")),
+  });
+
+  // 2. Configuración de Formik
+  const formik = useFormik({
+    initialValues: {
+      isBusiness: false,
+      noIdentification: "",
+      busNameC: "",
+      busName: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+      setSubmitting(true);
+      try {
+        // 3. Replicamos EXACTAMENTE el payload de tu backend viejo
+        const payload: any = {
+          firstName: values.firstName.trim(),
+          lastName: values.lastName.trim(),
+          email: values.email.trim(),
+          password: values.password,
+          confirmPassword: values.confirmPassword,
+          isEmployee: false,
+          isBusiness: values.isBusiness,
+        };
+
+        if (values.isBusiness) {
+          payload.busId = values.noIdentification.trim();
+          payload.busTName = values.busNameC.trim();
+          payload.busName = values.busName.trim();
+        }
+
+        // Llamada a la API
+        const res = await ApiFetch.post("/register", payload);
+        
+        toast.success(res.message || "¡Cuenta creada exitosamente!");
+        resetForm();
+        router.push("/login"); // Redirección al Login como lo tenías antes
+
+      } catch (error: any) {
+        toast.error(error.message || "Error al crear la cuenta");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
+  // Función de ayuda para pintar los errores en rojo fácilmente
+  const renderError = (field: keyof typeof formik.values) => {
+    if (formik.touched[field] && formik.errors[field]) {
+      return <div style={{ color: "#d32f2f", fontSize: "12px", marginTop: "5px" }}>{formik.errors[field] as string}</div>;
+    }
+    return null;
+  };
+
   return (
-    <>
-      <form onSubmit={handleSubmit} className="sign-up-form" action="#">
-        <div className="row">
-          <div className="col-md-6">
-            <div className="single-input-unit">
-              <label htmlFor="name">First Name</label>
+    <form onSubmit={formik.handleSubmit} className="sign-up-form" action="#">
+      <div className="row">
+        
+        {/* Toggle para Empresa */}
+        <div className="col-12 mb-30">
+            <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontWeight: "600", fontSize: "16px" }}>
               <input
-                type="text"
-                name="name"
-                id="name"
-                placeholder="Your first name"
-                defaultValue={values.name}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
+                type="checkbox"
+                name="isBusiness"
+                checked={formik.values.isBusiness}
+                onChange={formik.handleChange}
+                style={{ width: "20px", height: "20px", marginRight: "10px" }}
               />
-              {touched.name && <ErrorMessage error={errors.name} />}
-            </div>
-          </div>
-          <div className="col-md-6">
-            <div className="single-input-unit">
-              <label htmlFor="lastname">Last Name</label>
-              <input
-                type="text"
-                name="lastname"
-                id="lastname"
-                placeholder="Your last name"
-                defaultValue={values.lastname}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-              />
-              
-              {touched.lastname && <ErrorMessage error={errors.lastname} />}
-            </div>
-          </div>
-          <div className="col-md-6">
-            <div className="single-input-unit mb-30">
-              <label htmlFor="g-select">Gender</label>
-              <div className="w-full">
-               
-                <NiceSelectForm
-                options={Gender}
-                defaultCurrent={0}
-                onChange={selectHandler}
-                setSelelectForm={setSelelectForm}
-                name="g-select"
-                className="gender-category-select"
-              />
- 
+              {t("auth.register.isBusiness")}
+            </label>
+        </div>
+
+        {/* Campos Condicionales de Empresa */}
+        {formik.values.isBusiness && (
+          <>
+            <div className="col-md-12">
+              <div className="single-input-unit">
+                <label>{t("auth.register.businessId")}</label>
+                <input
+                  type="text"
+                  name="noIdentification"
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.noIdentification}
+                />
+                {renderError("noIdentification")}
               </div>
             </div>
-          </div>
-          <div className="col-md-6">
-            <div className="single-input-unit">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="Your email"
-                defaultValue={values.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-              />
-              {touched.email && <ErrorMessage error={errors.email} />}
+            <div className="col-md-6">
+              <div className="single-input-unit">
+                <label>{t("auth.register.tradeName")}</label>
+                <input
+                  type="text"
+                  name="busNameC"
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.busNameC}
+                />
+                {renderError("busNameC")}
+              </div>
             </div>
-          </div>
-          <div className="col-md-6">
-            <div className="single-input-unit">
-              <label htmlFor="username">Username</label>
-              <input
-                type="text"
-                name="username"
-                id="username"
-                placeholder="Username"
-                defaultValue={values.username}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-              />
-               {touched.username && <ErrorMessage error={errors.username} />}
+            <div className="col-md-6">
+              <div className="single-input-unit">
+                <label>{t("auth.register.businessName")}</label>
+                <input
+                  type="text"
+                  name="busName"
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.busName}
+                />
+                {renderError("busName")}
+              </div>
             </div>
-          </div>
-          <div className="col-md-6">
-            <div className="single-input-unit">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                name="password"
-                id="password"
-                placeholder="********"
-                defaultValue={values.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-              />
-               {touched.password && <ErrorMessage error={errors.password} />}
-            </div>
+          </>
+        )}
+
+        {/* Campos Estándar */}
+        <div className="col-md-6">
+          <div className="single-input-unit">
+            <label>{!formik.values.isBusiness ? t("auth.register.firstName") : t("auth.register.firstNameRep")}</label>
+            <input
+              type="text"
+              name="firstName"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.firstName}
+            />
+            {renderError("firstName")}
           </div>
         </div>
-        <div className="sign-up-btn">
-          <button className="fill-btn" type="submit">Create Account</button>
-          <div className="note">
-            Already have an account?{" "}
-            <Link className="text-btn" href="/login">
-              Sign In
-            </Link>
+        <div className="col-md-6">
+          <div className="single-input-unit">
+            <label>{t("auth.register.lastName")}</label>
+            <input
+              type="text"
+              name="lastName"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.lastName}
+            />
+            {renderError("lastName")}
           </div>
         </div>
-      </form>
-    </>
+        <div className="col-md-12">
+          <div className="single-input-unit">
+            <label>{t("auth.register.email")}</label>
+            <input
+              type="email"
+              name="email"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.email}
+            />
+            {renderError("email")}
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="single-input-unit">
+            <label>{t("auth.register.password")}</label>
+            <input
+              type="password"
+              name="password"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.password}
+            />
+            {renderError("password")}
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="single-input-unit">
+            <label>{t("auth.register.confirmPassword")}</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.confirmPassword}
+            />
+            {renderError("confirmPassword")}
+          </div>
+        </div>
+      </div>
+
+      <div className="sign-up-btn mt-10">
+        <button className="fill-btn" type="submit" disabled={formik.isSubmitting}>
+          {formik.isSubmitting ? "..." : t("auth.register.submit")}
+        </button>
+        <div className="note">
+          {t("auth.register.haveAccountLink")}
+        </div>
+      </div>
+    </form>
   );
 };
 

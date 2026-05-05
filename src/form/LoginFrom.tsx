@@ -13,8 +13,9 @@ import { useAuth } from "@/utils/AuthContext";
 
 const LoginFrom = () => {
   const router = useRouter();
-  const { checkAuth } = useAuth();
+  const { checkAuth, setUserForgot } = useAuth() as any; // Traemos checkAuth para actualizar el estado de autenticación después del login exitoso, y setUserForgot para manejar el flujo de "Olvidé mi contraseña"
   const [loading, setLoading] = useState(false);
+
 
   // use formik
   const { handleChange, handleSubmit, handleBlur, errors, values, touched } =
@@ -42,8 +43,9 @@ const LoginFrom = () => {
             router.push("/"); 
           } else if (res.idpwd === 5) {
             toast.warning("Debes cambiar tu contraseña temporal");
-            // AQUÍ: Cambiamos a la ruta correcta de tu proyecto viejo
-            router.push("/forgotpwd"); 
+            // ¡MAGIA! Guardamos tu email en memoria antes de mandarte a /forgot
+            if(setUserForgot) setUserForgot({ email: values.email });
+            router.push("/forgot"); 
           }
         } catch (error: any) {
           toast.error("Credenciales incorrectas o error de servidor");
@@ -91,6 +93,15 @@ const LoginFrom = () => {
           </div>
         </div>
         
+        {/* --- NUEVO BLOQUE: Enlace de Olvidé mi Contraseña --- */}
+        <div className="row mb-3">
+          <div className="col-md-12 text-end">
+            <Link href="/forgot" style={{ fontSize: '14px', color: '#5a5af2', fontWeight: 500, textDecoration: 'underline' }}>
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+        </div>
+
         <div className="login-btn">
           <button 
             type="submit" 

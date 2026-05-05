@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
 import logoOne from "../../../public/assets/img/logo/oction-logo.png"
@@ -9,13 +9,48 @@ import useGlobalContext from '@/hooks/use-context';
 import Image from 'next/image';
 import HeaderOneMenu from './component/HeaderOneMenu';
 import MobileMenu from '@/utils/MobileMenu';
+import { ApiFetch } from '@/utils/Api';
+import { useRouter } from 'next/navigation';
+
+// --- NUEVAS IMPORTACIONES PARA LA MAGIA ---
+import { useAuth } from '@/utils/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 
 const HeaderOne = ({ HeaderStatic }:any) => {
  const {toggleSideMenu,sideMenuOpen} = useGlobalContext()
- const [menuOpen, setMenuOpen] = useState(false)
  const [isActive11, setActive11] = useState(false);
+
+ // --- HOOKS DE AUTENTICACIÓN E IDIOMAS ---
+ const { user, setUser } = useAuth(); // Ahora traemos setUser
+ const { i18n, t } = useTranslation();
+ const router = useRouter(); // Instanciamos el router de Next.js
+
  const handleToggle11 = () => {
     setActive11(!isActive11);
+ };
+
+ // Función para cambiar el idioma
+ const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+ };
+
+ const handleLogout = async (e: any) => {
+    e.preventDefault();
+    toast.info(t('auth.login.singout') + "...");
+    
+    // 1. Le avisamos al backend que destruya la cookie segura
+    try {
+        await ApiFetch.get("/logout"); 
+    } catch (error) {
+        // Ignoramos si el backend no tiene esta ruta configurada aún
+    }
+
+    // 2. Destruimos al usuario en el frontend para que la foto desaparezca INMEDIATAMENTE
+    setUser(null);
+
+    // 3. Redirección rápida usando Next.js (sin recargar toda la página)
+    router.push('/login');
  };
 
    // sticky nav
@@ -42,26 +77,57 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                               </nav>
                            </div>
                            <form action="#" className="filter-search-input header-search d-none d-xl-inline-block">
-                              <input type="text" placeholder="Search keyword" />
+                              {/* El buscador ahora usa tu diccionario */}
+                              <input type="text" placeholder={t('serchproducts') || "Buscar..."} />
                               <button><i className="fal fa-search"></i></button>
                            </form>
-                           <div className="header-btn ml-20 d-none d-xxl-inline-block">
-                              <Link className="fill-btn" href="/wallet-connect">Connect Wallet</Link>
+
+                           {/* --- SELECTOR DE IDIOMAS (ES | EN) --- */}
+                           <div className="header-lang ml-20 d-none d-md-inline-block" style={{ fontWeight: '600', cursor: 'pointer', fontSize: '15px' }}>
+                             <span 
+                                onClick={() => changeLanguage('es')} 
+                                style={{ color: i18n.language === 'es' ? '#5a5af2' : 'inherit', transition: '0.3s' }}
+                             >
+                                ES
+                             </span>
+                             <span className="mx-2" style={{ color: '#ccc' }}>|</span>
+                             <span 
+                                onClick={() => changeLanguage('en')}
+                                style={{ color: i18n.language === 'en' ? '#5a5af2' : 'inherit', transition: '0.3s' }}
+                             >
+                                EN
+                             </span>
                            </div>
-                           <div className="profile-item profile-item-header ml-20 d-md-inline-block pos-rel">
-                              <div className={`profile-img pos-rel ${isActive11 ? "show-element" : ""}`} onClick={handleToggle11}>
-                                 <div className="profile-action"> 
-                                    <ul>
-                                       <li><Link href="/creator-profile-info-personal"><i className="fal fa-user"></i>Profile</Link></li>
-                                       <li><Link href="/login"><i className="fal fa-sign-out"></i>Logout</Link></li>
-                                    </ul>
-                                 </div>
-                                 <Image src={logoThree} alt="profile-img" />
-                                 <div className="profile-verification verified">
-                                    <i className="fas fa-check"></i>
+
+                           {/* --- LÓGICA DE SESIÓN CONDICIONAL --- */}
+                           {!user ? (
+                              // Si NO hay usuario: Mostramos botón de Login
+                              <div className="header-btn ml-20 d-none d-xxl-inline-block">
+                                 <Link className="fill-btn" href="/login">{t('auth.login.submit') || "Login"}</Link>
+                              </div>
+                           ) : (
+                              // Si SÍ hay usuario: Mostramos el Dropdown con su foto real
+                              <div className="profile-item profile-item-header ml-20 d-md-inline-block pos-rel">
+                                 <div className={`profile-img pos-rel ${isActive11 ? "show-element" : ""}`} onClick={handleToggle11}>
+                                    <div className="profile-action"> 
+                                       <ul>
+                                          <li><Link href="/creator-profile-info-personal"><i className="fal fa-user"></i>{t('auth.login.myProfile') || 'Profile'}</Link></li>
+                                          <li><a href="#" onClick={handleLogout}><i className="fal fa-sign-out"></i>{t('auth.login.singout') || 'Logout'}</a></li>
+                                       </ul>
+                                    </div>
+                                    <Image 
+                                       src={user?.imagenu ? (user.imagenu.startsWith('http') ? user.imagenu : `http://localhost:4000${user.imagenu}`) : logoThree} 
+                                       alt="profile-img" 
+                                       width={50} height={50} 
+                                       style={{ objectFit: 'cover', borderRadius: '50%' }}
+                                    />
+                                    <div className="profile-verification verified">
+                                       <i className="fas fa-check"></i>
+                                    </div>
                                  </div>
                               </div>
-                           </div>
+                           )}
+
                            <div className="menu-bar d-xl-none ml-20">
                               <Link className="side-toggle" href="" onClick={toggleSideMenu}>
                                  <div className="bar-icon">
