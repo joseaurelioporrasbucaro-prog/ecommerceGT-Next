@@ -122,7 +122,7 @@ El backend está estable y se comparte. La regla:
 | **0** | Fundación técnica: env, React Query, ApiFetch endurecido, tipos API, este documento | ✅ Completada | 1–2 días |
 | **1** | Auth completa + middleware de protección de rutas | ✅ Completada | 1 día |
 | **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ✅ Completada | 0.5 día |
-| **3** | Catálogo público y detalle de publicaciones | ⬜ Pendiente | 3 días |
+| **3** | Catálogo público y detalle de publicaciones | ✅ Completada | 3 días |
 | **4** | Acciones de usuario logueado (favoritos, mis publicaciones, perfil) | ⬜ Pendiente | 2 días |
 | **5** | Wizard de crear/editar publicación + uploads | ⬜ Pendiente | 3–4 días |
 | **6** | Mensajería (inbox + conversación + polling) | ⬜ Pendiente | 2 días |
@@ -332,3 +332,70 @@ Sin middleware, cualquier usuario puede navegar a `/my-publications` o `/message
 1. **Los tipos reflejan las rutas ecommerce actuales**, no las rutas antiguas de inventario (`/cat/pubtra`, `/cat/pubgen`, etc.). Esto evita mezclar dos familias de catálogos que devuelven shapes distintos.
 2. **`pubtraid` y `pubtraidaux` se conservaron tal cual devuelve el backend.** `pubtraid` es el id de la relación categoría-transacción; `pubtraidaux` es el id real que usa `POST /savepubl`.
 3. **Los hooks aceptan `number | string | null | undefined` como entrada**, porque los formularios suelen trabajar con valores string. Internamente se normaliza a número y se deshabilita la query cuando no hay id válido.
+
+---
+
+### Fase 3 — Catálogo público y detalle de publicaciones
+
+**Objetivo:** reemplazar el listado y detalle estáticos del scaffold por datos reales del backend, manteniendo la cáscara visual Bootstrap del template y dejando listas las rutas canónicas `/publications` y `/publications/[id]`.
+
+**Sub-tareas:**
+
+1. Crear hooks React Query para publicaciones:
+   - `usePublications()` sobre `GET /publications`.
+   - `usePublicationDetail(id)` sobre `GET /publication/:id`.
+   - `useSellerInfo(cusId)` sobre `GET /infoCustomer/:id`, normalizando el array de un elemento a un objeto o `null`.
+2. Crear `usePublicationComments(pubId)` sobre `GET /comments/:pub_id` en modo solo lectura.
+3. Crear `getBackendUrl()` para prefijar rutas relativas del backend (`/uploads/...`) con `NEXT_PUBLIC_API_URL`.
+4. Crear UI pública:
+   - `/publications`: listado con búsqueda y filtro por categoría.
+   - `/publications/[id]`: detalle con galería, datos de vendedor, características y comentarios.
+5. Agregar redirects desde rutas legacy/scaffold:
+   - `/explore-arts` → `/publications`.
+   - `/art-details` → `/publications`.
+   - `/art-details/[id]` → `/publications/[id]`.
+6. Actualizar navegación principal y móvil para apuntar a propiedades/publicaciones.
+
+**Lo que esta fase NO hace (a propósito):**
+
+- No implementa formulario para comentar (`POST /addcomment`); queda para Fase 4.
+- No implementa favoritos ni acciones de usuario logueado; quedan para Fase 4.
+- No toca el backend.
+- No borra componentes estáticos del scaffold todavía; quedan como referencia hasta reemplazar sus usos restantes.
+
+#### Resultado
+
+- `tsc --noEmit` limpio.
+- `next build` pasa. Warning no bloqueante: Google Fonts no se pudo optimizar por descarga bloqueada.
+- Rutas nuevas compiladas: `/publications` y `/publications/[id]`.
+
+#### Archivos creados (12)
+
+- `src/utils/backendUrl.ts`
+- `src/hooks/api/usePublications.ts`
+- `src/hooks/api/usePublicationComments.ts`
+- `src/components/publications/publicationUtils.ts`
+- `src/components/publications/PublicationsBar.tsx`
+- `src/components/publications/PublicationCard.tsx`
+- `src/components/publications/PublicationsMain.tsx`
+- `src/components/publications/PublicationContent.tsx`
+- `src/components/publications/PublicationComments.tsx`
+- `src/components/publications/PublicationDetailsMain.tsx`
+- `src/app/publications/page.tsx`
+- `src/app/publications/[id]/page.tsx`
+
+#### Archivos modificados (6)
+
+- `src/app/explore-arts/page.tsx`
+- `src/app/art-details/page.tsx`
+- `src/app/art-details/[id]/page.tsx`
+- `src/data/menu-data.ts`
+- `src/data/mobile-Menu-data.ts`
+- `MIGRATION.md`
+
+#### Decisiones tomadas durante la fase
+
+1. **Comentarios solo lectura.** Se conectó `GET /comments/:pub_id` y se dejó claro en UI que la participación autenticada llega en Fase 4.
+2. **`useSellerInfo()` normaliza `SellerInfoResponse` dentro del hook.** Los componentes reciben `SellerInfo | null` y no necesitan conocer el array `[0]` del backend.
+3. **Los filtros del listado son client-side por ahora.** El endpoint `GET /publications` no acepta query params ni paginación, así que filtrar en el cliente evita tocar backend en esta fase.
+4. **Las rutas antiguas quedan como redirects.** Esto evita romper enlaces existentes del scaffold mientras la navegación canónica se mueve a `/publications`.
