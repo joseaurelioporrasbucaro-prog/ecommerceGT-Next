@@ -1,29 +1,16 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import type { Gender } from '@/types/api';
+import { useGenders } from '@/hooks/api/useCatalogs';
 
 const PersonalInfoTab = () => {
     const { user, checkAuth } = useAuth();
     const [loading, setLoading] = useState(false);
-    const [genders, setGenders] = useState<Gender[]>([]);
-
-    // Cargar Catálogo de Géneros
-    useEffect(() => {
-        const fetchGender = async () => {
-            try {
-                const res = await ApiFetch.get<Gender[]>("/cat/gender");
-                setGenders(res);
-            } catch (error) {
-                console.error("Error cargando generos:", error);
-            }
-        };
-        fetchGender();
-    }, []);
+    const { data: genders = [] } = useGenders();
 
     const formik = useFormik({
         enableReinitialize: true,

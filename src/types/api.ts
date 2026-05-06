@@ -81,23 +81,30 @@ export interface RegisterPayload {
 // Catálogos
 // ============================================================================
 
-/** `GET /cat/countries` devuelve `cou_id, cou_code` (sin label semántico). */
+/** `GET /cat/countries` devuelve alias propios de la ruta ecommerce. */
 export interface Country {
-  cou_id: number;
-  cou_code: string;
-  cou_description?: string;
+  country: number;
+  description: string;
 }
 
-/** `POST /cat/cities` devuelve `{ value: cit_id, label: cit_description }`. */
-export interface CityOption {
-  value: number;
-  label: string;
+export interface CitiesPayload extends Record<string, unknown> {
+  country: number;
 }
 
-/** `POST /cat/municipalities` — shape similar a CityOption. */
-export interface MunicipalityOption {
-  value: number;
-  label: string;
+/** `POST /cat/cities` devuelve alias propios de la ruta ecommerce. */
+export interface City {
+  city: number;
+  description: string;
+}
+
+export interface MunicipalitiesPayload extends Record<string, unknown> {
+  city: number;
+}
+
+/** `POST /cat/municipalities` devuelve alias propios de la ruta ecommerce. */
+export interface Municipality {
+  municipality: number;
+  description: string;
 }
 
 export interface Gender {
@@ -110,9 +117,17 @@ export interface PublicationCategory {
   pubgen_description: string;
 }
 
+export interface PublicationTransactionsPayload extends Record<string, unknown> {
+  categorid: number;
+}
+
+/** `POST /cat/pubtransactions` devuelve la relación categoría-transacción. */
 export interface PublicationTransaction {
-  pubtra_id: number;
-  pubtra_description: string;
+  /** SIC backend: id de `cat_publication_transac_x_gender`, no de la transacción final. */
+  pubtraid: number;
+  /** SIC backend: id real de `cat_publication_transac`, usado por `POST /savepubl`. */
+  pubtraidaux: number;
+  description: string;
 }
 
 export interface PublicationStatus {
