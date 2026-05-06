@@ -121,7 +121,7 @@ El backend está estable y se comparte. La regla:
 | --- | --- | --- | --- |
 | **0** | Fundación técnica: env, React Query, ApiFetch endurecido, tipos API, este documento | ✅ Completada | 1–2 días |
 | **1** | Auth completa + middleware de protección de rutas | ✅ Completada | 1 día |
-| **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ⬜ Pendiente | 0.5 día |
+| **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ✅ Completada | 0.5 día |
 | **3** | Catálogo público y detalle de publicaciones | ⬜ Pendiente | 3 días |
 | **4** | Acciones de usuario logueado (favoritos, mis publicaciones, perfil) | ⬜ Pendiente | 2 días |
 | **5** | Wizard de crear/editar publicación + uploads | ⬜ Pendiente | 3–4 días |
@@ -289,3 +289,46 @@ Sin middleware, cualquier usuario puede navegar a `/my-publications` o `/message
 - ⚠️ **Next.js 13.4.6 tiene una vulnerabilidad de seguridad parcheada** en versiones posteriores (aviso del `npm install`). Planificar upgrade a 13.5.x antes de Fase 9.
 - ⚠️ Algunos endpoints "auth requerida" no aplican el middleware en backend (`PUT /publications/:id`, `POST /changestatus`, `POST /deleteimg`, `POST /getemployees`). Reportar y corregir en `// Codigo Aurelio` antes de exponerlos en el cliente nuevo.
 - ⚠️ Inconsistencia de shape en `GET /infoCustomer/:id` (devuelve array de un elemento). Normalizar en el hook `useSellerInfo()` de Fase 3.
+
+---
+
+### Fase 2 — Catálogos de referencia
+
+**Objetivo:** centralizar los catálogos del backend en hooks React Query tipados para que las fases de publicaciones, filtros, perfil y wizard no vuelvan a implementar `useEffect + useState` por cada selector.
+
+**Sub-tareas:**
+
+1. Verificar los shapes reales de los endpoints de catálogos en el backend sin modificarlo.
+2. Corregir `src/types/api.ts` para reflejar las respuestas reales:
+   - `GET /cat/countries` → `{ country, description }`.
+   - `POST /cat/cities` → `{ city, description }`.
+   - `POST /cat/municipalities` → `{ municipality, description }`.
+   - `POST /cat/pubtransactions` → `{ pubtraid, pubtraidaux, description }`.
+3. Crear `src/hooks/api/useCatalogs.ts` con hooks React Query para países, ciudades, municipios, categorías, transacciones y géneros.
+4. Usar `enabled` en catálogos dependientes:
+   - ciudades esperan `countryId`.
+   - municipios esperan `cityId`.
+   - transacciones esperan `categoryId`.
+5. Migrar `PersonalInfoTab` para consumir `useGenders()` en lugar de cargar géneros manualmente.
+
+#### Resultado
+
+- `tsc --noEmit` limpio.
+- `next build` pasa. Warnings existentes/no bloqueantes: `sharp` opcional no instalado y Google Fonts no se pudo optimizar por descarga bloqueada.
+- No se tocó backend.
+
+#### Archivos creados (1)
+
+- `src/hooks/api/useCatalogs.ts`
+
+#### Archivos modificados (3)
+
+- `src/types/api.ts`
+- `src/components/Creator-Profile-info/PersonalInfoTab.tsx`
+- `MIGRATION.md`
+
+#### Decisiones tomadas durante la fase
+
+1. **Los tipos reflejan las rutas ecommerce actuales**, no las rutas antiguas de inventario (`/cat/pubtra`, `/cat/pubgen`, etc.). Esto evita mezclar dos familias de catálogos que devuelven shapes distintos.
+2. **`pubtraid` y `pubtraidaux` se conservaron tal cual devuelve el backend.** `pubtraid` es el id de la relación categoría-transacción; `pubtraidaux` es el id real que usa `POST /savepubl`.
+3. **Los hooks aceptan `number | string | null | undefined` como entrada**, porque los formularios suelen trabajar con valores string. Internamente se normaliza a número y se deshabilita la query cuando no hay id válido.
