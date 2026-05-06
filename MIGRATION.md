@@ -1,6 +1,8 @@
 # Migración ecommerceGT → ecommerceGT-Next
 
 > Bitácora viva del proceso de migración del marketplace. Cada fase agrega su propia sección al final del documento con objetivo, archivos tocados y justificación. Este archivo es la fuente de verdad compartida con el equipo: cualquier decisión arquitectónica importante queda aquí, no solo en chats o PRs.
+>
+> **Para asistentes de IA (Claude, Gemini, ChatGPT, ...):** las reglas de trabajo (qué nunca hacer, convenciones técnicas, workflow por fase, plantillas de prompts) están en `AGENTS.md`. Leerlo PRIMERO. Este archivo solo contiene el estado del trabajo.
 
 ---
 
