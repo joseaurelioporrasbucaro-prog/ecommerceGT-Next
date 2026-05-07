@@ -1,11 +1,14 @@
 "use client";
 
 import React from 'react';
+import NiceSelect from '@/elements/niceSelect/NiceSelect';
 import type { PublicationCategory } from '@/types/api';
+import { SORT_OPTIONS, type SortOption } from './publicationUtils';
 
 export interface PublicationFilters {
   search: string;
   category: string;
+  sort: SortOption;
 }
 
 interface PublicationsBarProps {
@@ -14,14 +17,31 @@ interface PublicationsBarProps {
   onFiltersChange: (filters: PublicationFilters) => void;
 }
 
+const ALL_OPTION = { id: 0, option: 'Todas las propiedades' };
+
 const PublicationsBar = ({ filters, categories, onFiltersChange }: PublicationsBarProps) => {
+  const categoryOptions = [
+    ALL_OPTION,
+    ...categories.map((cat) => ({ id: cat.pubgen_id, option: cat.pubgen_description })),
+  ];
+
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onFiltersChange({ ...filters, search: event.target.value });
   };
 
-  const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onFiltersChange({ ...filters, category: event.target.value });
+  const handleCategoryChange = (item: { id: number; option: string }) => {
+    onFiltersChange({ ...filters, category: item.id === 0 ? '' : item.option });
   };
+
+  const handleSortChange = (item: { id: number; option: string }) => {
+    const sortOption = SORT_OPTIONS.find((opt) => opt.id === item.id);
+    if (sortOption) {
+      onFiltersChange({ ...filters, sort: sortOption.value });
+    }
+  };
+
+  // Default current del sort: posición de la opción activa actual
+  const currentSortIndex = SORT_OPTIONS.findIndex((opt) => opt.value === filters.sort);
 
   return (
     <div className="row wow fadeInUp">
@@ -32,19 +52,14 @@ const PublicationsBar = ({ filters, categories, onFiltersChange }: PublicationsB
         >
           <div className="filter-by-search mb-30">
             <div>
-              <select
-                className="item-category-select form-select"
-                value={filters.category}
+              <NiceSelect
+                key={categoryOptions.length}
+                options={categoryOptions}
+                defaultCurrent={0}
                 onChange={handleCategoryChange}
-                aria-label="Filtrar por categoría"
-              >
-                <option value="">Todas las propiedades</option>
-                {categories.map((category) => (
-                  <option key={category.pubgen_id} value={category.pubgen_description}>
-                    {category.pubgen_description}
-                  </option>
-                ))}
-              </select>
+                name="category"
+                className="item-category-select"
+              />
             </div>
             <div className="filter-search-input">
               <input
@@ -62,7 +77,15 @@ const PublicationsBar = ({ filters, categories, onFiltersChange }: PublicationsB
             <div className="select-category-title">
               <i className="flaticon-filter"></i> Filtros
             </div>
-            <div className="art-meta-type">Catálogo público</div>
+            <div>
+              <NiceSelect
+                options={SORT_OPTIONS}
+                defaultCurrent={currentSortIndex >= 0 ? currentSortIndex : 0}
+                onChange={handleSortChange}
+                name="sort"
+                className="sale-category-select"
+              />
+            </div>
           </div>
         </form>
       </div>

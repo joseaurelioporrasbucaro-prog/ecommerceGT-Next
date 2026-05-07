@@ -123,14 +123,15 @@ El backend está estable y se comparte. La regla:
 | **1** | Auth completa + middleware de protección de rutas | ✅ Completada | 1 día |
 | **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ✅ Completada | 0.5 día |
 | **3** | Catálogo público y detalle de publicaciones | ✅ Completada | 3 días |
-| **4** | Acciones de usuario logueado (favoritos, mis publicaciones, perfil) | ⬜ Pendiente | 2 días |
-| **5** | Wizard de crear/editar publicación + uploads | ⬜ Pendiente | 3–4 días |
+| **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ⬜ Pendiente | 2–3 días |
+| **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ⬜ Pendiente | 3–4 días |
 | **6** | Mensajería (inbox + conversación + polling) | ⬜ Pendiente | 2 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
-| **9** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
+| **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
+| **10** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
 
-**Total estimado:** 17–22 días de trabajo enfocado.
+**Total estimado:** 19–25 días de trabajo enfocado.
 
 ---
 
@@ -399,3 +400,96 @@ Sin middleware, cualquier usuario puede navegar a `/my-publications` o `/message
 2. **`useSellerInfo()` normaliza `SellerInfoResponse` dentro del hook.** Los componentes reciben `SellerInfo | null` y no necesitan conocer el array `[0]` del backend.
 3. **Los filtros del listado son client-side por ahora.** El endpoint `GET /publications` no acepta query params ni paginación, así que filtrar en el cliente evita tocar backend en esta fase.
 4. **Las rutas antiguas quedan como redirects.** Esto evita romper enlaces existentes del scaffold mientras la navegación canónica se mueve a `/publications`.
+5. **Galería estilo Facebook con `object-fit: contain`.** Las fotos verticales y horizontales se muestran completas sin recorte ni deformación; el fondo gradient oscuro rellena el `aspect-ratio: 16/9` fijo.
+6. **`PropertyFeatureIcon` con fallback automático.** El componente intenta renderizar SVG personalizado en `public/assets/img/property-icons/`; si el archivo no existe (404), cae automáticamente al icono Font Awesome equivalente. Permite agregar iconos custom sin romper la UI mientras tanto.
+7. **Username del vendedor mock.** Hasta que el backend agregue el campo `cus_username`, el handle `@<nombre>` se genera derivando del primer nombre. Lo conecta Fase 4 (ver §"Cambios planificados al backend").
+8. **Tags `Nuevo` (naranja) + `Destacada` (verde) coexisten.** El primer tag se asigna automáticamente a la publicación más reciente del orden cronológico; el segundo está cableado pero queda inactivo (`isFeatured={false}`) hasta que Fase 9 agregue sponsors.
+
+---
+
+## 9. Cambios planificados al backend (`Codigo Aurelio`)
+
+Lista de cambios que requerirán tocar `ecommerceGTBackEnd`. **Ninguno se ejecuta en Fase 3.** Cada uno se aplica en su fase correspondiente con autorización explícita del usuario.
+
+### Fase 4 — Refactor: extraer componente `<ForumComment />`
+
+La estructura del comentario (avatar + autor + fecha + contenido + meta + replies) está duplicada en `ForumMain.tsx` (scaffold original) y `PublicationComments.tsx` (Fase 3).
+
+Cuando lleguemos a Fase 4 y agreguemos el formulario de respuesta + likes funcionales, extraer:
+- `src/components/comments/ForumComment.tsx` — comentario raíz (con meta de likes/respuestas y caja de respuesta).
+- `src/components/comments/ForumReply.tsx` — respuesta anidada (con botón Reply).
+
+Usar el mismo componente en `/forum` y en `/publications/[id]`. Evita inconsistencias visuales entre ambas pantallas y facilita conectar las mutations a `POST /addcomment`.
+
+### Fase 4 — Username + favoritos con contador
+
+```sql
+-- Username único para handles (@usuario) y follow.
+ALTER TABLE customers ADD COLUMN cus_username VARCHAR(50);
+CREATE UNIQUE INDEX customers_username_unique ON customers(cus_username) WHERE cus_username IS NOT NULL;
+
+-- (opcional) backfill: generar username inicial a partir del nombre.
+UPDATE customers SET cus_username = LOWER(REGEXP_REPLACE(cus_first_name, '\\s+', '', 'g'))
+WHERE cus_username IS NULL;
+```
+
+**Endpoints nuevos:**
+- `PUT /username` — usuario logueado actualiza su handle (validar único, lowercase, sin espacios).
+- `GET /publication/:id` — agregar `favorites_count` (subquery `COUNT(*) FROM cat_favorites WHERE pub_id = ...`) y `is_favorite` (boolean derivado del usuario actual).
+
+**Frontend (Fase 4):** conectar `useFavoritesCount` y `useToggleFavorite`, reemplazar el mock `favoritesCount = 0` en `PublicationContent`, mostrar el handle real en lugar del derivado.
+
+### Fase 5 — Procesamiento de imágenes con `sharp`
+
+```bash
+# En el repo del backend
+npm install sharp
+```
+
+**Cambio en handler de upload (`Codigo Aurelio`):**
+- Recibir `multipart/form-data` con la foto original.
+- Generar 3 variantes con `sharp`:
+  - `_card.jpg` — 800×800, `fit: cover, position: 'attention'`, JPEG q80.
+  - `_detail.jpg` — 1600×900, `fit: cover, position: 'attention'`, JPEG q85.
+  - `_thumb.jpg` — 200×150, `fit: cover`, JPEG q75.
+- Guardar la `_detail.jpg` como principal en `pubima_url`.
+- Devolver al frontend el path de cada variante para que use el más apropiado.
+
+**Resultado:** las cards ya no recortan localmente — el backend entrega la imagen optimizada para cada lugar.
+
+### Fase 9 — Sponsors / publicaciones destacadas + follow
+
+```sql
+-- Marcar publicaciones como sponsoreadas (admin-only).
+ALTER TABLE publications ADD COLUMN pub_featured BOOLEAN DEFAULT FALSE;
+ALTER TABLE publications ADD COLUMN pub_featured_until TIMESTAMP NULL;
+CREATE INDEX publications_featured_idx ON publications(pub_featured) WHERE pub_featured = TRUE;
+
+-- Follow entre usuarios (vendedor/comprador).
+CREATE TABLE customer_follows (
+  follower_id INTEGER NOT NULL REFERENCES customers(cus_id) ON DELETE CASCADE,
+  followed_id INTEGER NOT NULL REFERENCES customers(cus_id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (follower_id, followed_id),
+  CHECK (follower_id <> followed_id)
+);
+CREATE INDEX customer_follows_followed_idx ON customer_follows(followed_id);
+```
+
+**Endpoints nuevos:**
+- `GET /publications` — agregar query param `featured=true` y devolver primero las destacadas vigentes (`pub_featured_until > NOW()`).
+- `POST /follow/:cus_id`, `DELETE /follow/:cus_id` — follow/unfollow.
+- `GET /follow/:cus_id/followers` — total de seguidores.
+- `GET /me/following` — lista de vendedores que sigo.
+
+**Frontend (Fase 9):**
+- Activar `isFeatured={publication.pub_featured}` en `PublicationCard`.
+- Botón "Seguir" en perfil del vendedor.
+- Sección "De los vendedores que sigues" en home/explore.
+
+### Endpoints de auth pendientes (cualquier fase)
+
+Detectados en revisiones anteriores; sin urgencia inmediata pero documentados:
+- `PUT /publications/:id`, `POST /changestatus`, `POST /deleteimg`, `POST /getemployees` — agregar middleware `auth` que falta.
+- Cookie en producción → `SameSite=None; Secure` (Fase 10 / deploy).
+- Refresh token para sesión > 1 hora (Fase 10).
