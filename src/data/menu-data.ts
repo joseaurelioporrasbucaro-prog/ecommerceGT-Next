@@ -17,8 +17,8 @@ export const MenuData = [
   {
     id: 2,
     hasDropdown: false,
-    title: "Explore",
-    link: "/explore-arts",
+    title: "Propiedades",
+    link: "/publications",
     pluseInco: false,
   },
   {
@@ -52,11 +52,11 @@ export const MenuData = [
       },
       {
         id: 8,
-        title: "Art",
-        link: "/art-details",
+        title: "Publicaciones",
+        link: "/publications",
         hasDropdown: true,
         submenus: [
-          { id: 9, title: "Art Details", link: "/art-details" },
+          { id: 9, title: "Catálogo público", link: "/publications" },
           { id: 10, title: "Upload Category", link: "/upload-category" },
           { id: 11, title: "Upload", link: "/upload" },
         ],
@@ -141,7 +141,7 @@ export const menuItems: MobileMenuItemType[] = [
       { label: "Home Style 3", href: "/home-three" },
     ],
   },
-  { id: 2, label: "Explore", subMenu: false, href: "/explore-arts" },
+  { id: 2, label: "Propiedades", subMenu: false, href: "/publications" },
   {
     id: 3,
     href: "",
@@ -159,12 +159,12 @@ export const menuItems: MobileMenuItemType[] = [
   {
     id: 4,
     href: "",
-    label: "Art",
+    label: "Publicaciones",
     subMenu: true,
     subMenuItems: [
       { label: "Upload Category", href: "/upload-category" },
       { label: "Upload", href: "/upload" },
-      { label: "Art Details", href: "/art-details" },
+      { label: "Catálogo público", href: "/publications" },
     ],
   },
   {

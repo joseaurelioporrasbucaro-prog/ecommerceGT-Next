@@ -20,8 +20,8 @@ const mobileMenuData = [
         ]
     },
     {
-        text: "Explore",
-        link: "/explore-arts"
+        text: "Propiedades",
+        link: "/publications"
     },
     {
         text: "Creator",
@@ -43,7 +43,7 @@ const mobileMenuData = [
         ]
     },
     {
-        text: "Art",
+        text: "Publicaciones",
         hasDropdown: true,
         
         "submenu": [
@@ -56,8 +56,8 @@ const mobileMenuData = [
                 link: "/upload"
             },
             {
-                text: "Art Details",
-                link: "/art-details"
+                text: "Catálogo público",
+                link: "/publications"
             }
         ]
     },
