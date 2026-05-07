@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import ForumComment from '@/components/comments/ForumComment';
 import ForumReply from '@/components/comments/ForumReply';
 import { ApiError } from '@/utils/Api';
@@ -47,6 +47,8 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
   const [content, setContent] = useState('');
   const [parentId, setParentId] = useState<number | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const rootComments = useMemo(
     () => comments.filter((c) => c.parent_id === null),
@@ -56,6 +58,15 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
   const replyTarget = parentId
     ? comments.find((comment) => comment.comment_id === parentId)
     : undefined;
+
+  // Cuando se hace click en Reply, baja el scroll al form y enfoca el textarea
+  const handleReplyClick = (rootCommentId: number) => {
+    setParentId(rootCommentId);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      textareaRef.current?.focus();
+    }, 50);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,51 +100,6 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
               <h2 className="section-main-title1">Comentarios</h2>
             </div>
 
-            <div className="publication-comment-form mb-30">
-              {user ? (
-                <form onSubmit={handleSubmit}>
-                  {replyTarget && (
-                    <div className="reply-target">
-                      Respondiendo a {replyTarget.cus_first_name} {replyTarget.cus_last_name}
-                      <button type="button" onClick={() => setParentId(null)}>
-                        Cancelar
-                      </button>
-                    </div>
-                  )}
-                  <textarea
-                    className="form-control"
-                    rows={4}
-                    value={content}
-                    onChange={(event) => setContent(event.target.value)}
-                    placeholder={parentId ? 'Escribe tu respuesta...' : 'Escribe un comentario...'}
-                    disabled={addCommentMutation.isPending}
-                  />
-                  {formError && <div className="text-danger mt-2">{formError}</div>}
-                  <button
-                    type="submit"
-                    className="fill-btn-rounded mt-15"
-                    disabled={addCommentMutation.isPending}
-                  >
-                    {parentId ? 'Responder' : 'Comentar'}
-                  </button>
-                </form>
-              ) : (
-                <div className="login-comment-box">
-                  <textarea
-                    className="form-control"
-                    rows={3}
-                    value=""
-                    placeholder="Inicia sesión para comentar"
-                    disabled
-                    readOnly
-                  />
-                  <Link href={`/login?from=${encodeURIComponent(`/publications/${pubId}`)}`} className="fill-btn-rounded mt-15">
-                    Inicia sesión para comentar
-                  </Link>
-                </div>
-              )}
-            </div>
-
             {commentsQuery.isLoading && (
               <div className="alert alert-info">Cargando comentarios...</div>
             )}
@@ -161,7 +127,7 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
                     time={time}
                     content={comment.content}
                     repliesCount={replies.length}
-                    onReply={user ? () => setParentId(comment.comment_id) : undefined}
+                    onReply={user ? () => handleReplyClick(comment.comment_id) : undefined}
                   >
                     {replies.length > 0 && (
                       <div className="q-answers mb-30">
@@ -176,7 +142,7 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
                               date={rDate}
                               time={rTime}
                               content={reply.content}
-                              onReply={user ? () => setParentId(comment.comment_id) : undefined}
+                              onReply={user ? () => handleReplyClick(comment.comment_id) : undefined}
                             />
                           );
                         })}
@@ -185,6 +151,59 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
                   </ForumComment>
                 );
               })}
+            </div>
+
+            {/* Form al FINAL — para que al hacer Reply el scroll baje hasta acá. */}
+            <div className="publication-comment-form mt-40" ref={formRef}>
+              {user ? (
+                <form onSubmit={handleSubmit}>
+                  {replyTarget && (
+                    <div className="reply-target">
+                      <span>
+                        <i className="fal fa-reply"></i>
+                        {' '}Respondiendo a <strong>{replyTarget.cus_first_name} {replyTarget.cus_last_name}</strong>
+                      </span>
+                      <button type="button" onClick={() => setParentId(null)}>
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                  <textarea
+                    ref={textareaRef}
+                    className="form-control"
+                    rows={4}
+                    value={content}
+                    onChange={(event) => setContent(event.target.value)}
+                    placeholder={parentId ? 'Escribe tu respuesta...' : 'Escribe un comentario...'}
+                    disabled={addCommentMutation.isPending}
+                  />
+                  {formError && <div className="text-danger mt-2">{formError}</div>}
+                  <button
+                    type="submit"
+                    className="fill-btn-rounded mt-15"
+                    disabled={addCommentMutation.isPending}
+                  >
+                    {parentId ? 'Enviar respuesta' : 'Comentar'}
+                  </button>
+                </form>
+              ) : (
+                <div className="login-comment-box">
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    value=""
+                    placeholder="Inicia sesión para comentar"
+                    disabled
+                    readOnly
+                  />
+                  <Link
+                    href={`/login?from=${encodeURIComponent(`/publications/${pubId}`)}`}
+                    className="fill-btn-rounded mt-15"
+                  >
+                    Inicia sesión para comentar
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -211,10 +230,37 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
         :global(.publication-comments-list .forum-reply-action:hover) {
           color: var(--tp-theme-1, #6c5ce7);
         }
+        /* ans-meta-content (likes + reply) en respuestas anidadas: con padding
+           lateral para que los botones no queden pegados al borde del card */
+        :global(.publication-comments-list .ans-meta-content) {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          padding: 14px 4px 4px;
+          margin-top: 12px;
+          border-top: 1px solid rgba(128, 128, 128, 0.18);
+        }
+        :global(.publication-comments-list .ans-meta-content .q-meta-item) {
+          padding: 0;
+          border: 0;
+          height: auto;
+          background: transparent;
+        }
+        :global(.publication-comments-list .ans-meta-content .q-meta-item button) {
+          background: transparent;
+          color: inherit;
+          border: 0;
+          cursor: pointer;
+          padding: 0;
+        }
+        :global(.publication-comments-list .ans-meta-content .q-meta-item button:hover) {
+          color: var(--tp-theme-1, #6c5ce7);
+        }
         .publication-comment-form {
           border: 1px solid rgba(128, 128, 128, 0.2);
           border-radius: 8px;
           padding: 18px;
+          background: rgba(128, 128, 128, 0.04);
         }
         .publication-comment-form :global(textarea) {
           resize: vertical;
@@ -227,6 +273,9 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
           justify-content: space-between;
           gap: 12px;
           margin-bottom: 12px;
+          padding: 8px 12px;
+          background: rgba(108, 92, 231, 0.1);
+          border-radius: 6px;
           font-size: 14px;
           color: var(--tp-theme-1, #6c5ce7);
         }
@@ -235,6 +284,7 @@ const PublicationComments = ({ pubId }: PublicationCommentsProps) => {
           border: 0;
           color: inherit;
           font-weight: 600;
+          cursor: pointer;
         }
         .login-comment-box {
           display: flex;
