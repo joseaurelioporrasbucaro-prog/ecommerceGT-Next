@@ -683,3 +683,15 @@ Detectados en revisiones anteriores; sin urgencia inmediata pero documentados:
 - `PUT /publications/:id`, `POST /changestatus`, `POST /deleteimg`, `POST /getemployees` — agregar middleware `auth` que falta.
 - Cookie en producción → `SameSite=None; Secure` (Fase 10 / deploy).
 - Refresh token para sesión > 1 hora (Fase 10).
+
+### Follow-up Fase 5 — Tag "Vendida" en cards públicas y favoritos
+
+Hoy `/my-publications` muestra tag "Vendida" porque `MyPublicationItem` incluye `pubsta_id`. Pero `/publications` y `/favorites` no lo muestran porque sus respuestas (`PublicationListItem`, `FavoriteItem`) no devuelven el status.
+
+**Cambio backend en `connPostgresDB.js` (// Codigo Aurelio):**
+- `getPublications` — agregar `p.pubsta_id` al SELECT (mantener filtro `pubsta_id <> 4` para anuladas, pero permitir status 3=Vendida).
+- `getMyFavorites` — agregar `p.pubsta_id` al SELECT.
+
+**Frontend:**
+- `PublicationListItem.pubstaId: number` y `FavoriteItem.pubstaId: number` en `types/api.ts`.
+- `PublicationCard` recibe `pubstaId` opcional y muestra tag "Vendida" rojo cuando `=== 3` (helper `getStatusBadge` ya existe en `MyPublicationsMain.tsx`, extraer a `publicationUtils.ts`).

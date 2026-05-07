@@ -3,6 +3,7 @@
 import React from 'react';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
+import AccountSidebar from '@/components/account/AccountSidebar';
 import { ApiError } from '@/utils/Api';
 import { useMyFavorites } from '@/hooks/api/useFavorites';
 import type { FavoriteItem, PublicationListItemAuth } from '@/types/api';
@@ -45,29 +46,37 @@ const FavoritesMain = () => {
       <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Mis favoritos" breadcrumbSubTitle="Mis favoritos" />
 
-      <section className="artworks-area pt-130 pb-90">
+      <section className="artworks-area pt-80 pb-90">
         <div className="container">
-          {favoritesQuery.isLoading && (
-            <div className="alert alert-info">Cargando favoritos...</div>
-          )}
-
-          {favoritesQuery.error && (
-            <div className="alert alert-danger">{getErrorMessage(favoritesQuery.error)}</div>
-          )}
-
-          {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length === 0 && (
-            <div className="alert alert-warning">
-              Todavía no tienes publicaciones guardadas como favoritas.
+          <div className="row">
+            <div className="col-lg-3 col-md-12 mb-30">
+              <AccountSidebar />
             </div>
-          )}
 
-          {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length > 0 && (
-            <div className="row wow fadeInUp">
-              {publications.map((publication) => (
-                <PublicationCard key={publication.id} publication={publication} />
-              ))}
+            <div className="col-lg-9 col-md-12">
+              {favoritesQuery.isLoading && (
+                <div className="alert alert-info">Cargando favoritos...</div>
+              )}
+
+              {favoritesQuery.error && (
+                <div className="alert alert-danger">{getErrorMessage(favoritesQuery.error)}</div>
+              )}
+
+              {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length === 0 && (
+                <div className="alert alert-warning">
+                  Todavía no tienes publicaciones guardadas como favoritas.
+                </div>
+              )}
+
+              {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length > 0 && (
+                <div className="row wow fadeInUp">
+                  {publications.map((publication) => (
+                    <PublicationCard key={publication.id} publication={publication} />
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </section>
     </main>
