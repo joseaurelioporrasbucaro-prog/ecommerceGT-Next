@@ -6,7 +6,42 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { ApiFetch } from "@/utils/Api";
+import { useCheckHandle, useHandleSuggestions } from "@/hooks/api/useHandle";
+import { ApiError, ApiFetch } from "@/utils/Api";
+import type { RegisterPayload } from "@/types/api";
+
+interface RegisterFormValues {
+  isBusiness: boolean;
+  noIdentification: string;
+  busNameC: string;
+  busName: string;
+  firstName: string;
+  lastName: string;
+  handle: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+function getSuggestionsFromError(error: unknown): string[] {
+  if (!(error instanceof ApiError)) {
+    return [];
+  }
+
+  const body = error.body;
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "suggestions" in body &&
+    Array.isArray((body as { suggestions?: unknown }).suggestions)
+  ) {
+    return (body as { suggestions: unknown[] }).suggestions.filter(
+      (suggestion): suggestion is string => typeof suggestion === "string",
+    );
+  }
+
+  return [];
+}
 
 const RegisterForm = () => {
   const router = useRouter();
@@ -45,12 +80,18 @@ const RegisterForm = () => {
       .matches(/[0-9]/, t("auth.validation.passwordNumber"))
       .required(t("auth.validation.requiredAll")),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password"), null as any], t("auth.validation.passwordMismatch"))
+      .oneOf([Yup.ref("password")], t("auth.validation.passwordMismatch"))
       .required(t("auth.validation.requiredAll")),
+    handle: Yup.string()
+      .matches(/^[a-z0-9_]{3,30}$/, {
+        message: "Usa 3 a 30 caracteres: minúsculas, números o guion bajo.",
+        excludeEmptyString: true,
+      })
+      .notRequired(),
   });
 
   // 2. Configuración de Formik
-  const formik = useFormik({
+  const formik = useFormik<RegisterFormValues>({
     initialValues: {
       isBusiness: false,
       noIdentification: "",
@@ -58,6 +99,7 @@ const RegisterForm = () => {
       busName: "",
       firstName: "",
       lastName: "",
+      handle: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -67,15 +109,18 @@ const RegisterForm = () => {
       setSubmitting(true);
       try {
         // 3. Replicamos EXACTAMENTE el payload de tu backend viejo
-        const payload: any = {
+        const payload: RegisterPayload = {
           firstName: values.firstName.trim(),
           lastName: values.lastName.trim(),
           email: values.email.trim(),
           password: values.password,
-          confirmPassword: values.confirmPassword,
           isEmployee: false,
           isBusiness: values.isBusiness,
         };
+        const normalizedHandle = values.handle.trim().toLowerCase();
+        if (normalizedHandle) {
+          payload.handle = normalizedHandle;
+        }
 
         if (values.isBusiness) {
           payload.busId = values.noIdentification.trim();
@@ -90,13 +135,23 @@ const RegisterForm = () => {
         resetForm();
         router.push("/login"); // Redirección al Login como lo tenías antes
 
-      } catch (error: any) {
-        toast.error(error.message || "Error al crear la cuenta");
+      } catch (error: unknown) {
+        const suggestions = getSuggestionsFromError(error);
+        if (suggestions.length > 0) {
+          await formik.setFieldValue("handle", suggestions[0]);
+        }
+        toast.error(error instanceof ApiError ? error.message : "Error al crear la cuenta");
       } finally {
         setSubmitting(false);
       }
     },
   });
+  const normalizedHandle = formik.values.handle.trim().toLowerCase();
+  const shouldCheckHandle = normalizedHandle.length >= 3;
+  const handleCheckQuery = useCheckHandle(normalizedHandle);
+  const handleSuggestionsQuery = useHandleSuggestions(normalizedHandle);
+  const handleSuggestions = handleSuggestionsQuery.data?.suggestions ?? [];
+  const handleIsAvailable = shouldCheckHandle ? handleCheckQuery.data?.available : undefined;
 
   // Función de ayuda para pintar los errores en rojo fácilmente
   const renderError = (field: keyof typeof formik.values) => {
@@ -209,6 +264,50 @@ const RegisterForm = () => {
             {renderError("email")}
           </div>
         </div>
+        <div className="col-md-12">
+          <div className="single-input-unit handle-input-unit">
+            <label>Nombre de usuario</label>
+            <div className="handle-input-wrap">
+              <input
+                type="text"
+                name="handle"
+                onChange={(event) => {
+                  void formik.setFieldValue("handle", event.target.value.toLowerCase());
+                }}
+                onBlur={formik.handleBlur}
+                value={formik.values.handle}
+                placeholder="opcional, ej. ana_garcia"
+              />
+              {shouldCheckHandle && (
+                <span className={`handle-status ${handleIsAvailable ? "is-valid" : "is-invalid"}`}>
+                  <i className={handleIsAvailable ? "fas fa-check" : "fas fa-times"}></i>
+                </span>
+              )}
+            </div>
+            {renderError("handle")}
+            {shouldCheckHandle && handleIsAvailable === false && handleSuggestions.length > 0 && (
+              <div className="handle-suggestions">
+                {handleSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => {
+                      void formik.setFieldValue("handle", suggestion);
+                    }}
+                  >
+                    @{suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
+            {shouldCheckHandle && handleIsAvailable === true && (
+              <div className="handle-help is-valid">Nombre disponible</div>
+            )}
+            {shouldCheckHandle && handleIsAvailable === false && (
+              <div className="handle-help is-invalid">Ese nombre ya está ocupado.</div>
+            )}
+          </div>
+        </div>
         <div className="col-md-6">
           <div className="single-input-unit">
             <label>{t("auth.register.password")}</label>
@@ -236,6 +335,52 @@ const RegisterForm = () => {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .handle-input-wrap {
+          position: relative;
+        }
+        .handle-input-wrap input {
+          padding-right: 44px;
+        }
+        .handle-status {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 16px;
+        }
+        .handle-status.is-valid,
+        .handle-help.is-valid {
+          color: #2ed573;
+        }
+        .handle-status.is-invalid,
+        .handle-help.is-invalid {
+          color: #ff4757;
+        }
+        .handle-help {
+          font-size: 12px;
+          margin-top: 6px;
+        }
+        .handle-suggestions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .handle-suggestions button {
+          border: 1px solid rgba(128, 128, 128, 0.25);
+          background: transparent;
+          color: inherit;
+          border-radius: 18px;
+          padding: 5px 12px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .handle-suggestions button:hover {
+          border-color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #6c5ce7);
+        }
+      `}</style>
 
       <div className="sign-up-btn mt-10">
         <button className="fill-btn" type="submit" disabled={formik.isSubmitting}>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
+import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import type { AnyPublicationListItem } from '@/types/api';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
 import {
@@ -30,6 +31,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
 
   const [hoverIndex, setHoverIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const toggleFavoriteMutation = useToggleFavorite(publication.id);
 
   const currentImage = imageError
     ? CARD_PLACEHOLDER
@@ -55,6 +57,9 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
 
   const handleMouseLeave = () => setHoverIndex(0);
   const handleImageError = () => { if (!imageError) setImageError(true); };
+  const handleToggleFavorite = () => {
+    toggleFavoriteMutation.mutate();
+  };
 
   return (
     <div className="col-xl-4 col-lg-6 col-md-6 col-sm-12 d-flex">
@@ -124,8 +129,10 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
                 <button
                   type="button"
                   className={`publication-like-btn ${isFavorite ? 'is-active' : ''}`}
-                  title={isFavorite ? 'Favorito' : 'Guardar (Fase 4)'}
-                  aria-label="Guardar como favorito"
+                  title={isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
+                  aria-label={isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
+                  onClick={handleToggleFavorite}
+                  disabled={toggleFavoriteMutation.isPending}
                 >
                   <i className={isFavorite ? 'fas fa-heart' : 'far fa-heart'}></i>
                 </button>
@@ -312,6 +319,10 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
           .publication-card :global(.publication-like-btn.is-active) {
             color: #ff4757;
             border-color: #ff4757;
+          }
+          .publication-card :global(.publication-like-btn:disabled) {
+            cursor: wait;
+            opacity: 0.7;
           }
 
           /* ──────────────── Título ──────────────── */

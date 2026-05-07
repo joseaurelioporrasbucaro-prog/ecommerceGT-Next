@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import { useCities, useCountries, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useSellerInfo } from '@/hooks/api/usePublications';
 import type { PublicationDetail } from '@/types/api';
@@ -21,15 +22,11 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
   const citiesQuery = useCities(publication.cou_id);
   const municipalitiesQuery = useMunicipalities(publication.cit_id);
   const sellerQuery = useSellerInfo(publication.cus_id);
+  const toggleFavoriteMutation = useToggleFavorite(publication.pub_id);
 
   const seller = sellerQuery.data;
   const sellerName = seller ? `${seller.firstName} ${seller.lastName}` : publication.user;
-
-  // Username placeholder (Fase futura: agregar campo `username` al backend).
-  // Por ahora mostramos el primer nombre con @ como handle visual.
-  const sellerHandle = seller
-    ? `@${seller.firstName.toLowerCase().replace(/\s+/g, '')}`
-    : '@vendedor';
+  const sellerHandle = seller?.handle ? `@${seller.handle}` : '@vendedor';
   const sellerImage = seller?.imageUrl ? getBackendUrl(seller.imageUrl) : DEFAULT_AVATAR;
   const [avatarErrored, setAvatarErrored] = useState(false);
 
@@ -37,9 +34,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
   const cityName = citiesQuery.data?.find((c) => c.city === publication.cit_id)?.description;
   const municipalityName = municipalitiesQuery.data?.find((m) => m.municipality === publication.tow_id)?.description;
 
-  // Contador de favoritos — mock por ahora (Fase 4 conecta con backend).
-  // Cuando el backend devuelva `favoritesCount` en `PublicationDetail`, lo reemplazamos.
-  const favoritesCount = 0;
+  const favoritesCount = publication.favoritesCount;
 
   return (
     <section className="art-details-area pt-50 pb-0">
@@ -109,11 +104,13 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
             </Link>
             <button
               type="button"
-              className="action-btn action-btn-secondary"
-              title="Guardar como favorito (Fase 4)"
-              aria-label="Guardar como favorito"
+              className={`action-btn action-btn-secondary ${publication.isFavorite ? 'is-favorite' : ''}`}
+              title={publication.isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
+              aria-label={publication.isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
+              onClick={() => toggleFavoriteMutation.mutate()}
+              disabled={toggleFavoriteMutation.isPending}
             >
-              <i className="far fa-heart"></i>
+              <i className={publication.isFavorite ? 'fas fa-heart' : 'far fa-heart'}></i>
               <span className="favorites-count">{favoritesCount}</span>
             </button>
             <button
@@ -346,6 +343,14 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         .action-row :global(.action-btn-secondary:hover) {
           border-color: var(--tp-theme-1, #6c5ce7);
           color: var(--tp-theme-1, #6c5ce7);
+        }
+        .action-row :global(.action-btn-secondary.is-favorite) {
+          border-color: #ff4757;
+          color: #ff4757;
+        }
+        .action-row :global(.action-btn:disabled) {
+          cursor: wait;
+          opacity: 0.75;
         }
         .action-row :global(.favorites-count) {
           font-size: 14px;

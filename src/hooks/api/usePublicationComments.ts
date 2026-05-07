@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiFetch } from '@/utils/Api';
-import type { Comment } from '@/types/api';
+import type { AddCommentPayload, AddCommentResponse, Comment } from '@/types/api';
 
 export const PUBLICATION_COMMENTS_QUERY_KEY = ['publicationComments'] as const;
 
@@ -28,5 +28,29 @@ export function usePublicationComments(pubId: number | string | null | undefined
     enabled: publicationId !== null,
     retry: false,
     staleTime: 60_000,
+  });
+}
+
+export function useAddComment(pubId: number | string | null | undefined) {
+  const publicationId = parsePublicationId(pubId);
+  const queryClient = useQueryClient();
+
+  return useMutation<AddCommentResponse, Error, Omit<AddCommentPayload, 'pub_id'>>({
+    mutationFn: (payload) => {
+      if (publicationId === null) {
+        return Promise.reject(new Error('Publicación inválida'));
+      }
+
+      return ApiFetch.post<AddCommentResponse>('/addcomment', {
+        pub_id: publicationId,
+        content: payload.content,
+        parent_id: payload.parent_id ?? null,
+      });
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [...PUBLICATION_COMMENTS_QUERY_KEY, publicationId] as const,
+      });
+    },
   });
 }
