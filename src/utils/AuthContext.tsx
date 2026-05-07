@@ -23,8 +23,8 @@ interface AuthContextType {
   checkAuth: () => Promise<void>;
   /** Llama POST /logout, limpia el estado local y el caché de React Query. */
   logout: () => Promise<void>;
-  userForgot: any;
-  setUserForgot: React.Dispatch<React.SetStateAction<any>>;
+  userForgot: unknown;
+  setUserForgot: React.Dispatch<React.SetStateAction<unknown>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,7 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userForgot, setUserForgot] = useState<any>(null);
+  const [userForgot, setUserForgot] = useState<unknown>(null);
   const queryClient = useQueryClient();
 
   const checkAuth = async () => {
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
    */
   const logout = async () => {
     try {
-      await ApiFetch.post('/logout');
+      await ApiFetch.post<{ message?: string }>('/logout');
     } catch {
       // Si el backend falla (ej. sesión ya expirada), igual limpiamos localmente.
     }

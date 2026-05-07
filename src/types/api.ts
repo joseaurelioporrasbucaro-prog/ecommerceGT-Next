@@ -27,12 +27,20 @@ export interface ApiErrorBody {
 /**
  * Usuario tal como lo devuelve `GET /me`.
  * Mapeado manualmente en el backend (verifyMe), por eso sí respeta camelCase.
+ *
+ * IMPORTANTE: el campo `cus_user_name` del backend es legacy y guarda el email
+ * (se usa para login). El handle público con `@` vive en `cus_handle`,
+ * mapeado acá como `handle`.
  */
 export interface AuthUser {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
+  /** Alias público (@handle), único. Null hasta que el usuario lo configure. */
+  handle: string | null;
+  /** Veces que el usuario ya cambió su handle público. Límite actual: 2. */
+  handleChangesCount: number;
   address: string | null;
   phone: string | null;
   birthday: string | null;
@@ -40,6 +48,25 @@ export interface AuthUser {
   lang: string | null;
   isAdmin: boolean;
   imagenu: string | null;
+}
+
+/** Payload para `PUT /handle`. */
+export interface UpdateHandlePayload extends Record<string, unknown> {
+  handle: string;
+}
+
+export interface UpdateHandleResponse {
+  message: string;
+  handle: string;
+  handleChangesCount: number;
+}
+
+export interface HandleCheckResponse {
+  available: boolean;
+}
+
+export interface HandleSuggestionsResponse {
+  suggestions: string[];
 }
 
 export interface MeResponse {
@@ -66,14 +93,16 @@ export interface LoginForceResetResponse {
 
 export type LoginResponse = LoginSuccessResponse | LoginForceResetResponse;
 
-export interface RegisterPayload {
+export interface RegisterPayload extends Record<string, unknown> {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
+  handle?: string;
   isBusiness?: boolean;
   isEmployee?: boolean;
-  busId?: number;
+  busId?: number | string;
+  busTName?: string;
   busName?: string;
 }
 
@@ -215,6 +244,10 @@ export interface PublicationDetail {
   tow_id: number | null;
   /** Concatenación `cus_first_name || ' ' || cus_last_name` desde el backend. */
   user: string;
+  /** Conteo de filas activas en `ecom.publications_favorites`. */
+  favoritesCount: number;
+  /** Si el usuario autenticado ya guardó esta publicación. False sin sesión. */
+  isFavorite: boolean;
   images: PublicationImage[];
 }
 
@@ -300,6 +333,19 @@ export interface AddCommentPayload {
   parent_id?: number | null;
 }
 
+export interface AddCommentResponse {
+  message: string;
+  comment: Comment;
+}
+
+export interface ToggleFavoritePayload extends Record<string, unknown> {
+  idpubli: number;
+}
+
+export interface ToggleFavoriteResponse {
+  message: string;
+}
+
 // ============================================================================
 // Mensajería
 // ============================================================================
@@ -345,6 +391,7 @@ export interface UnreadCountResponse {
 export interface SellerInfoRow {
   firstname: string;
   lastname: string;
+  handle: string | null;
   imagenu: string | null;
   totalpublis: string | number;
 }

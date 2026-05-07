@@ -102,6 +102,8 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                                     <div className="profile-action"> 
                                        <ul>
                                           <li><Link href="/creator-profile-info-personal"><i className="fal fa-user"></i>{t('auth.login.myProfile') || 'Profile'}</Link></li>
+                                          <li><Link href="/my-publications"><i className="fal fa-th-large"></i>Mis publicaciones</Link></li>
+                                          <li><Link href="/favorites"><i className="fal fa-heart"></i>Favoritos</Link></li>
                                           <li><a href="#" onClick={handleLogout}><i className="fal fa-sign-out"></i>{t('auth.login.singout') || 'Logout'}</a></li>
                                        </ul>
                                     </div>

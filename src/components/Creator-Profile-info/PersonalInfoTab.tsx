@@ -1,16 +1,35 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/utils/AuthContext';
-import { ApiFetch } from '@/utils/Api';
+import { ApiError, ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useGenders } from '@/hooks/api/useCatalogs';
+import { useCheckHandle, useUpdateHandle } from '@/hooks/api/useHandle';
+
+interface UpdateInfoResponse {
+    message?: string;
+}
 
 const PersonalInfoTab = () => {
     const { user, checkAuth } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [handleValue, setHandleValue] = useState(user?.handle ?? '');
     const { data: genders = [] } = useGenders();
+    const updateHandleMutation = useUpdateHandle();
+    const normalizedHandle = handleValue.trim().toLowerCase();
+    const handleChangesCount = user?.handleChangesCount ?? 0;
+    const availableHandleChanges = Math.max(0, 2 - handleChangesCount);
+    const handleLimitReached = handleChangesCount >= 2;
+    const handleChanged = normalizedHandle !== (user?.handle ?? '');
+    const handleFormatIsValid = /^[a-z0-9_]{3,30}$/.test(normalizedHandle);
+    const handleCheckQuery = useCheckHandle(normalizedHandle);
+    const handleAvailable = handleChanged ? handleCheckQuery.data?.available : true;
+
+    useEffect(() => {
+        setHandleValue(user?.handle ?? '');
+    }, [user?.handle]);
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -36,7 +55,7 @@ const PersonalInfoTab = () => {
             setLoading(true);
             try {
                 // 1. Enviamos Datos Personales
-                await ApiFetch.post('/changeinfoa', {
+                await ApiFetch.post<UpdateInfoResponse>('/changeinfoa', {
                     firstName: values.firstName,
                     lastName: values.lastName,
                     birthday: values.birthday,
@@ -45,7 +64,7 @@ const PersonalInfoTab = () => {
                 });
 
                 // 2. Enviamos Datos de Contacto/Ubicación
-                await ApiFetch.post('/changeinfob', {
+                await ApiFetch.post<UpdateInfoResponse>('/changeinfob', {
                     phone: values.phone,
                     address: values.address,
                     imagen: user?.imagenu || '' // Conservamos la imagen por ahora
@@ -54,23 +73,91 @@ const PersonalInfoTab = () => {
                 toast.success("¡Toda la información actualizada!");
                 await checkAuth();
             } catch (error) {
-                toast.error("Error al actualizar la información");
+                toast.error(error instanceof ApiError ? error.message : "Error al actualizar la información");
             } finally {
                 setLoading(false);
             }
         }
     });
 
-    const renderError = (field: string) => {
-        if (formik.touched[field as keyof typeof formik.values] && formik.errors[field as keyof typeof formik.values]) {
-            return <span className="text-danger" style={{ fontSize: '12px' }}>{formik.errors[field as keyof typeof formik.values] as string}</span>;
+    const renderError = (field: keyof typeof formik.values) => {
+        if (formik.touched[field] && formik.errors[field]) {
+            return <span className="text-danger" style={{ fontSize: '12px' }}>{formik.errors[field] as string}</span>;
         }
         return null;
+    };
+
+    const handleSubmitHandle = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!handleFormatIsValid) {
+            toast.error('Usa 3 a 30 caracteres: minúsculas, números o guion bajo.');
+            return;
+        }
+
+        try {
+            await updateHandleMutation.mutateAsync({ handle: normalizedHandle });
+            toast.success('Nombre de usuario actualizado.');
+            await checkAuth();
+        } catch (error) {
+            toast.error(error instanceof ApiError ? error.message : 'Error inesperado');
+        }
     };
 
     return (
         <>
             <h4 className="mb-4">Información Personal</h4>
+            <form className="personal-info-form mb-5" onSubmit={handleSubmitHandle}>
+                <div className="row">
+                    <div className="col-md-8">
+                        <div className="single-input-unit">
+                            <label>Nombre de usuario</label>
+                            <input
+                                type="text"
+                                value={handleValue}
+                                onChange={(event) => setHandleValue(event.target.value.toLowerCase())}
+                                disabled={handleLimitReached}
+                                title={handleLimitReached ? 'Has alcanzado el límite de 2 cambios.' : undefined}
+                                placeholder="ej. ana_garcia"
+                            />
+                            <span className="handle-counter">
+                                Cambios disponibles: {availableHandleChanges} / 2
+                            </span>
+                            {handleLimitReached && (
+                                <span className="text-muted d-block mt-1" style={{ fontSize: '12px' }}>
+                                    Has alcanzado el límite de cambios para tu nombre de usuario.
+                                </span>
+                            )}
+                            {handleChanged && handleFormatIsValid && handleAvailable === false && (
+                                <span className="text-danger d-block mt-1" style={{ fontSize: '12px' }}>
+                                    Ese nombre de usuario ya está ocupado.
+                                </span>
+                            )}
+                            {handleChanged && handleFormatIsValid && handleAvailable === true && (
+                                <span className="text-success d-block mt-1" style={{ fontSize: '12px' }}>
+                                    Nombre disponible.
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="col-md-4 d-flex align-items-end">
+                        <button
+                            type="submit"
+                            className="fill-btn mb-30"
+                            disabled={
+                                handleLimitReached ||
+                                !handleChanged ||
+                                !handleFormatIsValid ||
+                                handleAvailable === false ||
+                                handleCheckQuery.isFetching ||
+                                updateHandleMutation.isPending
+                            }
+                        >
+                            {updateHandleMutation.isPending ? 'Guardando...' : 'Guardar usuario'}
+                        </button>
+                    </div>
+                </div>
+            </form>
             <form className="personal-info-form mb-5" onSubmit={formik.handleSubmit}>
                 <div className="row">
                     <div className="col-md-6">

@@ -10,6 +10,7 @@ import type {
 export interface SellerInfo {
   firstName: string;
   lastName: string;
+  handle: string | null;
   imageUrl: string | null;
   totalPublications: number;
 }
@@ -37,6 +38,7 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
   return {
     firstName: row.firstname,
     lastName: row.lastname,
+    handle: row.handle,
     imageUrl: row.imagenu,
     totalPublications: Number.isFinite(totalPublications) ? totalPublications : 0,
   };

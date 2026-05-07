@@ -11,6 +11,8 @@ import Image from "next/image";
 import thumb from "../../../public/assets/img/profile/profile4.jpg";
 import CreateQuestion from "@/form/CreateQuestion";
 import CategoryNav from "./CategoryNav";
+import ForumComment from "@/components/comments/ForumComment";
+import ForumReply from "@/components/comments/ForumReply";
 const ForumMain = () => {
    const [itemId, setItemId] = useState(1) 
   const selectHandler = () => {};
@@ -61,130 +63,27 @@ const ForumMain = () => {
                     >
                       <div className="forum-post-wrapper mb-30">
                         {item.forumPost.map((post, index) => (
-                          <div
+                          <ForumComment
                             key={index}
-                            className={`q-single-wrapper mb-30 ${
-                              post.showComment === true ? "comments-show" : ""
-                            }`}
-                          >
-                            <div className="q-single-content">
-                              <div className="author-name-time">
-                                <div className="profile-img pos-rel">
-                                  <Link href="/creator-profile">
-                                    <Image
-                                      src={post.creatorImg}
-                                      alt="profile-img"
-                                      width={50}
-                                      height={50}
-                                      style={{ width: "100%", height: "auto" }}
-                                    />
-                                  </Link>
-                                </div>
-                                <div className="name-post-time">
-                                  <h4 className="artist-name">
-                                    <Link href="/creator-profile">
-                                      {" "}
-                                      {post.name}{" "}
-                                    </Link>
-                                  </h4>
-                                  <div className="post-date-time">
-                                    <div className="post-date">
-                                      {" "}
-                                      {post.date}{" "}
-                                    </div>
-                                    <div className="post-time item-border-before">
-                                      {" "}
-                                      {post.time}{" "}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <h4 className="post-question">
-                                {" "}
-                                {post.postQuestion}{" "}
-                              </h4>
-                              <p> {post.postDetails} </p>
+                            authorName={post.name}
+                            authorHref="/creator-profile"
+                            avatarSrc={post.creatorImg}
+                            date={post.date}
+                            time={post.time}
+                            title={post.postQuestion}
+                            content={post.postDetails}
+                            likes={Number(post.like)}
+                            repliesCount={Number(post.comment)}
+                            afterContent={(
                               <div className="tags-list post-inner-tags">
-                                {post.tags.map((tagItem, index) => (
-                                  <Link key={index} href="" className="tag">
+                                {post.tags.map((tagItem, tagIndex) => (
+                                  <Link key={tagIndex} href="" className="tag">
                                     #{tagItem.tag}
                                   </Link>
                                 ))}
                               </div>
-                            </div>
-                            <div className="q-meta-content">
-                              <div className="q-meta-item">
-                                <div className="q-meta-icon">
-                                  <i className="flaticon-heart"></i>
-                                </div>
-                                <div className="q-meta-likes">
-                                  {" "}
-                                  {post.like}{" "}
-                                </div>
-                                <div className="q-meta-type">
-                                  {" "}
-                                  {post.likeTitle}{" "}
-                                </div>
-                              </div>
-                              <div className="q-meta-item">
-                                <a href="#">
-                                  <div className="q-meta-icon">
-                                    <i className="flaticon-chatting"></i>
-                                  </div>
-                                  <div className="q-meta-comments">
-                                    {" "}
-                                    {post.comment}{" "}
-                                  </div>
-                                  <div className="q-meta-type">
-                                    {" "}
-                                    {post.commentTitle}{" "}
-                                  </div>
-                                </a>
-                              </div>
-                              <div className="q-meta-item">
-                                <div className="q-meta-icon">
-                                  <i className="flaticon-share-1"></i>
-                                </div>
-                                <div className="q-meta-shares">
-                                  {" "}
-                                  {post.shere}{" "}
-                                </div>
-                                <div className="q-meta-type">
-                                  {" "}
-                                  {post.shereTitle}{" "}
-                                </div>
-                              </div>
-                              <div className="q-meta-item">
-                                <div className="q-meta-viewed-member">
-                                  {post.viewMember.map((member, index) => (
-                                    <div
-                                      key={index}
-                                      className="profile-img pos-rel"
-                                    >
-                                      <Link href="/creator-profile">
-                                        <Image
-                                          src={member.img}
-                                          alt="profile-img"
-                                          width={35}
-                                          height={35}
-                                          style={{
-                                            width: "100%",
-                                            height: "auto",
-                                          }}
-                                        />
-                                      </Link>
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="q-meta-views">
-                                  +{post.views}
-                                </div>
-                                <div className="q-meta-type">
-                                  {" "}
-                                  {post.viewTitle}{" "}
-                                </div>
-                              </div>
-                            </div>
+                            )}
+                          >
                             {post.questionAnswer?.length ? (
                               <>
                                 <form
@@ -208,11 +107,11 @@ const ForumMain = () => {
                                   <div className="answer-submit">
                                     <textarea
                                       name="answer"
-                                      placeholder="Your answer"
+                                      placeholder="Tu respuesta"
                                     ></textarea>
                                     <div className="answer-submit-btn">
                                       <button className="fill-btn">
-                                        Answer
+                                        Responder
                                       </button>
                                     </div>
                                   </div>
@@ -220,87 +119,29 @@ const ForumMain = () => {
                                 <div className="q-answers mb-30">
                                   {post.questionAnswer.map(
                                     (postItem, index) => (
-                                      <div
+                                      <ForumReply
                                         key={index}
-                                        className="q-single-answer"
-                                      >
-                                        <div className="author-name-time">
-                                          <div className="profile-img pos-rel">
-                                            <Link href="/creator-profile">
-                                              <Image
-                                                src={postItem.profileImg}
-                                                alt="profile-img"
-                                                width={50}
-                                                height={50}
-                                                style={{
-                                                  width: "100%",
-                                                  height: "auto",
-                                                }}
-                                              />
-                                            </Link>
-                                          </div>
-                                          <div className="name-post-time">
-                                            <h4 className="artist-name">
-                                              <Link href="/creator-profile">
-                                                {" "}
-                                                {postItem.artistName}{" "}
-                                              </Link>
-                                            </h4>
-                                            <div className="post-date-time">
-                                              <div className="post-date">
-                                                {" "}
-                                                {postItem.date}{" "}
-                                              </div>
-                                              <div className="post-time item-border-before">
-                                                {" "}
-                                                {postItem.time}{" "}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div className="answer-text">
-                                          {postItem.comment}
-                                        </div>
-                                        <div className="ans-meta-content">
-                                          <div className="q-meta-item">
-                                            <div className="q-meta-icon">
-                                              <i className="flaticon-heart"></i>
-                                            </div>
-                                            <div className="q-meta-likes">
-                                              {postItem.like}
-                                            </div>
-                                            <div className="q-meta-type">
-                                              {" "}
-                                              {postItem.likeTitle}{" "}
-                                            </div>
-                                          </div>
-                                          <div className="q-meta-item">
-                                            <button>
-                                              <span className="q-meta-icon">
-                                                <i className="flaticon-share-1"></i>
-                                              </span>
-                                              <span className="q-meta-type">
-                                                Reply
-                                              </span>
-                                            </button>
-                                          </div>
-                                        </div>
-                                      </div>
+                                        authorName={postItem.artistName}
+                                        authorHref="/creator-profile"
+                                        avatarSrc={postItem.profileImg}
+                                        date={postItem.date}
+                                        time={postItem.time}
+                                        content={postItem.comment}
+                                      />
                                     )
                                   )}
                                 </div>
                                 <div className="q-answers-btn">
                               <a href="#" className="border-btn">
-                                <i className="flaticon-reload"></i>View More
-                                Answers
+                                <i className="flaticon-reload"></i>Ver más
+                                respuestas
                               </a>
                             </div>
                               </>
                             ) : (
                               <></>
                             )}
-                           
-                          </div>
+                          </ForumComment>
                         ))}
                       </div>
                     </div>

@@ -123,7 +123,7 @@ El backend está estable y se comparte. La regla:
 | **1** | Auth completa + middleware de protección de rutas | ✅ Completada | 1 día |
 | **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ✅ Completada | 0.5 día |
 | **3** | Catálogo público y detalle de publicaciones | ✅ Completada | 3 días |
-| **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ⬜ Pendiente | 2–3 días |
+| **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ✅ Completada | 2–3 días |
 | **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ⬜ Pendiente | 3–4 días |
 | **6** | Mensajería (inbox + conversación + polling) | ⬜ Pendiente | 2 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
@@ -407,6 +407,97 @@ Sin middleware, cualquier usuario puede navegar a `/my-publications` o `/message
 
 ---
 
+### Fase 4 — Acciones de usuario logueado + handle público
+
+**Objetivo:** conectar acciones autenticadas sobre publicaciones (favoritos, comentarios, mis publicaciones) y reemplazar el handle visual derivado por un handle público real (`cus_handle`) sin romper el login por email (`cus_user_name`).
+
+**Auditoría previa de backend (`AGENTS.md §12`):**
+
+- Se leyó `ecommerceGTBackEnd/database.sql` antes de proponer o aplicar cambios.
+- `cus_handle` y `cus_handle_changes_count` ya existen en `ecom.customer`; no se agregó ningún `ALTER TABLE` ni se creó columna nueva.
+- `cus_user_name` se conserva como email de login.
+- Las consultas nuevas/modificadas usan `ecom.` explícito para tablas nuevas o tocadas en esta fase.
+- La tabla de favoritos correcta es `ecom.publications_favorites`.
+
+**Backend (`Codigo Aurelio`) aplicado en `ecommerceGTBackEnd`:**
+
+1. `server.js`:
+   - `GET /handle/check/:handle`.
+   - `GET /handle/suggestions?base=<handle>`.
+   - `PUT /handle` con `authMiddleware`.
+   - `GET /publication/:id` pasa a `authMiddlewareAux` para poder devolver `isFavorite` sin requerir sesión.
+2. `config/connPostgresDB.js`:
+   - Helpers de normalización/validación de handles con regex `^[a-z0-9_]{3,30}$`.
+   - Sugerencias disponibles por base + sufijos y apellido.
+   - `PUT /handle`: valida formato, unicidad y límite de 2 cambios.
+   - `POST /register`: acepta `handle?: string`; si no llega, genera uno disponible desde el nombre.
+   - `GET /me`: devuelve `handle` y `handleChangesCount`.
+   - `GET /publication/:id`: devuelve `favoritesCount` e `isFavorite`.
+   - Favoritos, comentarios y mis publicaciones usan tablas `ecom.*` en las rutas tocadas.
+
+**Frontend aplicado en `ecommerceGT-Next`:**
+
+1. Tipos:
+   - `AuthUser.handle`, `AuthUser.handleChangesCount`.
+   - `HandleCheckResponse`, `HandleSuggestionsResponse`, `UpdateHandleResponse`.
+   - `PublicationDetail.favoritesCount` y `PublicationDetail.isFavorite`.
+   - `RegisterPayload.handle`.
+2. Hooks:
+   - `useHandle.ts`: disponibilidad, sugerencias y actualización de handle.
+   - `useFavorites.ts`: `useToggleFavorite()` con optimistic update + invalidación en `onSettled`, y `useMyFavorites()`.
+   - `useMyPublications.ts`: listado autenticado de publicaciones propias.
+   - `usePublicationComments.ts`: `useAddComment()` sobre `POST /addcomment`.
+3. UI:
+   - `RegisterForm`: campo opcional "Nombre de usuario" con validación en tiempo real e ideas clickeables cuando está ocupado.
+   - `PersonalInfoTab`: edición de handle con contador "Cambios disponibles: X / 2" y bloqueo al alcanzar el límite.
+   - `PublicationContent`: usa `seller.handle`, `favoritesCount` real e `isFavorite` real.
+   - `PublicationCard`: corazón conectado a `useToggleFavorite()`.
+   - `/favorites`: ruta protegida con listado de favoritos.
+   - `/my-publications`: ruta protegida con listado propio, botón Editar y placeholder de Eliminar para Fase 5.
+   - `PublicationComments`: formulario autenticado para comentar o responder; sin sesión muestra CTA a login.
+   - `ForumComment` y `ForumReply`: extracción reutilizable usada por `PublicationComments` y `ForumMain`.
+
+**Archivos creados en frontend:**
+
+- `src/hooks/useDebouncedValue.ts`
+- `src/hooks/api/useHandle.ts`
+- `src/hooks/api/useFavorites.ts`
+- `src/hooks/api/useMyPublications.ts`
+- `src/components/comments/ForumComment.tsx`
+- `src/components/comments/ForumReply.tsx`
+- `src/components/publications/FavoritesMain.tsx`
+- `src/components/publications/MyPublicationsMain.tsx`
+- `src/app/favorites/page.tsx`
+- `src/app/my-publications/page.tsx`
+
+**Archivos modificados principales en frontend:**
+
+- `src/types/api.ts`
+- `src/utils/AuthContext.tsx`
+- `src/hooks/api/usePublications.ts`
+- `src/hooks/api/usePublicationComments.ts`
+- `src/form/RegisterForm.tsx`
+- `src/components/Creator-Profile-info/PersonalInfoTab.tsx`
+- `src/components/publications/PublicationCard.tsx`
+- `src/components/publications/PublicationContent.tsx`
+- `src/components/publications/PublicationComments.tsx`
+- `src/components/forum/ForumMain.tsx`
+- `MIGRATION.md`
+
+**Verificación:**
+
+- `npx tsc --noEmit` pasa limpio.
+- `node --check server.js` y `node --check config/connPostgresDB.js` pasan limpio en backend.
+- `npx next build` pasa. Warnings existentes/no bloqueantes: `sharp` opcional no instalado y Google Fonts no se pudo optimizar por descarga bloqueada.
+
+**Follow-ups para Fase 5:**
+
+1. Implementar edición real en `/publications/[id]/edit`.
+2. Implementar eliminación real de publicación y reemplazar el placeholder de `/my-publications`.
+3. Revisar si conviene que `GET /myfavorites` devuelva el mismo shape completo que `PublicationListItemAuth` para evitar normalización local en `/favorites`.
+
+---
+
 ## 9. Cambios planificados al backend (`Codigo Aurelio`)
 
 Lista de cambios que requerirán tocar `ecommerceGTBackEnd`. **Ninguno se ejecuta en Fase 3.** Cada uno se aplica en su fase correspondiente con autorización explícita del usuario.
@@ -421,23 +512,122 @@ Cuando lleguemos a Fase 4 y agreguemos el formulario de respuesta + likes funcio
 
 Usar el mismo componente en `/forum` y en `/publications/[id]`. Evita inconsistencias visuales entre ambas pantallas y facilita conectar las mutations a `POST /addcomment`.
 
-### Fase 4 — Username + favoritos con contador
+### Fase 4 — Handle público + favoritos con contador
+
+**IMPORTANTE — auditoría obligatoria de `database.sql` (AGENTS.md §12):**
+- Schema: `ecom` (no `public`).
+- Tabla: `customer` (singular).
+- ⚠️ **`cus_user_name` es legacy y guarda el EMAIL** del usuario (login). NO usarlo como handle público — el backend lo lee en `select * from customer where cus_user_name = $1` con el email como parámetro.
+- Se agregó una columna nueva **`cus_handle varchar(50) NULL`** adyacente a `cus_user_name`, exclusiva para el alias público (`@handle`) y búsquedas internas.
+
+**Cambio aplicado al `database.sql` (consolidado, sin ALTER):**
+
+Ver `ecommerceGTBackEnd/database.sql`:
+- Línea ~507 — `cus_handle varchar(50) NULL` agregada al `CREATE TABLE customer`.
+- Línea ~541 — `CREATE UNIQUE INDEX IF NOT EXISTS customer_handle_unique ON customer(cus_handle) WHERE cus_handle IS NOT NULL;`.
+
+Producción nueva queda coherente desde cero, sin parches acumulados.
+
+**SQL de migración para entornos ya poblados (dev/staging):**
 
 ```sql
--- Username único para handles (@usuario) y follow.
-ALTER TABLE customers ADD COLUMN cus_username VARCHAR(50);
-CREATE UNIQUE INDEX customers_username_unique ON customers(cus_username) WHERE cus_username IS NOT NULL;
+-- Solo si tu BD ya estaba creada antes de esta fase y querés alinearla.
+-- En producción nueva esto NO se ejecuta — `database.sql` ya lo contiene.
 
--- (opcional) backfill: generar username inicial a partir del nombre.
-UPDATE customers SET cus_username = LOWER(REGEXP_REPLACE(cus_first_name, '\\s+', '', 'g'))
-WHERE cus_username IS NULL;
+-- 1. Si en iteraciones previas se creó la columna `cus_username`, renombrarla a cus_handle.
+ALTER TABLE ecom.customer RENAME COLUMN cus_username TO cus_handle;
+ALTER INDEX ecom.customer_username_unique RENAME TO customer_handle_unique;
+
+-- 2. Si se creó por error un índice sobre cus_user_name (que es email/login), eliminarlo.
+DROP INDEX IF EXISTS ecom.customer_user_name_unique;
+
+-- 3. Si la columna cus_handle no existía en absoluto, crearla:
+ALTER TABLE ecom.customer ADD COLUMN IF NOT EXISTS cus_handle varchar(50) NULL;
+
+-- 3b. Agregar el contador de cambios (límite de 2).
+ALTER TABLE ecom.customer
+ADD COLUMN IF NOT EXISTS cus_handle_changes_count INT NOT NULL DEFAULT 0;
+
+-- 4. Verificar que no haya duplicados antes del UNIQUE.
+SELECT cus_handle, COUNT(*)
+FROM ecom.customer
+WHERE cus_handle IS NOT NULL
+GROUP BY cus_handle
+HAVING COUNT(*) > 1;
+-- Si NO devuelve filas → saltar al paso 6.
+
+-- 5. (Solo si paso 4 mostró duplicados) backfill con sufijo numérico.
+WITH handles AS (
+  SELECT
+    cus_id,
+    LOWER(REGEXP_REPLACE(cus_first_name, '\s+', '', 'g')) AS base_handle,
+    ROW_NUMBER() OVER (
+      PARTITION BY LOWER(REGEXP_REPLACE(cus_first_name, '\s+', '', 'g'))
+      ORDER BY cus_id
+    ) AS rn
+  FROM ecom.customer
+  WHERE cus_handle IS NULL
+)
+UPDATE ecom.customer c
+SET cus_handle = CASE
+  WHEN h.rn = 1 THEN h.base_handle
+  ELSE h.base_handle || h.rn::text
+END
+FROM handles h
+WHERE c.cus_id = h.cus_id;
+
+-- 6. Crear el UNIQUE INDEX (si no existe ya).
+CREATE UNIQUE INDEX IF NOT EXISTS customer_handle_unique
+  ON ecom.customer(cus_handle)
+  WHERE cus_handle IS NOT NULL;
+
+-- 7. Verificación final.
+SELECT cus_id, cus_first_name, cus_user_name AS email, cus_handle
+FROM ecom.customer
+ORDER BY cus_id;
 ```
 
-**Endpoints nuevos:**
-- `PUT /username` — usuario logueado actualiza su handle (validar único, lowercase, sin espacios).
-- `GET /publication/:id` — agregar `favorites_count` (subquery `COUNT(*) FROM cat_favorites WHERE pub_id = ...`) y `is_favorite` (boolean derivado del usuario actual).
+**Reglas de negocio del handle (`cus_handle`):**
 
-**Frontend (Fase 4):** conectar `useFavoritesCount` y `useToggleFavorite`, reemplazar el mock `favoritesCount = 0` en `PublicationContent`, mostrar el handle real en lugar del derivado.
+1. **Captura en el registro:** el formulario de registro pide handle como campo opcional. Si el usuario lo deja vacío, se genera automáticamente desde `LOWER(cus_first_name)` con sufijo numérico si colisiona (igual que el backfill).
+2. **Validación en tiempo real al registrarse:** al escribir, debounce 400ms y consultar `GET /handle/check/:handle` para mostrar disponible/ocupado.
+3. **Sugerencias al colisionar:** si el handle elegido ya existe, el endpoint `GET /handle/suggestions?base=<handle>` devuelve 3-5 alternativas disponibles (ej. para `juan` devuelve `juan2`, `juan_gt`, `juanp`, `juanperez`, `juan23`).
+4. **Cambio post-registro limitado a 2 veces:** `cus_handle_changes_count INT DEFAULT 0` lleva el contador. El endpoint `PUT /handle` rechaza con HTTP 403 cuando el contador llega a 2. La UI muestra "Te quedan X cambios disponibles".
+5. **Edición desde configuración del perfil:** la sección que ya muestra cambio de password / email en `PersonalInfoTab` (o en una sección nueva `AccountSettingsTab`) agrega el campo de handle con el contador.
+6. **Validación canónica del formato:** lowercase, 3-30 caracteres, regex `^[a-z0-9_]+$`. Sin espacios, sin acentos, sin caracteres especiales más allá del guion bajo. La validación se hace tanto en frontend (Yup) como en backend (regex en el endpoint).
+
+**Endpoints nuevos:**
+
+- `GET /handle/check/:handle` (público) — devuelve `{ available: boolean }`.
+- `GET /handle/suggestions?base=<handle>` (público) — devuelve `{ suggestions: string[] }` con 3-5 alternativas.
+- `PUT /handle` (auth) — body `{ handle: string }`. Valida formato, unicidad, e incrementa `cus_handle_changes_count`. Rechaza con 403 si el contador es ≥ 2.
+- `POST /register` — extender body para aceptar `handle?: string` opcional. Si llega vacío, generar automático desde `cus_first_name`.
+- `GET /publication/:id` — agregar `favorites_count` (`COUNT(*) FROM ecom.publications_favorites WHERE pub_id = ...`) y `is_favorite` (`EXISTS(SELECT 1 FROM ecom.publications_favorites WHERE pub_id = $1 AND cus_id = $2)`, `false` si no hay sesión).
+- `GET /me` — devolver `cus_handle` mapeado a `handle` y `cus_handle_changes_count` mapeado a `handleChangesCount` en el JSON.
+- `GET /search/users?q=<handle>` (opcional, futuro) — búsqueda de usuarios por handle (Fase 9 con follow).
+
+**Frontend (Fase 4):**
+
+- `types/api.ts`:
+  - `AuthUser.handle: string | null` y `AuthUser.handleChangesCount: number`.
+  - `UpdateHandlePayload`, `HandleCheckResponse`, `HandleSuggestionsResponse`.
+- `hooks/api/useHandle.ts`:
+  - `useCheckHandle(handle)` — query con `enabled: handle.length >= 3`.
+  - `useHandleSuggestions(base)` — query con `enabled` similar.
+  - `useUpdateHandle()` — mutation, invalida `currentUser`.
+- `RegisterForm`:
+  - Campo "Nombre de usuario" con asterisco optional.
+  - Validación en tiempo real con icon de check verde / cross rojo.
+  - Cuando está ocupado: mostrar 3 chips clickeables con sugerencias.
+- `PersonalInfoTab` o `AccountSettingsTab`:
+  - Campo de handle con el contador "Cambios disponibles: X / 2".
+  - Si `handleChangesCount >= 2`: campo deshabilitado con tooltip explicando el límite.
+- `PublicationContent`:
+  - Reemplazar el mock derivado por `seller.handle` real (mostrar `@${handle}`).
+- `useToggleFavorite()` con optimistic updates.
+- `useMyFavorites()` para `/favorites`.
+- `useMyPublications(cusId)` para `/my-publications`.
+- Reemplazar `favoritesCount = 0` en `PublicationContent` por `publication.favoritesCount`.
 
 ### Fase 5 — Procesamiento de imágenes con `sharp`
 
@@ -461,19 +651,19 @@ npm install sharp
 
 ```sql
 -- Marcar publicaciones como sponsoreadas (admin-only).
-ALTER TABLE publications ADD COLUMN pub_featured BOOLEAN DEFAULT FALSE;
-ALTER TABLE publications ADD COLUMN pub_featured_until TIMESTAMP NULL;
-CREATE INDEX publications_featured_idx ON publications(pub_featured) WHERE pub_featured = TRUE;
+ALTER TABLE ecom.publications ADD COLUMN pub_featured BOOLEAN DEFAULT FALSE;
+ALTER TABLE ecom.publications ADD COLUMN pub_featured_until TIMESTAMP NULL;
+CREATE INDEX publications_featured_idx ON ecom.publications(pub_featured) WHERE pub_featured = TRUE;
 
 -- Follow entre usuarios (vendedor/comprador).
-CREATE TABLE customer_follows (
-  follower_id INTEGER NOT NULL REFERENCES customers(cus_id) ON DELETE CASCADE,
-  followed_id INTEGER NOT NULL REFERENCES customers(cus_id) ON DELETE CASCADE,
+CREATE TABLE ecom.customer_follows (
+  follower_id INTEGER NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+  followed_id INTEGER NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (follower_id, followed_id),
   CHECK (follower_id <> followed_id)
 );
-CREATE INDEX customer_follows_followed_idx ON customer_follows(followed_id);
+CREATE INDEX customer_follows_followed_idx ON ecom.customer_follows(followed_id);
 ```
 
 **Endpoints nuevos:**
