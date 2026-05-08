@@ -17,6 +17,8 @@ interface ForumReplyProps {
   onReply?: () => void;
   likesLabel?: string;
   replyLabel?: string;
+  /** Permite renderizar el form inline + sub-hilos anidados debajo del comentario. */
+  children?: React.ReactNode;
 }
 
 const ForumReply = ({
@@ -30,6 +32,7 @@ const ForumReply = ({
   onReply,
   likesLabel = 'Likes',
   replyLabel = 'Responder',
+  children,
 }: ForumReplyProps) => (
   <div className="q-single-answer">
     <div className="author-name-time">
@@ -76,6 +79,7 @@ const ForumReply = ({
         </div>
       )}
     </div>
+    {children}
   </div>
 );
 
