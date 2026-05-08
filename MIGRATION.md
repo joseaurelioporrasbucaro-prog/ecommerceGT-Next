@@ -677,6 +677,43 @@ CREATE INDEX customer_follows_followed_idx ON ecom.customer_follows(followed_id)
 - Botón "Seguir" en perfil del vendedor.
 - Sección "De los vendedores que sigues" en home/explore.
 
+### ✅ Fase 4.2 (resuelto) — Renombre `publication_comments` → `publications_comments`
+
+Estandarizamos el plural en el nombre de la tabla de comentarios para alinear con el resto del schema (`publications`, `publications_detail`, `publications_images`, `publications_favorites`).
+
+**Cambio aplicado al `database.sql` (consolidado, sin ALTER):**
+
+La tabla NO estaba en `database.sql` (se había creado manualmente en la BD — viola §12.1). Se agregó adyacente a `publications_favorites` con:
+- Nombre correcto en plural: `publications_comments`.
+- FKs en `BIGINT` (alineadas con `publications.pub_id` y `customer.cus_id`) — el script original tenía `INTEGER`, que viola §12.3 y puede fallar en runtime.
+- Campo `parent_id` para hilos de respuesta (que el backend ya usa en INSERT pero no estaba en el script original).
+- Constraints con nombres explícitos: `fk_publications_comments_publication`, `fk_publications_comments_customer`, `fk_publications_comments_parent`.
+- Índices `idx_publications_comments_pub_id` y `idx_publications_comments_parent_id`.
+
+**Backend:** todas las queries en `connPostgresDB.js` actualizadas a `ecom.publications_comments` (3 ocurrencias en `getComments`, `deleteComment`, `addComment`).
+
+**SQL de migración para entornos ya poblados (dev/staging):**
+
+```sql
+-- 1. Renombrar la tabla.
+ALTER TABLE ecom.publication_comments RENAME TO publications_comments;
+
+-- 2. (Recomendado) Migrar tipos de FK a BIGINT para consistencia con el schema canónico.
+--    Si la tabla original fue creada con INTEGER, esto evita errores futuros al hacer joins.
+ALTER TABLE ecom.publications_comments
+  ALTER COLUMN pub_id SET DATA TYPE BIGINT USING pub_id::BIGINT;
+ALTER TABLE ecom.publications_comments
+  ALTER COLUMN cus_id SET DATA TYPE BIGINT USING cus_id::BIGINT;
+
+-- 3. Verificación.
+SELECT comment_id, pub_id, cus_id, parent_id, content, created_at
+FROM ecom.publications_comments
+ORDER BY created_at DESC
+LIMIT 5;
+```
+
+> Nota: las FKs y los índices que apuntan a esta tabla se actualizan automáticamente con el RENAME (PostgreSQL ajusta las referencias). Si tu BD tiene la tabla `comment_reports` con un FK a `publication_comments(comment_id)`, ese FK seguirá funcionando porque PostgreSQL re-resuelve el OID interno.
+
 ### Endpoints de auth pendientes (cualquier fase)
 
 Detectados en revisiones anteriores; sin urgencia inmediata pero documentados:
