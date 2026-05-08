@@ -51,24 +51,26 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
        <ThemeProvider defaultTheme="dark">
         <BacktoTop/>
         {(() => {
-          switch (pathName) {
-            case "/home-three":
-              return <HeaderTwo />;
-
-            default:
-              return <HeaderOne HeaderStatic={HeaderStatic} />;
-          }
+          // Páginas con sidebars laterales fijos (navbar a la izquierda,
+          // opciones a la derecha) — layout tipo panel del HomeThree.
+          const usesPanelLayout =
+            pathName === "/home-three" ||
+            pathName === "/favorites" ||
+            pathName === "/my-publications" ||
+            pathName?.startsWith("/messages");
+          return usesPanelLayout
+            ? <HeaderTwo />
+            : <HeaderOne HeaderStatic={HeaderStatic} />;
         })()}
         {children}
 
         {(() => {
-          switch (pathName) {
-            case "/home-three":
-              return <FooterTwo />;
-
-            default:
-              return <Footer />;
-          }
+          const usesPanelLayout =
+            pathName === "/home-three" ||
+            pathName === "/favorites" ||
+            pathName === "/my-publications" ||
+            pathName?.startsWith("/messages");
+          return usesPanelLayout ? <FooterTwo /> : <Footer />;
         })()}
       </ThemeProvider>
       </>

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import React from 'react';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
-import AccountSidebar from '@/components/account/AccountSidebar';
 import { ApiError } from '@/utils/Api';
 import { useMyPublications } from '@/hooks/api/useMyPublications';
 import { useAuth } from '@/utils/AuthContext';
@@ -38,31 +37,23 @@ const MyPublicationsMain = () => {
       <Breadcrumbs breadcrumbTitle="Mis publicaciones" breadcrumbSubTitle="Mis publicaciones" />
 
       <section className="artworks-area pt-80 pb-90">
-        <div className="container">
-          <div className="row">
-            {/* Sidebar lateral con menú de cuenta */}
-            <div className="col-lg-3 col-md-12 mb-30">
-              <AccountSidebar />
+        <div className="container c-container-1">
+          {publicationsQuery.isLoading && (
+            <div className="alert alert-info">Cargando tus publicaciones...</div>
+          )}
+
+          {publicationsQuery.error && (
+            <div className="alert alert-danger">{getErrorMessage(publicationsQuery.error)}</div>
+          )}
+
+          {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length === 0 && (
+            <div className="alert alert-warning">
+              Todavía no tienes publicaciones creadas.
             </div>
+          )}
 
-            {/* Contenido */}
-            <div className="col-lg-9 col-md-12">
-              {publicationsQuery.isLoading && (
-                <div className="alert alert-info">Cargando tus publicaciones...</div>
-              )}
-
-              {publicationsQuery.error && (
-                <div className="alert alert-danger">{getErrorMessage(publicationsQuery.error)}</div>
-              )}
-
-              {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length === 0 && (
-                <div className="alert alert-warning">
-                  Todavía no tienes publicaciones creadas.
-                </div>
-              )}
-
-              {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length > 0 && (
-                <div className="my-publications-list">
+          {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length > 0 && (
+            <div className="my-publications-list">
                   {publications.map((publication) => {
                     const imageSrc = publication.main_image
                       ? getBackendUrl(publication.main_image)
@@ -128,10 +119,8 @@ const MyPublicationsMain = () => {
                       </article>
                     );
                   })}
-                </div>
-              )}
             </div>
-          </div>
+          )}
         </div>
       </section>
 

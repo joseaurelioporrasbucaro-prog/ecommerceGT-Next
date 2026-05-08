@@ -1,11 +1,15 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import profile4 from "../../../public/assets/img/profile/profile4.jpg";
 import Image from "next/image";
 import SidebarMenuSection from "../sidebar/SidebarMenuSection";
 import CategoryFilter from "../sidebar/CategoryFilter";
+import AccountRightSidebar from "../sidebar/AccountRightSidebar";
+
+const ACCOUNT_PATHS = ["/favorites", "/my-publications"];
 
 const HeaderTwo = () => {
   const [isActive13, setActive13] = useState(false);
@@ -14,6 +18,10 @@ const HeaderTwo = () => {
   };
 
   const { setTheme } = useTheme();
+  const pathname = usePathname();
+  const isAccountPage =
+    ACCOUNT_PATHS.includes(pathname ?? "") ||
+    (pathname?.startsWith("/messages") ?? false);
 
   const [menuOpen1, setMenuOpen1] = useState(false);
   const [menuOpen2, setMenuOpen2] = useState(false);
@@ -125,7 +133,11 @@ const HeaderTwo = () => {
         }
       ></div>
 
-      <CategoryFilter menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
+      {isAccountPage ? (
+        <AccountRightSidebar menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
+      ) : (
+        <CategoryFilter menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
+      )}
       <div
         onClick={() => setMenuOpen2(false)}
         className={
