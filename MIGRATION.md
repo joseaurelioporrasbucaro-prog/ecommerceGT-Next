@@ -125,7 +125,8 @@ El backend está estable y se comparte. La regla:
 | **3** | Catálogo público y detalle de publicaciones | ✅ Completada | 3 días |
 | **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ✅ Completada | 2–3 días |
 | **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ⬜ Pendiente | 3–4 días |
-| **6** | Mensajería (inbox + conversación + polling) | ⬜ Pendiente | 2 días |
+| **4.3** | Likes funcionales en comentarios (próxima minor de Fase 4) | ⬜ Pendiente | 0.5 día |
+| **6** | Mensajería (inbox + conversación + polling) + Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 3–4 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
@@ -713,6 +714,146 @@ LIMIT 5;
 ```
 
 > Nota: las FKs y los índices que apuntan a esta tabla se actualizan automáticamente con el RENAME (PostgreSQL ajusta las referencias). Si tu BD tiene la tabla `comment_reports` con un FK a `publication_comments(comment_id)`, ese FK seguirá funcionando porque PostgreSQL re-resuelve el OID interno.
+
+### Fase 4.3 (próxima minor) — Likes en comentarios
+
+**Objetivo:** que el botón ❤ Likes en cada comentario / respuesta sea funcional. Hoy muestra `0` placeholder porque no hay tabla de likes ni endpoints.
+
+**Cambio al `database.sql` (consolidado, sin ALTER):**
+
+```sql
+-- Likes en comentarios. UNIQUE (comment_id, cus_id) garantiza un like por usuario por comentario.
+CREATE TABLE IF NOT EXISTS comment_likes (
+    comlike_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    comment_id INTEGER NOT NULL,
+    cus_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comment_likes_comment
+        FOREIGN KEY (comment_id) REFERENCES publications_comments(comment_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comment_likes_customer
+        FOREIGN KEY (cus_id) REFERENCES customer(cus_id) ON DELETE CASCADE,
+    CONSTRAINT uq_comment_likes UNIQUE (comment_id, cus_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id
+    ON comment_likes(comment_id);
+```
+
+**Endpoints nuevos:**
+- `POST /comments/:comment_id/like` (auth) — toggle: si no existe, INSERT y devuelve `{ liked: true, likesCount }`. Si existe, DELETE y devuelve `{ liked: false, likesCount }`.
+- `GET /comments/:pub_id` (existente) — extender SELECT para incluir `likes_count` (`COUNT subquery`) e `is_liked` (`EXISTS` con `cus_id` de la sesión, `false` si no hay sesión).
+
+**Frontend:**
+- Tipo `Comment.likesCount: number` y `Comment.isLiked: boolean` en `types/api.ts`.
+- Hook `useToggleCommentLike(commentId)` con optimistic update sobre la query de comentarios.
+- Botón ❤ del scaffold conecta al hook. Sin sesión → redirect a `/login`. Estado activo (corazón relleno) cuando `isLiked === true`.
+- Si la publicación está cerrada (vendida/anulada), botón deshabilitado.
+
+---
+
+### Fase 6 — Sistema de notificaciones + menciones (`@usuario`)
+
+**Contexto:** La pantalla `/activity` del scaffold ya existe pero muestra datos estáticos. La idea es conectarla como **centro de notificaciones unificado** del usuario logueado: menciones en comentarios, respuestas a sus comentarios, likes recibidos, mensajes nuevos (mensajería de Fase 6), y eventos de venta (Fase 7).
+
+**Cambio al `database.sql` (consolidado, sin ALTER):**
+
+```sql
+-- Notificaciones. Una sola tabla genérica con `type` discriminador y `payload` JSONB
+-- para los datos específicos de cada tipo (avatar del actor, snippet del comentario, etc.).
+-- recipient_cus_id es el usuario que la VE; actor_cus_id es quien la disparó.
+CREATE TABLE IF NOT EXISTS notifications (
+    notif_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recipient_cus_id BIGINT NOT NULL,
+    actor_cus_id BIGINT NULL,
+    -- 'mention' | 'reply' | 'comment_like' | 'pub_favorite' | 'message' | 'sale_closed' | 'review_received'
+    notif_type VARCHAR(40) NOT NULL,
+    pub_id BIGINT NULL,
+    comment_id INTEGER NULL,
+    message_id BIGINT NULL,
+    payload JSONB DEFAULT '{}',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notifications_recipient
+        FOREIGN KEY (recipient_cus_id) REFERENCES customer(cus_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_actor
+        FOREIGN KEY (actor_cus_id) REFERENCES customer(cus_id) ON DELETE SET NULL,
+    CONSTRAINT fk_notifications_publication
+        FOREIGN KEY (pub_id) REFERENCES publications(pub_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_comment
+        FOREIGN KEY (comment_id) REFERENCES publications_comments(comment_id) ON DELETE CASCADE
+);
+
+-- Índice optimizado para "mis notificaciones no leídas, más recientes primero"
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_unread
+    ON notifications(recipient_cus_id, is_read, created_at DESC);
+```
+
+**Endpoints nuevos:**
+- `GET /notifications` (auth) — lista paginada de las notificaciones del usuario logueado, JOIN con `customer` para datos del actor. Default 20 más recientes.
+- `GET /notifications/unread-count` (auth) — `{ total: number }`. Para el badge del bell del header.
+- `PUT /notifications/:id/read` (auth) — marca una como leída.
+- `PUT /notifications/read-all` (auth) — marca todas las del usuario como leídas.
+
+**Lógica de inserción automática (en endpoints existentes, `// Codigo Aurelio`):**
+
+1. **Menciones en comentarios** — al ejecutar `POST /addcomment`:
+   - Parsear `content` con regex `/@([a-z0-9_]{3,30})/gi` para detectar handles.
+   - Por cada handle único, buscar `customer` con `cus_handle = $1`.
+   - Si el `cus_id` resultante es distinto del autor del comentario, INSERT en `notifications` con `notif_type = 'mention'` y `payload = { snippet: <primeros 80 chars del content> }`.
+
+2. **Respuestas a mis comentarios** — al ejecutar `POST /addcomment` con `parent_id != null`:
+   - SELECT `cus_id` del comentario padre.
+   - Si es distinto del autor de la respuesta y NO ya recibió notificación de mención del mismo comentario (evitar doble notif), INSERT con `notif_type = 'reply'`.
+
+3. **Likes en comentarios** — al ejecutar `POST /comments/:id/like` (Fase 4.3):
+   - INSERT con `notif_type = 'comment_like'` para el dueño del comentario, si es distinto del que da like.
+
+4. **Mensajes nuevos** — al ejecutar `POST /sendMessage` (Fase 6):
+   - INSERT con `notif_type = 'message'` para el receptor.
+
+5. **Cierre de venta** — al ejecutar `POST /closeSale` (Fase 7):
+   - INSERT con `notif_type = 'sale_closed'` para el comprador (con link a la encuesta).
+
+**Frontend:**
+
+- Tipos en `types/api.ts`:
+  ```ts
+  export type NotificationType =
+    | 'mention' | 'reply' | 'comment_like' | 'pub_favorite'
+    | 'message' | 'sale_closed' | 'review_received';
+
+  export interface Notification {
+    notifId: number;
+    actorCusId: number | null;
+    actorFirstName: string | null;
+    actorLastName: string | null;
+    actorHandle: string | null;
+    notifType: NotificationType;
+    pubId: number | null;
+    commentId: number | null;
+    messageId: number | null;
+    payload: Record<string, unknown>;
+    isRead: boolean;
+    createdAt: string;
+  }
+  ```
+
+- Hook `useNotifications()` con paginación (`useInfiniteQuery`).
+- Hook `useUnreadCount()` con `refetchInterval: 60_000` para polling del badge.
+- Hook `useMarkAsRead(id)` y `useMarkAllAsRead()` con invalidate.
+- **`/activity` page** (existente como scaffold) → conectar a `useNotifications()`. Renderizar cada `Notification` con texto, avatar del actor, link al recurso (publicación/comentario/mensaje) y botón "marcar leída". El item se renderiza distinto según `notifType` con un helper `renderNotificationContent(notif)`.
+- **Badge en header** (`HeaderOne` y `HeaderTwo`): bell icon con contador de no leídas. Click → `/activity`.
+
+**Editor de comentarios con menciones (`@usuario`)**
+
+- Componente nuevo `MentionTextarea`: textarea controlada que detecta `@` al escribir y abre un dropdown con sugerencias del endpoint `GET /search/users?q=<prefix>` (ya planificado en Fase 9).
+- Al seleccionar un usuario del dropdown, se inserta `@<handle>` en el textarea.
+- Al renderizar el contenido del comentario en `ForumComment`/`ForumReply`, parsear `@<handle>` y reemplazarlo por `<Link href="/creator-profile/<cusId>">@handle</Link>`. Necesita un mapa `handle → cusId` que viene en la respuesta del backend.
+
+**Endpoint auxiliar:**
+- `GET /search/users?q=<prefix>&limit=8` (público, prefix mínimo 2 chars) — devuelve `{ users: { cusId, handle, firstName, lastName, avatar }[] }`. Usado tanto por el dropdown de menciones como por el follow de Fase 9.
+
+---
 
 ### Endpoints de auth pendientes (cualquier fase)
 
