@@ -141,6 +141,33 @@ export function getStatusBadge(pubstaId: number | null | undefined): StatusBadge
   return null;
 }
 
+export interface PublicationStatusInfo {
+  label: string;
+  sublabel: string;
+  color: string;
+  /** Estados donde NO se permite interacción (comentar, contactar, favear). */
+  isClosed: boolean;
+}
+
+/**
+ * Etiqueta detallada del estado para mostrar en el detalle (meta-grid).
+ * Devuelve color, sub-etiqueta descriptiva y bandera `isClosed` para que la UI
+ * pueda deshabilitar acciones (comentar, contactar) en publicaciones cerradas.
+ */
+export function getPublicationStatusInfo(pubstaId: number | null | undefined): PublicationStatusInfo {
+  switch (pubstaId) {
+    case PUBSTA_SOLD:
+      return { label: 'Vendida', sublabel: 'Ya no está disponible', color: '#ef4444', isClosed: true };
+    case PUBSTA_VOID:
+      return { label: 'Anulada', sublabel: 'Retirada por el vendedor', color: '#6b7280', isClosed: true };
+    case PUBSTA_DRAFT:
+      return { label: 'Borrador', sublabel: 'No publicada todavía', color: '#9ca3af', isClosed: true };
+    case PUBSTA_PUBLISHED:
+    default:
+      return { label: 'Disponible', sublabel: 'Publicación activa', color: '#2ed573', isClosed: false };
+  }
+}
+
 export function getPublicationImagePath(image: PublicationImage): string {
   return image.pubima_url || image.url || '';
 }

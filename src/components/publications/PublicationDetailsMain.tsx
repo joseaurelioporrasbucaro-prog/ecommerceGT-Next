@@ -90,7 +90,10 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           <PublicationContent publication={publication} />
 
           {/* ───────── Comentarios ───────── */}
-          <PublicationComments pubId={publication.pub_id} />
+          <PublicationComments
+            pubId={publication.pub_id}
+            pubstaId={publication.pubsta_id}
+          />
         </>
       )}
     </>

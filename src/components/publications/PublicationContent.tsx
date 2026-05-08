@@ -9,7 +9,7 @@ import { useSellerInfo } from '@/hooks/api/usePublications';
 import type { PublicationDetail } from '@/types/api';
 import { getBackendUrl } from '@/utils/backendUrl';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
-import { formatNumberValue, formatPrice } from './publicationUtils';
+import { formatNumberValue, formatPrice, getPublicationStatusInfo } from './publicationUtils';
 
 interface PublicationContentProps {
   publication: PublicationDetail;
@@ -35,6 +35,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
   const municipalityName = municipalitiesQuery.data?.find((m) => m.municipality === publication.tow_id)?.description;
 
   const favoritesCount = publication.favoritesCount;
+  const statusInfo = getPublicationStatusInfo(publication.pubsta_id);
 
   return (
     <section className="art-details-area pt-50 pb-0">
@@ -91,8 +92,10 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
             </div>
             <div className="meta-cell">
               <div className="meta-label">Estado</div>
-              <div className="meta-value meta-state">Disponible</div>
-              <div className="meta-sublabel">Publicación activa</div>
+              <div className="meta-value" style={{ color: statusInfo.color }}>
+                {statusInfo.label}
+              </div>
+              <div className="meta-sublabel">{statusInfo.sublabel}</div>
             </div>
           </div>
 
