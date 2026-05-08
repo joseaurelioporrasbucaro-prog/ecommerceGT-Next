@@ -116,6 +116,31 @@ export function isLandCategory(category: string | null | undefined): boolean {
   return lower.includes('terreno') || lower.includes('lote') || lower.includes('solar');
 }
 
+// ============================================================================
+// Estados de publicación (cat_publication_status del backend)
+// ============================================================================
+
+export const PUBSTA_DRAFT = 1;
+export const PUBSTA_PUBLISHED = 2;
+export const PUBSTA_SOLD = 3;
+export const PUBSTA_VOID = 4;
+
+export interface StatusBadge {
+  label: string;
+  color: string;
+}
+
+/**
+ * Badge a renderizar según el estado de la publicación,
+ * o null si está publicada activa (no se muestra badge).
+ */
+export function getStatusBadge(pubstaId: number | null | undefined): StatusBadge | null {
+  if (pubstaId === PUBSTA_SOLD) return { label: 'Vendida', color: '#ef4444' };
+  if (pubstaId === PUBSTA_DRAFT) return { label: 'Borrador', color: '#9ca3af' };
+  if (pubstaId === PUBSTA_VOID) return { label: 'Anulada', color: '#6b7280' };
+  return null;
+}
+
 export function getPublicationImagePath(image: PublicationImage): string {
   return image.pubima_url || image.url || '';
 }

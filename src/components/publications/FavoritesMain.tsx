@@ -3,7 +3,6 @@
 import React from 'react';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
-import AccountSidebar from '@/components/account/AccountSidebar';
 import { ApiError } from '@/utils/Api';
 import { useMyFavorites } from '@/hooks/api/useFavorites';
 import type { FavoriteItem, PublicationListItemAuth } from '@/types/api';
@@ -16,6 +15,7 @@ function getErrorMessage(error: unknown): string {
 function favoriteToPublication(item: FavoriteItem): PublicationListItemAuth {
   return {
     id: item.id,
+    pubstaId: item.pubstaId,
     title: item.title,
     description: item.description,
     address: item.address,
@@ -28,7 +28,7 @@ function favoriteToPublication(item: FavoriteItem): PublicationListItemAuth {
     country: item.country,
     city: item.city,
     town: item.town,
-    category: 'Propiedad',
+    category: item.category || 'Propiedad',
     image: item.image || '',
     images: item.image ? [{ id: item.image, url: item.image }] : [],
     id_cus: 0,
@@ -47,36 +47,28 @@ const FavoritesMain = () => {
       <Breadcrumbs breadcrumbTitle="Mis favoritos" breadcrumbSubTitle="Mis favoritos" />
 
       <section className="artworks-area pt-80 pb-90">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-3 col-md-12 mb-30">
-              <AccountSidebar />
+        <div className="container c-container-1">
+          {favoritesQuery.isLoading && (
+            <div className="alert alert-info">Cargando favoritos...</div>
+          )}
+
+          {favoritesQuery.error && (
+            <div className="alert alert-danger">{getErrorMessage(favoritesQuery.error)}</div>
+          )}
+
+          {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length === 0 && (
+            <div className="alert alert-warning">
+              Todavía no tienes publicaciones guardadas como favoritas.
             </div>
+          )}
 
-            <div className="col-lg-9 col-md-12">
-              {favoritesQuery.isLoading && (
-                <div className="alert alert-info">Cargando favoritos...</div>
-              )}
-
-              {favoritesQuery.error && (
-                <div className="alert alert-danger">{getErrorMessage(favoritesQuery.error)}</div>
-              )}
-
-              {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length === 0 && (
-                <div className="alert alert-warning">
-                  Todavía no tienes publicaciones guardadas como favoritas.
-                </div>
-              )}
-
-              {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length > 0 && (
-                <div className="row wow fadeInUp">
-                  {publications.map((publication) => (
-                    <PublicationCard key={publication.id} publication={publication} />
-                  ))}
-                </div>
-              )}
+          {!favoritesQuery.isLoading && !favoritesQuery.error && publications.length > 0 && (
+            <div className="row wow fadeInUp">
+              {publications.map((publication) => (
+                <PublicationCard key={publication.id} publication={publication} />
+              ))}
             </div>
-          </div>
+          )}
         </div>
       </section>
     </main>

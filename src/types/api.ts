@@ -191,6 +191,8 @@ export interface PublicationImage {
  */
 export interface PublicationListItem {
   id: number;
+  /** Estado de la publicación (1=Creada, 2=Publicada, 3=Vendida, 4=Anulada). */
+  pubstaId: number;
   title: string;
   description: string;
   address: string;
@@ -275,6 +277,8 @@ export interface MyPublicationItem {
 /** Shape de "Mis favoritos" (`GET /myfavorites`). */
 export interface FavoriteItem {
   id: number;
+  /** Estado de la publicación (1=Creada, 2=Publicada, 3=Vendida, 4=Anulada). */
+  pubstaId: number;
   title: string;
   description: string;
   address: string;
@@ -285,6 +289,7 @@ export interface FavoriteItem {
   country: string;
   city: string;
   town: string;
+  category: string;
   image: string;
   isFavorite: true;
 }

@@ -13,6 +13,7 @@ import {
   formatPrice,
   getCategoryFallbackIcon,
   getPublicationListAllImages,
+  getStatusBadge,
   isLandCategory,
   isPublicationListItemAuth,
 } from './publicationUtils';
@@ -39,6 +40,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
 
   const isFavorite = isPublicationListItemAuth(publication) && publication.isFavorite;
   const isLand = isLandCategory(publication.category);
+  const statusBadge = getStatusBadge(publication.pubstaId);
 
   // Solo municipio (town). Si no hay, fallback a city.
   const locationLabel = publication.town || publication.city || 'Sin ubicación';
@@ -77,15 +79,23 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
             >
-              {/* Stack vertical de badges: si la pub es ambas, las dos se muestran. */}
+              {/* Stack vertical de badges: pueden mostrarse varios a la vez. */}
               <div className="publication-badges">
+                {statusBadge && (
+                  <div
+                    className="publication-status-badge"
+                    style={{ background: statusBadge.color }}
+                  >
+                    {statusBadge.label}
+                  </div>
+                )}
                 {isFeatured && (
                   <div className="publication-featured-badge">
                     <i className="fas fa-bolt"></i>
                     Destacada
                   </div>
                 )}
-                {isNew && (
+                {isNew && !statusBadge && (
                   <div className="publication-new-badge">
                     <i className="fas fa-star"></i>
                     Nuevo
@@ -228,7 +238,8 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
             align-items: flex-start;
           }
           .publication-card :global(.publication-featured-badge),
-          .publication-card :global(.publication-new-badge) {
+          .publication-card :global(.publication-new-badge),
+          .publication-card :global(.publication-status-badge) {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -239,6 +250,9 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
             border-radius: 20px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+          }
+          .publication-card :global(.publication-status-badge) {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
           }
           .publication-card :global(.publication-featured-badge) {
             background: linear-gradient(135deg, #2ed573, #22b964);
