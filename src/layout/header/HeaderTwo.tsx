@@ -1,31 +1,33 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import profile4 from "../../../public/assets/img/profile/profile4.jpg";
-import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import SidebarMenuSection from "../sidebar/SidebarMenuSection";
-import CategoryFilter from "../sidebar/CategoryFilter";
 import AccountRightSidebar from "../sidebar/AccountRightSidebar";
-
-const ACCOUNT_PATHS = ["/favorites", "/my-publications"];
+import PublicCategoriesSidebar from "../sidebar/PublicCategoriesSidebar";
+import { useAuth } from "@/utils/AuthContext";
 
 const HeaderTwo = () => {
-  const [isActive13, setActive13] = useState(false);
-  const handleToggle13 = () => {
-    setActive13(!isActive13);
-  };
-
   const { setTheme } = useTheme();
-  const pathname = usePathname();
-  const isAccountPage =
-    ACCOUNT_PATHS.includes(pathname ?? "") ||
-    (pathname?.startsWith("/messages") ?? false);
+  const { user } = useAuth();
+  // useTranslation suscribe el componente a cambios de idioma — sin esto,
+  // el botón ES/EN cambia el lenguaje pero no se re-renderiza el resaltado.
+  const { i18n } = useTranslation();
 
   const [menuOpen1, setMenuOpen1] = useState(false);
   const [menuOpen2, setMenuOpen2] = useState(false);
-  
+
+  // El sidebar derecho ahora SIEMPRE existe.
+  // - Si hay sesión → AccountRightSidebar (Mi cuenta).
+  // - Si NO hay sesión → PublicCategoriesSidebar (categorías + CTA login/registro).
+  const RightSidebar = user ? AccountRightSidebar : PublicCategoriesSidebar;
+
+  // Cambio de idioma (ES / EN)
+  const changeLanguage = (lng: 'es' | 'en') => {
+    i18n.changeLanguage(lng);
+  };
+
   return (
     <>
       <header className="header2">
@@ -39,7 +41,8 @@ const HeaderTwo = () => {
                       <a
                         className="side-toggle"
                         href="#!"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
                           setMenuOpen1(!menuOpen1);
                         }}
                       >
@@ -54,7 +57,7 @@ const HeaderTwo = () => {
                       action="#"
                       className="filter-search-input header-search d-none d-md-inline-block"
                     >
-                      <input type="text" placeholder="Search keyword" />
+                      <input type="text" placeholder="Buscar..." />
                       <button>
                         <i className="fal fa-search"></i>
                       </button>
@@ -63,46 +66,57 @@ const HeaderTwo = () => {
                 </div>
                 <div className="col-xl-5 col-lg-5 col-md-5 col-5">
                   <div className="header-main-right">
-                    <div className="header-btn ml-20 d-none d-xxl-inline-block">
-                      <Link className="fill-btn" href="/wallet-connect">
-                        Connect Wallet
-                      </Link>
-                    </div>
-                    <div className="profile-item profile-item-header ml-20 d-md-inline-block pos-rel">
-                      <div
-                        className={`profile-img pos-rel ${
-                          isActive13 ? "show-element" : ""
-                        }`}
-                        onClick={handleToggle13}
+                    {/* SELECTOR DE IDIOMAS (ES | EN) — reemplaza el avatar
+                        dropdown. El avatar y el logout viven ahora en el
+                        sidebar derecho de "Mi cuenta". */}
+                    <div
+                      className="header-lang ml-20 d-none d-md-inline-block"
+                      style={{ fontWeight: 600, cursor: 'pointer', fontSize: '15px' }}
+                    >
+                      <span
+                        onClick={() => changeLanguage('es')}
+                        style={{
+                          color: i18n.language === 'es' ? 'var(--tp-theme-1, #5a5af2)' : 'inherit',
+                          transition: '0.3s',
+                        }}
                       >
-                        <div className="profile-action">
-                          <ul>
-                            <li>
-                              <Link href="/creator-profile-info-personal">
-                                <i className="fal fa-user"></i>Profile
-                              </Link>
-                            </li>
-                            <li>
-                              <Link href="/login">
-                                <i className="fal fa-sign-out"></i>Logout
-                              </Link>
-                            </li>
-                          </ul>
-                        </div>
-                        <Image src={profile4} alt="profile-img" />
-                        <div className="profile-verification verified">
-                          <i className="fas fa-check"></i>
-                        </div>
-                      </div>
+                        ES
+                      </span>
+                      <span className="mx-2" style={{ color: '#ccc' }}>|</span>
+                      <span
+                        onClick={() => changeLanguage('en')}
+                        style={{
+                          color: i18n.language === 'en' ? 'var(--tp-theme-1, #5a5af2)' : 'inherit',
+                          transition: '0.3s',
+                        }}
+                      >
+                        EN
+                      </span>
                     </div>
+
+                    {/* Si NO hay sesión, mostrar botón "Iniciar sesión"
+                        en el header (en lugar del avatar logueado). */}
+                    {!user && (
+                      <div className="header-btn ml-20 d-md-inline-block">
+                        <Link className="fill-btn" href="/login">
+                          Iniciar sesión
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Hamburguesa derecho — abre el sidebar derecho
+                        (Mi cuenta o Categorías según haya sesión). */}
                     <div
                       className="product-filter-btn ml-20 d-xxl-none"
                       onClick={() => {
                         setMenuOpen2(!menuOpen2);
                       }}
+                      title={user ? 'Mi cuenta' : 'Categorías'}
+                      style={{ cursor: 'pointer' }}
                     >
-                      <i className="flaticon-filter"></i>
+                      <i className={user ? 'fal fa-user-circle' : 'flaticon-filter'}></i>
                     </div>
+
                     <div className="mode-switch-wrapper my_switcher setting-option home3-mode-switch ml-25">
                       <input type="checkbox" className="checkbox" id="chk" />
                       <label className="label" htmlFor="chk">
@@ -133,11 +147,8 @@ const HeaderTwo = () => {
         }
       ></div>
 
-      {isAccountPage ? (
-        <AccountRightSidebar menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
-      ) : (
-        <CategoryFilter menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
-      )}
+      {/* Sidebar derecho — SIEMPRE existe. Su contenido depende de la sesión. */}
+      <RightSidebar menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
       <div
         onClick={() => setMenuOpen2(false)}
         className={

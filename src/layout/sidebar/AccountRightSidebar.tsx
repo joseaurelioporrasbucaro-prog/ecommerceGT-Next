@@ -1,9 +1,11 @@
 "use client";
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/utils/AuthContext';
+import { getBackendUrl } from '@/utils/backendUrl';
 
 interface AccountRightSidebarProps {
   menuOpen2: boolean;
@@ -28,6 +30,7 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [avatarErrored, setAvatarErrored] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -35,12 +38,24 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
   };
 
   const items: AccountNavItem[] = [
-    { href: '/creator-profile-info-personal', label: 'Mi perfil', icon: 'fal fa-user' },
+    // "Mi perfil" → perfil PÚBLICO del usuario (visible para otros)
+    {
+      href: user?.id ? `/creator-profile/${user.id}` : '/creator-profile',
+      label: 'Mi perfil',
+      icon: 'fal fa-user',
+    },
     { href: '/my-publications', label: 'Mis publicaciones', icon: 'fal fa-th-large' },
     { href: '/favorites', label: 'Favoritos', icon: 'fal fa-heart' },
     { href: '/messages', label: 'Mensajes', icon: 'fal fa-comments', comingSoon: true },
+    // "Configuraciones" → edición de info personal (privado)
+    { href: '/creator-profile-info-personal', label: 'Configuraciones', icon: 'fal fa-cog' },
     { onClick: handleLogout, label: 'Cerrar sesión', icon: 'fal fa-sign-out' },
   ];
+
+  // Foto real del usuario (si está almacenada en backend) o null para fallback con icono.
+  const userImageSrc = user?.imagenu && !avatarErrored
+    ? (user.imagenu.startsWith('http') ? user.imagenu : getBackendUrl(user.imagenu))
+    : null;
 
   return (
     <div className="fix">
@@ -64,11 +79,22 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
             </button>
           </div>
 
-          {/* Tarjeta de usuario */}
+          {/* Tarjeta de usuario con foto real (si existe) */}
           {user && (
             <div className="account-user-card mb-25">
               <div className="account-user-avatar">
-                <i className="fal fa-user"></i>
+                {userImageSrc ? (
+                  <Image
+                    src={userImageSrc}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    width={64}
+                    height={64}
+                    onError={() => setAvatarErrored(true)}
+                    style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <i className="fal fa-user"></i>
+                )}
               </div>
               <div className="account-user-name">
                 {user.firstName} {user.lastName}
@@ -160,6 +186,13 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           justify-content: center;
           margin: 0 auto 10px;
           font-size: 26px;
+          overflow: hidden;
+        }
+        .account-right-sidebar :global(.account-user-avatar img) {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover;
+          border-radius: 50%;
         }
         .account-right-sidebar :global(.account-user-name) {
           font-weight: 700;

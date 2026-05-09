@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigation, A11y } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -193,9 +194,28 @@ const CategorySlider = ({ categories, activeCategory, onSelect }: CategorySlider
 // ============================================================================
 
 const PublicationsMain = () => {
-  const [filters, setFilters] = useState<PublicationFilters>(INITIAL_FILTERS);
+  // Lee filtros iniciales desde la URL (ej. /publications?category=Casa
+  // viene desde los chips del sidebar derecho o links externos).
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams?.get('category') ?? '';
+  const initialSearch = searchParams?.get('q') ?? '';
+
+  const [filters, setFilters] = useState<PublicationFilters>({
+    ...INITIAL_FILTERS,
+    category: initialCategory,
+    search: initialSearch,
+  });
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Si la URL cambia (ej. el usuario clickea otra categoría del sidebar
+  // mientras ya está en /publications), sincronizar el filtro local.
+  useEffect(() => {
+    const urlCategory = searchParams?.get('category') ?? '';
+    setFilters((prev) =>
+      prev.category === urlCategory ? prev : { ...prev, category: urlCategory },
+    );
+  }, [searchParams]);
 
   const publicationsQuery = usePublications();
   const categoriesQuery = usePublicationCategories();
