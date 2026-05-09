@@ -855,6 +855,55 @@ CREATE INDEX IF NOT EXISTS idx_notifications_recipient_unread
 
 ---
 
+### Fase 5+ — Filtros avanzados de búsqueda en `/publications`
+
+**Contexto:** hoy `/publications` filtra solo por `category` (Casa/Apto/Terreno) y por keyword. Los chips del sidebar derecho redirigen a `/publications?category=<X>` y la página lo lee en el query param. Pero los compradores en inmobiliario filtran por mucho más: rooms, baños, parqueos, niveles, tamaño, rango de precio, ubicación.
+
+**Objetivo:** que los filtros del sidebar derecho (cuando el usuario está en `/publications`) sean **dinámicos según la categoría seleccionada** y reflejen los campos que el wizard de creación (Fase 5) realmente captura.
+
+**Diseño propuesto:**
+
+1. **Filtros base (siempre):**
+   - Categoría (Casa / Apartamento / Terreno / Local / Bodega).
+   - Tipo de transacción (Venta / Alquiler).
+   - Rango de precio (slider).
+   - Ubicación: País → Departamento → Municipio (cascadas reusando `useCountries`/`useCities`/`useMunicipalities`).
+
+2. **Filtros condicionados a la categoría seleccionada:**
+   - Si `category === 'Casa'` o `'Apartamento'`: habitaciones (1-5+), baños (1-3+), parqueos (0-3+), niveles (1-3+), tamaño en m².
+   - Si `category === 'Terreno'`: tamaño en m² (slider amplio), uso de suelo (residencial/comercial/industrial — campo nuevo en wizard).
+   - Si `category === 'Local Comercial'`: tamaño, parqueos, ubicación premium (boolean).
+
+3. **Auto-actualización con el wizard (Fase 5):**
+   - Cuando el wizard agregue un nuevo campo (ej. "Año de construcción", "Tiene piscina"), el filtro avanzado lo expone automáticamente.
+   - Estructura: definir un `CATEGORY_FILTER_SCHEMA: Record<string, FilterField[]>` central. El wizard y el filtro lo leen del mismo lugar — la UI se sincroniza sola.
+   - `FilterField`: `{ key, label, type: 'number' | 'range' | 'boolean' | 'select', options?, min?, max? }`.
+
+**Cambios planificados:**
+
+**Backend (en `getPublications` de `connPostgresDB.js`, `// Codigo Aurelio`):**
+
+```js
+// Aceptar todos los filtros como query params:
+// ?category=Casa&minPrice=500000&maxPrice=2000000&rooms=3&bathrooms=2
+// &parking=1&country=1&city=2&town=10&size_min=80&size_max=200&sort=price_asc
+```
+
+Construir la query SQL dinámicamente con un WHERE compuesto por los filtros que llegan. Usar parámetros `$N` para evitar SQL injection.
+
+**Frontend:**
+
+- Componente nuevo `AdvancedFiltersPanel` que vive en el sidebar derecho cuando la ruta es `/publications` (reemplaza/complementa al `PublicCategoriesSidebar` cuando no hay sesión, o se agrega al `AccountRightSidebar` cuando sí).
+- Estado de filtros sincronizado con URL (`router.push('/publications?...')`) para que las búsquedas sean compartibles.
+- Hook `usePublications` extendido para aceptar filtros y pasarlos como query params al backend.
+- Tipo `PublicationFilters` extendido con todos los campos.
+
+**Estimación:** 2 días (backend + frontend + testing).
+
+**Asignación de fase:** **Fase 5+** — depende de tener primero el wizard de creación con los campos finales decididos. Si el wizard agrega un campo (ej. "Tiene piscina"), el filtro lo gana sin cambiar código del filtro, gracias al schema central.
+
+---
+
 ### Endpoints de auth pendientes (cualquier fase)
 
 Detectados en revisiones anteriores; sin urgencia inmediata pero documentados:
