@@ -330,6 +330,14 @@ export interface Comment {
   parent_id: number | null;
   cus_first_name: string;
   cus_last_name: string;
+  likesCount: number;
+  isLiked: boolean;
+}
+
+/** Respuesta de `POST /comments/:comment_id/like` (toggle). */
+export interface ToggleCommentLikeResponse {
+  liked: boolean;
+  likesCount: number;
 }
 
 export interface AddCommentPayload {

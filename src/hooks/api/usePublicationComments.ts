@@ -4,7 +4,7 @@ import type { AddCommentPayload, AddCommentResponse, Comment } from '@/types/api
 
 export const PUBLICATION_COMMENTS_QUERY_KEY = ['publicationComments'] as const;
 
-function parsePublicationId(value: number | string | null | undefined): number | null {
+export function parsePublicationId(value: number | string | null | undefined): number | null {
   if (value === null || value === undefined || value === '') {
     return null;
   }

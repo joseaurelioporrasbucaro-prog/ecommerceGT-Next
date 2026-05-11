@@ -15,6 +15,8 @@ interface ForumCommentProps {
   content: string;
   afterContent?: React.ReactNode;
   likes?: number;
+  isLiked?: boolean;
+  onLike?: () => void;
   repliesCount?: number;
   onReply?: () => void;
   children?: React.ReactNode;
@@ -30,6 +32,8 @@ const ForumComment = ({
   content,
   afterContent,
   likes = 0,
+  isLiked = false,
+  onLike,
   repliesCount = 0,
   onReply,
   children,
@@ -64,13 +68,28 @@ const ForumComment = ({
     </div>
 
     <div className="q-meta-content">
-      <div className="q-meta-item">
-        <div className="q-meta-icon">
-          <i className="flaticon-heart"></i>
+      {onLike ? (
+        <button
+          type="button"
+          className="q-meta-item comment-like-btn"
+          onClick={onLike}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: isLiked ? 'var(--tp-theme-1, #6c5ce7)' : 'inherit' }}
+        >
+          <div className="q-meta-icon">
+            <i className={isLiked ? 'fas fa-heart' : 'flaticon-heart'} />
+          </div>
+          <div className="q-meta-likes" style={{ fontWeight: isLiked ? 700 : undefined }}>{likes}</div>
+          <div className="q-meta-type">Likes</div>
+        </button>
+      ) : (
+        <div className="q-meta-item">
+          <div className="q-meta-icon">
+            <i className="flaticon-heart" />
+          </div>
+          <div className="q-meta-likes">{likes}</div>
+          <div className="q-meta-type">Likes</div>
         </div>
-        <div className="q-meta-likes">{likes}</div>
-        <div className="q-meta-type">Likes</div>
-      </div>
+      )}
       <div className="q-meta-item">
         <div className="q-meta-icon">
           <i className="flaticon-chatting"></i>

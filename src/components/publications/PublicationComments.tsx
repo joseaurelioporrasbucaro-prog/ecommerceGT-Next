@@ -1,12 +1,14 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ForumComment from '@/components/comments/ForumComment';
 import ForumReply from '@/components/comments/ForumReply';
 import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { useAddComment, usePublicationComments } from '@/hooks/api/usePublicationComments';
+import { useToggleCommentLike } from '@/hooks/api/useToggleCommentLike';
 import type { Comment } from '@/types/api';
 import { getPublicationStatusInfo } from './publicationUtils';
 
@@ -236,6 +238,8 @@ interface CommentNodeProps {
   setReplyingTo: (id: number | null) => void;
   onSubmitReply: (parentId: number, content: string) => Promise<void>;
   isPending: boolean;
+  onLike: (commentId: number) => void;
+  isClosed: boolean;
 }
 
 const CommentNodeView = ({
@@ -246,11 +250,14 @@ const CommentNodeView = ({
   setReplyingTo,
   onSubmitReply,
   isPending,
+  onLike,
+  isClosed,
 }: CommentNodeProps) => {
   const { date, time } = formatCommentDate(node.created_at);
   const authorName = `${node.cus_first_name} ${node.cus_last_name}`;
   const authorHref = `/creator-profile/${node.cus_id}`;
   const isReplyingHere = replyingTo === node.comment_id;
+  const likeHandler = isClosed ? undefined : () => onLike(node.comment_id);
 
   const replyForm = isReplyingHere && (
     <InlineReplyForm
@@ -273,6 +280,8 @@ const CommentNodeView = ({
           setReplyingTo={setReplyingTo}
           onSubmitReply={onSubmitReply}
           isPending={isPending}
+          onLike={onLike}
+          isClosed={isClosed}
         />
       ))}
     </div>
@@ -287,6 +296,9 @@ const CommentNodeView = ({
         date={date}
         time={time}
         content={node.content}
+        likes={node.likesCount}
+        isLiked={node.isLiked}
+        onLike={likeHandler}
         repliesCount={node.children.length}
         onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
       >
@@ -304,6 +316,9 @@ const CommentNodeView = ({
       date={date}
       time={time}
       content={node.content}
+      likes={node.likesCount}
+      isLiked={node.isLiked}
+      onLike={likeHandler}
       onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
     >
       {replyForm}
@@ -317,9 +332,11 @@ const CommentNodeView = ({
 // ============================================================================
 
 const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
+  const router = useRouter();
   const { user } = useAuth();
   const commentsQuery = usePublicationComments(pubId);
   const addCommentMutation = useAddComment(pubId);
+  const toggleLikeMutation = useToggleCommentLike(pubId);
   const comments = commentsQuery.data ?? [];
 
   const [content, setContent] = useState('');
@@ -330,6 +347,14 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   const statusInfo = getPublicationStatusInfo(pubstaId);
   const isClosed = statusInfo.isClosed;
   const canComment = !!user && !isClosed;
+
+  const handleLike = (commentId: number) => {
+    if (!user) {
+      router.push(`/login?from=${encodeURIComponent(`/publications/${pubId}`)}`);
+      return;
+    }
+    toggleLikeMutation.mutate(commentId);
+  };
 
   const handleNewCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -393,6 +418,8 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                   setReplyingTo={setReplyingTo}
                   onSubmitReply={handleReplySubmit}
                   isPending={addCommentMutation.isPending}
+                  onLike={handleLike}
+                  isClosed={isClosed}
                 />
               ))}
             </div>

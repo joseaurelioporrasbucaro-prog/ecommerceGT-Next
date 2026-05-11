@@ -13,6 +13,8 @@ interface ForumReplyProps {
   time?: string;
   content: string;
   likes?: number;
+  isLiked?: boolean;
+  onLike?: () => void;
   /** Si se provee, muestra el botón "Reply" (estilo del forum del scaffold). */
   onReply?: () => void;
   likesLabel?: string;
@@ -29,6 +31,8 @@ const ForumReply = ({
   time,
   content,
   likes = 0,
+  isLiked = false,
+  onLike,
   onReply,
   likesLabel = 'Likes',
   replyLabel = 'Responder',
@@ -61,13 +65,25 @@ const ForumReply = ({
 
     {/* Estructura idéntica al `q-single-answer` del scaffold (forum). */}
     <div className="ans-meta-content">
-      <div className="q-meta-item">
-        <div className="q-meta-icon">
-          <i className="flaticon-heart"></i>
+      {onLike ? (
+        <div className="q-meta-item">
+          <button
+            type="button"
+            onClick={onLike}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, color: isLiked ? 'var(--tp-theme-1, #6c5ce7)' : 'inherit' }}
+          >
+            <span className="q-meta-icon"><i className={isLiked ? 'fas fa-heart' : 'flaticon-heart'} /></span>
+            <span style={{ fontWeight: isLiked ? 700 : undefined }}>{likes}</span>
+            <span className="q-meta-type">{likesLabel}</span>
+          </button>
         </div>
-        <div className="q-meta-likes">{likes}</div>
-        <div className="q-meta-type">{likesLabel}</div>
-      </div>
+      ) : (
+        <div className="q-meta-item">
+          <div className="q-meta-icon"><i className="flaticon-heart" /></div>
+          <div className="q-meta-likes">{likes}</div>
+          <div className="q-meta-type">{likesLabel}</div>
+        </div>
+      )}
       {onReply && (
         <div className="q-meta-item">
           <button type="button" onClick={onReply}>
