@@ -125,7 +125,7 @@ El backend está estable y se comparte. La regla:
 | **3** | Catálogo público y detalle de publicaciones | ✅ Completada | 3 días |
 | **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ✅ Completada | 2–3 días |
 | **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ⬜ Pendiente | 3–4 días |
-| **4.3** | Likes funcionales en comentarios (próxima minor de Fase 4) | ⬜ Pendiente | 0.5 día |
+| **4.3** | Likes funcionales en comentarios (minor de Fase 4) | ✅ Completada | 0.5 día |
 | **6** | Mensajería (inbox + conversación + polling) + Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 3–4 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
@@ -715,39 +715,45 @@ LIMIT 5;
 
 > Nota: las FKs y los índices que apuntan a esta tabla se actualizan automáticamente con el RENAME (PostgreSQL ajusta las referencias). Si tu BD tiene la tabla `comment_reports` con un FK a `publication_comments(comment_id)`, ese FK seguirá funcionando porque PostgreSQL re-resuelve el OID interno.
 
-### Fase 4.3 (próxima minor) — Likes en comentarios
+### ✅ Fase 4.3 (completada) — Likes funcionales en comentarios
 
-**Objetivo:** que el botón ❤ Likes en cada comentario / respuesta sea funcional. Hoy muestra `0` placeholder porque no hay tabla de likes ni endpoints.
+**Objetivo:** conectar el botón ❤ que ya existía en el scaffold para que toggle el like del usuario autenticado en cada comentario y respuesta, con optimistic update y fallback.
 
-**Cambio al `database.sql` (consolidado, sin ALTER):**
+**Archivos creados/modificados:**
+
+| Archivo | Cambio |
+| --- | --- |
+| `database.sql` | Nueva tabla `ecom.comment_likes` + índice `idx_comment_likes_comment_id` |
+| `ecommerceGTBackEnd/config/connPostgresDB.js` | `getComments` extendido con `likesCount`/`isLiked`; nueva función `toggleCommentLike`; export agregado |
+| `ecommerceGTBackEnd/server.js` | `GET /comments/:pub_id` → añade `authMiddlewareAux`; nuevo `POST /comments/:comment_id/like` con `authMiddleware` |
+| `src/types/api.ts` | Campos `likesCount: number` e `isLiked: boolean` en `Comment`; nuevo tipo `ToggleCommentLikeResponse` |
+| `src/hooks/api/usePublicationComments.ts` | `parsePublicationId` exportada para reuso |
+| `src/hooks/api/useToggleCommentLike.ts` | **Nuevo hook** — mutation con optimistic update sobre la query de comentarios; rollback automático en error |
+| `src/components/comments/ForumComment.tsx` | Props `isLiked`/`onLike` → botón interactivo condicional (corazón relleno cuando liked) |
+| `src/components/comments/ForumReply.tsx` | Mismo tratamiento que `ForumComment` |
+| `src/components/publications/PublicationComments.tsx` | Conecta `useToggleCommentLike`; `handleLike` redirige a `/login` si no hay sesión; deshabilitado si publicación cerrada |
+
+**Decisiones técnicas:**
+- Un solo `useMutation` a nivel de `PublicationComments`, con `commentId` como variable (evita crear N hooks para N comentarios).
+- `authMiddlewareAux` en GET para devolver `isLiked` correcto cuando hay sesión, sin romper la ruta pública.
+- Tabla usa `SERIAL PRIMARY KEY` + `UNIQUE (comment_id, cus_id)` para garantizar un like por usuario, sin riesgo de duplicados.
+- FKs con `ON DELETE CASCADE` para que los likes se limpien al borrar comentario o cuenta.
+
+**SQL de `comment_likes` aplicado:**
 
 ```sql
--- Likes en comentarios. UNIQUE (comment_id, cus_id) garantiza un like por usuario por comentario.
-CREATE TABLE IF NOT EXISTS comment_likes (
-    comlike_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    comment_id INTEGER NOT NULL,
-    cus_id BIGINT NOT NULL,
+CREATE TABLE IF NOT EXISTS ecom.comment_likes (
+    like_id    SERIAL PRIMARY KEY,
+    comment_id INTEGER NOT NULL REFERENCES ecom.publications_comments(comment_id) ON DELETE CASCADE,
+    cus_id     BIGINT  NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_comment_likes_comment
-        FOREIGN KEY (comment_id) REFERENCES publications_comments(comment_id) ON DELETE CASCADE,
-    CONSTRAINT fk_comment_likes_customer
-        FOREIGN KEY (cus_id) REFERENCES customer(cus_id) ON DELETE CASCADE,
     CONSTRAINT uq_comment_likes UNIQUE (comment_id, cus_id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id
-    ON comment_likes(comment_id);
+CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id ON ecom.comment_likes(comment_id);
 ```
 
-**Endpoints nuevos:**
-- `POST /comments/:comment_id/like` (auth) — toggle: si no existe, INSERT y devuelve `{ liked: true, likesCount }`. Si existe, DELETE y devuelve `{ liked: false, likesCount }`.
-- `GET /comments/:pub_id` (existente) — extender SELECT para incluir `likes_count` (`COUNT subquery`) e `is_liked` (`EXISTS` con `cus_id` de la sesión, `false` si no hay sesión).
-
-**Frontend:**
-- Tipo `Comment.likesCount: number` y `Comment.isLiked: boolean` en `types/api.ts`.
-- Hook `useToggleCommentLike(commentId)` con optimistic update sobre la query de comentarios.
-- Botón ❤ del scaffold conecta al hook. Sin sesión → redirect a `/login`. Estado activo (corazón relleno) cuando `isLiked === true`.
-- Si la publicación está cerrada (vendida/anulada), botón deshabilitado.
+**Pendiente (seguimiento):**
+- Ejecutar el `CREATE TABLE` en la base de datos de desarrollo/producción (el script `database.sql` ya lo tiene).
 
 ---
 
