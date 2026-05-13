@@ -340,6 +340,12 @@ export interface ToggleCommentLikeResponse {
   likesCount: number;
 }
 
+/** Respuesta de `DELETE /publications/:id` — soft-delete a `pubsta_id = 4`. */
+export interface DeletePublicationResponse {
+  pubId: number;
+  pubstaId: number;
+}
+
 export interface AddCommentPayload {
   pub_id: number;
   content: string;

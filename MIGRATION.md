@@ -126,8 +126,9 @@ El backend está estable y se comparte. La regla:
 | **2** | Catálogos de referencia (países/ciudades/categorías/transacciones) | ✅ Completada | 0.5 día |
 | **3** | Catálogo público y detalle de publicaciones | ✅ Completada | 3 días |
 | **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ✅ Completada | 2–3 días |
-| **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ⬜ Pendiente | 3–4 días |
 | **4.3** | Likes funcionales en comentarios (minor de Fase 4) | ✅ Completada | 0.5 día |
+| **4.4** | Migración del backend al nuevo remote `techmindsgt` (deploy en Render/Vercel) | ✅ Completada | 0.5 día |
+| **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | 🟡 En curso | 3–4 días |
 | **6** | Mensajería (inbox + conversación + polling) + Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 3–4 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
@@ -756,6 +757,42 @@ CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id ON ecom.comment_likes(co
 
 **Pendiente (seguimiento):**
 - Ejecutar el `CREATE TABLE` en la base de datos de desarrollo/producción (el script `database.sql` ya lo tiene).
+
+---
+
+### ✅ Fase 4.4 (completada) — Migración del backend al nuevo remote `techmindsgt`
+
+**Objetivo:** mover `ecommerceGTBackEnd` del remote personal `joseaurelioporrasbucaro-prog` (cuenta individual) al remote organizacional `techmindsgt` (cuenta del equipo, conectada a Render/Vercel para despliegue automático), preservando toda la historia git.
+
+**Estado de partida:**
+- Repo viejo (`Documents/Proyectos Git /ecommerceGTBackEnd`) — historia completa, decenas de commits, `development.env` **trackeado** (credenciales en git).
+- Repo nuevo (`Documents/ecommerceGTBackEnd`) — placeholder con 2 commits de cmiche que dejaban la cáscara configurada para Vercel: `dotenv.config()` sin path fijo, `.env` en `.gitignore`, health check `GET /`.
+
+**Estrategia ejecutada:**
+1. En el repo viejo, antes de migrar:
+   - `git rm --cached development.env` (sacar credenciales del tracking, sin borrar el archivo local).
+   - Agregar `.env` y `development.env` al `.gitignore`.
+   - Comentar el `require("dotenv").config({ path: "../development.env" })` de `connPostgresDB.js` para que Vercel/Render inyecten las vars directo desde su dashboard.
+   - Commit: `chore: configure for Vercel — untrack development.env, comment dotenv loader, add .env to gitignore`.
+2. Agregar el nuevo remote y `git push techminds master --force` — la historia completa del viejo reemplaza los 2 commits placeholder.
+3. En el repo local nuevo: `git fetch && git reset --hard origin/master`.
+4. Re-aplicar manualmente los cambios de cmiche para Vercel que se habían perdido en el force-push (health check `GET /`, `start()` async con try/catch). Commit aparte: `chore(vercel): restore Vercel-compatible env loading and health check endpoint`.
+
+**Bug fix encontrado en el camino — prefijo `ecom.` en todas las tablas:**
+Render no resuelve el `search_path` al esquema `ecom` por defecto. Se prefijaron las 77 referencias de tablas en `connPostgresDB.js` con su esquema completo (`ecom.customer`, `ecom.publications`, etc.). Commit: `fix(db): prefija todas las tablas con esquema ecom. para Render`.
+
+**Follow-up de cmiche (commit `8e9d00e Changes in environment`):**
+- Renombró las env vars de la conexión a `DB_*` (`process.env.USER` → `DB_USER`, etc.) — `USER` chocaba con la var del sistema en algunos hosts.
+- Encontró 4 prefijos `ecom.` que el regex original había omitido (joins con coma `FROM a, b, c` en vez de `FROM ... JOIN`): `subscriptions`, `business`, `cat_password_status`, `cat_publication_transac`.
+- Plantilla de `.env` documentada en `info.txt`.
+
+**Reorganización local:**
+- Repo viejo renombrado a `Proyectos Git /ecommerceGTBackEnd-old` (archivo, sigue en disco para referencia/rollback).
+- Repo nuevo movido a `Proyectos Git /ecommerceGTBackEnd` (toma el nombre original).
+- Workspace actualizado para incluir ambos.
+
+**Pendiente (seguimiento):**
+- Sincronizar `.env` local cada vez que un compañero cambie nombres de variables. Sugerido: agregar un `.env.example` versionado al repo nuevo como fuente de verdad.
 
 ---
 
