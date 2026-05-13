@@ -4,7 +4,9 @@
 @import '../../public/assets/css/backtoTop.css';
 @import '../../public/assets/css/flaticon.css';
 @import '../../public/assets/css/nice-select.css';
-@import '../../public/assets/css/fontAwesome5Pro.css';
+// Font Awesome 5 Pro se carga via <link> en src/app/layout.tsx — al
+// importarlo aquí webpack reescribe las url(../fonts/*) pero no emite
+// las fuentes al bundle, así que los íconos salen como cuadrado.
 @import '../../public/assets/scss/main';
 
 
