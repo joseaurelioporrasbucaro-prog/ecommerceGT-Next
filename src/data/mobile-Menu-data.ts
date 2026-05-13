@@ -48,12 +48,12 @@ const mobileMenuData = [
         
         "submenu": [
             {
-                text: "Upload Category",
-                link: "/upload-category"
+                text: "Crear publicación",
+                link: "/upload"
             },
             {
-                text: "Upload",
-                link: "/upload"
+                text: "Mis publicaciones",
+                link: "/my-publications"
             },
             {
                 text: "Catálogo público",

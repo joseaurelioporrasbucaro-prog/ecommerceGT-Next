@@ -57,8 +57,8 @@ export const MenuData = [
         hasDropdown: true,
         submenus: [
           { id: 9, title: "Catálogo público", link: "/publications" },
-          { id: 10, title: "Upload Category", link: "/upload-category" },
-          { id: 11, title: "Upload", link: "/upload" },
+          { id: 11, title: "Crear publicación", link: "/upload" },
+          { id: 12, title: "Mis publicaciones", link: "/my-publications" },
         ],
       },
       {
@@ -162,9 +162,9 @@ export const menuItems: MobileMenuItemType[] = [
     label: "Publicaciones",
     subMenu: true,
     subMenuItems: [
-      { label: "Upload Category", href: "/upload-category" },
-      { label: "Upload", href: "/upload" },
       { label: "Catálogo público", href: "/publications" },
+      { label: "Crear publicación", href: "/upload" },
+      { label: "Mis publicaciones", href: "/my-publications" },
     ],
   },
   {
