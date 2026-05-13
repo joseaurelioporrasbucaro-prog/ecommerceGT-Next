@@ -49,9 +49,12 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
   const totalCount = uploaded.length + pending.length;
   const remaining = Math.max(0, MAX_IMAGES - totalCount);
 
-  const handleChange = (incoming: File | File[]) => {
+  const handleChange = (incoming: File | File[] | FileList) => {
     if (disabled) return;
-    const files = Array.isArray(incoming) ? incoming : [incoming];
+    // react-drag-drop-files con multiple=true devuelve FileList (array-like, no Array).
+    // Single-file mode devuelve un File suelto. Normalizamos a File[] real.
+    const files: File[] =
+      incoming instanceof File ? [incoming] : Array.from(incoming as FileList | File[]);
     if (files.length === 0) return;
 
     const accepted = files.slice(0, remaining);
