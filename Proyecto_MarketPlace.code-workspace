@@ -4,10 +4,13 @@
 			"path": "."
 		},
 		{
-			"path": "../ecommerceGTBackEnd"
+			"path": "../ecommerceGTBackEnd-old"
 		},
 		{
 			"path": "../ecommerceGT"
+		},
+		{
+			"path": "../ecommerceGTBackEnd"
 		}
 	],
 	"settings": {}
