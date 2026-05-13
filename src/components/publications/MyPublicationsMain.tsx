@@ -19,6 +19,36 @@ const PUBSTA_SOLD = 3;
 const PUBSTA_DRAFT = 1;
 const PUBSTA_VOID = 4;
 
+interface PublicationRowImageProps {
+  src: string | null | undefined;
+  alt: string;
+}
+
+/**
+ * Imagen de la fila de "Mis publicaciones". Si el archivo no existe en backend
+ * (404 — pasa con publicaciones viejas cuyas imágenes se borraron), cae al
+ * placeholder en vez de romper next/image. Cada fila tiene su propio state.
+ */
+const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) => {
+  const [errored, setErrored] = useState(false);
+  const resolvedSrc = src && !errored ? getBackendUrl(src) : CARD_PLACEHOLDER;
+  const isPlaceholder = resolvedSrc === CARD_PLACEHOLDER;
+
+  return (
+    <Image
+      src={resolvedSrc}
+      alt={alt}
+      fill
+      sizes="120px"
+      style={{ objectFit: 'cover' }}
+      unoptimized={isPlaceholder}
+      onError={() => {
+        if (!errored) setErrored(true);
+      }}
+    />
+  );
+};
+
 function getStatusBadge(pubstaId: number): { label: string; color: string } | null {
   if (pubstaId === PUBSTA_SOLD) return { label: 'Vendida', color: '#ef4444' };
   if (pubstaId === PUBSTA_DRAFT) return { label: 'Borrador', color: '#9ca3af' };
@@ -77,9 +107,6 @@ const MyPublicationsMain = () => {
           {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length > 0 && (
             <div className="my-publications-list">
                   {publications.map((publication) => {
-                    const imageSrc = publication.main_image
-                      ? getBackendUrl(publication.main_image)
-                      : CARD_PLACEHOLDER;
                     const badge = getStatusBadge(publication.pubsta_id);
 
                     return (
@@ -90,13 +117,9 @@ const MyPublicationsMain = () => {
                           className="my-publication-image-link"
                         >
                           <span className="my-publication-image-frame">
-                            <Image
-                              src={imageSrc}
+                            <PublicationRowImage
+                              src={publication.main_image}
                               alt={publication.pub_title}
-                              fill
-                              sizes="120px"
-                              style={{ objectFit: 'cover' }}
-                              unoptimized={imageSrc === CARD_PLACEHOLDER}
                             />
                             {badge && (
                               <span
