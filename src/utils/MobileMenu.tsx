@@ -89,8 +89,8 @@ const MobileMenu = () => {
               </form>
             </div>
             <div className="offset-widget mb-40">
-              <Link className="fill-btn" href="/upload-category">
-                Upload Items
+              <Link className="fill-btn" href="/upload">
+                Crear publicación
               </Link>
             </div>
             <div className="offset-widget mb-40 d-none d-lg-block">

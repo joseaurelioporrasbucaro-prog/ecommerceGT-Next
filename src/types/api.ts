@@ -346,6 +346,55 @@ export interface DeletePublicationResponse {
   pubstaId: number;
 }
 
+/** Respuesta de `POST /upload` (multipart, campo `image`). */
+export interface UploadImageResponse {
+  message: string;
+  file: string;
+  path: string;
+}
+
+/** Imagen ya subida que se manda a `POST /savepubl`. `id` es el filename, `url` el path. */
+export interface UploadedImage {
+  id: string;
+  url: string;
+}
+
+/** Body de `POST /savepubl`. SIC backend: nombres legacy, no camelCase. */
+export interface CreatePublicationPayload extends Record<string, unknown> {
+  title: string;
+  description: string;
+  address: string;
+  /** pubgen_id: 1=Casa, 2=Apartamento, 3=Terreno. */
+  propertie: number;
+  /** pubtra_id (no el id de la tabla cruzada). */
+  transaction: number;
+  price: number;
+  country: number;
+  city: number;
+  municipality: number;
+  /** Casa(1) y Apto(2). Terreno(3) ignora estos. */
+  noRooms: number | null;
+  noBathrooms: number | null;
+  noParking: number | null;
+  /** Solo Apto(2). */
+  nlevel: number | null;
+  /** Solo Terreno(3). */
+  size: number | null;
+  images: UploadedImage[];
+}
+
+/** Respuesta de `POST /savepubl`. */
+export interface CreatePublicationResponse {
+  message: string;
+  id: number;
+}
+
+/** Respuesta de `POST /checkerpub` — valida cuota de plan del usuario. */
+export interface CheckerPublicationsResponse {
+  message: string;
+  create: boolean;
+}
+
 export interface AddCommentPayload {
   pub_id: number;
   content: string;

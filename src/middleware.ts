@@ -18,6 +18,7 @@ const PROTECTED_ROUTES = [
   '/messages',
   '/creator-profile-info-personal', // Se renombrará a /profile en una fase futura.
   '/publications/new',
+  '/upload',
 ];
 
 // Rutas cuyo path dinámico requiere sesión, ej. /publications/[id]/edit.
