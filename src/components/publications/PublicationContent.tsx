@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import { useCities, useCountries, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useSellerInfo } from '@/hooks/api/usePublications';
+import { useAuth } from '@/utils/AuthContext';
 import type { PublicationDetail } from '@/types/api';
 import { getBackendUrl } from '@/utils/backendUrl';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
@@ -18,11 +19,19 @@ interface PublicationContentProps {
 const DEFAULT_AVATAR = '/assets/img/profile/avatar.png';
 
 const PublicationContent = ({ publication }: PublicationContentProps) => {
+  const { user } = useAuth();
   const countriesQuery = useCountries();
   const citiesQuery = useCities(publication.cou_id);
   const municipalitiesQuery = useMunicipalities(publication.cit_id);
   const sellerQuery = useSellerInfo(publication.cus_id);
   const toggleFavoriteMutation = useToggleFavorite(publication.pub_id);
+
+  // El vendedor no se contacta a sí mismo. Si no hay sesión, redirigimos
+  // a /login con `from` para que tras autenticarse vuelva a esta página.
+  const isOwnPublication = user?.id === publication.cus_id;
+  const contactHref = !user
+    ? `/login?from=/publications/${publication.pub_id}`
+    : `/messages?pub=${publication.pub_id}&with=${publication.cus_id}`;
 
   const seller = sellerQuery.data;
   const sellerName = seller ? `${seller.firstName} ${seller.lastName}` : publication.user;
@@ -116,15 +125,28 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
               <i className={publication.isFavorite ? 'fas fa-heart' : 'far fa-heart'}></i>
               <span className="favorites-count">{favoritesCount}</span>
             </button>
-            <button
-              type="button"
-              className="action-btn action-btn-secondary"
-              title="Contactar al vendedor (Fase 6)"
-              aria-label="Enviar mensaje al vendedor"
-            >
-              <i className="flaticon-chatting"></i>
-              <span>Contactar</span>
-            </button>
+            {isOwnPublication ? (
+              <button
+                type="button"
+                className="action-btn action-btn-secondary"
+                disabled
+                title="Esta es tu propia publicación."
+                aria-label="No podés contactarte a ti mismo"
+              >
+                <i className="flaticon-chatting"></i>
+                <span>Contactar</span>
+              </button>
+            ) : (
+              <Link
+                href={contactHref}
+                className="action-btn action-btn-secondary"
+                title={user ? 'Enviar mensaje al vendedor' : 'Inicia sesión para contactar al vendedor'}
+                aria-label="Enviar mensaje al vendedor"
+              >
+                <i className="flaticon-chatting"></i>
+                <span>Contactar</span>
+              </Link>
+            )}
           </div>
 
           {/* ───────── Tabs ───────── */}

@@ -603,3 +603,58 @@ export interface DeleteImagePayload {
  * mismo tipo. Útil para IDs (PublicationId vs UserId) en fases futuras.
  */
 export type Brand<T, K extends string> = T & { readonly __brand: K };
+
+// ============================================================================
+// Mensajería (Fase 6.1)
+// ============================================================================
+
+/** Una conversación en el inbox del usuario logueado. Backend: `GET /messages/inbox`. */
+export interface InboxItem {
+  pub_id: number;
+  pub_title: string;
+  contact_id: number;
+  contact_name: string;
+  contact_image: string | null;
+  last_msg_date: string;
+  unread_conversation: number;
+}
+
+/**
+ * Un mensaje individual dentro de una conversación.
+ * Backend: `GET /messages/conversation/:pub_id/:other_user_id`.
+ */
+export interface ConversationMessage {
+  message_id: number;
+  sender_id: number;
+  receiver_id: number;
+  pub_id: number;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+  sender_name: string;
+  sender_image: string | null;
+}
+
+/** Body de `POST /messages/send`. */
+export interface SendMessagePayload extends Record<string, unknown> {
+  receiver_id: number;
+  pub_id: number;
+  content: string;
+}
+
+/** Respuesta de `POST /messages/send`. */
+export interface SendMessageResponse {
+  message: string;
+  messageData: ConversationMessage;
+}
+
+/** Respuesta de `GET /messages/unread`. */
+export interface UnreadMessagesResponse {
+  unreadCount: number;
+}
+
+/** Body de `POST /messages/mark-read` — marca toda una conversación como leída. */
+export interface MarkConversationReadPayload extends Record<string, unknown> {
+  sender_id: number;
+  pub_id: number;
+}
