@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 import { useToggleFavorite } from '@/hooks/api/useFavorites';
+import { getImageVariant } from '@/utils/imageVariants';
 import type { AnyPublicationListItem } from '@/types/api';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
 import {
@@ -31,12 +32,16 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
   const hasMultiple = allImages.length > 1;
 
   const [hoverIndex, setHoverIndex] = useState(0);
-  const [imageError, setImageError] = useState(false);
+  // Cadena de fallback: variante optimizada → original → placeholder estático.
+  const [imageStage, setImageStage] = useState<'variant' | 'original' | 'placeholder'>('variant');
   const toggleFavoriteMutation = useToggleFavorite(publication.id);
 
-  const currentImage = imageError
-    ? CARD_PLACEHOLDER
-    : (allImages[hoverIndex] ?? CARD_PLACEHOLDER);
+  const currentImage = useMemo(() => {
+    if (imageStage === 'placeholder' || allImages.length === 0) return CARD_PLACEHOLDER;
+    const original = allImages[hoverIndex] ?? CARD_PLACEHOLDER;
+    if (original === CARD_PLACEHOLDER) return CARD_PLACEHOLDER;
+    return imageStage === 'variant' ? getImageVariant(original, 'card') : original;
+  }, [imageStage, allImages, hoverIndex]);
 
   const isFavorite = isPublicationListItemAuth(publication) && publication.isFavorite;
   const isLand = isLandCategory(publication.category);
@@ -58,7 +63,11 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
   };
 
   const handleMouseLeave = () => setHoverIndex(0);
-  const handleImageError = () => { if (!imageError) setImageError(true); };
+  const handleImageError = () => {
+    setImageStage((prev) =>
+      prev === 'variant' ? 'original' : 'placeholder',
+    );
+  };
   const handleToggleFavorite = () => {
     toggleFavoriteMutation.mutate();
   };
@@ -119,7 +128,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
                 />
               </Link>
 
-              {hasMultiple && !imageError && (
+              {hasMultiple && imageStage !== 'placeholder' && (
                 <div className="publication-image-indicators">
                   {allImages.map((_, idx) => (
                     <span key={idx} className={`indicator ${idx === hoverIndex ? 'active' : ''}`} />

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { getImageVariant } from '@/utils/imageVariants';
 import {
   DETAIL_PLACEHOLDER,
   THUMB_IMAGE_DIMENSIONS,
@@ -23,15 +24,22 @@ interface PublicationGalleryProps {
 const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
   const list = images.length > 0 ? images : [DETAIL_PLACEHOLDER];
   const [activeIndex, setActiveIndex] = useState(0);
-  const [mainErrored, setMainErrored] = useState(false);
+  // Cadena de fallback para la imagen principal: variante _detail → original → placeholder.
+  const [mainStage, setMainStage] = useState<'variant' | 'original' | 'placeholder'>('variant');
 
   // Si cambia la lista (después de un fetch), volvemos al primero
   useEffect(() => {
     setActiveIndex(0);
-    setMainErrored(false);
+    setMainStage('variant');
   }, [images]);
 
-  const activeImage = mainErrored ? DETAIL_PLACEHOLDER : list[activeIndex];
+  const baseImage = list[activeIndex];
+  const activeImage =
+    mainStage === 'placeholder' || baseImage === DETAIL_PLACEHOLDER
+      ? DETAIL_PLACEHOLDER
+      : mainStage === 'variant'
+        ? getImageVariant(baseImage, 'detail')
+        : baseImage;
   const total = list.length;
   const hasMultiple = total > 1;
 
@@ -48,7 +56,9 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
           style={{ objectFit: 'contain' }}
           src={activeImage}
           alt={alt}
-          onError={() => setMainErrored(true)}
+          onError={() =>
+            setMainStage((prev) => (prev === 'variant' ? 'original' : 'placeholder'))
+          }
           unoptimized={activeImage === DETAIL_PLACEHOLDER}
           priority
         />
@@ -88,7 +98,7 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
               isActive={idx === activeIndex}
               onClick={() => {
                 setActiveIndex(idx);
-                setMainErrored(false);
+                setMainStage('variant');
               }}
               alt={alt}
             />
@@ -180,8 +190,14 @@ interface ThumbnailButtonProps {
 }
 
 const ThumbnailButton = ({ image, isActive, alt, onClick }: ThumbnailButtonProps) => {
-  const [errored, setErrored] = useState(false);
-  const src = errored ? THUMB_PLACEHOLDER : image;
+  // Cadena de fallback: variante _thumb → original → placeholder.
+  const [stage, setStage] = useState<'variant' | 'original' | 'placeholder'>('variant');
+  const src =
+    stage === 'placeholder' || image === THUMB_PLACEHOLDER
+      ? THUMB_PLACEHOLDER
+      : stage === 'variant'
+        ? getImageVariant(image, 'thumb')
+        : image;
 
   return (
     <button
@@ -196,7 +212,9 @@ const ThumbnailButton = ({ image, isActive, alt, onClick }: ThumbnailButtonProps
         style={{ objectFit: 'cover' }}
         src={src}
         alt={alt}
-        onError={() => setErrored(true)}
+        onError={() =>
+          setStage((prev) => (prev === 'variant' ? 'original' : 'placeholder'))
+        }
         unoptimized={src === THUMB_PLACEHOLDER}
       />
       <style jsx>{`

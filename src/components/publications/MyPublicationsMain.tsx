@@ -12,6 +12,7 @@ import { useMyPublications } from '@/hooks/api/useMyPublications';
 import { useDeletePublication } from '@/hooks/api/useDeletePublication';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
+import { getImageVariant } from '@/utils/imageVariants';
 import type { MyPublicationItem } from '@/types/api';
 import { CARD_PLACEHOLDER, formatPrice } from './publicationUtils';
 
@@ -25,13 +26,22 @@ interface PublicationRowImageProps {
 }
 
 /**
- * Imagen de la fila de "Mis publicaciones". Si el archivo no existe en backend
- * (404 — pasa con publicaciones viejas cuyas imágenes se borraron), cae al
- * placeholder en vez de romper next/image. Cada fila tiene su propio state.
+ * Imagen de la fila de "Mis publicaciones". 3 niveles de fallback:
+ *  1. Variante optimizada `_card` (Fase 5.4) — la primera elección.
+ *  2. Original — si la variante no existe (publicaciones viejas).
+ *  3. Placeholder estático — si ni el original existe.
  */
 const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) => {
-  const [errored, setErrored] = useState(false);
-  const resolvedSrc = src && !errored ? getBackendUrl(src) : CARD_PLACEHOLDER;
+  const [stage, setStage] = useState<'variant' | 'original' | 'placeholder'>('variant');
+
+  let resolvedSrc: string;
+  if (!src || stage === 'placeholder') {
+    resolvedSrc = CARD_PLACEHOLDER;
+  } else if (stage === 'original') {
+    resolvedSrc = getBackendUrl(src);
+  } else {
+    resolvedSrc = getBackendUrl(getImageVariant(src, 'card'));
+  }
   const isPlaceholder = resolvedSrc === CARD_PLACEHOLDER;
 
   return (
@@ -43,7 +53,10 @@ const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) =
       style={{ objectFit: 'cover' }}
       unoptimized={isPlaceholder}
       onError={() => {
-        if (!errored) setErrored(true);
+        // Bajar un escalón en la cadena de fallback.
+        setStage((prev) =>
+          prev === 'variant' ? 'original' : prev === 'original' ? 'placeholder' : 'placeholder',
+        );
       }}
     />
   );
