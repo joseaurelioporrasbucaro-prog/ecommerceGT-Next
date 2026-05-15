@@ -146,12 +146,34 @@ const MyPublicationsMain = () => {
                         </div>
 
                         <div className="my-publication-actions">
-                          <Link
-                            href={`/publications/${publication.pub_id}/edit`}
-                            className="border-btn"
-                          >
-                            Editar
-                          </Link>
+                          {(() => {
+                            const isVoid = publication.pubsta_id === PUBSTA_VOID;
+                            const isSold = publication.pubsta_id === PUBSTA_SOLD;
+                            const editDisabled = isVoid || isSold;
+                            const editTitle = isVoid
+                              ? 'Las publicaciones anuladas no se pueden editar.'
+                              : isSold
+                                ? 'Las publicaciones vendidas no se pueden editar.'
+                                : undefined;
+
+                            return editDisabled ? (
+                              <button
+                                type="button"
+                                className="border-btn"
+                                disabled
+                                title={editTitle}
+                              >
+                                Editar
+                              </button>
+                            ) : (
+                              <Link
+                                href={`/publications/${publication.pub_id}/edit`}
+                                className="border-btn"
+                              >
+                                Editar
+                              </Link>
+                            );
+                          })()}
                           {(() => {
                             const isVoid = publication.pubsta_id === PUBSTA_VOID;
                             const isSold = publication.pubsta_id === PUBSTA_SOLD;
