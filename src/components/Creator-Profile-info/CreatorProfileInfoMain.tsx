@@ -7,6 +7,7 @@ import profile1 from "../../../public/assets/img/profile/profile1.jpg"
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/utils/AuthContext';
+import { getBackendUrl } from '@/utils/backendUrl';
 
 // Importamos los submódulos que crearemos en el Paso 2
 import PersonalInfoTab from './PersonalInfoTab';
@@ -15,7 +16,14 @@ import AccountSettingsTab from './AccountSettingsTab';
 const CreatorProfileInfoMain = () => {
     const { user } = useAuth();
     // Estado para controlar qué pestaña está activa (0 = Personal, 1 = Account)
-    const [activeTab, setActiveTab] = useState(0); 
+    const [activeTab, setActiveTab] = useState(0);
+    // Si el archivo de avatar no existe en backend (404), caemos al placeholder.
+    const [avatarErrored, setAvatarErrored] = useState(false);
+
+    const remoteAvatar = user?.imagenu
+        ? (user.imagenu.startsWith('http') ? user.imagenu : getBackendUrl(user.imagenu))
+        : null;
+    const avatarSrc = remoteAvatar && !avatarErrored ? remoteAvatar : profile1;
 
     return (
         <>
@@ -34,11 +42,14 @@ const CreatorProfileInfoMain = () => {
                                 <div className="creator-img-name">
                                     <div className="profile-img pos-rel">
                                         <div className="change-photo"><i className="flaticon-photo-camera"></i></div>
-                                        <Image 
-                                            src={user?.imagenu ? (user.imagenu.startsWith('http') ? user.imagenu : `http://localhost:4000${user.imagenu}`) : profile1} 
-                                            alt="profile-img" 
-                                            width={160} height={160} 
+                                        <Image
+                                            src={avatarSrc}
+                                            alt="profile-img"
+                                            width={160}
+                                            height={160}
                                             style={{ objectFit: 'cover', borderRadius: '50%' }}
+                                            onError={() => setAvatarErrored(true)}
+                                            unoptimized={avatarSrc === profile1}
                                         />
                                     </div>
                                     <div className="creator-name-id">
