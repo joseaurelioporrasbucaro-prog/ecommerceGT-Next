@@ -262,14 +262,22 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               <div className="col-md-6">
                 <div className="single-input-unit">
                   <label htmlFor="propertie">Tipo de propiedad</label>
+                  {/*
+                   * key cambia al llegar las opciones para forzar re-mount del
+                   * <select> y que React sincronice el value precargado por
+                   * formik con la <option> recién agregada (workaround a un
+                   * quirk de React donde un select controlled no se re-sync
+                   * cuando aparece la option después del primer render).
+                   */}
                   <select
                     id="propertie"
+                    key={`propertie-${categoriesQuery.data?.length ?? 0}`}
                     className="upload-select"
                     {...formik.getFieldProps('propertie')}
                   >
                     <option value="">Selecciona…</option>
                     {(categoriesQuery.data ?? []).map((c) => (
-                      <option key={c.pubgen_id} value={c.pubgen_id}>
+                      <option key={c.pubgen_id} value={String(c.pubgen_id)}>
                         {c.pubgen_description}
                       </option>
                     ))}
@@ -285,13 +293,14 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   <label htmlFor="transaction">Tipo de transacción</label>
                   <select
                     id="transaction"
+                    key={`transaction-${propertieNum ?? 'none'}-${transactionsQuery.data?.length ?? 0}`}
                     className="upload-select"
                     disabled={!propertieNum || transactionsQuery.isLoading}
                     {...formik.getFieldProps('transaction')}
                   >
                     <option value="">{propertieNum ? 'Selecciona…' : 'Elige la propiedad primero'}</option>
                     {(transactionsQuery.data ?? []).map((t) => (
-                      <option key={t.pubtraid} value={t.pubtraidaux}>
+                      <option key={t.pubtraid} value={String(t.pubtraidaux)}>
                         {t.description}
                       </option>
                     ))}
@@ -349,13 +358,14 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   <label htmlFor="country">País</label>
                   <select
                     id="country"
+                    key={`country-${countriesQuery.data?.length ?? 0}`}
                     className="upload-select"
                     disabled={countriesQuery.isLoading}
                     {...formik.getFieldProps('country')}
                   >
                     <option value="">Selecciona…</option>
                     {(countriesQuery.data ?? []).map((c) => (
-                      <option key={c.country} value={c.country}>
+                      <option key={c.country} value={String(c.country)}>
                         {c.description}
                       </option>
                     ))}
@@ -371,13 +381,14 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   <label htmlFor="city">Ciudad</label>
                   <select
                     id="city"
+                    key={`city-${countryNum ?? 'none'}-${citiesQuery.data?.length ?? 0}`}
                     className="upload-select"
                     disabled={!countryNum || citiesQuery.isLoading}
                     {...formik.getFieldProps('city')}
                   >
                     <option value="">{countryNum ? 'Selecciona…' : 'Elige país primero'}</option>
                     {(citiesQuery.data ?? []).map((c) => (
-                      <option key={c.city} value={c.city}>
+                      <option key={c.city} value={String(c.city)}>
                         {c.description}
                       </option>
                     ))}
@@ -393,13 +404,14 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   <label htmlFor="municipality">Municipio</label>
                   <select
                     id="municipality"
+                    key={`muni-${cityNum ?? 'none'}-${municipalitiesQuery.data?.length ?? 0}`}
                     className="upload-select"
                     disabled={!cityNum || municipalitiesQuery.isLoading}
                     {...formik.getFieldProps('municipality')}
                   >
                     <option value="">{cityNum ? 'Selecciona…' : 'Elige ciudad primero'}</option>
                     {(municipalitiesQuery.data ?? []).map((m) => (
-                      <option key={m.municipality} value={m.municipality}>
+                      <option key={m.municipality} value={String(m.municipality)}>
                         {m.description}
                       </option>
                     ))}

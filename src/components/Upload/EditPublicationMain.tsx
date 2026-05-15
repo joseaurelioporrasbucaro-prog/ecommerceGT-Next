@@ -14,13 +14,6 @@ import PublicationForm, {
 import { ApiError } from '@/utils/Api';
 import { usePublicationEdit } from '@/hooks/api/usePublicationEdit';
 import { useUpdatePublication } from '@/hooks/api/useUpdatePublication';
-import {
-  useCities,
-  useCountries,
-  useMunicipalities,
-  usePublicationCategories,
-  usePublicationTransactions,
-} from '@/hooks/api/useCatalogs';
 import type { UploadedImage } from '@/types/api';
 
 interface EditPublicationMainProps {
@@ -61,30 +54,6 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
   }, [editQuery.data]);
 
   const initialImages: UploadedImage[] = editQuery.data?.images ?? [];
-
-  // Pre-cargar TODOS los catálogos que el form va a necesitar antes de
-  // renderizar PublicationForm. Si los <select> se montan con value="2" pero
-  // sin las <option> correspondientes (porque el catálogo aún no terminó de
-  // cargar), React queda con el placeholder "Selecciona…" y a veces no
-  // re-sincroniza cuando llegan los datos. Esperar acá garantiza que las
-  // opciones existan en el DOM al primer render del form.
-  const categoriesQuery = usePublicationCategories();
-  const countriesQuery = useCountries();
-  const transactionsQuery = usePublicationTransactions(
-    editQuery.data ? editQuery.data.category : null,
-  );
-  const citiesQuery = useCities(editQuery.data ? editQuery.data.country : null);
-  const municipalitiesQuery = useMunicipalities(
-    editQuery.data ? editQuery.data.city : null,
-  );
-
-  const allCatalogsReady =
-    Boolean(editQuery.data) &&
-    Boolean(categoriesQuery.data) &&
-    Boolean(countriesQuery.data) &&
-    Boolean(transactionsQuery.data) &&
-    Boolean(citiesQuery.data) &&
-    Boolean(municipalitiesQuery.data);
 
   const handleSubmit = async (values: PublicationFormValues, images: UploadedImage[]) => {
     const propertieNum = Number(values.propertie);
@@ -138,11 +107,7 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
             </div>
           )}
 
-          {editQuery.data && !allCatalogsReady && (
-            <div className="alert alert-info">Cargando catálogos…</div>
-          )}
-
-          {allCatalogsReady && (
+          {editQuery.data && (
             <PublicationForm
               initialValues={initialValues}
               initialImages={initialImages}
