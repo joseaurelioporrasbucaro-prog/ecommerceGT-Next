@@ -156,7 +156,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
               <div className="publication-price-row">
                 <div className="publication-price-block">
                   <div className="art-meta-type">Precio</div>
-                  <div className="art-price">{formatPrice(publication.price)}</div>
+                  <div className="art-price">{formatPrice(publication.price, publication.currency)}</div>
                 </div>
                 <Link
                   href={`/publications/${publication.id}`}

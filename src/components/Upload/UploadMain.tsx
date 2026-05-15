@@ -30,7 +30,9 @@ interface FormValues {
   address: string;
   propertie: string;
   transaction: string;
+  /** Valor numérico crudo ("250000.50") — el display con comas se maneja aparte. */
   price: string;
+  currency: 'GTQ' | 'USD';
   country: string;
   city: string;
   municipality: string;
@@ -48,6 +50,7 @@ const INITIAL_VALUES: FormValues = {
   propertie: '',
   transaction: '',
   price: '',
+  currency: 'GTQ',
   country: '',
   city: '',
   municipality: '',
@@ -57,6 +60,32 @@ const INITIAL_VALUES: FormValues = {
   nlevel: '',
   size: '',
 };
+
+/**
+ * Formatea un string numérico crudo ("250000.5") al display "250,000.50".
+ * Mantiene el punto decimal del usuario si aún está escribiendo decimales.
+ */
+function formatPriceDisplay(raw: string): string {
+  if (!raw) return '';
+  const [intPart, decPart] = raw.split('.');
+  const intFormatted = intPart ? Number(intPart).toLocaleString('en-US') : '0';
+  if (decPart === undefined) return intFormatted;
+  // Mientras el usuario aún escribe decimales (ej. "250." o "250.5") respetamos lo que tipeó.
+  return `${intFormatted}.${decPart}`;
+}
+
+/**
+ * Parsea el display "250,000.50" → "250000.50" (crudo). Quita comas y cualquier
+ * caracter no numérico salvo el primer punto decimal.
+ */
+function parsePriceInput(input: string): string {
+  // Quitar comas y cualquier cosa que no sea dígito o punto.
+  const cleaned = input.replace(/[^0-9.]/g, '');
+  // Solo un punto decimal permitido — corta lo que venga después del segundo.
+  const firstDot = cleaned.indexOf('.');
+  if (firstDot === -1) return cleaned;
+  return cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '').slice(0, 2);
+}
 
 const isHouseLike = (value: unknown) => {
   const n = Number(value);
@@ -136,6 +165,7 @@ const UploadMain: React.FC = () => {
           propertie: propertieNum,
           transaction: Number(values.transaction),
           price: Number(values.price),
+          currency: values.currency,
           country: Number(values.country),
           city: Number(values.city),
           municipality: Number(values.municipality),
@@ -282,14 +312,40 @@ const UploadMain: React.FC = () => {
 
                       <div className="col-md-6">
                         <div className="single-input-unit">
-                          <label htmlFor="price">Precio (Q)</label>
-                          <input
-                            id="price"
-                            type="number"
-                            min={0}
-                            placeholder="Ej. 850000"
-                            {...formik.getFieldProps('price')}
-                          />
+                          <label htmlFor="price">
+                            Precio ({formik.values.currency === 'USD' ? '$' : 'Q'})
+                          </label>
+                          <div className="price-input-row">
+                            <input
+                              id="price"
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              placeholder={formik.values.currency === 'USD' ? 'Ej. 110,500.00' : 'Ej. 850,000.00'}
+                              value={formatPriceDisplay(formik.values.price)}
+                              onChange={(e) => formik.setFieldValue('price', parsePriceInput(e.target.value))}
+                              onBlur={formik.handleBlur}
+                              name="price"
+                            />
+                            <div className="currency-toggle" role="group" aria-label="Moneda">
+                              <button
+                                type="button"
+                                className={`currency-toggle-btn ${formik.values.currency === 'GTQ' ? 'is-active' : ''}`}
+                                onClick={() => formik.setFieldValue('currency', 'GTQ')}
+                                aria-pressed={formik.values.currency === 'GTQ'}
+                              >
+                                Q · GTQ
+                              </button>
+                              <button
+                                type="button"
+                                className={`currency-toggle-btn ${formik.values.currency === 'USD' ? 'is-active' : ''}`}
+                                onClick={() => formik.setFieldValue('currency', 'USD')}
+                                aria-pressed={formik.values.currency === 'USD'}
+                              >
+                                $ · USD
+                              </button>
+                            </div>
+                          </div>
                           {formik.touched.price && formik.errors.price && (
                             <p className="field-error">{formik.errors.price}</p>
                           )}
@@ -545,6 +601,43 @@ const UploadMain: React.FC = () => {
         }
         :global(.upload-form .upload-btn .fill-btn-orange) {
           margin-left: 14px;
+        }
+        :global(.upload-form .price-input-row) {
+          display: flex;
+          gap: 10px;
+          align-items: stretch;
+        }
+        :global(.upload-form .price-input-row input) {
+          flex: 1;
+          min-width: 0;
+        }
+        :global(.upload-form .currency-toggle) {
+          display: inline-flex;
+          border: 1px solid var(--clr-bg-white, #fff);
+          border-radius: 6px;
+          overflow: hidden;
+          height: 50px;
+          flex-shrink: 0;
+        }
+        :global(.upload-form .currency-toggle-btn) {
+          padding: 0 14px;
+          background: var(--clr-bg-white, #fff);
+          color: var(--clr-common-heading, #181818);
+          font-size: 13px;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: background 0.15s, color 0.15s;
+        }
+        :global(.upload-form .currency-toggle-btn + .currency-toggle-btn) {
+          border-left: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
+        }
+        :global(.upload-form .currency-toggle-btn.is-active) {
+          background: var(--clr-theme-1, #6c5ce7);
+          color: #fff;
+        }
+        :global(.upload-form .currency-toggle-btn:hover:not(.is-active)) {
+          background: rgba(108, 92, 231, 0.08);
         }
       `}</style>
     </>

@@ -52,21 +52,32 @@ export const THUMB_PLACEHOLDER = buildPlaceholderSvg(
 // Formato de precios y números
 // ============================================================================
 
-export function formatPrice(price: number | string | null | undefined): string {
+/**
+ * Formatea precio con separador de miles (coma) y decimales (punto), estilo
+ * `Q 1,250,000.00` o `$ 32,500.00`. Si la moneda no se especifica, asume GTQ
+ * (publicaciones legacy creadas antes de la columna `pubdet_currency`).
+ */
+export function formatPrice(
+  price: number | string | null | undefined,
+  currency?: string | null,
+): string {
   if (price === null || price === undefined || price === '') {
     return 'Precio por consultar';
   }
 
   const numericPrice = Number(price);
   if (!Number.isFinite(numericPrice)) {
-    return `Q ${price}`;
+    return `${currency === 'USD' ? '$' : 'Q'} ${price}`;
   }
 
-  return new Intl.NumberFormat('es-GT', {
-    style: 'currency',
-    currency: 'GTQ',
-    maximumFractionDigits: 0,
+  const isUsd = currency === 'USD';
+  // Usamos en-US para garantizar coma=miles, punto=decimal (Intl con GTQ a veces
+  // mete espacio fino o usa punto como miles según la versión de ICU del runtime).
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(numericPrice);
+  return `${isUsd ? '$' : 'Q'} ${formatted}`;
 }
 
 export function formatNumberValue(value: number | null | undefined, fallback = 'No especificado'): string {
