@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -155,12 +155,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 }) => {
   const [images, setImages] = useState<UploadedImage[]>(initialImages);
   const [imagesError, setImagesError] = useState<string | null>(null);
-
-  // Sync cuando initialImages cambia (edit carga async).
-  useEffect(() => {
-    setImages(initialImages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(initialImages)]);
+  // No sync con initialImages — el componente se monta UNA vez con los datos
+  // del backend (gracias al key={publicationId} del padre). El usuario gestiona
+  // sus cambios desde acá sin que se pisen por refetch.
 
   const handleAddImage = useCallback((image: UploadedImage) => {
     setImages((prev) => [...prev, image]);
@@ -173,9 +170,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   const categoriesQuery = usePublicationCategories();
   const countriesQuery = useCountries();
 
+  // IMPORTANTE: NO usamos enableReinitialize. El padre (EditPublicationMain)
+  // pasa `key={publicationId}` para que el form se re-monte fresco al cambiar
+  // de publicación. Mientras el usuario edita, formik mantiene sus cambios
+  // sin riesgo de que un refetch del backend pise lo que escribió.
   const formik = useFormik<PublicationFormValues>({
     initialValues,
-    enableReinitialize: true,
     validateOnChange: false,
     validateOnBlur: true,
     validationSchema,
@@ -196,18 +196,23 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   const cityNum = formik.values.city ? Number(formik.values.city) : null;
   const municipalitiesQuery = useMunicipalities(cityNum);
 
+  // Cascadas: cada vez que el usuario cambia la propiedad/país/ciudad,
+  // limpiamos los campos dependientes. Como el form se monta UNA vez con los
+  // datos del backend (no usamos enableReinitialize), el primer render NO
+  // dispara estos resets — propertieNum/countryNum/cityNum ya tienen el valor
+  // correcto desde el inicio, así que useEffect no detecta cambio.
+  // Usamos un ref para skip-ear el primer mount por las dudas.
+  const cascadeFirstMount = useRef(true);
+
   // Re-evaluar errors cuando cambia el tipo de propiedad (campos requeridos cambian).
   useEffect(() => {
+    if (cascadeFirstMount.current) return;
     formik.setFormikState((prev) => ({ ...prev, errors: {} }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertieNum]);
 
-  // Cascadas: al cambiar la propiedad PROACTIVAMENTE limpiamos transacción +
-  // detalles. PERO solo si difiere de los initialValues, para no pisar la carga
-  // inicial en modo edit. Comparamos valor actual con valor inicial.
-  const initialPropertie = initialValues.propertie;
   useEffect(() => {
-    if (formik.values.propertie === initialPropertie) return;
+    if (cascadeFirstMount.current) return;
     formik.setFieldValue('transaction', '', false);
     formik.setFieldValue('noRooms', '', false);
     formik.setFieldValue('noBathrooms', '', false);
@@ -217,20 +222,25 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertieNum]);
 
-  const initialCountry = initialValues.country;
   useEffect(() => {
-    if (formik.values.country === initialCountry) return;
+    if (cascadeFirstMount.current) return;
     formik.setFieldValue('city', '', false);
     formik.setFieldValue('municipality', '', false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryNum]);
 
-  const initialCity = initialValues.city;
   useEffect(() => {
-    if (formik.values.city === initialCity) return;
+    if (cascadeFirstMount.current) return;
     formik.setFieldValue('municipality', '', false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cityNum]);
+
+  // Bajar el flag DESPUÉS del primer render — los efectos de arriba ya corrieron
+  // (por el primer mount, con cascadeFirstMount.current=true → todos retornaron),
+  // así que a partir del próximo cambio sí ejecutarán las cascadas.
+  useEffect(() => {
+    cascadeFirstMount.current = false;
+  }, []);
 
   const showHouseFields = propertieNum === PUBGEN_CASA || propertieNum === PUBGEN_APTO;
   const showLevelField = propertieNum === PUBGEN_APTO;

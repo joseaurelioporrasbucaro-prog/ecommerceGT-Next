@@ -20,7 +20,10 @@ export function usePublicationEdit(id: number | string | null | undefined) {
     },
     enabled: Boolean(id),
     retry: false,
-    // No cachear mucho — siempre traer la versión más fresca al editar.
-    staleTime: 0,
+    // 5 min de stale time + sin refetch en window focus — evita que mientras
+    // el usuario edita el form, react-query haga refetch y pise sus cambios
+    // a través del enableReinitialize de formik.
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }

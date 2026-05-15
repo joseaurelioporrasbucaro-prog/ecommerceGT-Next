@@ -109,6 +109,9 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
 
           {editQuery.data && (
             <PublicationForm
+              // key fuerza el mount fresh con datos del backend. Sin reinit
+              // formik mantiene los cambios del usuario hasta que cambia el id.
+              key={publicationId}
               initialValues={initialValues}
               initialImages={initialImages}
               submitLabel="Guardar cambios"
