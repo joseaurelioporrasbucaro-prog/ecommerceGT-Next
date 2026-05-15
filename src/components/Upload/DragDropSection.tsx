@@ -52,25 +52,10 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
   const totalCount = uploaded.length + pending.length;
   const remaining = Math.max(0, MAX_IMAGES - totalCount);
 
-  const uploadFile = (file: File) => {
-    const sizeMb = file.size / (1024 * 1024);
-    if (sizeMb > MAX_SIZE_MB) {
-      toast.error(`"${file.name}" pesa ${sizeMb.toFixed(1)} MB. Máximo ${MAX_SIZE_MB} MB.`);
-      return;
-    }
-
-    const localId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const objectUrl = URL.createObjectURL(file);
-
-    setPending((prev) => [
-      ...prev,
-      { localId, name: file.name, objectUrl, status: 'uploading' },
-    ]);
-
-    // IMPORTANTE: cada upload usa su propio Promise (no useMutation con instancia
-    // compartida). Así múltiples uploads en paralelo no interfieren entre sí
-    // y los onSuccess no compiten por el mismo state. El stale closure desaparece
-    // porque onAdd/onRemove en el padre usan functional setState.
+  // Sube UNA imagen. Reporta progreso vía setPending y resultado vía onAdd.
+  // Cada llamada es un Promise independiente (no useMutation compartida) para
+  // que múltiples subidas en paralelo no interfieran entre sí.
+  const uploadFile = (file: File, localId: string, objectUrl: string) => {
     const formData = new FormData();
     formData.append('image', file);
 
@@ -104,7 +89,33 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
       toast.warn(`Máximo ${MAX_IMAGES} imágenes en total. Solo se procesarán las primeras ${accepted.length}.`);
     }
 
-    accepted.forEach(uploadFile);
+    // Validar tamaños y preparar los pending entries en un solo array.
+    // Esto permite UN solo setPending para los N archivos seleccionados,
+    // en vez de N renders consecutivos en un forEach.
+    type Prepared = { file: File; entry: PendingPreview };
+    const prepared: Prepared[] = [];
+    for (const file of accepted) {
+      const sizeMb = file.size / (1024 * 1024);
+      if (sizeMb > MAX_SIZE_MB) {
+        toast.error(`"${file.name}" pesa ${sizeMb.toFixed(1)} MB. Máximo ${MAX_SIZE_MB} MB.`);
+        continue;
+      }
+      const localId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const objectUrl = URL.createObjectURL(file);
+      prepared.push({
+        file,
+        entry: { localId, name: file.name, objectUrl, status: 'uploading' },
+      });
+    }
+    if (prepared.length === 0) return;
+
+    // 1 solo setState para los N pending → 1 solo render extra.
+    setPending((prev) => [...prev, ...prepared.map((p) => p.entry)]);
+
+    // Disparar las subidas (Promises independientes, no esperamos).
+    for (const { file, entry } of prepared) {
+      uploadFile(file, entry.localId, entry.objectUrl);
+    }
   };
 
   const removeUploaded = async (image: UploadedImage) => {
