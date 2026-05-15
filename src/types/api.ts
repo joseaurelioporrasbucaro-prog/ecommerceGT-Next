@@ -359,6 +359,15 @@ export interface UploadImageResponse {
   message: string;
   file: string;
   path: string;
+  /**
+   * Variantes optimizadas con sharp (Fase 5.4). Pueden estar vacías si el
+   * procesamiento falló — el frontend debe caer al `path` original via onError.
+   */
+  variants?: {
+    thumb?: string;
+    card?: string;
+    detail?: string;
+  };
 }
 
 /** Imagen ya subida que se manda a `POST /savepubl`. `id` es el filename, `url` el path. */

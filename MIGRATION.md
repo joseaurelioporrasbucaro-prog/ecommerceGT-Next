@@ -128,7 +128,7 @@ El backend está estable y se comparte. La regla:
 | **4** | Acciones de usuario logueado (favoritos + contador, mis publicaciones, perfil, **username**) | ✅ Completada | 2–3 días |
 | **4.3** | Likes funcionales en comentarios (minor de Fase 4) | ✅ Completada | 0.5 día |
 | **4.4** | Migración del backend al nuevo remote `techmindsgt` (deploy en Render/Vercel) | ✅ Completada | 0.5 día |
-| **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | 🟡 En curso | 3–4 días |
+| **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ✅ Completada | 3–4 días |
 | **6** | Mensajería (inbox + conversación + polling) + Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 3–4 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
@@ -793,6 +793,88 @@ Render no resuelve el `search_path` al esquema `ecom` por defecto. Se prefijaron
 
 **Pendiente (seguimiento):**
 - Sincronizar `.env` local cada vez que un compañero cambie nombres de variables. Sugerido: agregar un `.env.example` versionado al repo nuevo como fuente de verdad.
+
+---
+
+### ✅ Fase 5 (completada) — Wizard de crear/editar/eliminar publicación + sharp
+
+Cerrada como conjunto de 4 sub-fases. Cada una se implementó en su propia branch y mergeó a `main` con `--no-ff`.
+
+#### 5.1 — Eliminar publicación (soft-delete)
+
+| Archivo | Cambio |
+|---|---|
+| `ecommerceGTBackEnd/config/connPostgresDB.js` | Nueva función `deletePublication`: valida ownership, rechaza vendidas con 409, idempotente para anuladas, hace `UPDATE pubsta_id = 4` (Anulada) |
+| `ecommerceGTBackEnd/server.js` | Ruta `DELETE /publications/:id` con `authMiddleware` |
+| `src/types/api.ts` | Tipo `DeletePublicationResponse` |
+| `src/hooks/api/useDeletePublication.ts` | **Nuevo** — mutation con optimistic update sobre `useMyPublications` (cambia `pubsta_id` a 4 en cache para que el badge "Anulada" aparezca al instante), rollback en error |
+| `src/components/publications/MyPublicationsMain.tsx` | Modal de confirmación estilizado con `react-responsive-modal`, botón Eliminar funcional, deshabilitado para vendidas/anuladas con tooltip explicativo, toasts de éxito/error |
+
+#### 5.2 — Crear publicación (wizard)
+
+| Archivo | Cambio |
+|---|---|
+| `src/types/api.ts` | `UploadImageResponse`, `UploadedImage`, `CreatePublicationPayload`, `CreatePublicationResponse`, `CheckerPublicationsResponse` |
+| `src/hooks/api/useCreatePublication.ts` | **Nuevo** — mutation a `POST /savepubl`, invalida `useMyPublications` y `usePublications` al éxito |
+| `src/hooks/api/useCheckerPublications.ts` | **Nuevo** — query a `POST /checkerpub` para validar cuota del plan |
+| `src/components/Upload/DragDropSection.tsx` | Reescrito: multi-imagen con preview por `URL.createObjectURL`, sube cada archivo al soltarse (Promise independiente por upload — evita race condition con instancia de `useMutation` compartida), botón eliminar individual que llama `POST /deleteimg`, máx 10 imágenes / 8 MB c/u, dropzone con UI custom (un solo botón "Seleccionar archivos") |
+| `src/components/Upload/UploadMain.tsx` | Form Formik+Yup con campos cascada (categoría → transacción, país → ciudad → municipio), campos condicionales según tipo (Casa/Apto: rooms/baños/parqueos; Apto: + nivel; Terreno: solo tamaño), bloqueo con upgrade message si plan agotado |
+| `src/middleware.ts` | `/upload` agregado a `PROTECTED_ROUTES` |
+| `src/app/upload-category/` y `src/components/Upload-Category/` | **Eliminados** — pantalla del template "Single/Multiple" no aplica a inmobiliario |
+
+**Sub-fix 5.2.1 — selector de moneda Q/USD + formato de precio con miles/decimales**
+
+- Nueva columna `pubdet_currency varchar(3) NOT NULL DEFAULT 'GTQ'` en `ecom.publications_detail`. Migración SQL para BDs existentes:
+  ```sql
+  ALTER TABLE ecom.publications_detail
+    ADD COLUMN IF NOT EXISTS pubdet_currency varchar(3) NOT NULL DEFAULT 'GTQ';
+  ```
+- Backend `savePublication`/`updatePublication` aceptan `currency` (USD o GTQ default). `getPublications`, `getMyPublications`, `getMyFavorites`, `getPublicationById` devuelven `currency`.
+- Frontend: `formatPrice(price, currency)` formatea con coma=miles, punto=decimal, símbolo `Q` o `$` según moneda.
+- Form: input controlado con `formatPriceDisplay`/`parsePriceInput`, toggle visual de moneda con dos botones tipo segmented control.
+- Bug fix relacionado: `_register.scss` textarea en `:focus` usaba `var(--clr-common-white)` (siempre blanco) → ilegible en dark mode. Cambiado a `var(--clr-bg-white)`.
+
+#### 5.3 — Editar publicación
+
+| Archivo | Cambio |
+|---|---|
+| Backend `getPublicationEditById` | `authMiddleware` + ownership check + incluye `pubdet_currency` y array de imágenes en la respuesta |
+| Backend `updatePublication` | `authMiddleware` + ownership check + 409 si vendida + 409 si anulada + valida campos obligatorios (rechaza payloads incompletos para no wipear datos) + acepta nombres del frontend (`propertie`, `noRooms`, ...) con coalesce a los legacy (`category`, `rooms`, ...) |
+| `src/components/Upload/PublicationForm.tsx` | **Nuevo** — extraído de `UploadMain` (635 líneas reusables). API: `initialValues`, `initialImages`, `submitLabel`, `cancelHref`, `onSubmit(values, images)`. Mount-once strategy (sin `enableReinitialize`) para que formik no pise cambios del usuario. Cascadas con ref `cascadeFirstMount` para skip-ear el primer mount. Pattern "waitFor" — re-asserts cada select cuando su query de catálogo termina de cargar (evita un quirk de React donde `<select controlled value="X">` no sincroniza si la `<option value="X">` aparece después del primer render) |
+| `src/components/Upload/EditPublicationMain.tsx` | **Nuevo** — carga datos via `usePublicationEdit`, mapea `PublicationEditData` → `PublicationFormValues`, dispara `useUpdatePublication`. `key={publicationId}` en `PublicationForm` para mount fresh por publicación |
+| `src/components/Upload/UploadMain.tsx` | Reducido a ~95 líneas, sólo wrapper que pasa initial vacío + dispara `useCreatePublication` |
+| `src/hooks/api/usePublicationEdit.ts` | **Nuevo** — query a `GET /publication/edit/:id`, `staleTime: 5min`, `refetchOnWindowFocus: false` (evita refetch en blur+focus que pisara cambios del usuario) |
+| `src/hooks/api/useUpdatePublication.ts` | **Nuevo** — mutation a `PUT /publications/:id`, invalida `useMyPublications`, `usePublications`, detail (`PUBLICATION_DETAIL_QUERY_KEY`) y `usePublicationEdit` |
+| `src/app/publications/[id]/edit/page.tsx` | **Nuevo** — ruta protegida por middleware regex `^/publications/[^/]+/edit` |
+| Tipos | `PublicationEditData`, `UpdatePublicationPayload`, `UpdatePublicationResponse` |
+
+**Bug histórico descubierto y arreglado:** `updatePublication` desestructuraba `category`/`rooms`/`bathrooms`/`parking` del body pero el frontend mandaba `propertie`/`noRooms`/`noBathrooms`/`noParking`. Cada edit guardaba `pubgen_id=NULL` silenciosamente. SQL de reparación para BDs afectadas:
+
+```sql
+UPDATE ecom.publications p
+SET pubgen_id = CASE
+  WHEN pd.pubdet_size IS NOT NULL AND pd.pubdet_rooms IS NULL THEN 3
+  WHEN pd.pubdet_level IS NOT NULL                            THEN 2
+  WHEN pd.pubdet_rooms IS NOT NULL                            THEN 1
+  ELSE p.pubgen_id
+END
+FROM ecom.publications_detail pd
+WHERE p.pub_id = pd.pub_id AND p.pubgen_id IS NULL;
+```
+
+#### 5.4 — Procesamiento de imágenes con `sharp`
+
+| Archivo | Cambio |
+|---|---|
+| `ecommerceGTBackEnd/package.json` | `sharp ^0.34.5` instalado |
+| `ecommerceGTBackEnd/server.js` | Endpoint `/upload` ahora genera 3 variantes (`_thumb 200×150 q75`, `_card 800×800 q80`, `_detail 1600×900 q85`) en paralelo con `Promise.all`, JPEG con `mozjpeg: true`, fit `cover` + position `attention` (sharp recorta enfocando el sujeto principal). Devuelve `{ message, file, path, variants: { thumb, card, detail } }` |
+| `src/utils/imageVariants.ts` | **Nuevo** — helper `getImageVariant(path, 'thumb' \| 'card' \| 'detail')` que toma el path original (`/uploads/images/X.jpg`) y devuelve el path de la variante (`X_card.jpg`). Maneja URLs absolutas y paths sin extensión sin tocarlos |
+| `src/components/publications/PublicationCard.tsx` | Usa variante `_card` en grids con cadena de fallback `variant → original → placeholder` (state `imageStage` reemplaza al `imageError` boolean previo) |
+| `src/components/publications/PublicationGallery.tsx` | Imagen principal usa `_detail`, thumbnails usan `_thumb`. Cada uno con su propia cadena de fallback |
+| `src/components/publications/MyPublicationsMain.tsx` | `PublicationRowImage` usa `_card` (es un cuadradito de 120px) con fallback chain |
+| Tipo `UploadImageResponse` | Añadido campo opcional `variants?: { thumb?, card?, detail? }` |
+
+**Backwards compat:** publicaciones creadas antes de Fase 5.4 no tienen variantes en disco. El `onError` de cada `<Image>` cae al original automáticamente. Sin migración manual necesaria.
 
 ---
 
