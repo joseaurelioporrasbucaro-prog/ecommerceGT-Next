@@ -6,7 +6,9 @@ import { PUBLICATIONS_QUERY_KEY } from './usePublications';
 
 /**
  * Crea una publicación nueva con `POST /savepubl`. Las imágenes deben estar
- * ya subidas (ver `useUploadImage`) — aquí solo se mandan los paths.
+ * ya subidas vía `POST /upload` (lo hace `DragDropSection` directamente con
+ * `ApiFetch.post()` para evitar race conditions con instancias compartidas
+ * de `useMutation`). Aquí solo se mandan los paths.
  *
  * Al éxito invalida `useMyPublications` (la lista del seller) y
  * `usePublications` (catálogo público) para que reflejen la nueva.

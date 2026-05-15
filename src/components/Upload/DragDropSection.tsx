@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { FileUploader } from 'react-drag-drop-files';
 import { toast } from 'react-toastify';
 import { ApiError, ApiFetch } from '@/utils/Api';
-import { useUploadImage } from '@/hooks/api/useUploadImage';
 import { getBackendUrl } from '@/utils/backendUrl';
 import type { UploadedImage } from '@/types/api';
 
@@ -25,29 +24,72 @@ interface PendingPreview {
 interface DragDropSectionProps {
   /** Imágenes ya confirmadas en backend (id+url). */
   uploaded: UploadedImage[];
-  /** Reportar al padre cada cambio en la lista de subidas. */
-  onUploadedChange: (next: UploadedImage[]) => void;
+  /** Atómico: agrega UNA imagen a la lista. El padre debe usar functional setState. */
+  onAdd: (image: UploadedImage) => void;
+  /** Atómico: quita UNA imagen por id. El padre debe usar functional setState. */
+  onRemove: (imageId: string) => void;
   /** Habilita/inhabilita el zona drop, ej. mientras se envía el form. */
   disabled?: boolean;
 }
 
 const DragDropSection: React.FC<DragDropSectionProps> = ({
   uploaded,
-  onUploadedChange,
+  onAdd,
+  onRemove,
   disabled = false,
 }) => {
   const [pending, setPending] = useState<PendingPreview[]>([]);
-  const uploadMutation = useUploadImage();
 
   // Liberar los ObjectURLs al desmontar para no leakear memoria.
   useEffect(() => {
     return () => {
       pending.forEach((p) => URL.revokeObjectURL(p.objectUrl));
     };
-  }, [pending]);
+    // Solo al unmount; no queremos cleanup en cada cambio del array.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const totalCount = uploaded.length + pending.length;
   const remaining = Math.max(0, MAX_IMAGES - totalCount);
+
+  const uploadFile = (file: File) => {
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > MAX_SIZE_MB) {
+      toast.error(`"${file.name}" pesa ${sizeMb.toFixed(1)} MB. Máximo ${MAX_SIZE_MB} MB.`);
+      return;
+    }
+
+    const localId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const objectUrl = URL.createObjectURL(file);
+
+    setPending((prev) => [
+      ...prev,
+      { localId, name: file.name, objectUrl, status: 'uploading' },
+    ]);
+
+    // IMPORTANTE: cada upload usa su propio Promise (no useMutation con instancia
+    // compartida). Así múltiples uploads en paralelo no interfieren entre sí
+    // y los onSuccess no compiten por el mismo state. El stale closure desaparece
+    // porque onAdd/onRemove en el padre usan functional setState.
+    const formData = new FormData();
+    formData.append('image', file);
+
+    ApiFetch.post<{ message: string; file: string; path: string }>('/upload', formData)
+      .then((response) => {
+        setPending((prev) => prev.filter((p) => p.localId !== localId));
+        URL.revokeObjectURL(objectUrl);
+        onAdd({ id: response.file, url: response.path });
+      })
+      .catch((err) => {
+        const message = err instanceof ApiError ? err.message : 'Error al subir';
+        setPending((prev) =>
+          prev.map((p) =>
+            p.localId === localId ? { ...p, status: 'error', error: message } : p,
+          ),
+        );
+        toast.error(`"${file.name}": ${message}`);
+      });
+  };
 
   const handleChange = (incoming: File | File[] | FileList) => {
     if (disabled) return;
@@ -62,46 +104,12 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
       toast.warn(`Máximo ${MAX_IMAGES} imágenes en total. Solo se procesarán las primeras ${accepted.length}.`);
     }
 
-    accepted.forEach((file) => {
-      const sizeMb = file.size / (1024 * 1024);
-      if (sizeMb > MAX_SIZE_MB) {
-        toast.error(`"${file.name}" pesa ${sizeMb.toFixed(1)} MB. Máximo ${MAX_SIZE_MB} MB.`);
-        return;
-      }
-
-      const localId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const objectUrl = URL.createObjectURL(file);
-
-      setPending((prev) => [
-        ...prev,
-        { localId, name: file.name, objectUrl, status: 'uploading' },
-      ]);
-
-      uploadMutation.mutate(file, {
-        onSuccess: (response) => {
-          setPending((prev) => prev.filter((p) => p.localId !== localId));
-          URL.revokeObjectURL(objectUrl);
-          onUploadedChange([
-            ...uploaded,
-            { id: response.file, url: response.path },
-          ]);
-        },
-        onError: (err) => {
-          const message = err instanceof ApiError ? err.message : 'Error al subir';
-          setPending((prev) =>
-            prev.map((p) =>
-              p.localId === localId ? { ...p, status: 'error', error: message } : p,
-            ),
-          );
-          toast.error(`"${file.name}": ${message}`);
-        },
-      });
-    });
+    accepted.forEach(uploadFile);
   };
 
   const removeUploaded = async (image: UploadedImage) => {
     if (disabled) return;
-    onUploadedChange(uploaded.filter((img) => img.id !== image.id));
+    onRemove(image.id);
     try {
       await ApiFetch.post('/deleteimg', { url: image.url });
     } catch {
@@ -120,24 +128,32 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
 
   return (
     <div className="upload-images-panel">
-      <div className={`browse-file-wrapper mb-20 ${disabled ? 'is-disabled' : ''}`}>
-        <div className="browse-file-icon">
-          <i className="flaticon-cloud-computing"></i>
+      <FileUploader
+        multiple
+        handleChange={handleChange}
+        name="image"
+        types={ACCEPTED_TYPES}
+        disabled={disabled || remaining === 0}
+        // Render custom: usamos `children` para reemplazar el dropzone default
+        // (que mostraba 2 botones feos "Upload" + "JP..."). Toda el área es
+        // clickeable y droppable.
+        classes={`upload-dropzone ${disabled || remaining === 0 ? 'is-disabled' : ''}`}
+      >
+        <div className="upload-dropzone-content">
+          <div className="browse-file-icon">
+            <i className="flaticon-cloud-computing"></i>
+          </div>
+          <h4 className="upload-dropzone-title">Arrastra tus fotos aquí</h4>
+          <span className="upload-dropzone-button">
+            <i className="fas fa-image" /> Seleccionar archivos
+          </span>
+          <div className="browse-file-note">
+            {remaining > 0
+              ? `${ACCEPTED_TYPES.join(' / ')} · Máx ${MAX_SIZE_MB} MB · Quedan ${remaining} de ${MAX_IMAGES}`
+              : `Has alcanzado el máximo de ${MAX_IMAGES} imágenes.`}
+          </div>
         </div>
-        <h1 className="browse-file-text">Arrastra tus fotos aquí</h1>
-        <FileUploader
-          multiple
-          handleChange={handleChange}
-          name="image"
-          types={ACCEPTED_TYPES}
-          disabled={disabled || remaining === 0}
-        />
-        <div className="browse-file-note">
-          {remaining > 0
-            ? `${ACCEPTED_TYPES.join(' / ')} · Máx ${MAX_SIZE_MB} MB · Quedan ${remaining} de ${MAX_IMAGES}`
-            : `Has alcanzado el máximo de ${MAX_IMAGES} imágenes.`}
-        </div>
-      </div>
+      </FileUploader>
 
       {(uploaded.length > 0 || pending.length > 0) && (
         <div className="upload-thumbs">
@@ -197,9 +213,64 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
       )}
 
       <style jsx>{`
-        .upload-images-panel :global(.browse-file-wrapper.is-disabled) {
-          opacity: 0.6;
+        .upload-images-panel :global(.upload-dropzone) {
+          display: block;
+          width: 100%;
+          margin-bottom: 20px;
+          border: 2px dashed var(--clr-theme-1, #6c5ce7);
+          border-radius: 12px;
+          background: rgba(108, 92, 231, 0.04);
+          padding: 28px 20px;
+          text-align: center;
+          cursor: pointer;
+          transition: background 0.15s, border-color 0.15s;
+          /* La librería pone svg + label internos; los ocultamos para usar nuestro children. */
+        }
+        .upload-images-panel :global(.upload-dropzone:hover) {
+          background: rgba(108, 92, 231, 0.08);
+        }
+        .upload-images-panel :global(.upload-dropzone.is-disabled) {
+          opacity: 0.5;
           pointer-events: none;
+        }
+        .upload-images-panel :global(.upload-dropzone svg) {
+          display: none;
+        }
+        .upload-images-panel :global(.upload-dropzone span) {
+          display: contents;
+        }
+        .upload-images-panel :global(.upload-dropzone-content) {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+        .upload-images-panel :global(.upload-dropzone .browse-file-icon) {
+          font-size: 42px;
+          color: var(--clr-theme-1, #6c5ce7);
+          margin-bottom: 4px;
+        }
+        .upload-images-panel :global(.upload-dropzone-title) {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--clr-common-heading, #181818);
+        }
+        .upload-images-panel :global(.upload-dropzone-button) {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 22px;
+          border-radius: 6px;
+          background: var(--clr-theme-1, #6c5ce7);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .upload-images-panel :global(.upload-dropzone .browse-file-note) {
+          font-size: 12px;
+          opacity: 0.75;
+          margin-top: 4px;
         }
         .upload-thumbs {
           display: grid;

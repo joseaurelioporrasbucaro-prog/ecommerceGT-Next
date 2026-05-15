@@ -134,6 +134,17 @@ const UploadMain: React.FC = () => {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [imagesError, setImagesError] = useState<string | null>(null);
 
+  // Callbacks atómicos con functional setState — evita race conditions cuando
+  // varias imágenes terminan de subir en paralelo. Cada callback hace UNA
+  // operación contra el state previo más fresco.
+  const handleAddImage = React.useCallback((image: UploadedImage) => {
+    setImages((prev) => [...prev, image]);
+    setImagesError(null);
+  }, []);
+  const handleRemoveImage = React.useCallback((imageId: string) => {
+    setImages((prev) => prev.filter((img) => img.id !== imageId));
+  }, []);
+
   const checkerQuery = useCheckerPublications();
   const createMutation = useCreatePublication();
 
@@ -546,10 +557,8 @@ const UploadMain: React.FC = () => {
                   <div className="col-lg-4">
                     <DragDropSection
                       uploaded={images}
-                      onUploadedChange={(next) => {
-                        setImages(next);
-                        if (next.length > 0) setImagesError(null);
-                      }}
+                      onAdd={handleAddImage}
+                      onRemove={handleRemoveImage}
                       disabled={submitting}
                     />
                     {imagesError && <p className="field-error">{imagesError}</p>}
