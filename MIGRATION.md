@@ -134,8 +134,11 @@ El backend está estable y se comparte. La regla:
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
 | **10** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
+| **11** | Logging estructurado + alertas (Pino/Winston, log rotation, integración con Sentry/BetterStack, tabla `system_alerts`) | ⬜ Pendiente | 1–2 días |
+| **12** | Panel de administración / soporte (rol admin, dashboard de alertas, métricas, gestión usuarios) | ⬜ Pendiente | 2–3 días |
+| **13** | Soporte al cliente (usuario "Soporte" especial vía mensajería de Fase 6, replies por email vía nodemailer, tickets) | ⬜ Pendiente | 1–2 días |
 
-**Total estimado:** 19–25 días de trabajo enfocado.
+**Total estimado:** 23–31 días de trabajo enfocado.
 
 ---
 
