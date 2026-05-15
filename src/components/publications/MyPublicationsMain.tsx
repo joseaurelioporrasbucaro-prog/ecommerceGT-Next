@@ -140,7 +140,7 @@ const MyPublicationsMain = () => {
                           </h4>
                           <p>{publication.pub_description}</p>
                           <div className="my-publication-meta">
-                            <span>{formatPrice(publication.pubdet_price)}</span>
+                            <span>{formatPrice(publication.pubdet_price, publication.pubdet_currency)}</span>
                             <span>{publication.pub_address}</span>
                           </div>
                         </div>

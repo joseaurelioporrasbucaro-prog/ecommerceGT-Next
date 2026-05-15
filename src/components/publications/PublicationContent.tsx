@@ -82,8 +82,8 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           <div className="meta-grid">
             <div className="meta-cell">
               <div className="meta-label">Precio</div>
-              <div className="meta-value meta-price">{formatPrice(publication.pubdet_price)}</div>
-              <div className="meta-sublabel">Quetzales</div>
+              <div className="meta-value meta-price">{formatPrice(publication.pubdet_price, publication.pubdet_currency)}</div>
+              <div className="meta-sublabel">{publication.pubdet_currency === 'USD' ? 'Dólares' : 'Quetzales'}</div>
             </div>
             <div className="meta-cell">
               <div className="meta-label">Vistas</div>

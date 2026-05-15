@@ -197,6 +197,8 @@ export interface PublicationListItem {
   description: string;
   address: string;
   price: number | string;
+  /** ISO 4217 — 'GTQ' o 'USD'. Default 'GTQ' en backend para legacy. */
+  currency?: string | null;
   rooms: number | null;
   bathrooms: number | null;
   parking: number | null;
@@ -236,6 +238,8 @@ export interface PublicationDetail {
   pub_views: number | null;
   pubdet_id: number | null;
   pubdet_price: number | string | null;
+  /** ISO 4217 — 'GTQ' o 'USD'. */
+  pubdet_currency?: string | null;
   pubdet_rooms: number | null;
   pubdet_bathrooms: number | null;
   pubdet_parking: number | null;
@@ -269,6 +273,8 @@ export interface MyPublicationItem {
   pubsta_id: number;
   pub_create_date: string;
   pubdet_price: number | string | null;
+  /** ISO 4217 — 'GTQ' o 'USD'. */
+  pubdet_currency?: string | null;
   pubdet_rooms: number | null;
   pubdet_bathrooms: number | null;
   main_image: string | null;
@@ -283,6 +289,8 @@ export interface FavoriteItem {
   description: string;
   address: string;
   price: number | string;
+  /** ISO 4217 — 'GTQ' o 'USD'. */
+  currency?: string | null;
   rooms: number | null;
   bathrooms: number | null;
   parking: number | null;
@@ -380,6 +388,8 @@ export interface CreatePublicationPayload extends Record<string, unknown> {
   nlevel: number | null;
   /** Solo Terreno(3). */
   size: number | null;
+  /** ISO 4217 — 'GTQ' (default) o 'USD'. */
+  currency: 'GTQ' | 'USD';
   images: UploadedImage[];
 }
 

@@ -307,8 +307,10 @@ select {
 		resize: none;
 
 		&:focus {
+			// Mantener var(--clr-bg-white) en focus (no var(--clr-common-white))
+			// para que en dark mode el fondo siga siendo oscuro y el texto legible.
 			border-color: var(--clr-theme-1);
-			background: var(--clr-common-white);
+			background: var(--clr-bg-white);
 			box-shadow: 0px 30px 50px rgba(28, 52, 94, 0.1);
 			outline: none;
 		}
