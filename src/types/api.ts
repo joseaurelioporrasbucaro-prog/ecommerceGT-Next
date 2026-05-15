@@ -405,6 +405,42 @@ export interface CheckerPublicationsResponse {
   create: boolean;
 }
 
+/**
+ * Respuesta de `GET /publication/edit/:id` — datos del form de edición.
+ * Notar nombres alias del backend (category=pubgen_id, transaction=pubtra_id, etc.).
+ */
+export interface PublicationEditData {
+  id: number;
+  cus_id: number;
+  title: string;
+  description: string;
+  address: string;
+  /** pubgen_id: 1=Casa, 2=Apto, 3=Terreno. */
+  category: number;
+  /** pubtra_id. */
+  transaction: number;
+  price: number | string | null;
+  currency: 'GTQ' | 'USD' | string | null;
+  rooms: string | number | null;
+  bathrooms: string | number | null;
+  parking: string | number | null;
+  nlevel: string | number | null;
+  size: string | number | null;
+  country: number | null;
+  city: number | null;
+  municipality: number | null;
+  images: UploadedImage[];
+}
+
+/** Body de `PUT /publications/:id`. Mismos campos que crear. */
+export type UpdatePublicationPayload = CreatePublicationPayload;
+
+/** Respuesta de `PUT /publications/:id`. */
+export interface UpdatePublicationResponse {
+  message: string;
+  id: number;
+}
+
 export interface AddCommentPayload {
   pub_id: number;
   content: string;
