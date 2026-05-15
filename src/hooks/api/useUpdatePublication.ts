@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiFetch } from '@/utils/Api';
 import type { UpdatePublicationPayload, UpdatePublicationResponse } from '@/types/api';
 import { MY_PUBLICATIONS_QUERY_KEY } from './useMyPublications';
-import { PUBLICATIONS_QUERY_KEY } from './usePublications';
+import { PUBLICATIONS_QUERY_KEY, PUBLICATION_DETAIL_QUERY_KEY } from './usePublications';
 import { PUBLICATION_EDIT_QUERY_KEY } from './usePublicationEdit';
 
 /**
@@ -23,6 +23,11 @@ export function useUpdatePublication(id: number | string | null | undefined) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: MY_PUBLICATIONS_QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: PUBLICATIONS_QUERY_KEY });
+      // Detail query (la página /publications/:id, donde redirige el form al
+      // guardar). Sin este invalidate el usuario veía los precios/moneda viejos.
+      void queryClient.invalidateQueries({
+        queryKey: [...PUBLICATION_DETAIL_QUERY_KEY, Number(id)] as const,
+      });
       void queryClient.invalidateQueries({
         queryKey: [...PUBLICATION_EDIT_QUERY_KEY, id] as const,
       });
