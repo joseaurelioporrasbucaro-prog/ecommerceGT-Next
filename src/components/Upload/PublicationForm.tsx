@@ -242,6 +242,65 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
     cascadeFirstMount.current = false;
   }, []);
 
+  // ────────────────────────────────────────────────────────────────────────
+  // "WaitFor" — re-asserts cada valor de select cuando su query de catálogo
+  // termina de cargar.
+  //
+  // Por qué: React tiene un quirk con <select controlled value="X"> cuando la
+  // <option value="X"> aparece DESPUÉS del primer render. A veces no
+  // sincroniza el value visualmente y el select se queda mostrando el
+  // placeholder. Este patrón fuerza un setFieldValue (con el mismo valor)
+  // cuando el catálogo llega, lo cual triggea un re-render donde React ya
+  // tiene la option en el DOM y la sincronización funciona.
+  // ────────────────────────────────────────────────────────────────────────
+  const reassertedFields = useRef({
+    propertie: false,
+    transaction: false,
+    country: false,
+    city: false,
+    municipality: false,
+  });
+
+  useEffect(() => {
+    if (reassertedFields.current.propertie) return;
+    if (!categoriesQuery.data || !initialValues.propertie) return;
+    formik.setFieldValue('propertie', initialValues.propertie, false);
+    reassertedFields.current.propertie = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoriesQuery.data]);
+
+  useEffect(() => {
+    if (reassertedFields.current.transaction) return;
+    if (!transactionsQuery.data || !initialValues.transaction) return;
+    formik.setFieldValue('transaction', initialValues.transaction, false);
+    reassertedFields.current.transaction = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionsQuery.data]);
+
+  useEffect(() => {
+    if (reassertedFields.current.country) return;
+    if (!countriesQuery.data || !initialValues.country) return;
+    formik.setFieldValue('country', initialValues.country, false);
+    reassertedFields.current.country = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countriesQuery.data]);
+
+  useEffect(() => {
+    if (reassertedFields.current.city) return;
+    if (!citiesQuery.data || !initialValues.city) return;
+    formik.setFieldValue('city', initialValues.city, false);
+    reassertedFields.current.city = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citiesQuery.data]);
+
+  useEffect(() => {
+    if (reassertedFields.current.municipality) return;
+    if (!municipalitiesQuery.data || !initialValues.municipality) return;
+    formik.setFieldValue('municipality', initialValues.municipality, false);
+    reassertedFields.current.municipality = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [municipalitiesQuery.data]);
+
   const showHouseFields = propertieNum === PUBGEN_CASA || propertieNum === PUBGEN_APTO;
   const showLevelField = propertieNum === PUBGEN_APTO;
   const showSizeField = propertieNum === PUBGEN_TERRENO;
