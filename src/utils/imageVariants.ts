@@ -1,13 +1,14 @@
 /**
  * Helper para construir URLs de variantes optimizadas de imágenes.
  *
- * El backend (`POST /upload`) genera 3 variantes con sharp además del original:
- *   - thumb  (200x150)   — thumbnails de navegación
- *   - card   (800x800)   — cards del listado, cuadradas
- *   - detail (1600x900)  — imagen principal de la galería
+ * El backend (`POST /upload`) genera 3 variantes WebP con sharp además del
+ * original:
+ *   - thumb  (200x150  · q60) — thumbnails de navegación
+ *   - card   (800x800  · q72) — cards del listado, cuadradas
+ *   - detail (1600x900 · q78) — imagen principal de la galería
  *
- * Las variantes son archivos JPEG con sufijo (ej. `1234-foo.jpg` →
- * `1234-foo_card.jpg`). El componente que renderiza la imagen debe tener
+ * Las variantes son archivos `.webp` con sufijo (ej. `1234-foo.jpg` →
+ * `1234-foo_card.webp`). El componente que renderiza la imagen debe tener
  * un onError que caiga al original si la variante no existe (publicaciones
  * viejas creadas antes de Fase 5.4 no tienen variantes en disco).
  */
@@ -15,7 +16,7 @@ export type ImageVariant = 'thumb' | 'card' | 'detail';
 
 /**
  * Dado un path de imagen original (ej. `/uploads/images/123-foo.jpg`),
- * devuelve el path de la variante (ej. `/uploads/images/123-foo_card.jpg`).
+ * devuelve el path de la variante WebP (ej. `/uploads/images/123-foo_card.webp`).
  *
  * Si el path está vacío, ya tiene sufijo de variante, o no es un upload del
  * backend (ej. URL absoluta a otro host), retorna el path tal cual sin
@@ -43,5 +44,5 @@ export function getImageVariant(
   // Si ya tiene sufijo de variante, no doblar.
   if (/_(thumb|card|detail)$/.test(base)) return originalPath;
 
-  return `${base}_${variant}.jpg`;
+  return `${base}_${variant}.webp`;
 }
