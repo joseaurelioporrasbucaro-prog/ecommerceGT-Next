@@ -4,6 +4,9 @@ import type {
   ConversationMessage,
   InboxItem,
   MarkConversationReadPayload,
+  ReactToMessagePayload,
+  ReactToMessageResponse,
+  ReportMessagePayload,
   SendMessagePayload,
   SendMessageResponse,
   UnreadMessagesResponse,
@@ -104,6 +107,11 @@ export function useSendMessage(pubId: number | null | undefined, otherUserId: nu
         created_at: new Date().toISOString(),
         sender_name: '',
         sender_image: null,
+        reply_to_message_id: payload.reply_to_message_id ?? null,
+        reply_to_content: null,
+        reply_to_sender_id: null,
+        reply_to_sender_name: null,
+        reactions: [],
       };
 
       queryClient.setQueryData<ConversationMessage[]>(conversationKey, (old = []) => [
@@ -141,5 +149,105 @@ export function useMarkConversationAsRead() {
       void queryClient.invalidateQueries({ queryKey: INBOX_QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: UNREAD_MESSAGES_QUERY_KEY });
     },
+  });
+}
+
+/**
+ * Reaccionar a un mensaje (Fase 6.2). Backend hace UPSERT por (message_id, cus_id):
+ * mismo emoji → toggle off; otro emoji → reemplaza. Aplicamos optimistic update
+ * sobre el array `reactions` del mensaje correspondiente para feedback inmediato.
+ */
+export function useReactToMessage(
+  pubId: number | null | undefined,
+  otherUserId: number | null | undefined,
+) {
+  const queryClient = useQueryClient();
+  const conversationKey = [...CONVERSATION_QUERY_KEY, pubId, otherUserId] as const;
+
+  return useMutation<
+    ReactToMessageResponse,
+    Error,
+    { messageId: number; emoji: string },
+    { previous: ConversationMessage[] | undefined }
+  >({
+    mutationFn: ({ messageId, emoji }) =>
+      ApiFetch.post<ReactToMessageResponse>(
+        `/messages/${messageId}/react`,
+        { emoji } satisfies ReactToMessagePayload,
+      ),
+
+    onMutate: async ({ messageId, emoji }) => {
+      await queryClient.cancelQueries({ queryKey: conversationKey });
+      const previous = queryClient.getQueryData<ConversationMessage[]>(conversationKey);
+
+      queryClient.setQueryData<ConversationMessage[]>(conversationKey, (old = []) =>
+        old.map((m) => {
+          if (m.message_id !== messageId) return m;
+          const reactions = [...(m.reactions ?? [])];
+          const existingMine = reactions.find((r) => r.mine);
+          const targetIdx = reactions.findIndex((r) => r.emoji === emoji);
+
+          // Mismo emoji ya marcado → toggle off
+          if (existingMine && existingMine.emoji === emoji) {
+            const idx = reactions.indexOf(existingMine);
+            const updated = { ...existingMine, count: existingMine.count - 1, mine: false };
+            if (updated.count <= 0) reactions.splice(idx, 1);
+            else reactions[idx] = updated;
+            return { ...m, reactions };
+          }
+
+          // Si tenía otro emoji, decrementarlo
+          if (existingMine) {
+            const idx = reactions.indexOf(existingMine);
+            const updated = { ...existingMine, count: existingMine.count - 1, mine: false };
+            if (updated.count <= 0) reactions.splice(idx, 1);
+            else reactions[idx] = updated;
+          }
+
+          // Incrementar (o crear) el nuevo emoji
+          if (targetIdx >= 0 && reactions[targetIdx]) {
+            reactions[targetIdx] = {
+              ...reactions[targetIdx],
+              count: reactions[targetIdx].count + 1,
+              mine: true,
+            };
+          } else {
+            reactions.push({ emoji, count: 1, mine: true });
+          }
+          return { ...m, reactions };
+        }),
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(conversationKey, context.previous);
+      }
+    },
+
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: conversationKey });
+    },
+  });
+}
+
+/**
+ * Reportar un mensaje (Fase 6.2). Backend acepta solo reportes sobre mensajes
+ * recibidos (no podés reportar tus propios envíos) y deduplica por
+ * (message_id, reporter_cus_id).
+ */
+export function useReportMessage() {
+  return useMutation<
+    { message: string },
+    Error,
+    { messageId: number; reason: ReportMessagePayload['reason']; detail?: string }
+  >({
+    mutationFn: ({ messageId, reason, detail }) =>
+      ApiFetch.post<{ message: string }>(
+        `/messages/${messageId}/report`,
+        { reason, detail: detail ?? null } satisfies ReportMessagePayload,
+      ),
   });
 }

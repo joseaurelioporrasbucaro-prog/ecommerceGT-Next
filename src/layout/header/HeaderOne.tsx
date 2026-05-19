@@ -1,46 +1,23 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import logoOne from "../../../public/assets/img/logo/oction-logo.png"
 import logoTwo from "../../../public/assets/img/logo/oction-logo-bw.png"
-import logoThree from "../../../public/assets/img/profile/profile4.jpg"
 import useSticky from '@/hooks/useSticky';
 import useGlobalContext from '@/hooks/use-context';
 import Image from 'next/image';
 import HeaderOneMenu from './component/HeaderOneMenu';
 import MobileMenu from '@/utils/MobileMenu';
-import { useRouter } from 'next/navigation';
-
-// --- NUEVAS IMPORTACIONES PARA LA MAGIA ---
-import { useAuth } from '@/utils/AuthContext';
+import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
 
 const HeaderOne = ({ HeaderStatic }:any) => {
  const {toggleSideMenu,sideMenuOpen} = useGlobalContext()
- const [isActive11, setActive11] = useState(false);
-
- // --- HOOKS DE AUTENTICACIÓN E IDIOMAS ---
- const { user, logout } = useAuth();
+ const { setTheme } = useTheme();
  const { i18n, t } = useTranslation();
- const router = useRouter();
 
- const handleToggle11 = () => {
-    setActive11(!isActive11);
- };
-
- // Función para cambiar el idioma
  const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
- };
-
- const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    toast.info(t('auth.login.singout') + '...');
-    // logout() hace: POST /logout → limpia user → remueve React Query cache.
-    // La redirección la hacemos aquí para que HeaderOne controle el UX.
-    await logout();
-    router.push('/login');
  };
 
    // sticky nav
@@ -89,34 +66,23 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                              </span>
                            </div>
 
-                           {/* --- LÓGICA DE SESIÓN CONDICIONAL --- */}
-                           {!user ? (
-                              // Si NO hay usuario: Mostramos botón de Login
-                              <div className="header-btn ml-20 d-none d-xxl-inline-block">
-                                 <Link className="fill-btn" href="/login">{t('auth.login.submit') || "Login"}</Link>
-                              </div>
-                           ) : (
-                              // Si SÍ hay usuario: Mostramos el Dropdown con su foto real
-                              <div className="profile-item profile-item-header ml-20 d-md-inline-block pos-rel">
-                                 <div className={`profile-img pos-rel ${isActive11 ? "show-element" : ""}`} onClick={handleToggle11}>
-                                    <div className="profile-action"> 
-                                       <ul>
-                                          <li><Link href="/creator-profile-info-personal"><i className="fal fa-user"></i>{t('auth.login.myProfile') || 'Profile'}</Link></li>
-                                          <li><a href="#" onClick={handleLogout}><i className="fal fa-sign-out"></i>{t('auth.login.singout') || 'Logout'}</a></li>
-                                       </ul>
-                                    </div>
-                                    <Image 
-                                       src={user?.imagenu ? (user.imagenu.startsWith('http') ? user.imagenu : `http://localhost:4000${user.imagenu}`) : logoThree} 
-                                       alt="profile-img" 
-                                       width={50} height={50} 
-                                       style={{ objectFit: 'cover', borderRadius: '50%' }}
-                                    />
-                                    <div className="profile-verification verified">
-                                       <i className="fas fa-check"></i>
-                                    </div>
-                                 </div>
-                              </div>
-                           )}
+                           {/* --- BOTÓN DE TEMA (dark / light) — inline gracias a
+                                la clase modificadora home3-mode-switch que
+                                anula el position: fixed del wrapper base --- */}
+                           <div className="mode-switch-wrapper my_switcher setting-option home3-mode-switch ml-20">
+                              <input type="checkbox" className="checkbox" id="chk-header1" />
+                              <label className="label" htmlFor="chk-header1">
+                                 <i
+                                    className="fas fa-moon setColor dark theme__switcher-btn"
+                                    onClick={() => setTheme('dark')}
+                                 />
+                                 <i
+                                    className="fas fa-sun setColor light theme__switcher-btn"
+                                    onClick={() => setTheme('light')}
+                                 />
+                                 <span className="ball" />
+                              </label>
+                           </div>
 
                            <div className="menu-bar d-xl-none ml-20">
                               <Link className="side-toggle" href="" onClick={toggleSideMenu}>

@@ -1,43 +1,63 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import {
   useConversation,
   useMarkConversationAsRead,
+  useReactToMessage,
+  useReportMessage,
   useSendMessage,
 } from '@/hooks/api/useMessages';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
-import type { ConversationMessage, InboxItem } from '@/types/api';
+import { generateInitialsAvatar } from '@/utils/avatarUtils';
+import type {
+  ConversationMessage,
+  MessageReportReason,
+} from '@/types/api';
 
-const DEFAULT_AVATAR = '/assets/img/profile/default-avatar.png';
+const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+const REPORT_REASONS: { value: MessageReportReason; label: string }[] = [
+  { value: 'spam', label: 'Spam o publicidad no deseada' },
+  { value: 'ofensivo', label: 'Lenguaje ofensivo o acoso' },
+  { value: 'estafa', label: 'Posible estafa o fraude' },
+  { value: 'otro', label: 'Otra razón' },
+];
+
+interface InboxItemLite {
+  contact_name: string;
+  contact_image: string | null;
+  pub_title: string;
+}
 
 interface ConversationViewProps {
   pubId: number;
   contactId: number;
-  /** Item del inbox correspondiente (puede ser null si es la primera vez que se contacta). */
-  inboxItem: InboxItem | null;
+  inboxItem: InboxItemLite | null;
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, inboxItem }) => {
   const { user } = useAuth();
   const conversationQuery = useConversation(pubId, contactId);
   const sendMutation = useSendMessage(pubId, contactId);
+  const reactMutation = useReactToMessage(pubId, contactId);
+  const reportMutation = useReportMessage();
   const markAsReadMutation = useMarkConversationAsRead();
+
   const [draft, setDraft] = useState('');
+  const [replyTo, setReplyTo] = useState<ConversationMessage | null>(null);
+  const [reportTarget, setReportTarget] = useState<ConversationMessage | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const hasMarkedReadRef = useRef<string | null>(null);
 
-  // Auto-scroll al fondo al cargar mensajes nuevos.
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [conversationQuery.data?.length]);
 
-  // Marcar como leídos los mensajes recibidos del contacto al abrir la conversación.
-  // Idempotente: solo dispara una vez por par (pub, contact).
   useEffect(() => {
     const key = `${pubId}-${contactId}`;
     if (hasMarkedReadRef.current === key) return;
@@ -59,14 +79,42 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
     const content = draft.trim();
     if (!content || sendMutation.isPending) return;
     setDraft('');
+    const replyId = replyTo?.message_id ?? null;
+    setReplyTo(null);
     sendMutation.mutate(
-      { receiver_id: contactId, pub_id: pubId, content },
+      { receiver_id: contactId, pub_id: pubId, content, reply_to_message_id: replyId },
       {
         onError: (err) => {
           const message = err instanceof ApiError ? err.message : 'No se pudo enviar el mensaje.';
           toast.error(message);
-          // Si falla, devolver el draft al input para que el usuario no lo pierda.
           setDraft(content);
+          if (replyId && replyTo) setReplyTo(replyTo);
+        },
+      },
+    );
+  };
+
+  const handleReact = (messageId: number, emoji: string) => {
+    reactMutation.mutate({ messageId, emoji });
+  };
+
+  const handleReply = (message: ConversationMessage) => {
+    setReplyTo(message);
+    composerRef.current?.focus();
+  };
+
+  const handleReportSubmit = (reason: MessageReportReason, detail: string) => {
+    if (!reportTarget) return;
+    reportMutation.mutate(
+      { messageId: reportTarget.message_id, reason, detail: detail || undefined },
+      {
+        onSuccess: () => {
+          toast.success('Reporte enviado. Gracias por ayudarnos a mantener la comunidad segura.');
+          setReportTarget(null);
+        },
+        onError: (err) => {
+          const message = err instanceof ApiError ? err.message : 'No se pudo enviar el reporte.';
+          toast.error(message);
         },
       },
     );
@@ -75,7 +123,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
   const contactName = inboxItem?.contact_name ?? 'Conversación';
   const contactAvatar = inboxItem?.contact_image
     ? getBackendUrl(inboxItem.contact_image)
-    : DEFAULT_AVATAR;
+    : generateInitialsAvatar(contactName, 80);
 
   return (
     <div className="conversation-view">
@@ -85,17 +133,18 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           <img
             src={contactAvatar}
             alt={contactName}
-            width={36}
-            height={36}
-            style={{ borderRadius: '50%', objectFit: 'cover' }}
+            width={40}
+            height={40}
+            style={{
+              borderRadius: '50%',
+              objectFit: 'cover',
+              marginRight: '14px',
+              flexShrink: 0,
+            }}
           />
-          <span>
+          <span className="conversation-contact-name">
             <strong>{contactName}</strong>
-            {inboxItem && <small>{inboxItem.pub_title}</small>}
           </span>
-        </Link>
-        <Link href={`/publications/${pubId}`} className="conversation-pub-link">
-          Ver publicación →
         </Link>
       </header>
 
@@ -116,19 +165,46 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           </div>
         )}
         {conversationQuery.data?.map((msg) => (
-          <MessageBubble key={msg.message_id} message={msg} myUserId={user?.id ?? null} />
+          <MessageBubble
+            key={msg.message_id}
+            message={msg}
+            myUserId={user?.id ?? null}
+            onReact={handleReact}
+            onReply={handleReply}
+            onReport={(m) => setReportTarget(m)}
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Preview de "respondiendo a..." */}
+      {replyTo && (
+        <div className="reply-preview">
+          <div className="reply-preview-content">
+            <span className="reply-preview-label">
+              Respondiendo a {replyTo.reply_to_sender_name ?? replyTo.sender_name ?? 'mensaje'}
+            </span>
+            <span className="reply-preview-text">{replyTo.content}</span>
+          </div>
+          <button
+            type="button"
+            className="reply-preview-close"
+            onClick={() => setReplyTo(null)}
+            aria-label="Cancelar respuesta"
+          >
+            <i className="fal fa-times" />
+          </button>
+        </div>
+      )}
+
       <form className="conversation-composer" onSubmit={handleSubmit}>
         <textarea
+          ref={composerRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Escribí un mensaje…"
           rows={2}
           onKeyDown={(e) => {
-            // Enter envía, Shift+Enter inserta nueva línea.
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               const form = e.currentTarget.form;
@@ -145,6 +221,16 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         </button>
       </form>
 
+      {/* Modal de reporte */}
+      {reportTarget && (
+        <ReportModal
+          message={reportTarget}
+          onCancel={() => setReportTarget(null)}
+          onSubmit={handleReportSubmit}
+          isSubmitting={reportMutation.isPending}
+        />
+      )}
+
       <style jsx>{`
         .conversation-view {
           display: flex;
@@ -154,34 +240,22 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         }
         .conversation-header {
           display: flex;
-          justify-content: space-between;
           align-items: center;
           padding: 14px 18px;
           border-bottom: 1px solid rgba(128, 128, 128, 0.18);
-          gap: 12px;
+          gap: 14px;
+          background: var(--clr-bg-white, #fff);
         }
         .conversation-contact {
           display: flex;
           align-items: center;
-          gap: 10px;
           color: var(--clr-common-heading, #181818);
           text-decoration: none;
         }
         .conversation-contact strong {
           display: block;
-          font-size: 14px;
-        }
-        .conversation-contact small {
-          display: block;
-          font-size: 12px;
-          opacity: 0.7;
-        }
-        .conversation-pub-link {
-          font-size: 13px;
-          color: var(--clr-theme-1, #6c5ce7);
-          font-weight: 600;
-          text-decoration: none;
-          flex-shrink: 0;
+          font-size: 15px;
+          font-weight: 700;
         }
         .conversation-messages {
           flex: 1;
@@ -189,9 +263,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           overflow-y: auto;
           display: flex;
           flex-direction: column;
-          gap: 8px;
-          min-height: 300px;
-          max-height: calc(100vh - 380px);
+          gap: 14px;
+          min-height: 0;
         }
         .conversation-state {
           padding: 30px 20px;
@@ -203,6 +276,54 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           color: #ef4444;
           opacity: 1;
         }
+
+        /* Reply preview */
+        .reply-preview {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 10px 16px;
+          background: rgba(108, 92, 231, 0.08);
+          border-top: 1px solid rgba(128, 128, 128, 0.18);
+          border-left: 3px solid var(--clr-theme-1, #6c5ce7);
+        }
+        .reply-preview-content {
+          flex: 1;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .reply-preview-label {
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--clr-theme-1, #6c5ce7);
+        }
+        .reply-preview-text {
+          font-size: 13px;
+          opacity: 0.75;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .reply-preview-close {
+          border: none;
+          background: transparent;
+          color: var(--clr-common-heading, #181818);
+          cursor: pointer;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.6;
+        }
+        .reply-preview-close:hover {
+          opacity: 1;
+          background: rgba(128, 128, 128, 0.12);
+        }
+
         .conversation-composer {
           display: flex;
           gap: 10px;
@@ -236,56 +357,536 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
   );
 };
 
+/* ─── Bubble individual ─── */
+
 interface MessageBubbleProps {
   message: ConversationMessage;
   myUserId: number | null;
+  onReact: (messageId: number, emoji: string) => void;
+  onReply: (message: ConversationMessage) => void;
+  onReport: (message: ConversationMessage) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, myUserId }) => {
-  // Mensaje optimista (sender_id=0) → tratamos como propio mientras se confirma.
-  const isMine = message.sender_id === myUserId || message.sender_id === 0;
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  myUserId,
+  onReact,
+  onReply,
+  onReport,
+}) => {
+  const isMine =
+    Number(message.sender_id) === Number(myUserId) || Number(message.sender_id) === 0;
   const time = new Date(message.created_at).toLocaleTimeString('es-GT', {
     hour: '2-digit',
     minute: '2-digit',
   });
 
+  const [showReactions, setShowReactions] = useState(false);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+
+  // Cerrar picker al click fuera.
+  useEffect(() => {
+    if (!showReactions) return;
+    const handler = (e: MouseEvent) => {
+      if (!pickerRef.current) return;
+      if (!pickerRef.current.contains(e.target as Node)) {
+        setShowReactions(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showReactions]);
+
+  const handlePickReaction = (emoji: string) => {
+    onReact(message.message_id, emoji);
+    setShowReactions(false);
+  };
+
+  const hasReactions = (message.reactions?.length ?? 0) > 0;
+  const isOptimistic = message.message_id < 0;
+
   return (
-    <div className={`bubble-row ${isMine ? 'is-mine' : ''}`}>
-      <div className="bubble">
-        <p>{message.content}</p>
-        <span className="bubble-time">{time}</span>
+    <div className={`bubble-row${isMine ? ' is-mine' : ''}`}>
+      <div className={`bubble-stack${showReactions ? ' picker-open' : ''}`}>
+        {/* Snippet de reply, si aplica */}
+        {message.reply_to_message_id && message.reply_to_content && (
+          <div className="reply-snippet">
+            <span className="reply-snippet-author">
+              {message.reply_to_sender_name ?? 'Mensaje'}
+            </span>
+            <span className="reply-snippet-text">{message.reply_to_content}</span>
+          </div>
+        )}
+
+        <div className="bubble-flex">
+          <div className="bubble" title={time}>
+            <p>{message.content}</p>
+          </div>
+
+          {/* Acciones — solo visibles si no es optimistic */}
+          {!isOptimistic && (
+            <div className="bubble-actions">
+              <span className="bubble-time">{time}</span>
+              <div className="bubble-action-buttons">
+                <button
+                  type="button"
+                  className="bubble-action"
+                  title="Reaccionar"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowReactions((v) => !v);
+                  }}
+                >
+                  <i className="fal fa-smile" />
+                </button>
+                <button
+                  type="button"
+                  className="bubble-action"
+                  title="Responder"
+                  onClick={() => onReply(message)}
+                >
+                  <i className="fal fa-reply" />
+                </button>
+                {!isMine && (
+                  <button
+                    type="button"
+                    className="bubble-action"
+                    title="Denunciar"
+                    onClick={() => onReport(message)}
+                  >
+                    <i className="fal fa-flag" />
+                  </button>
+                )}
+              </div>
+
+              {showReactions && (
+                <div className="reaction-picker" ref={pickerRef}>
+                  {REACTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      className="reaction-emoji"
+                      onClick={() => handlePickReaction(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Pill con las reacciones agregadas */}
+        {hasReactions && (
+          <div className="reactions-summary">
+            {message.reactions.map((r) => (
+              <button
+                key={r.emoji}
+                type="button"
+                className={`reaction-chip${r.mine ? ' is-mine-reaction' : ''}`}
+                onClick={() => onReact(message.message_id, r.emoji)}
+                title={r.mine ? 'Quitar reacción' : 'Reaccionar igual'}
+              >
+                <span className="reaction-chip-emoji">{r.emoji}</span>
+                <span className="reaction-chip-count">{r.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+
       <style jsx>{`
         .bubble-row {
           display: flex;
+          width: 100%;
           justify-content: flex-start;
         }
         .bubble-row.is-mine {
           justify-content: flex-end;
         }
+
+        .bubble-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          max-width: 75%;
+          position: relative;
+        }
+        .bubble-row.is-mine .bubble-stack {
+          align-items: flex-end;
+        }
+
+        .bubble-flex {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          position: relative;
+        }
+        .bubble-row.is-mine .bubble-flex {
+          flex-direction: row-reverse;
+        }
+
+        /* Burbuja */
         .bubble {
-          max-width: 70%;
           padding: 10px 14px;
-          border-radius: 14px;
-          background: rgba(128, 128, 128, 0.12);
+          border-radius: 18px;
+          background: rgba(128, 128, 128, 0.15);
           color: var(--clr-common-heading, #181818);
           font-size: 14px;
           line-height: 1.4;
           word-wrap: break-word;
+          cursor: default;
         }
         .bubble-row.is-mine .bubble {
           background: var(--clr-theme-1, #6c5ce7);
           color: #fff;
         }
-        .bubble p {
-          margin: 0 0 4px;
+        .bubble p,
+        .bubble-row.is-mine .bubble p {
+          margin: 0;
           white-space: pre-wrap;
+          color: inherit;
         }
-        .bubble-time {
-          display: block;
-          font-size: 10px;
+
+        /* Reply snippet (cuando este mensaje responde a otro) */
+        .reply-snippet {
+          display: flex;
+          flex-direction: column;
+          padding: 6px 12px;
+          background: rgba(128, 128, 128, 0.08);
+          border-left: 3px solid var(--clr-theme-1, #6c5ce7);
+          border-radius: 8px;
+          max-width: 100%;
+          margin-bottom: 2px;
+        }
+        .reply-snippet-author {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--clr-theme-1, #6c5ce7);
+        }
+        .reply-snippet-text {
+          font-size: 12px;
           opacity: 0.7;
-          text-align: right;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          max-width: 280px;
+        }
+
+        /* Acciones — ocultas por default, visibles on hover o si el picker está abierto */
+        .bubble-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          opacity: 0;
+          transition: opacity 0.15s;
+          pointer-events: none;
+        }
+        .bubble-flex:hover .bubble-actions,
+        .bubble-stack.picker-open .bubble-actions {
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .bubble-row.is-mine .bubble-actions {
+          flex-direction: row-reverse;
+        }
+
+        .bubble-time {
+          font-size: 11px;
+          opacity: 0.55;
+          color: var(--clr-common-body-text, #525252);
+          white-space: nowrap;
+        }
+        .bubble-action-buttons {
+          display: flex;
+          gap: 2px;
+        }
+        :global(.bubble-action) {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(128, 128, 128, 0.12);
+          color: var(--clr-common-heading, #181818);
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.15s;
+        }
+        :global(.bubble-action:hover) {
+          background: rgba(108, 92, 231, 0.2);
+          color: var(--clr-theme-1, #6c5ce7);
+        }
+
+        /* Picker de reacciones */
+        .reaction-picker {
+          position: absolute;
+          bottom: calc(100% + 6px);
+          left: auto;
+          right: 0;
+          display: flex;
+          gap: 4px;
+          padding: 6px 8px;
+          background: var(--clr-bg-white, #fff);
+          border: 1px solid rgba(128, 128, 128, 0.18);
+          border-radius: 24px;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+          z-index: 5;
+        }
+        .bubble-row.is-mine .reaction-picker {
+          right: auto;
+          left: 0;
+        }
+        :global(.reaction-emoji) {
+          font-size: 20px;
+          line-height: 1;
+          padding: 4px 6px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          border-radius: 8px;
+          transition: transform 0.1s, background 0.15s;
+        }
+        :global(.reaction-emoji:hover) {
+          background: rgba(128, 128, 128, 0.1);
+          transform: scale(1.25);
+        }
+
+        /* Resumen de reacciones (pills debajo del bubble) */
+        .reactions-summary {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          margin-top: 2px;
+        }
+        :global(.reaction-chip) {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 2px 8px;
+          background: var(--clr-bg-white, #fff);
+          border: 1px solid rgba(128, 128, 128, 0.25);
+          border-radius: 14px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: background 0.15s, border-color 0.15s;
+        }
+        :global(.reaction-chip:hover) {
+          background: rgba(108, 92, 231, 0.08);
+        }
+        :global(.reaction-chip.is-mine-reaction) {
+          background: rgba(108, 92, 231, 0.15);
+          border-color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #6c5ce7);
+          font-weight: 700;
+        }
+        :global(.reaction-chip-emoji) {
+          font-size: 14px;
+          line-height: 1;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+/* ─── Modal de reporte ─── */
+
+interface ReportModalProps {
+  message: ConversationMessage;
+  onCancel: () => void;
+  onSubmit: (reason: MessageReportReason, detail: string) => void;
+  isSubmitting: boolean;
+}
+
+const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, isSubmitting }) => {
+  const [reason, setReason] = useState<MessageReportReason>('spam');
+  const [detail, setDetail] = useState('');
+
+  return (
+    <div className="report-overlay" onClick={onCancel}>
+      <div className="report-modal" onClick={(e) => e.stopPropagation()}>
+        <header className="report-header">
+          <h4>Denunciar mensaje</h4>
+          <button type="button" className="report-close" onClick={onCancel}>
+            <i className="fal fa-times" />
+          </button>
+        </header>
+
+        <div className="report-preview">
+          <small>Mensaje denunciado:</small>
+          <p>{message.content}</p>
+        </div>
+
+        <div className="report-body">
+          <label className="report-label">Razón</label>
+          {REPORT_REASONS.map((r) => (
+            <label key={r.value} className="report-option">
+              <input
+                type="radio"
+                name="reason"
+                value={r.value}
+                checked={reason === r.value}
+                onChange={() => setReason(r.value)}
+              />
+              <span>{r.label}</span>
+            </label>
+          ))}
+
+          <label className="report-label" style={{ marginTop: '14px' }}>
+            Detalle (opcional)
+          </label>
+          <textarea
+            value={detail}
+            onChange={(e) => setDetail(e.target.value)}
+            placeholder="Contanos más si querés…"
+            rows={3}
+            maxLength={500}
+          />
+        </div>
+
+        <footer className="report-footer">
+          <button type="button" className="report-cancel" onClick={onCancel} disabled={isSubmitting}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="fill-btn"
+            onClick={() => onSubmit(reason, detail)}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Enviando…' : 'Enviar denuncia'}
+          </button>
+        </footer>
+      </div>
+
+      <style jsx>{`
+        .report-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+        }
+        .report-modal {
+          background: var(--clr-bg-white, #fff);
+          border-radius: 12px;
+          max-width: 500px;
+          width: 100%;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        .report-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 18px 20px;
+          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+        }
+        .report-header h4 {
+          margin: 0;
+          font-size: 17px;
+        }
+        .report-close {
+          border: none;
+          background: transparent;
+          color: var(--clr-common-heading, #181818);
+          font-size: 16px;
+          cursor: pointer;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+        }
+        .report-close:hover {
+          background: rgba(128, 128, 128, 0.12);
+        }
+        .report-preview {
+          padding: 14px 20px;
+          background: rgba(128, 128, 128, 0.06);
+          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+        }
+        .report-preview small {
+          font-size: 12px;
+          opacity: 0.7;
+          display: block;
+          margin-bottom: 4px;
+        }
+        .report-preview p {
+          margin: 0;
+          font-size: 14px;
+          color: var(--clr-common-heading, #181818);
+        }
+        .report-body {
+          padding: 18px 20px;
+          display: flex;
+          flex-direction: column;
+        }
+        .report-label {
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 8px;
+          color: var(--clr-common-heading, #181818);
+        }
+        .report-option {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background 0.15s;
+        }
+        .report-option:hover {
+          background: rgba(128, 128, 128, 0.08);
+        }
+        .report-option input {
+          accent-color: var(--clr-theme-1, #6c5ce7);
+        }
+        .report-body textarea {
+          width: 100%;
+          padding: 10px 12px;
+          border: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
+          border-radius: 8px;
+          background: var(--clr-bg-white, #fff);
+          color: var(--clr-common-heading, #181818);
+          font-family: inherit;
+          font-size: 13px;
+          resize: vertical;
+          outline: none;
+        }
+        .report-body textarea:focus {
+          border-color: var(--clr-theme-1, #6c5ce7);
+        }
+        .report-footer {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          padding: 14px 20px;
+          border-top: 1px solid rgba(128, 128, 128, 0.18);
+        }
+        .report-cancel {
+          border: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
+          background: transparent;
+          color: var(--clr-common-heading, #181818);
+          padding: 8px 18px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .report-cancel:hover {
+          background: rgba(128, 128, 128, 0.08);
+        }
+        :global(.report-footer .fill-btn) {
+          padding: 8px 22px;
+          font-size: 14px;
         }
       `}</style>
     </div>

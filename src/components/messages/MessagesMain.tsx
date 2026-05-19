@@ -1,30 +1,22 @@
 "use client";
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ThemeChanger from '@/components/home/ThemeChanger';
-import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { useInbox } from '@/hooks/api/useMessages';
 import InboxList from './InboxList';
 import ConversationView from './ConversationView';
+import ConversationInfoPanel from './ConversationInfoPanel';
 
-/**
- * Pantalla de mensajes — sidebar de conversaciones a la izquierda + panel de
- * conversación activa a la derecha. La selección activa vive en search params
- * (`?pub=X&with=Y`) para que sea bookmarkeable y compartible (al menos entre
- * usuarios autorizados — el backend valida ownership de la conversación).
- *
- * Entry points:
- *  - /messages → muestra la lista, sin conversación activa (placeholder).
- *  - /messages?pub=X&with=Y → abre la conversación con ese seller para esa pub.
- *    Es el target del botón "Contactar" en el detalle de publicación.
- */
 const MessagesMain: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const inboxQuery = useInbox();
+
+  // En móvil alternamos entre 'list' y 'chat' — un panel a la vez.
+  const [mobilePanel, setMobilePanel] = useState<'list' | 'chat'>('list');
 
   const activePubId = useMemo(() => {
     const v = searchParams.get('pub');
@@ -40,7 +32,11 @@ const MessagesMain: React.FC = () => {
 
   const hasActiveConversation = activePubId !== null && activeContactId !== null;
 
-  // Si el usuario llega con ?pub=X&with=self por error, lo corregimos.
+  // Cuando se activa una conversación en móvil → mostrar el chat automáticamente.
+  useEffect(() => {
+    if (hasActiveConversation) setMobilePanel('chat');
+  }, [hasActiveConversation]);
+
   useEffect(() => {
     if (user?.id && activeContactId === user.id) {
       router.replace('/messages');
@@ -56,119 +52,203 @@ const MessagesMain: React.FC = () => {
     );
   }, [inboxQuery.data, hasActiveConversation, activePubId, activeContactId]);
 
+  const handleMobileBack = () => {
+    setMobilePanel('list');
+    router.replace('/messages');
+  };
+
   return (
-    <main>
+    <main className="messages-page">
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Mensajes" breadcrumbSubTitle="Mensajes" />
 
-      <section className="messages-area pt-90 pb-90">
-        <div className="container c-container-1">
-          <div className="messages-shell">
-            <aside className="messages-sidebar">
-              <h4 className="messages-sidebar-title">Conversaciones</h4>
-              {inboxQuery.isLoading && (
-                <div className="messages-state">Cargando…</div>
-              )}
-              {inboxQuery.error && (
-                <div className="messages-state messages-state-error">
-                  {inboxQuery.error instanceof ApiError
-                    ? inboxQuery.error.message
-                    : 'No se pudieron cargar los chats.'}
-                </div>
-              )}
-              {!inboxQuery.isLoading && !inboxQuery.error && (
-                <InboxList
-                  items={inboxQuery.data ?? []}
-                  activePubId={activePubId}
-                  activeContactId={activeContactId}
-                />
-              )}
-            </aside>
+      <div className={`msg-shell${hasActiveConversation ? ' has-info' : ''}`}>
 
-            <div className="messages-content">
-              {!hasActiveConversation && (
-                <div className="messages-empty">
-                  <i className="flaticon-chatting" />
-                  <h4>Selecciona una conversación</h4>
-                  <p>Elegí un chat de la lista para ver los mensajes.</p>
-                </div>
-              )}
-              {hasActiveConversation && (
-                <ConversationView
-                  pubId={activePubId!}
-                  contactId={activeContactId!}
-                  inboxItem={activeInboxItem}
-                />
-              )}
-            </div>
+        {/* ── Col izquierda: inbox ── */}
+        <aside className={`msg-sidebar${mobilePanel === 'chat' ? ' mobile-hidden' : ''}`}>
+          <div className="msg-sidebar-head">
+            <h4 className="msg-sidebar-title">Chats</h4>
           </div>
+
+          {inboxQuery.isLoading && (
+            <div className="msg-state">Cargando…</div>
+          )}
+          {inboxQuery.error && (
+            <div className="msg-state msg-state-error">
+              {inboxQuery.error instanceof ApiError
+                ? inboxQuery.error.message
+                : 'No se pudieron cargar los chats.'}
+            </div>
+          )}
+          {!inboxQuery.isLoading && !inboxQuery.error && (
+            <InboxList
+              items={inboxQuery.data ?? []}
+              activePubId={activePubId}
+              activeContactId={activeContactId}
+            />
+          )}
+        </aside>
+
+        {/* ── Col central: conversación ── */}
+        <div className={`msg-body${mobilePanel === 'list' && !hasActiveConversation ? ' mobile-hidden' : ''}`}>
+          {/* Botón volver — solo en móvil */}
+          {mobilePanel === 'chat' && (
+            <button type="button" className="msg-back-btn" onClick={handleMobileBack}>
+              <i className="fal fa-arrow-left" />
+              Chats
+            </button>
+          )}
+
+          {!hasActiveConversation ? (
+            <div className="msg-empty">
+              <i className="fal fa-comments" />
+              <h4>Seleccioná una conversación</h4>
+              <p>Elegí un chat de la lista para empezar.</p>
+            </div>
+          ) : (
+            <ConversationView
+              pubId={activePubId!}
+              contactId={activeContactId!}
+              inboxItem={activeInboxItem}
+            />
+          )}
         </div>
-      </section>
+
+        {/* ── Col derecha: info / shortcuts ── */}
+        {hasActiveConversation && (
+          <ConversationInfoPanel
+            pubId={activePubId!}
+            contactId={activeContactId!}
+            inboxItem={activeInboxItem}
+          />
+        )}
+
+      </div>
 
       <style jsx>{`
-        .messages-shell {
+        /* ── Página ── */
+        .messages-page {
+          /* Ocupa el espacio disponible entre header y footer */
+          padding: 0;
+        }
+
+        /* ── Shell: 3 cols en desktop, 2 en tablet, 1 en móvil ── */
+        .msg-shell {
           display: grid;
-          grid-template-columns: 320px 1fr;
-          gap: 0;
-          min-height: 70vh;
-          border: 1px solid rgba(128, 128, 128, 0.18);
-          border-radius: 14px;
+          grid-template-columns: 300px 1fr;
+          height: calc(100vh - 90px);
+          border-top: 1px solid rgba(128, 128, 128, 0.18);
+          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
           overflow: hidden;
           background: var(--clr-bg-white, #fff);
         }
-        @media (max-width: 768px) {
-          .messages-shell {
-            grid-template-columns: 1fr;
-          }
+        .msg-shell.has-info {
+          grid-template-columns: 300px 1fr 270px;
         }
-        .messages-sidebar {
+
+        /* ── Sidebar izquierdo ── */
+        .msg-sidebar {
           border-right: 1px solid rgba(128, 128, 128, 0.18);
           display: flex;
           flex-direction: column;
-          background: rgba(128, 128, 128, 0.04);
+          overflow: hidden;
+          background: var(--clr-bg-white, #fff);
         }
-        .messages-sidebar-title {
-          padding: 18px 20px;
-          margin: 0;
-          font-size: 16px;
-          font-weight: 700;
+        .msg-sidebar-head {
+          padding: 20px 16px 14px;
           border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          flex-shrink: 0;
         }
-        .messages-content {
+        .msg-sidebar-title {
+          margin: 0;
+          font-size: 22px;
+          font-weight: 800;
+          color: var(--clr-common-heading, #181818);
+        }
+
+        /* ── Centro ── */
+        .msg-body {
           display: flex;
           flex-direction: column;
-          min-height: 70vh;
+          overflow: hidden;
+          min-height: 0;
         }
-        .messages-empty {
+        .msg-empty {
           flex: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
+          gap: 14px;
           padding: 40px;
           text-align: center;
-          opacity: 0.7;
+          opacity: 0.5;
         }
-        .messages-empty :global(i) {
-          font-size: 48px;
-          margin-bottom: 16px;
+        .msg-empty :global(i) {
+          font-size: 56px;
           color: var(--clr-theme-1, #6c5ce7);
         }
-        .messages-empty h4 {
-          margin: 0 0 8px;
+        .msg-empty h4 {
+          margin: 0;
+          font-size: 18px;
         }
-        .messages-empty p {
+        .msg-empty p {
           margin: 0;
           font-size: 14px;
         }
-        .messages-state {
+
+        /* ── Botón volver (solo móvil) ── */
+        .msg-back-btn {
+          display: none;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 16px;
+          border: none;
+          background: transparent;
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--clr-theme-1, #6c5ce7);
+          cursor: pointer;
+          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          width: 100%;
+          text-align: left;
+        }
+
+        /* ── Estados ── */
+        .msg-state {
           padding: 20px;
           font-size: 14px;
           opacity: 0.7;
         }
-        .messages-state-error {
+        .msg-state-error {
           color: #ef4444;
           opacity: 1;
+        }
+
+        /* ── Responsive ── */
+
+        /* Tablet: quitar panel derecho */
+        @media (max-width: 1100px) {
+          .msg-shell.has-info {
+            grid-template-columns: 280px 1fr;
+          }
+          .msg-shell.has-info > :global(aside.info-panel) {
+            display: none;
+          }
+        }
+
+        /* Móvil: un panel a la vez */
+        @media (max-width: 680px) {
+          .msg-shell,
+          .msg-shell.has-info {
+            grid-template-columns: 1fr;
+            height: calc(100vh - 70px);
+          }
+          .msg-back-btn {
+            display: flex;
+          }
+          .mobile-hidden {
+            display: none !important;
+          }
         }
       `}</style>
     </main>
