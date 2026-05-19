@@ -48,6 +48,13 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
       icon: 'fa-reply',
       iconColor: '#0984e3',
     }),
+    comment: () => ({
+      text: `${name} comentó en tu publicación`,
+      snippet,
+      href: notif.pub_id ? `/publications/${notif.pub_id}` : '/activity',
+      icon: 'fa-comment-alt',
+      iconColor: '#0984e3',
+    }),
     comment_like: () => ({
       text: `A ${name} le gustó tu comentario`,
       snippet,

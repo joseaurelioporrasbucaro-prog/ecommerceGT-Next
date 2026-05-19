@@ -704,6 +704,7 @@ export interface MarkConversationReadPayload extends Record<string, unknown> {
 export type NotificationType =
   | 'mention'
   | 'reply'
+  | 'comment'
   | 'comment_like'
   | 'pub_favorite'
   | 'message'

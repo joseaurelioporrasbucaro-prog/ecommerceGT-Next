@@ -132,7 +132,8 @@ El backend está estable y se comparte. La regla:
 | **6.1** | Mensajería básica (inbox + conversación + polling + optimistic update) | ✅ Completada | 1 día |
 | **6.2** | UI estilo Messenger (3 cols, sin footer, ancho completo) + reacciones, reply y denuncia | ✅ Completada | 1–2 días |
 | **6.3.1** | Centro de notificaciones unificado: tabla, endpoints, inserción auto + bell badge en headers + `/activity` real | ✅ Completada | 1 día |
-| **6.3.2** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ⬜ Pendiente | 1 día |
+| **6.3.2** | Notifs faltantes (`comment` y `pub_favorite`) + UI `/activity` con tabs por categoría (estilo plantilla) + footer fix | ✅ Completada | 0.5 día |
+| **6.3.3** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ⬜ Pendiente | 1 día |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
@@ -1241,3 +1242,69 @@ CREATE INDEX IF NOT EXISTS idx_notifications_recipient_unread
 - Componente `MentionTextarea` con dropdown de sugerencias `@usuario` (depende del endpoint nuevo `GET /search/users?q=<prefix>`).
 - Renderizar `@<handle>` como `<Link href="/creator-profile/<cusId>">@handle</Link>` en `ForumComment`/`ForumReply` — necesita mapa `handle → cusId` desde el backend.
 - Notifs `pub_favorite` (al endpoint de toggle favorite) y `sale_closed` / `review_received` (cuando se implementen las fases 7+).
+
+---
+
+### ✅ Fase 6.3.2 (completada) — Notificaciones faltantes + UI con tabs + bug fixes
+
+**Contexto:** después de probar 6.3.1, el usuario detectó que las notificaciones de comentarios y likes no llegaban — solo las de mensajes. Investigación reveló que mi implementación inicial omitía dos casos críticos. Esta sub-fase los agrega y reescribe `/activity` con tabs por categoría siguiendo el patrón de la plantilla original.
+
+**Bug fix en backend (`Codigo Aurelio`):**
+
+1. **Faltaba notificar al dueño de la publicación cuando alguien comentaba.**
+   - `addComment` ahora distingue:
+     - `parent_id != null` → reply al dueño del comentario padre (ya estaba).
+     - `parent_id == null` → comentario raíz → **nueva** notif `comment` al dueño de la publicación.
+   - En ambos casos respeta la regla de "no doble notif" si el destinatario ya fue mencionado con @handle.
+
+2. **Faltaba notificar al dueño cuando alguien marcaba favorito.**
+   - `AddFavoritePubl` ahora inserta notif `pub_favorite` para el dueño cuando se ACTIVA un favorito (insert nuevo, o reactivación de uno desactivado). NO notifica al desactivar.
+
+3. **Nuevo tipo `comment`** agregado al enum `notif_type`. La columna sigue siendo `VARCHAR(40)` por lo que no requiere migración de schema.
+
+**Frontend (wireup del tipo nuevo):**
+
+- `src/types/api.ts` — `NotificationType` extendido con `'comment'`.
+- `src/components/notifications/notificationUtils.ts` — case `comment` agregado al renderer: texto "{name} comentó en tu publicación", ícono `fa-comment-alt`, color `#0984e3`.
+
+**UI: `/activity` con tabs por categoría (estilo plantilla original):**
+
+- `src/components/activity/ActivityMain.tsx` reescrito con `<nav class="activity-tabs">`:
+  - **Todas** — todas las notificaciones.
+  - **Comentarios** — `mention | reply | comment`.
+  - **Likes** — `comment_like | pub_favorite`.
+  - **Mensajes** — `message`.
+  - **Ventas** — `sale_closed | review_received` (placeholder para Fase 7).
+- Cada tab muestra **badge de unread** por categoría (rojo, 9+ cap).
+- Filtrado client-side sobre el listado completo — el backend devuelve todo, el filtro vive en `useMemo`.
+- Empty state distinto si la categoría está vacía vs si no hay notificaciones en absoluto.
+- **Fix del footer gap**: `.activity-area { min-height: calc(100vh - 220px); }` evita que el footer se pegue cerca del header cuando hay pocas notificaciones.
+
+**Cache de Next.js (instrucción de troubleshooting):**
+
+Si al reiniciar `npm run dev` aparece `Error: Cannot find module './XXX.js'` (típicamente en `.next/server/webpack-runtime.js`), es un cache stale del bundler. Solución:
+
+```bash
+rm -rf .next
+npm run dev
+```
+
+Esto es esperable cuando cambia mucho código entre runs. No es bug del proyecto.
+
+**Estado de la cobertura de notificaciones:**
+
+| Trigger | Tipo notif | Implementado |
+| --- | --- | --- |
+| `POST /addcomment` con `parent_id = null` | `comment` | ✅ |
+| `POST /addcomment` con `parent_id != null` | `reply` | ✅ |
+| `POST /addcomment` con `@handle` en contenido | `mention` | ✅ |
+| `POST /comments/:id/like` (al likear) | `comment_like` | ✅ |
+| `POST /addpubl` (toggle favorite activado) | `pub_favorite` | ✅ |
+| `POST /messages/send` | `message` | ✅ |
+| `POST /close-sale` | `sale_closed` | ⬜ Fase 7 |
+| Endpoint de reseñas (futuro) | `review_received` | ⬜ Fase 7 |
+
+**Pendiente para Fase 6.3.3 (no urgente):**
+- `MentionTextarea` con dropdown `@usuario` y endpoint `GET /search/users?q=<prefix>`.
+- Linkificación de `@handle` en `ForumComment` / `ForumReply` (mapa `handle → cusId`).
+- Notifs en cierre de venta y reseñas (esperan Fase 7).
