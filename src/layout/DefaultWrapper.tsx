@@ -76,7 +76,19 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           .app-layout.no-footer {
             overflow: hidden;
           }
-          @media (min-width: 1400px) {
+          /* Mismo bump de breakpoint que en la rama principal — ver comentario abajo. */
+          @media (min-width: 1400px) and (max-width: 1599px) {
+            .sidebar-category-filter-wrapper {
+              right: -300px !important;
+            }
+            .sidebar-category-filter-wrapper.open {
+              right: 0 !important;
+            }
+            .c-container-1 {
+              width: 100% !important;
+            }
+          }
+          @media (min-width: 1600px) {
             .app-layout.has-right-sidebar {
               padding-right: 275px;
             }
@@ -99,7 +111,36 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
       </div>
 
       <style jsx global>{`
-        @media (min-width: 1400px) {
+        /* El template original abre los sidebars fijos a partir de 1400px,
+           pero ahí el contenido queda con solo 817px (1400 - 583) — muy
+           apretado. Bumpeamos el umbral a 1600px: entre 1400 y 1599 los
+           sidebars quedan off-canvas (hamburguesa), arriba de 1600 se ven
+           siempre. Cubre los tres lugares donde el template lo controla. */
+        @media (min-width: 1400px) and (max-width: 1599px) {
+          .menu2-side-bar-wrapper {
+            left: -300px !important;
+          }
+          .menu2-side-bar-wrapper.open {
+            left: 0 !important;
+          }
+          .sidebar-category-filter-wrapper {
+            right: -300px !important;
+          }
+          .sidebar-category-filter-wrapper.open {
+            right: 0 !important;
+          }
+          .c-container-1 {
+            width: 100% !important;
+          }
+          /* El template oculta el toggle del hamburguesa con d-xxl-none
+             (xxl = 1400+), pero a 1400-1599 ya no hay sidebar fija, así
+             que necesitamos el toggle visible de nuevo. */
+          .menu-bar.d-xxl-none,
+          .product-filter-btn.d-xxl-none {
+            display: inline-block !important;
+          }
+        }
+        @media (min-width: 1600px) {
           .app-layout.has-left-sidebar {
             padding-left: 275px;
           }

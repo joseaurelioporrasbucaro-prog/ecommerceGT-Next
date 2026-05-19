@@ -1308,3 +1308,53 @@ Esto es esperable cuando cambia mucho código entre runs. No es bug del proyecto
 - `MentionTextarea` con dropdown `@usuario` y endpoint `GET /search/users?q=<prefix>`.
 - Linkificación de `@handle` en `ForumComment` / `ForumReply` (mapa `handle → cusId`).
 - Notifs en cierre de venta y reseñas (esperan Fase 7).
+
+---
+
+### Hotfix — Responsive breakpoint de los sidebars (1400 → 1600)
+
+**Problema reportado:** el layout se rompía a 1400px en `/`, `/my-publications`, `/favorites`, `/messages`, `/creator-profile/[id]` (todas las rutas con `HeaderTwo`). El contenido se veía apretado y elementos se montaban entre sí.
+
+**Causa raíz:** el template original define el umbral de sidebars fijos en `@media (min-width: 1400px)` en tres lugares:
+- `.menu2-side-bar-wrapper { left: 0 }` — sidebar izquierdo
+- `.sidebar-category-filter-wrapper { right: 0 }` — sidebar derecho
+- `.c-container-1 { width: calc(100% - 583px) }` — container del header
+
+A 1400px exacto, los dos sidebars ocupan 550px y los gutters suman ~33px, dejando solo **817px de ancho útil** para el contenido. En ese ancho el grid de cards, el hero banner y otros componentes quedan inservibles.
+
+**Fix:** override global en `DefaultWrapper` que sube el umbral a **1600px**.
+
+```css
+/* 1400–1599: sidebars off-canvas, hamburguesa visible */
+@media (min-width: 1400px) and (max-width: 1599px) {
+  .menu2-side-bar-wrapper { left: -300px !important; }
+  .sidebar-category-filter-wrapper { right: -300px !important; }
+  .c-container-1 { width: 100% !important; }
+  .menu-bar.d-xxl-none,
+  .product-filter-btn.d-xxl-none { display: inline-block !important; }
+}
+
+/* 1600+: ambos sidebars fijos como antes */
+@media (min-width: 1600px) {
+  .app-layout.has-left-sidebar { padding-left: 275px; }
+  .app-layout.has-right-sidebar { padding-right: 275px; }
+}
+```
+
+**Resultado:** entre 1400 y 1599px ahora se usa el layout off-canvas (con hamburguesas izq/der para abrir los sidebars). A partir de 1600px los sidebars vuelven a quedar fijos y visibles permanentemente. La rama de `/messages` (HeaderOne, sin sidebar izq) recibe el mismo tratamiento para el sidebar derecho.
+
+No se tocó `_header.scss` directamente — el override vive en `DefaultWrapper` para que un futuro upgrade del template no pierda el cambio.
+
+---
+
+### Polling frequency de las queries (referencia)
+
+| Hook | Intervalo | Cuándo |
+| --- | --- | --- |
+| `useNotificationsUnreadCount` | 60s | Mientras hay sesión (bell en headers) |
+| `useNotifications` | 60s | Solo si el dropdown está abierto o estás en `/activity` |
+| `useUnreadMessagesCount` | 60s | Disponible, no wireado al header todavía |
+| `useInbox` | 30s | Solo en `/messages` |
+| `useConversation` | 5s | Solo con una conversación abierta |
+
+Carga típica: 1 req/min para un usuario normal logueado (solo bell). ~16 req/min en `/messages` con chat abierto. Es polling pragmático sin WebSockets; si crece la base de usuarios habrá que migrar a SSE/WS (fase futura).
