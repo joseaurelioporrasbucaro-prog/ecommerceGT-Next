@@ -619,6 +619,17 @@ export interface InboxItem {
   unread_conversation: number;
 }
 
+/** Reacción agregada por emoji en un mensaje (Fase 6.2). */
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  /** true si el usuario actual reaccionó con ese emoji. */
+  mine: boolean;
+}
+
+/** Razones aceptadas para reportar un mensaje. */
+export type MessageReportReason = 'spam' | 'ofensivo' | 'estafa' | 'otro';
+
 /**
  * Un mensaje individual dentro de una conversación.
  * Backend: `GET /messages/conversation/:pub_id/:other_user_id`.
@@ -633,6 +644,14 @@ export interface ConversationMessage {
   created_at: string;
   sender_name: string;
   sender_image: string | null;
+  /** Fase 6.2: ID del mensaje al que se responde (null = no es reply). */
+  reply_to_message_id: number | null;
+  /** Snippet del mensaje padre (cuando reply_to_message_id != null). */
+  reply_to_content: string | null;
+  reply_to_sender_id: number | null;
+  reply_to_sender_name: string | null;
+  /** Reacciones agregadas por emoji. */
+  reactions: MessageReaction[];
 }
 
 /** Body de `POST /messages/send`. */
@@ -640,6 +659,25 @@ export interface SendMessagePayload extends Record<string, unknown> {
   receiver_id: number;
   pub_id: number;
   content: string;
+  /** Fase 6.2: opcional — id del mensaje al que se está respondiendo. */
+  reply_to_message_id?: number | null;
+}
+
+/** Body de `POST /messages/:id/react`. */
+export interface ReactToMessagePayload extends Record<string, unknown> {
+  emoji: string;
+}
+
+/** Respuesta de `POST /messages/:id/react`. */
+export interface ReactToMessageResponse {
+  action: 'set' | 'removed';
+  emoji?: string;
+}
+
+/** Body de `POST /messages/:id/report`. */
+export interface ReportMessagePayload extends Record<string, unknown> {
+  reason: MessageReportReason;
+  detail?: string | null;
 }
 
 /** Respuesta de `POST /messages/send`. */

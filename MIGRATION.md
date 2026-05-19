@@ -129,7 +129,9 @@ El backend está estable y se comparte. La regla:
 | **4.3** | Likes funcionales en comentarios (minor de Fase 4) | ✅ Completada | 0.5 día |
 | **4.4** | Migración del backend al nuevo remote `techmindsgt` (deploy en Render/Vercel) | ✅ Completada | 0.5 día |
 | **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ✅ Completada | 3–4 días |
-| **6** | Mensajería (inbox + conversación + polling) + Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 3–4 días |
+| **6.1** | Mensajería básica (inbox + conversación + polling + optimistic update) | ✅ Completada | 1 día |
+| **6.2** | UI estilo Messenger (3 cols, sin footer, ancho completo) + reacciones, reply y denuncia | ✅ Completada | 1–2 días |
+| **6.3** | Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 2 días |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
@@ -1048,3 +1050,116 @@ Aplicado en commit posterior a Fase 4. Ahora `/publications`, `/favorites` y `/m
 - `PublicationListItem.pubstaId` y `FavoriteItem.pubstaId` (frontend) — tipados correctamente.
 - Helper `getStatusBadge(pubstaId)` extraído a `publicationUtils.ts` con constantes `PUBSTA_DRAFT/PUBLISHED/SOLD/VOID`.
 - `PublicationCard` muestra el badge encima de la imagen. Tag rojo "Vendida" para id=3, gris "Borrador" para id=1, gris oscuro "Anulada" para id=4. El badge gana sobre "Nuevo" (no se ven dos a la vez en la misma esquina).
+
+---
+
+### ✅ Fase 6.1 (completada) — Mensajería básica (inbox + conversación + polling)
+
+Aplicado en commit `082c672` y mergeado a `main` (`ff5d384`). El backend ya tenía los endpoints (`POST /messages/send`, `GET /messages/conversation/:pub/:other`, `GET /messages/unread`, `POST /messages/mark-read`, `GET /messages/inbox`) — solo se cableó frontend.
+
+**Hooks (`src/hooks/api/useMessages.ts`):**
+- `useInbox()` — polling 30s.
+- `useConversation(pubId, otherUserId)` — polling 5s mientras está abierta (efecto "tiempo real" sin websockets).
+- `useUnreadMessagesCount()` — polling 60s para badge del header.
+- `useSendMessage()` — mutation con optimistic update (id negativo temporal) + rollback en error.
+- `useMarkConversationAsRead()` — invalida inbox y unread al success.
+
+**UI:**
+- `/messages` (auth-protected) con layout sidebar + conversación.
+- Botón "Contactar" en `PublicationContent` → `/messages?pub=X&with=sellerId`.
+
+---
+
+### Fase 6.2 (en progreso) — UI estilo Facebook Messenger + reacciones, reply y reportes
+
+**Contexto:** la Fase 6.1 dejó la mensajería funcional pero con UI básica. Esta sub-fase trae la experiencia al nivel de un cliente de chat real: layout de 3 columnas, ancho completo, hover actions sobre los mensajes (reaccionar, responder, denunciar) y un panel derecho con accesos directos.
+
+**Cambios de layout aplicados:**
+
+| Archivo | Cambio |
+| --- | --- |
+| `src/layout/DefaultWrapper.tsx` | Nueva lista `TOP_NAV_PAGES = ['/messages']`. En esas rutas: usa `HeaderOne` (navbar horizontal arriba) en vez de `HeaderTwo` (sidebar izq fijo). Sin footer y `overflow: hidden` para que el chat ocupe el viewport sin scroll global. Sidebar derecho aislado en componente interno `<RightSidebarSlot />`. |
+| `src/layout/header/HeaderOne.tsx` | Removido el dropdown de perfil (Mi perfil / Cerrar sesión — esas viven en el sidebar derecho ahora). Removido el botón Login (la ruta está auth-protected). Agregado el toggle de tema (luna/sol) inline al lado del selector ES \| EN. La clase `home3-mode-switch` es **obligatoria**, sin ella el wrapper queda con `position: fixed` y desaparece del header. |
+| `src/components/messages/MessagesMain.tsx` | Reescrito con grid de 3 columnas (`300px \| 1fr \| 260px`). Estado `mobilePanel: 'list' \| 'chat'` para alternar paneles en móvil con botón "← Chats". Sin `Breadcrumbs` (Messenger no tiene), título "Chats" inline en el sidebar. Altura `calc(100vh - 90px)` para que llene la pantalla. |
+| `src/components/messages/InboxList.tsx` | Búsqueda con debounce, tabs "Todos / No leídos" con badge contador. Avatars 44px con dot indicator de unread. Tiempo formateado relativo (HH:MM hoy, día abreviado esta semana, DD MMM más viejo). |
+| `src/components/messages/ConversationView.tsx` | Header compacto con solo avatar + nombre (el título de la publicación migró al panel derecho). Burbujas alineadas a la derecha cuando son propias. Texto blanco forzado en burbujas `is-mine` con `color: inherit`. Hora oculta por default, visible on hover. Acciones on hover: reaccionar (picker de 6 emojis Unicode), responder, denunciar. **Bug fix:** `Number(message.sender_id) === Number(myUserId)` — pg devuelve BIGINT como string, la comparación estricta fallaba y todas las burbujas iban a la izquierda. |
+| `src/components/messages/ConversationInfoPanel.tsx` | **Nuevo.** Panel derecho con avatar grande + nombre del contacto, botones "Perfil" y "Publicación", acordeón con accesos directos y otro con detalle de la publicación. |
+| `src/layout/sidebar/AccountRightSidebar.tsx` | Removido `comingSoon: true` del item "Mensajes" — ahora navega a `/messages`. |
+
+**Backend aplicado (`Codigo Aurelio` en `ecommerceGTBackEnd`):**
+
+1. `database.sql`:
+   - Columna `reply_to_message_id INTEGER NULL` agregada a `CREATE TABLE messages` con `ON DELETE SET NULL` para preservar hilos al borrar un mensaje padre.
+   - `CREATE TABLE IF NOT EXISTS ecom.message_reactions` — `(message_id, cus_id)` UNIQUE para garantizar una reacción por usuario por mensaje. Cambiar de emoji = UPSERT; mismo emoji = toggle off.
+   - `CREATE TABLE IF NOT EXISTS ecom.message_reports` — `reason VARCHAR(40)` (`spam` / `ofensivo` / `estafa` / `otro`) + `detail TEXT NULL`. UNIQUE `(message_id, reporter_cus_id)` para evitar spam.
+2. `config/connPostgresDB.js`:
+   - `sendMessage` acepta `reply_to_message_id?` opcional en el body.
+   - `getConversation` ahora trae también `reply_to_content`, `reply_to_sender_id`, `reply_to_sender_name` (LEFT JOIN sobre messages) y `reactions` agregadas como JSON (`[{ emoji, count, mine }]`) usando una subquery.
+   - Nuevas funciones `reactToMessage` (toggle/upsert con verificación de pertenencia a la conversación) y `reportMessage` (solo reportes sobre mensajes RECIBIDOS, no propios).
+3. `server.js`:
+   - `POST /messages/:message_id/react` con `authMiddleware`.
+   - `POST /messages/:message_id/report` con `authMiddleware`.
+
+**SQL de migración para entornos ya poblados (dev/staging):**
+
+```sql
+-- 1. Columna de reply en messages (la tabla puede vivir en schema `ecom` o `public`
+--    según el momento de creación — verificar con \dt antes).
+ALTER TABLE messages
+  ADD COLUMN IF NOT EXISTS reply_to_message_id INTEGER NULL;
+ALTER TABLE messages
+  ADD CONSTRAINT fk_msg_reply
+  FOREIGN KEY (reply_to_message_id) REFERENCES messages(message_id) ON DELETE SET NULL;
+
+-- 2. Reacciones
+CREATE TABLE IF NOT EXISTS ecom.message_reactions (
+    reaction_id SERIAL PRIMARY KEY,
+    message_id  INTEGER NOT NULL,
+    cus_id      BIGINT  NOT NULL,
+    emoji       VARCHAR(16) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_message_reactions UNIQUE (message_id, cus_id),
+    CONSTRAINT fk_message_reactions_message
+        FOREIGN KEY (message_id) REFERENCES messages(message_id) ON DELETE CASCADE,
+    CONSTRAINT fk_message_reactions_customer
+        FOREIGN KEY (cus_id) REFERENCES ecom.customer(cus_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_message_reactions_message_id ON ecom.message_reactions(message_id);
+
+-- 3. Reportes / denuncias
+CREATE TABLE IF NOT EXISTS ecom.message_reports (
+    report_id        SERIAL PRIMARY KEY,
+    message_id       INTEGER NOT NULL,
+    reporter_cus_id  BIGINT  NOT NULL,
+    reason           VARCHAR(40) NOT NULL,
+    detail           TEXT NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_message_reports UNIQUE (message_id, reporter_cus_id),
+    CONSTRAINT fk_message_reports_message
+        FOREIGN KEY (message_id) REFERENCES messages(message_id) ON DELETE CASCADE,
+    CONSTRAINT fk_message_reports_reporter
+        FOREIGN KEY (reporter_cus_id) REFERENCES ecom.customer(cus_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_message_reports_message_id ON ecom.message_reports(message_id);
+```
+
+**Frontend wireup:**
+
+- `src/types/api.ts` — nuevos tipos `MessageReaction`, `MessageReportReason`, `ReactToMessagePayload`, `ReactToMessageResponse`, `ReportMessagePayload`. `ConversationMessage` extendido con `reply_to_*` y `reactions`. `SendMessagePayload` acepta `reply_to_message_id?`.
+- `src/hooks/api/useMessages.ts` — nuevos hooks `useReactToMessage` (con optimistic update sobre el array `reactions` del mensaje, manejo de toggle/replace) y `useReportMessage`. `useSendMessage` propaga `reply_to_message_id` en el optimistic.
+- `src/components/messages/ConversationView.tsx` reescrito:
+  - State para `replyTo` (mensaje al que se responde) y `reportTarget` (modal).
+  - Preview de "Respondiendo a..." sobre el composer con botón X para cancelar.
+  - `MessageBubble`:
+    - Muestra snippet del mensaje padre arriba de la burbuja cuando es reply.
+    - Acciones on hover: reaccionar, responder, **denunciar** (este último solo en mensajes recibidos — backend rechaza reportes de propios).
+    - Picker permanece abierto con flag `showReactions` + click-outside detector (arregla el bug donde se cerraba al salir del hover).
+    - Resumen de reacciones como pills clickeables debajo del bubble — la propia queda resaltada en theme-1.
+  - `ReportModal` — modal con 4 razones predefinidas (spam, ofensivo, estafa, otro) + campo opcional de detalle (max 500 chars).
+
+**Bonus aplicado en esta misma fase:**
+
+- `src/layout/sidebar/AccountRightSidebar.tsx` — removido `comingSoon: true` del item "Mensajes" (ya navega a `/messages`). Ahora también usa `generateInitialsAvatar` cuando el usuario logueado no tiene foto.
+- `src/layout/header/HeaderOne.tsx` — agregada clase modificadora `home3-mode-switch` al toggle de tema para que aparezca inline en lugar de `position: fixed` al borde derecho.
+- **`src/utils/avatarUtils.ts`** (nuevo) — utilidad `generateInitialsAvatar(name, size)` que genera un SVG data URL con las iniciales sobre un fondo de color tomado de una paleta de 10 (hash determinista del nombre — el mismo usuario siempre obtiene el mismo color). Aplicado en `InboxList`, `ConversationView`, `ConversationInfoPanel` y `AccountRightSidebar` como fallback cuando `cus_imagen` es null. Reemplaza el placeholder roto `/assets/img/profile/default-avatar.png` que no existía en `public/`.
+

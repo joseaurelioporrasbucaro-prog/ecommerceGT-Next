@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
+import { generateInitialsAvatar } from '@/utils/avatarUtils';
 
 interface AccountRightSidebarProps {
   menuOpen2: boolean;
@@ -46,7 +47,7 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
     },
     { href: '/my-publications', label: 'Mis publicaciones', icon: 'fal fa-th-large' },
     { href: '/favorites', label: 'Favoritos', icon: 'fal fa-heart' },
-    { href: '/messages', label: 'Mensajes', icon: 'fal fa-comments', comingSoon: true },
+    { href: '/messages', label: 'Mensajes', icon: 'fal fa-comments' },
     // "Configuraciones" → edición de info personal (privado)
     { href: '/creator-profile-info-personal', label: 'Configuraciones', icon: 'fal fa-cog' },
     { onClick: handleLogout, label: 'Cerrar sesión', icon: 'fal fa-sign-out' },
@@ -79,22 +80,22 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
             </button>
           </div>
 
-          {/* Tarjeta de usuario con foto real (si existe) */}
+          {/* Tarjeta de usuario con foto real (si existe), o avatar de iniciales como fallback. */}
           {user && (
             <div className="account-user-card mb-25">
               <div className="account-user-avatar">
-                {userImageSrc ? (
-                  <Image
-                    src={userImageSrc}
-                    alt={`${user.firstName} ${user.lastName}`}
-                    width={64}
-                    height={64}
-                    onError={() => setAvatarErrored(true)}
-                    style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <i className="fal fa-user"></i>
-                )}
+                <Image
+                  src={
+                    userImageSrc ??
+                    generateInitialsAvatar(`${user.firstName} ${user.lastName}`, 128)
+                  }
+                  alt={`${user.firstName} ${user.lastName}`}
+                  width={64}
+                  height={64}
+                  onError={() => setAvatarErrored(true)}
+                  unoptimized
+                  style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
+                />
               </div>
               <div className="account-user-name">
                 {user.firstName} {user.lastName}
