@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import SidebarMenuSection from "../sidebar/SidebarMenuSection";
 import AccountRightSidebar from "../sidebar/AccountRightSidebar";
 import PublicCategoriesSidebar from "../sidebar/PublicCategoriesSidebar";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { useAuth } from "@/utils/AuthContext";
 
 const HeaderTwo = () => {
@@ -116,6 +117,13 @@ const HeaderTwo = () => {
                     >
                       <i className={user ? 'fal fa-user-circle' : 'flaticon-filter'}></i>
                     </div>
+
+                    {/* Bell de notificaciones (Fase 6.3) — solo para usuarios logueados */}
+                    {user && (
+                      <div className="ml-20">
+                        <NotificationBell />
+                      </div>
+                    )}
 
                     <div className="mode-switch-wrapper my_switcher setting-option home3-mode-switch ml-25">
                       <input type="checkbox" className="checkbox" id="chk" />

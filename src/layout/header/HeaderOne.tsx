@@ -8,6 +8,7 @@ import useGlobalContext from '@/hooks/use-context';
 import Image from 'next/image';
 import HeaderOneMenu from './component/HeaderOneMenu';
 import MobileMenu from '@/utils/MobileMenu';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 
@@ -64,6 +65,11 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                              >
                                 EN
                              </span>
+                           </div>
+
+                           {/* --- BELL DE NOTIFICACIONES (Fase 6.3) --- */}
+                           <div className="ml-20 d-none d-md-inline-block">
+                              <NotificationBell />
                            </div>
 
                            {/* --- BOTÓN DE TEMA (dark / light) — inline gracias a
