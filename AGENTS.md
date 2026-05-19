@@ -378,6 +378,39 @@ Cuando crees nuevas tablas relacionales, **verificar obligatoriamente** el tipo 
 
 Cuando entregás código actualizado, **devolvé únicamente el bloque `CREATE TABLE` completo y modificado**, listo para reemplazar el bloque antiguo. No mostrar diffs ni fragmentos.
 
+#### 12.6. Schema `ecom.` explícito en TODAS las queries y tablas nuevas
+
+**Regla:** todas las queries y todos los `CREATE TABLE` nuevos deben referenciar las tablas con el prefijo `ecom.` explícito.
+
+✅ **SÍ:**
+```sql
+SELECT * FROM ecom.customer WHERE cus_id = $1;
+INSERT INTO ecom.publications_comments (...) VALUES (...);
+CREATE TABLE IF NOT EXISTS ecom.new_table (...);
+CONSTRAINT fk_x FOREIGN KEY (cus_id) REFERENCES ecom.customer(cus_id);
+```
+
+❌ **NO:**
+```sql
+SELECT * FROM customer ...;
+CREATE TABLE IF NOT EXISTS new_table (...);
+REFERENCES customer(cus_id);  -- sin schema
+```
+
+**Por qué:**
+1. El `search_path` de PostgreSQL puede variar entre entornos (dev / staging / prod / contenedor / RDS). Un CREATE sin prefijo cae donde se le antoje al search_path actual, y termina con tablas en `public` que el resto del backend no encuentra (porque las queries SÍ usan `ecom.`).
+2. Hay tablas legacy en `database.sql` que se crearon sin prefijo (`publications`, `customer`, `messages`, `publications_comments`, etc.). Probablemente viven en `ecom` por search_path, pero **no las toques** — el riesgo de migración es alto. Lo que SÍ se debe hacer es que las **nuevas** tablas, queries, y FKs usen `ecom.` siempre.
+3. Las FKs sin prefijo son la causa más común de bugs silenciosos: una nueva tabla con `REFERENCES customer(cus_id)` puede crearse OK en un entorno y fallar en otro.
+
+**Aplica también a:**
+- INSERT / UPDATE / DELETE en queries del backend.
+- Subqueries.
+- JOIN clauses.
+- FK constraints.
+- Triggers / funciones (si se llegaran a usar).
+
+**Excepción razonable:** referencias dentro de un CTE o subquery a una CTE local — esa no es una tabla del schema.
+
 ### Workflow obligatorio cuando se toca la BD
 
 1. **Leer `database.sql` ANTES de proponer cualquier cambio.** No asumir nombres ni tipos de columnas.
