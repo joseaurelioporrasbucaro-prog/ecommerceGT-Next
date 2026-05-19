@@ -131,7 +131,8 @@ El backend está estable y se comparte. La regla:
 | **5** | Wizard de crear/editar publicación + uploads + procesamiento de imágenes (sharp) | ✅ Completada | 3–4 días |
 | **6.1** | Mensajería básica (inbox + conversación + polling + optimistic update) | ✅ Completada | 1 día |
 | **6.2** | UI estilo Messenger (3 cols, sin footer, ancho completo) + reacciones, reply y denuncia | ✅ Completada | 1–2 días |
-| **6.3** | Notificaciones unificadas en `/activity` (menciones, replies, likes, mensajes) + `MentionTextarea` con dropdown | ⬜ Pendiente | 2 días |
+| **6.3.1** | Centro de notificaciones unificado: tabla, endpoints, inserción auto + bell badge en headers + `/activity` real | ✅ Completada | 1 día |
+| **6.3.2** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ⬜ Pendiente | 1 día |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
@@ -1163,3 +1164,80 @@ CREATE INDEX IF NOT EXISTS idx_message_reports_message_id ON ecom.message_report
 - `src/layout/header/HeaderOne.tsx` — agregada clase modificadora `home3-mode-switch` al toggle de tema para que aparezca inline en lugar de `position: fixed` al borde derecho.
 - **`src/utils/avatarUtils.ts`** (nuevo) — utilidad `generateInitialsAvatar(name, size)` que genera un SVG data URL con las iniciales sobre un fondo de color tomado de una paleta de 10 (hash determinista del nombre — el mismo usuario siempre obtiene el mismo color). Aplicado en `InboxList`, `ConversationView`, `ConversationInfoPanel` y `AccountRightSidebar` como fallback cuando `cus_imagen` es null. Reemplaza el placeholder roto `/assets/img/profile/default-avatar.png` que no existía en `public/`.
 
+
+---
+
+### ✅ Fase 6.3.1 (completada) — Centro de notificaciones unificado
+
+**Contexto:** la pantalla `/activity` mostraba datos estáticos del scaffold. Esta sub-fase la conecta a un centro de notificaciones REAL, con tabla genérica `notifications` discriminada por `notif_type`, e inserción automática desde los endpoints existentes (mensajes, comentarios, likes). El badge bell vive en `HeaderOne` y `HeaderTwo`.
+
+**Backend aplicado (`Codigo Aurelio` en `ecommerceGTBackEnd`):**
+
+1. `database.sql` — nueva tabla `ecom.notifications` con JSONB payload:
+   - `notif_type VARCHAR(40)` discriminador (`mention` / `reply` / `comment_like` / `pub_favorite` / `message` / `sale_closed` / `review_received`).
+   - FKs `recipient_cus_id`, `actor_cus_id` (SET NULL al borrar actor), `pub_id`, `comment_id`, `message_id` (todas CASCADE excepto actor).
+   - Índice `idx_notifications_recipient_unread (recipient_cus_id, is_read, created_at DESC)` para query óptima del feed.
+
+2. `config/connPostgresDB.js`:
+   - **Helper interno `insertNotification`** — UPSERT silencioso (loguea errores sin propagar para no romper el flujo principal); no auto-notifica (actor === recipient → skip).
+   - **Helper interno `resolveMentions`** — parsea regex `/@([a-z0-9_]{3,30})/gi`, resuelve handles a `cus_id` via SQL, filtra al autor.
+   - **`addComment`** extendido con inserción de notif:
+     - `mention` por cada `@handle` distinto al autor.
+     - `reply` al dueño del comentario padre — pero NO si ya fue mencionado (evita doble notif).
+   - **`toggleCommentLike`** extendido — notif `comment_like` solo al dar like (no al quitarlo).
+   - **`sendMessage`** extendido — notif `message` al receptor.
+   - **4 handlers nuevos**: `getNotifications` (paginado, cursor-based con `before=<iso>`), `getNotificationsUnreadCount`, `markNotificationAsRead`, `markAllNotificationsAsRead`.
+
+3. `server.js` — 4 rutas nuevas con `authMiddleware`:
+   - `GET /notifications` — listado paginado (default 20).
+   - `GET /notifications/unread-count` — `{ total }`.
+   - `PUT /notifications/:notif_id/read` — marca una como leída.
+   - `PUT /notifications/read-all` — marca todas las del usuario.
+
+**SQL de migración para entornos ya poblados (dev/staging):**
+
+```sql
+CREATE TABLE IF NOT EXISTS ecom.notifications (
+    notif_id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recipient_cus_id BIGINT NOT NULL,
+    actor_cus_id     BIGINT NULL,
+    notif_type       VARCHAR(40) NOT NULL,
+    pub_id           BIGINT  NULL,
+    comment_id       INTEGER NULL,
+    message_id       INTEGER NULL,
+    payload          JSONB DEFAULT '{}',
+    is_read          BOOLEAN DEFAULT FALSE,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notifications_recipient
+        FOREIGN KEY (recipient_cus_id) REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_actor
+        FOREIGN KEY (actor_cus_id) REFERENCES ecom.customer(cus_id) ON DELETE SET NULL,
+    CONSTRAINT fk_notifications_publication
+        FOREIGN KEY (pub_id) REFERENCES publications(pub_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_comment
+        FOREIGN KEY (comment_id) REFERENCES ecom.publications_comments(comment_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_message
+        FOREIGN KEY (message_id) REFERENCES messages(message_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_unread
+    ON ecom.notifications(recipient_cus_id, is_read, created_at DESC);
+```
+
+**Frontend wireup:**
+
+- `src/types/api.ts` — tipos `NotificationType`, `AppNotification`, `NotificationsUnreadResponse`.
+- `src/hooks/api/useNotifications.ts` (nuevo) — 4 hooks:
+  - `useNotifications(enabled)` — listado, polling 60s.
+  - `useNotificationsUnreadCount(enabled)` — contador, polling 60s.
+  - `useMarkNotificationAsRead()` — mutation con optimistic update (marca local + decrementa contador).
+  - `useMarkAllNotificationsAsRead()` — mutation que limpia todo el cache local en `onSuccess`.
+- `src/components/notifications/notificationUtils.ts` (nuevo) — `getNotificationContent(notif)` devuelve `{ text, snippet, href, icon, iconColor }` por tipo. Reusado entre el dropdown y `/activity`. Incluye `formatRelativeTime` ("hace 5 min", "hace 2 d", "12 nov").
+- `src/components/notifications/NotificationItem.tsx` (nuevo) — renderiza una notif: avatar del actor (con fallback `generateInitialsAvatar`), badge circular con ícono de tipo + color, texto, snippet en cursiva, hora relativa, dot morado si está unread. Click → callback + navegación via `<Link>`.
+- `src/components/notifications/NotificationBell.tsx` (nuevo) — bell con badge de unread count, dropdown 380px con lista compacta + footer "Ver todas" → `/activity`. Cierra al click-outside.
+- `src/components/activity/ActivityMain.tsx` reescrito — usa `useNotifications()` real, header con "Marcar todas como leídas", estados de loading/error/empty. Eliminados los imports de `activityData` y `Image` (ahora vive todo en `NotificationItem`).
+- `src/layout/header/HeaderOne.tsx` + `HeaderTwo.tsx` — `<NotificationBell />` insertado antes del toggle de tema. En HeaderTwo solo aparece cuando hay sesión.
+
+**Pendiente (6.3.2):**
+- Componente `MentionTextarea` con dropdown de sugerencias `@usuario` (depende del endpoint nuevo `GET /search/users?q=<prefix>`).
+- Renderizar `@<handle>` como `<Link href="/creator-profile/<cusId>">@handle</Link>` en `ForumComment`/`ForumReply` — necesita mapa `handle → cusId` desde el backend.
+- Notifs `pub_favorite` (al endpoint de toggle favorite) y `sale_closed` / `review_received` (cuando se implementen las fases 7+).

@@ -696,3 +696,50 @@ export interface MarkConversationReadPayload extends Record<string, unknown> {
   sender_id: number;
   pub_id: number;
 }
+
+// ============================================================================
+// Centro de notificaciones (Fase 6.3)
+// ============================================================================
+
+export type NotificationType =
+  | 'mention'
+  | 'reply'
+  | 'comment_like'
+  | 'pub_favorite'
+  | 'message'
+  | 'sale_closed'
+  | 'review_received';
+
+/**
+ * Notificación individual del usuario logueado.
+ * Backend: `GET /notifications`.
+ *
+ * Los campos `actor_*` vienen de un JOIN con `customer` y pueden ser null
+ * si el actor borró su cuenta (FK ON DELETE SET NULL).
+ *
+ * `payload` es un JSONB libre con datos específicos por tipo:
+ *  - `mention` / `reply` / `comment_like`: `{ snippet: string }`
+ *  - `message`: `{ snippet: string }`
+ *  - `sale_closed`: `{ pubTitle, surveyToken? }`
+ */
+export interface AppNotification {
+  notif_id: number;
+  recipient_cus_id: number;
+  actor_cus_id: number | null;
+  notif_type: NotificationType;
+  pub_id: number | null;
+  comment_id: number | null;
+  message_id: number | null;
+  payload: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+  actor_first_name: string | null;
+  actor_last_name: string | null;
+  actor_handle: string | null;
+  actor_image: string | null;
+}
+
+/** Respuesta de `GET /notifications/unread-count`. */
+export interface NotificationsUnreadResponse {
+  total: number;
+}
