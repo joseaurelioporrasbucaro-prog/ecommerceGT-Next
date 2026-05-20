@@ -13,6 +13,13 @@ export interface SellerInfo {
   handle: string | null;
   imageUrl: string | null;
   totalPublications: number;
+  // Fase 7.2
+  address: string | null;
+  joinDate: string | null;
+  likes: number;
+  followers: number;
+  following: number;
+  isFollowing: boolean;
 }
 
 export const PUBLICATIONS_QUERY_KEY = ['publications'] as const;
@@ -33,14 +40,23 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
     return null;
   }
 
-  const totalPublications = Number(row.totalpublis);
+  const toInt = (v: string | number | null | undefined): number => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
 
   return {
     firstName: row.firstname,
     lastName: row.lastname,
     handle: row.handle,
     imageUrl: row.imagenu,
-    totalPublications: Number.isFinite(totalPublications) ? totalPublications : 0,
+    totalPublications: toInt(row.totalpublis),
+    address: row.address ?? null,
+    joinDate: row.joindate ?? null,
+    likes: toInt(row.likes),
+    followers: toInt(row.followers),
+    following: toInt(row.following),
+    isFollowing: Boolean(row.isfollowing),
   };
 }
 

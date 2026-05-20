@@ -534,6 +534,13 @@ export interface SellerInfoRow {
   handle: string | null;
   imagenu: string | null;
   totalpublis: string | number;
+  // Fase 7.2 — stats de perfil estilo plantilla
+  address: string | null;
+  joindate: string | null;
+  likes: string | number;
+  followers: string | number;
+  following: string | number;
+  isfollowing: boolean;
 }
 export type SellerInfoResponse = SellerInfoRow[];
 

@@ -3,14 +3,31 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import ProfileBreadCamb from './ProfileBreadCamb';
 import PublicationCard from '@/components/publications/PublicationCard';
 import { useSellerInfo } from '@/hooks/api/usePublications';
 import { useSellerReviews } from '@/hooks/api/useSellerReviews';
 import { useSellerPublications } from '@/hooks/api/useSellerPublications';
+import { useToggleFollow } from '@/hooks/api/useFollow';
+import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import coverImg from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
+
+/** Formatea grandes cantidades estilo plantilla (1.2k, 3.4M). */
+const fmtCount = (n: number): string => {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+  return String(n);
+};
+
+const fmtJoinDate = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('es-GT', { month: 'long', year: 'numeric' });
+};
 
 // ─── Estrellas (display) ──────────────────────────────────────────────────────
 const Stars = ({ value, size = 16 }: { value: number; size?: number }) => (
@@ -34,9 +51,11 @@ interface CreatorProfileMainProps {
 const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
   const [activeTab, setActiveTab] = useState<TabKey>('publicaciones');
 
+  const { user } = useAuth();
   const sellerQuery = useSellerInfo(id);
   const reviewsQuery = useSellerReviews(id);
   const pubsQuery = useSellerPublications(id);
+  const followMutation = useToggleFollow(Number(id));
 
   const seller = sellerQuery.data;
   const reviews = reviewsQuery.data;
@@ -46,6 +65,33 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
   const avatarUrl = seller?.imageUrl ? getBackendUrl(seller.imageUrl) : null;
   const average = reviews?.average ?? 0;
   const totalReviews = reviews?.totalReviews ?? 0;
+  const joinDate = fmtJoinDate(seller?.joinDate ?? null);
+  // No mostrar el botón Seguir en el perfil propio.
+  const isOwnProfile = user != null && String(user.id) === String(id);
+
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: displayName, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Enlace del perfil copiado al portapapeles.');
+      }
+    } catch {
+      /* el usuario canceló el share nativo — sin acción */
+    }
+  };
+
+  const handleToggleFollow = () => {
+    followMutation.mutate(undefined, {
+      onError: (err) => {
+        if (err.message && !err.message.includes('iniciar sesión')) {
+          toast.error('No se pudo actualizar el seguimiento.');
+        }
+      },
+    });
+  };
 
   return (
     <>
@@ -101,6 +147,24 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     </div>
                   )}
 
+                  {/* Ubicación + antigüedad (estructura de lista del template) */}
+                  {(seller.address || joinDate) && (
+                    <ul className="profile-detail-list">
+                      {seller.address && (
+                        <li>
+                          <i className="fas fa-map-marker-alt" />
+                          {seller.address}
+                        </li>
+                      )}
+                      {joinDate && (
+                        <li>
+                          <i className="flaticon-calendar" />
+                          Se unió en {joinDate}
+                        </li>
+                      )}
+                    </ul>
+                  )}
+
                   <div className="message-creator-btn">
                     <Link href="/messages" className="fill-btn icon-left">
                       <i className="fas fa-paper-plane" />Enviar mensaje
@@ -118,13 +182,42 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                       <div className="artist-created">{seller.totalPublications}</div>
                     </div>
                     <div className="artist-meta-item artist-meta-item-border">
-                      <div className="artist-meta-type">Reseñas</div>
-                      <div className="artist-likes">{totalReviews}</div>
+                      <div className="artist-meta-type">Likes</div>
+                      <div className="artist-likes">{fmtCount(seller.likes)}</div>
+                    </div>
+                    <div className="artist-meta-item artist-meta-item-border">
+                      <div className="artist-meta-type">Seguidores</div>
+                      <div className="artist-follwers">{fmtCount(seller.followers)}</div>
                     </div>
                     <div className="artist-meta-item">
-                      <div className="artist-meta-type">Calificación</div>
-                      <div className="artist-follwers">{totalReviews > 0 ? `${average.toFixed(1)} / 5` : '—'}</div>
+                      <div className="artist-meta-type">Siguiendo</div>
+                      <div className="artist-followed">{fmtCount(seller.following)}</div>
                     </div>
+                  </div>
+
+                  {/* Acciones: seguir + compartir (estructura del template) */}
+                  <div className="creator-details-action">
+                    {!isOwnProfile && (
+                      <div className="artist-follow-btn">
+                        <button
+                          type="button"
+                          className={`follow-artist ${seller.isFollowing ? 'is-following' : ''}`}
+                          onClick={handleToggleFollow}
+                          disabled={followMutation.isPending}
+                        >
+                          {seller.isFollowing ? 'Siguiendo' : 'Seguir'}
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="creator-share-btn"
+                      onClick={handleShare}
+                      title="Compartir perfil"
+                      aria-label="Compartir perfil"
+                    >
+                      <i className="flaticon-share" />
+                    </button>
                   </div>
                 </div>
 
@@ -268,6 +361,60 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         .profile-rating-count {
           opacity: 0.55;
           font-size: 13px;
+        }
+        .profile-detail-list {
+          list-style: none;
+          padding: 0;
+          margin: 4px 0 20px;
+          text-align: left;
+        }
+        .profile-detail-list li {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          font-size: 14px;
+          opacity: 0.8;
+          margin-bottom: 8px;
+        }
+        .profile-detail-list :global(i) {
+          color: var(--tp-theme-1, #6c5ce7);
+          width: 16px;
+          text-align: center;
+          flex-shrink: 0;
+        }
+        /* Acciones (seguir + compartir) — alinea con la barra de stats del template */
+        .creator-info-bar :global(.creator-details-action) {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .creator-info-bar :global(.follow-artist.is-following) {
+          background-image: none;
+          background-color: rgba(108, 92, 231, 0.12);
+          color: var(--tp-theme-1, #6c5ce7);
+          padding-left: 27px;
+        }
+        .creator-info-bar :global(.follow-artist:disabled) {
+          opacity: 0.6;
+          cursor: wait;
+        }
+        .creator-info-bar :global(.creator-share-btn) {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: 1px solid rgba(128, 128, 128, 0.3);
+          background: transparent;
+          color: inherit;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 16px;
+          transition: all 0.2s;
+        }
+        .creator-info-bar :global(.creator-share-btn:hover) {
+          border-color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .profile-empty {
           padding: 50px 20px;
