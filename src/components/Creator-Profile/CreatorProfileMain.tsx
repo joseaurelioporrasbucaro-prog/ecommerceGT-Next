@@ -148,23 +148,28 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     </div>
                   )}
 
-                  {/* Ubicación + antigüedad (estructura de lista del template) */}
-                  {(seller.address || joinDate) && (
-                    <ul className="profile-detail-list">
-                      {seller.address && (
-                        <li>
-                          <i className="fas fa-map-marker-alt" />
-                          {seller.address}
-                        </li>
-                      )}
-                      {joinDate && (
-                        <li>
-                          <i className="flaticon-calendar" />
-                          Se unió en {joinDate}
-                        </li>
-                      )}
-                    </ul>
-                  )}
+                  {/* Ubicación (departamento/municipio, solo si el usuario la muestra) + antigüedad */}
+                  {(() => {
+                    const locationParts = [seller.municipality, seller.department].filter(Boolean);
+                    const locationLabel = locationParts.join(', ');
+                    if (!locationLabel && !joinDate) return null;
+                    return (
+                      <ul className="profile-detail-list">
+                        {locationLabel && (
+                          <li>
+                            <i className="fas fa-map-marker-alt" />
+                            {locationLabel}
+                          </li>
+                        )}
+                        {joinDate && (
+                          <li>
+                            <i className="flaticon-calendar" />
+                            Se unió en {joinDate}
+                          </li>
+                        )}
+                      </ul>
+                    );
+                  })()}
 
                   <div className="message-creator-btn">
                     <Link href="/messages" className="fill-btn icon-left">

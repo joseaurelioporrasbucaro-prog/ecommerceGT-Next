@@ -21,6 +21,10 @@ export interface SellerInfo {
   followers: number;
   following: number;
   isFollowing: boolean;
+  // Fase 7.3
+  showLocation: boolean;
+  department: string | null;
+  municipality: string | null;
 }
 
 export const PUBLICATIONS_QUERY_KEY = ['publications'] as const;
@@ -59,6 +63,9 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
     followers: toInt(row.followers),
     following: toInt(row.following),
     isFollowing: Boolean(row.isfollowing),
+    showLocation: Boolean(row.showlocation),
+    department: row.department ?? null,
+    municipality: row.municipality ?? null,
   };
 }
 

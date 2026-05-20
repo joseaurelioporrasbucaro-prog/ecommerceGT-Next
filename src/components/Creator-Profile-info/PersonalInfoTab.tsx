@@ -5,12 +5,15 @@ import { ApiError, ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useGenders } from '@/hooks/api/useCatalogs';
+import { useGenders, useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useCheckHandle, useUpdateHandle } from '@/hooks/api/useHandle';
 
 interface UpdateInfoResponse {
     message?: string;
 }
+
+// Guatemala — único país del catálogo. La ubicación de perfil es departamento + municipio.
+const GUATEMALA_COUNTRY_ID = 502;
 
 const PersonalInfoTab = () => {
     const { user, checkAuth } = useAuth();
@@ -27,6 +30,9 @@ const PersonalInfoTab = () => {
     const handleCheckQuery = useCheckHandle(normalizedHandle);
     const handleAvailable = handleChanged ? handleCheckQuery.data?.available : true;
 
+    // Cascada de ubicación: departamento (ciudad) → municipio (town).
+    const { data: cities = [] } = useCities(GUATEMALA_COUNTRY_ID);
+
     useEffect(() => {
         setHandleValue(user?.handle ?? '');
     }, [user?.handle]);
@@ -41,6 +47,9 @@ const PersonalInfoTab = () => {
             lang: user?.lang || 'es',
             phone: user?.phone || '',
             address: user?.address || '',
+            citId: user?.citId ? String(user.citId) : '',
+            towId: user?.towId ? String(user.towId) : '',
+            showLocation: user?.showLocation ?? false,
         },
         validationSchema: Yup.object({
             firstName: Yup.string().required('El nombre es obligatorio'),
@@ -50,6 +59,15 @@ const PersonalInfoTab = () => {
             birthday: Yup.string().required('Fecha requerida'),
             genid: Yup.string().required('Género requerido'),
             lang: Yup.string().required('Idioma requerido'),
+            // Si quiere mostrar ubicación, exige departamento + municipio.
+            citId: Yup.string().when('showLocation', {
+                is: true,
+                then: (s) => s.required('Selecciona el departamento'),
+            }),
+            towId: Yup.string().when('showLocation', {
+                is: true,
+                then: (s) => s.required('Selecciona el municipio'),
+            }),
         }),
         onSubmit: async (values) => {
             setLoading(true);
@@ -67,7 +85,10 @@ const PersonalInfoTab = () => {
                 await ApiFetch.post<UpdateInfoResponse>('/changeinfob', {
                     phone: values.phone,
                     address: values.address,
-                    imagen: user?.imagenu || '' // Conservamos la imagen por ahora
+                    imagen: user?.imagenu || '', // Conservamos la imagen por ahora
+                    citId: values.citId ? Number(values.citId) : null,
+                    towId: values.towId ? Number(values.towId) : null,
+                    showLocation: values.showLocation,
                 });
 
                 toast.success("¡Toda la información actualizada!");
@@ -79,6 +100,8 @@ const PersonalInfoTab = () => {
             }
         }
     });
+
+    const { data: municipalities = [] } = useMunicipalities(formik.values.citId || null);
 
     const renderError = (field: keyof typeof formik.values) => {
         if (formik.touched[field] && formik.errors[field]) {
@@ -217,9 +240,63 @@ const PersonalInfoTab = () => {
 
                     <div className="col-md-12">
                         <div className="single-input-unit">
-                            <label>Dirección / Municipio</label>
+                            <label>Dirección</label>
                             <textarea rows={3} style={{ width: '100%', padding: '15px', borderRadius: '5px', border: '1px solid #e0e0e0' }} {...formik.getFieldProps('address')}></textarea>
                             {renderError('address')}
+                        </div>
+                    </div>
+
+                    {/* ── Ubicación de perfil (departamento / municipio) ── */}
+                    <div className="col-md-6">
+                        <div className="single-input-unit">
+                            <label>Departamento</label>
+                            <select
+                                className="form-control"
+                                style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }}
+                                value={formik.values.citId}
+                                onChange={(e) => {
+                                    formik.setFieldValue('citId', e.target.value);
+                                    formik.setFieldValue('towId', ''); // reset municipio al cambiar depto
+                                }}
+                            >
+                                <option value="">Seleccione...</option>
+                                {cities.map((c) => (
+                                    <option key={c.city} value={String(c.city)}>{c.description}</option>
+                                ))}
+                            </select>
+                            {renderError('citId')}
+                        </div>
+                    </div>
+                    <div className="col-md-6">
+                        <div className="single-input-unit">
+                            <label>Municipio</label>
+                            <select
+                                className="form-control"
+                                style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }}
+                                value={formik.values.towId}
+                                onChange={(e) => formik.setFieldValue('towId', e.target.value)}
+                                disabled={!formik.values.citId}
+                            >
+                                <option value="">Seleccione...</option>
+                                {municipalities.map((m) => (
+                                    <option key={m.municipality} value={String(m.municipality)}>{m.description}</option>
+                                ))}
+                            </select>
+                            {renderError('towId')}
+                        </div>
+                    </div>
+
+                    <div className="col-md-12">
+                        <div className="single-input-unit">
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={formik.values.showLocation}
+                                    onChange={(e) => formik.setFieldValue('showLocation', e.target.checked)}
+                                    style={{ width: 18, height: 18 }}
+                                />
+                                Mostrar mi ubicación (departamento y municipio) en mi perfil público
+                            </label>
                         </div>
                     </div>
                 </div>

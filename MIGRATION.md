@@ -1639,3 +1639,27 @@ Feedback del usuario sobre el `creator-profile`: traer los elementos de la plant
 **Verificación:** migración aplicada a la BD local; `GET /infoCustomer/:id` devuelve los nuevos campos; `POST`/`DELETE /follow/:id` responden 401 sin sesión. `tsc --noEmit` limpio, `next build` OK.
 
 **Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (ranking de vendedores; el follow ya quedó hecho).
+
+---
+
+### ✅ Fase 7.3 (completada) — Fix de vistas, avatar nítido, vistas totales y ubicación configurable
+
+Feedback del usuario: (1) avatar pixelado, (2) ubicación solo departamento+municipio elegibles en config con opción de mostrar/ocultar, (3) mostrar vistas totales en el perfil, (4) bug: dar like incrementaba las vistas, (5) el dueño no debe sumar vistas a su propia publicación.
+
+**Chunk 1 — vistas + avatar (sin migración; backend `583ffcf`, frontend `8db444c`):**
+- **Bug vistas/like**: el conteo estaba dentro de `getPublicationById` (GET), así que cada refetch sumaba vista. Al dar like, `useToggleFavorite` invalidaba el detalle → refetch → +1. Se removió esa invalidación (la actualización optimista ya mantiene `favoritesCount`) y el conteo se movió a un endpoint dedicado **`POST /publications/:id/view`** que **excluye al dueño** (`AND ($2 IS NULL OR cus_id <> $2)`). `useRegisterView` hace un ping único al montar el detalle.
+- **Avatar**: se renderizaba a 120px dentro de un contenedor de 280px → estirado/pixelado. Ahora a 300px (mantiene `unoptimized` porque `next.config` solo permite `localhost:4000` y en prod el backend es otro dominio). *Nota: la nitidez tope la define la resolución de la imagen subida; los avatares no pasan por sharp.*
+- **Vistas totales**: `getInfoCus` devuelve `totalviews` (SUM de `pub_views` de publicaciones activas/vendidas); nuevo stat "Vistas" en la barra del perfil.
+
+**Chunk 2 — ubicación de perfil (⚠️ con migración; backend pendiente de deploy, frontend pendiente de push):**
+
+> ⚠️ **Migración de BD.** `ALTER TABLE ecom.customer ADD COLUMN IF NOT EXISTS cit_id INT, tow_id INT, cus_show_location BOOLEAN NOT NULL DEFAULT false;`. Correr en producción **antes** de desplegar.
+
+- Privacidad primero: `cus_show_location` por defecto `false` (oculto). Solo Guatemala (cou_id 502), así que en config se elige **Departamento** (cat_city) + **Municipio** (cat_town).
+- `changeInfoB` acepta `citId`/`towId`/`showLocation`. `verifyMe` los devuelve para prefill. `getInfoCus` devuelve `department`/`municipality` **solo si `cus_show_location = true`** (gate de privacidad en el backend) + flag `showlocation`.
+- `PersonalInfoTab`: selects en cascada Departamento → Municipio (reutiliza `useCities`/`useMunicipalities`) + checkbox "Mostrar mi ubicación…". Validación: si activa el toggle, depto+municipio obligatorios.
+- `CreatorProfileMain`: la lista de ubicación ahora muestra "Municipio, Departamento" (en vez de la dirección libre), solo cuando el backend los devuelve.
+
+**Verificación:** migraciones aplicadas a BD local; `POST /publications/:id/view` suma vistas anónimas (no del dueño); `getInfoCus` devuelve `totalviews`, y `department`/`municipality` solo con `show_location` ON. `tsc --noEmit` limpio.
+
+**Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (ranking de vendedores).

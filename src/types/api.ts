@@ -48,6 +48,10 @@ export interface AuthUser {
   lang: string | null;
   isAdmin: boolean;
   imagenu: string | null;
+  // Fase 7.3 — ubicación de perfil
+  citId: number | null;
+  towId: number | null;
+  showLocation: boolean;
 }
 
 /** Payload para `PUT /handle`. */
@@ -542,6 +546,10 @@ export interface SellerInfoRow {
   followers: string | number;
   following: string | number;
   isfollowing: boolean;
+  // Fase 7.3 — ubicación (solo presentes si showlocation = true)
+  showlocation: boolean;
+  department: string | null;
+  municipality: string | null;
 }
 export type SellerInfoResponse = SellerInfoRow[];
 
