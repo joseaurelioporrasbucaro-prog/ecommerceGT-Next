@@ -134,7 +134,7 @@ El backend está estable y se comparte. La regla:
 | **6.3.1** | Centro de notificaciones unificado: tabla, endpoints, inserción auto + bell badge en headers + `/activity` real | ✅ Completada | 1 día |
 | **6.3.2** | Notifs faltantes (`comment` y `pub_favorite`) + UI `/activity` con tabs por categoría (estilo plantilla) + footer fix | ✅ Completada | 0.5 día |
 | **6.3.3** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ✅ Completada | 1 día |
-| **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
+| **7** | Cierre de venta + reseñas | ✅ Completada | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
 | **10** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
@@ -1577,3 +1577,23 @@ Las notificaciones de `mention`/`reply` ya se insertaban desde 6.3.1/6.3.2 (el b
 **Verificación:** endpoint probado local (`q=au` → aurelio), `getComments` devuelve `mentions`, `tsc --noEmit` limpio, `/publications/1` compila 200. UX del dropdown pendiente de verificación visual del usuario.
 
 **Siguiente:** Fase 7 (cierre de venta + reseñas).
+
+---
+
+### ✅ Fase 7 (completada) — Cierre de venta + reseñas de vendedor
+
+El backend ya tenía `closeSale`, `submitSurvey` y `getSellerReviews` con rutas `POST /close-sale`, `POST /submit-survey` y `GET /seller-reviews/:id`. Faltaba conectar el frontend y agregar la notificación in-app.
+
+**Backend (`// Codigo Aurelio`, commit `a86e902` en `techmindsgt`):**
+- `closeSale` ahora llama a `insertNotification` con `notif_type: 'sale_closed'` al comprador después de enviar el email y crear el registro de encuesta.
+
+**Frontend (`main`, commit `9801064`):**
+- `types/api.ts`: `SellerReview` y `SellerReviewsResponse` alineados con el backend real (campos `cus_first_name`, `cus_last_name`, `completed_at`, `totalReviews`). `CloseSalePayload` y `SubmitSurveyPayload` extienden `Record<string, unknown>` para compatibilidad con `ApiFetch.post`.
+- `useCloseSale`: mutation `POST /close-sale` (auth requerida). Invalida `myPublications` en éxito.
+- `useSellerReviews(id)`: query `GET /seller-reviews/:id` (pública). `staleTime 5 min`.
+- `useSubmitSurvey`: mutation `POST /submit-survey` (sin auth, se valida con token JWT del email).
+- **`MyPublicationsMain`**: botón verde "Cerrar venta" (solo aparece en publicaciones con `pubsta_id === 2` = activas). Abre `CloseSaleModal`: modal con buscador de comprador por handle (reutiliza `useSearchUsers`) + dropdown de resultados + botón "Confirmar venta".
+- **`/survey/[token]`** (nueva ruta): `SurveyMain` con selector de estrellas interactivo (hover + clic), label descriptivo por puntuación, textarea de comentario, submit al backend, estado de éxito post-envío.
+- **`CreatorProfileMain`**: eliminados datos estáticos. Conectado a `useSellerInfo` (`GET /infoCustomer/:id`) y `useSellerReviews`. Muestra avatar real, nombre, handle, estadísticas (publicaciones, reseñas, calificación promedio) y tarjetas de reseñas con `StarDisplay`, fecha y comentario.
+
+**Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (Ranking de vendedores / follow).
