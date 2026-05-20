@@ -1533,3 +1533,29 @@ Al darle 55% a la columna de los íconos (lang + bell + theme), siempre tienen l
 **Verificado con `next build` limpio** (no solo tsc) para descartar que fuera un problema de compilación.
 
 > ⚠️ **Si después de pull sigue sin verse:** es caché de `.next`. Detené el dev server, `rm -rf .next`, y `npm run dev` de nuevo. Los `<style jsx global>` se cachean agresivamente con HMR.
+
+### Hotfix v5 — Header con sidebars: replicar el mecanismo del template (definitivo) ✅
+
+Las versiones v1–v4 fueron parches sobre un enfoque equivocado. El error de raíz: la migración **padeaba** `.app-layout` 275px por lado para correr el contenido entre los sidebars `position: fixed`. Eso deja el borde del contenedor **pegado** al sidebar (0px de aire), y el último ícono de la derecha (toggle de tema) caía **debajo** del sidebar (`z-index: 999`). Ni cambiar la proporción de columnas (v4) ni `overflow: visible` lo arreglaban — de hecho `overflow: visible` empeoraba el derrame bajo el sidebar.
+
+**Causa entendida comparando con la plantilla original:** el template **no padea nada**. Encoge su contenedor a `.c-container-1 { width: calc(100% - 583px) }` **centrado** (`margin: auto`). Como 583 ÷ 2 = 291.5 > 275, deja ~16px de aire a cada lado y nada se mete bajo el sidebar.
+
+**Fix definitivo (confirmado por el usuario):** replicar ese mecanismo exacto. Se elimina el padding y todos los hacks de columnas; se aplica el `calc` centrado a `.container` (el template solo lo hace en `.c-container-1`, pero la migración usa `.container` en casi todas las páginas):
+
+```css
+@media (min-width: 1600px) {
+  .app-layout.has-left-sidebar .container,
+  .app-layout.has-right-sidebar .container {
+    width: calc(100% - 583px) !important;
+    max-width: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+```
+
+Así header, cards y footer libran los sidebars con el mismo aire que la plantilla. La proporción 58/42 de columnas del template queda intacta (no hay que tocarla).
+
+**Bonus — HeaderOne en `/messages`:** el menú horizontal de 4 ítems se partía en 2 líneas en el rango **1600-1605px**, porque justo a 1600 entra el `padding-right:275` del sidebar **y** la búsqueda saltaba de 180→220px a la vez (`.container.header-container` tiene `max-width: 1650px`, así que abajo de eso el ancho sigue al viewport). Fix: mantener la búsqueda en 180px hasta 1699 y ensancharla a 220px recién en 1700+, donde ya sobra ancho.
+
+Commit: `ae6997f` en `main`. Reemplaza los hotfixes v1–v4 (cuyo CSS fue borrado).
