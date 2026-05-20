@@ -418,11 +418,14 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           background-color: rgba(108, 92, 231, 0.12);
           color: var(--tp-theme-1, #6c5ce7);
         }
-        /* Al seguir, el "+" de la plantilla pasa a un check (✓ Siguiendo).
-           Doble backslash: en el template literal de styled-jsx, '\f' sería
-           un escape JS (form-feed); necesitamos el literal \f00c para CSS. */
+        /* Al seguir, el "+" de la plantilla pasa a un check. Usamos el carácter
+           Unicode literal '✓' (no un escape \\fXXX de FontAwesome): cualquier
+           backslash en styled-jsx terminaba emitiendo un form-feed en el bundle
+           → "SyntaxError: Invalid or unexpected token" que rompía toda la página.
+           Además se cambia la familia de fuente para que no use Font Awesome. */
         .creator-info-bar :global(.follow-artist.is-following::before) {
-          content: '\\f00c';
+          content: '✓';
+          font-family: inherit;
           color: var(--tp-theme-1, #6c5ce7);
         }
         .creator-info-bar :global(.follow-artist:disabled) {
