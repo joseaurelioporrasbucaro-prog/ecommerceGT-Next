@@ -97,9 +97,12 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
               width: 100% !important;
             }
           }
-          /* HeaderOne en /messages — el menú horizontal con el bell se parte
-             en 2 filas en xl (1200-1399), xxl (1400-1599) y 1600-1851. */
-          @media (min-width: 1200px) and (max-width: 1599px) {
+          /* HeaderOne en /messages — el menú horizontal de 4 ítems + búsqueda
+             + idioma/bell/tema se parte en 2 filas si la búsqueda crece antes
+             de que haya ancho. A 1600px entra el padding-right:275 (sidebar) y
+             el área cae a ~1325px; mantenemos la búsqueda angosta (180px) hasta
+             1699 y recién a 1700+ —donde ya sobra espacio— la ensanchamos. */
+          @media (min-width: 1200px) and (max-width: 1699px) {
             .header1 .filter-search-input.header-search {
               width: 180px !important;
               max-width: 180px !important;
@@ -108,7 +111,7 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
               margin-right: 20px !important;
             }
           }
-          @media (min-width: 1600px) and (max-width: 1851px) {
+          @media (min-width: 1700px) and (max-width: 1851px) {
             .header1 .filter-search-input.header-search {
               width: 220px !important;
               max-width: 220px !important;
@@ -134,12 +137,17 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
         {pathName === '/home-three' ? <FooterTwo /> : <Footer />}
       </div>
 
+      {/* Replica el mecanismo del template para los sidebars fijos. El template
+          corre el contenido con `.c-container-1 { width: calc(100% - 583px) }`
+          centrado, pero eso asume que TODO el contenido usa esa clase — acá la
+          mayoría de páginas usan `.container` normal. Por eso padeamos el
+          .app-layout 275px por lado (= ancho del sidebar) y neutralizamos el
+          calc del template a 100%: si no, el header restaría el ancho de los
+          sidebars DOS veces (padding + calc) y col-xl-5 quedaría tapado. Sin
+          hacks de proporción de columnas — el 58/42 del template alcanza. */}
       <style jsx global>{`
-        /* El template original abre los sidebars fijos a partir de 1400px,
-           pero ahí el contenido queda con solo 817px (1400 - 583) — muy
-           apretado. Bumpeamos el umbral a 1600px: entre 1400 y 1599 los
-           sidebars quedan off-canvas (hamburguesa), arriba de 1600 se ven
-           siempre. Cubre los tres lugares donde el template lo controla. */
+        /* 1400-1599: sidebars off-canvas (hamburguesa) para no apretar el
+           contenido; desde 1600 se ven fijos siempre. */
         @media (min-width: 1400px) and (max-width: 1599px) {
           .menu2-side-bar-wrapper {
             left: -300px !important;
@@ -156,83 +164,26 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           .c-container-1 {
             width: 100% !important;
           }
-          /* El template oculta el toggle del hamburguesa con d-xxl-none
-             (xxl = 1400+), pero a 1400-1599 ya no hay sidebar fija, así
-             que necesitamos el toggle visible de nuevo. */
           .menu-bar.d-xxl-none,
           .product-filter-btn.d-xxl-none {
             display: inline-block !important;
           }
         }
         @media (min-width: 1600px) {
-          .app-layout.has-left-sidebar {
-            padding-left: 275px;
-          }
-          .app-layout.has-right-sidebar {
-            padding-right: 275px;
-          }
-          /* c-container-1 del template restaba 583px asumiendo que su padre
-             es el viewport (sin padding). Pero ya estamos aplicando padding-left
-             y padding-right al app-layout para pushear el contenido entre los
-             sidebars — c-container-1 termina restando los 583px DOS veces y
-             queda apretadísimo. Lo neutralizamos a 100% del padre padded. */
-          .app-layout.has-left-sidebar .c-container-1,
-          .app-layout.has-right-sidebar .c-container-1 {
-            width: 100% !important;
-          }
-        }
-
-        /* HeaderOne (/messages) — el menú horizontal de 7 items + búsqueda
-           330px + margen 95px del .main-menu1 no caben en xl (1200-1399)
-           ni en parte de xxl (1400-1599) sin partirse en 2 filas. */
-        @media (min-width: 1200px) and (max-width: 1599px) {
-          .header1 .filter-search-input.header-search {
-            width: 180px !important;
-            max-width: 180px !important;
-          }
-          .main-menu1 {
-            margin-right: 20px !important;
-          }
-        }
-
-        /* En 1600-1840 los sidebars ocupan 550px y el espacio para el header
-           queda apretado. En vez de solo achicar la búsqueda (que no bastaba),
-           cambiamos la PROPORCIÓN de las columnas: la izquierda (búsqueda)
-           pasa de 58% a 45%, y la derecha (lang + bell + theme) de 42% a 55%.
-           Así los íconos siempre tienen lugar y no quedan tapados/ocultos. */
-        @media (min-width: 1600px) and (max-width: 1840px) {
-          .app-layout .header2 .header-main2-content .col-xl-7 {
-            flex: 0 0 auto !important;
-            width: 45% !important;
-            max-width: 45% !important;
-          }
-          .app-layout .header2 .header-main2-content .col-xl-5 {
-            flex: 0 0 auto !important;
-            width: 55% !important;
-            max-width: 55% !important;
-          }
-          .app-layout .header2 .header-main2-content .filter-search-input.header-search {
-            width: 260px !important;
-            max-width: 100% !important;
-          }
-          .app-layout .header2 .header-main2-content .filter-search-input.header-search input {
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-          .app-layout .header2 .header-main2-content .header-main-right {
-            min-width: 0;
-            flex-wrap: nowrap !important;
-            overflow: visible !important;
-          }
-          .app-layout .header2 .header-main2-content .header-main-right > * {
-            flex-shrink: 0 !important;
-          }
-          .app-layout .header1 .filter-search-input.header-search {
-            width: 220px !important;
-            max-width: 220px !important;
-          }
-          .app-layout .main-menu1 {
-            margin-right: 30px !important;
+          /* Mecanismo EXACTO del template: en vez de padear el .app-layout
+             (que dejaba el borde del contenido pegado al sidebar y el ícono
+             de tema se metía debajo), encogemos el contenedor a
+             calc(100% - 583px) CENTRADO — 583 = los dos sidebars de 275px +
+             ~16px de aire a cada lado. El template lo hace solo con
+             .c-container-1; acá lo extendemos a .container porque la mayoría
+             de páginas lo usan, así todo (header, cards, footer) queda
+             librando los sidebars con el mismo aire que la plantilla. */
+          .app-layout.has-left-sidebar .container,
+          .app-layout.has-right-sidebar .container {
+            width: calc(100% - 583px) !important;
+            max-width: none !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
           }
         }
       `}</style>
