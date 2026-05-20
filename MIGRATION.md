@@ -1358,3 +1358,40 @@ No se tocó `_header.scss` directamente — el override vive en `DefaultWrapper`
 | `useConversation` | 5s | Solo con una conversación abierta |
 
 Carga típica: 1 req/min para un usuario normal logueado (solo bell). ~16 req/min en `/messages` con chat abierto. Es polling pragmático sin WebSockets; si crece la base de usuarios habrá que migrar a SSE/WS (fase futura).
+
+---
+
+### Hotfix — Layout consistency en `/favorites` y home-three
+
+**1. `/favorites` ahora espeja `/publications` (mismo UX)**
+
+El usuario reportó que `/favorites` se veía roto comparado con `/publications` (que sí funcionaba bien). La diferencia: `FavoritesMain` solo renderizaba un `<div className="row">` con `PublicationCard`s, sin todo el resto del UX (categorías, filtros, sort, infinite scroll, empty states).
+
+**Refactor aplicado:**
+
+- **`src/components/publications/CategorySlider.tsx` (nuevo):** se extrajo el slider de categorías que estaba inline en `PublicationsMain`. Acepta un prop `uniqueId` para que las flechas Swiper de cada instancia no se peleen cuando hay más de un slider en la página.
+- **`PublicationsMain.tsx`:** importa el `CategorySlider` desde el nuevo archivo. Eliminado código duplicado (~120 líneas).
+- **`FavoritesMain.tsx`:** reescrito espejando `PublicationsMain` — `CategorySlider`, `PublicationsBar`, filtros con `useMemo`, infinite scroll con `IntersectionObserver`, mismos empty states. Diferencias:
+  - Usa `useMyFavorites` en vez de `usePublications`.
+  - Mapea `FavoriteItem → PublicationListItemAuth` para reusar `PublicationCard`.
+  - No lee filtros desde URL (a diferencia de `/publications` que respeta `?category=`).
+  - Empty state propio: "Tocá el corazón en cualquier propiedad para agregarla acá".
+
+**2. Bug del home-three (y de cualquier página que use `c-container-1`)**
+
+**Síntoma:** a viewport ≥1600px, el hero de `/home-three` y otros componentes que usan `c-container-1` quedaban apretadísimos.
+
+**Causa raíz:** el template define `.c-container-1 { width: calc(100% - 583px); }` a partir de 1400px, asumiendo que el padre es el viewport (sin padding). Pero nuestro `DefaultWrapper` aplica `padding-left: 275px` y `padding-right: 275px` al `app-layout` para empujar el contenido entre los sidebars fijos. Resultado: a 1600px viewport el container quedaba en `(1600 - 550) - 583 = 467px` en vez de los ~1050px que debería tener.
+
+**Fix:** override `c-container-1` a `width: 100%` cuando hay sidebars y viewport ≥1600px — el padding del `app-layout` ya ocupa el espacio de los sidebars, no hay que volver a restar.
+
+```css
+@media (min-width: 1600px) {
+  .app-layout.has-left-sidebar .c-container-1,
+  .app-layout.has-right-sidebar .c-container-1 {
+    width: 100% !important;
+  }
+}
+```
+
+Aplicado también a la rama de `/messages` (HeaderOne) por consistencia.
