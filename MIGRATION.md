@@ -1653,7 +1653,16 @@ Feedback del usuario: (1) avatar pixelado, (2) ubicación solo departamento+muni
 
 **Chunk 2 — ubicación de perfil (⚠️ con migración; backend pendiente de deploy, frontend pendiente de push):**
 
-> ⚠️ **Migración de BD.** `ALTER TABLE ecom.customer ADD COLUMN IF NOT EXISTS cit_id INT, tow_id INT, cus_show_location BOOLEAN NOT NULL DEFAULT false;`. Correr en producción **antes** de desplegar.
+> ⚠️ **Esquema (AGENTS.md §12.1).** En `database.sql` las columnas `cit_id`, `tow_id`, `cus_show_location` se agregaron **dentro del `CREATE TABLE customer`** (con sus FKs a `cat_city`/`cat_town`), como si siempre hubieran existido — NO con `ALTER TABLE`. El `database.sql` refleja el estado final para instalaciones nuevas.
+>
+> **SQL de migración para entornos ya poblados (dev/staging/prod):**
+> ```sql
+> ALTER TABLE ecom.customer
+>   ADD COLUMN IF NOT EXISTS cit_id INT,
+>   ADD COLUMN IF NOT EXISTS tow_id INT,
+>   ADD COLUMN IF NOT EXISTS cus_show_location BOOLEAN NOT NULL DEFAULT false;
+> ```
+> Correr en BDs existentes **antes** de desplegar el backend (ya aplicado en local y producción).
 
 - Privacidad primero: `cus_show_location` por defecto `false` (oculto). Solo Guatemala (cou_id 502), así que en config se elige **Departamento** (cat_city) + **Municipio** (cat_town).
 - `changeInfoB` acepta `citId`/`towId`/`showLocation`. `verifyMe` los devuelve para prefill. `getInfoCus` devuelve `department`/`municipality` **solo si `cus_show_location = true`** (gate de privacidad en el backend) + flag `showlocation`.
