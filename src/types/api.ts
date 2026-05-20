@@ -538,6 +538,7 @@ export interface SellerInfoRow {
   address: string | null;
   joindate: string | null;
   likes: string | number;
+  totalviews: string | number;
   followers: string | number;
   following: string | number;
   isfollowing: boolean;

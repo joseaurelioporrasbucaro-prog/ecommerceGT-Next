@@ -17,6 +17,7 @@ export interface SellerInfo {
   address: string | null;
   joinDate: string | null;
   likes: number;
+  totalViews: number;
   followers: number;
   following: number;
   isFollowing: boolean;
@@ -54,6 +55,7 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
     address: row.address ?? null,
     joinDate: row.joindate ?? null,
     likes: toInt(row.likes),
+    totalViews: toInt(row.totalviews),
     followers: toInt(row.followers),
     following: toInt(row.following),
     isFollowing: Boolean(row.isfollowing),

@@ -118,8 +118,9 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                       <Image
                         src={avatarUrl}
                         alt={displayName}
-                        width={120}
-                        height={120}
+                        width={300}
+                        height={300}
+                        sizes="300px"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         unoptimized
                       />
@@ -180,6 +181,10 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     <div className="artist-meta-item artist-meta-item-border">
                       <div className="artist-meta-type">Publicaciones</div>
                       <div className="artist-created">{seller.totalPublications}</div>
+                    </div>
+                    <div className="artist-meta-item artist-meta-item-border">
+                      <div className="artist-meta-type">Vistas</div>
+                      <div className="artist-likes">{fmtCount(seller.totalViews)}</div>
                     </div>
                     <div className="artist-meta-item artist-meta-item-border">
                       <div className="artist-meta-type">Likes</div>

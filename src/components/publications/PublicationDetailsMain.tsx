@@ -5,6 +5,7 @@ import React, { useMemo } from 'react';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import { ApiError } from '@/utils/Api';
 import { usePublicationDetail } from '@/hooks/api/usePublications';
+import { useRegisterView } from '@/hooks/api/useRegisterView';
 import { getBackendUrl } from '@/utils/backendUrl';
 import PublicationComments from './PublicationComments';
 import PublicationContent from './PublicationContent';
@@ -22,6 +23,9 @@ function getErrorMessage(error: unknown): string {
 const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
   const publicationQuery = usePublicationDetail(id);
   const publication = publicationQuery.data;
+
+  // Registra una vista al abrir el detalle (el backend ignora al dueño).
+  useRegisterView(id);
 
   const galleryImages = useMemo(() => {
     if (!publication) return [];

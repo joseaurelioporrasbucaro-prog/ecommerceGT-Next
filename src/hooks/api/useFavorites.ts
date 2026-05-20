@@ -132,7 +132,9 @@ export function useToggleFavorite(pubId: number) {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: PUBLICATIONS_QUERY_KEY });
-      void queryClient.invalidateQueries({ queryKey: PUBLICATION_DETAIL_QUERY_KEY });
+      // NO invalidamos PUBLICATION_DETAIL_QUERY_KEY: el refetch del detalle
+      // disparaba un GET que (antes) incrementaba las vistas en cada like.
+      // La actualización optimista ya mantiene isFavorite/favoritesCount.
       void queryClient.invalidateQueries({ queryKey: MY_FAVORITES_QUERY_KEY });
     },
   });
