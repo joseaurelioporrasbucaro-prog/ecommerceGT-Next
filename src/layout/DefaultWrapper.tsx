@@ -92,6 +92,10 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
             .app-layout.has-right-sidebar {
               padding-right: 275px;
             }
+            /* Mismo override que la rama principal — ver comentario allá. */
+            .app-layout.has-right-sidebar .c-container-1 {
+              width: 100% !important;
+            }
           }
         `}</style>
       </ThemeProvider>
@@ -146,6 +150,15 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           }
           .app-layout.has-right-sidebar {
             padding-right: 275px;
+          }
+          /* c-container-1 del template restaba 583px asumiendo que su padre
+             es el viewport (sin padding). Pero ya estamos aplicando padding-left
+             y padding-right al app-layout para pushear el contenido entre los
+             sidebars — c-container-1 termina restando los 583px DOS veces y
+             queda apretadísimo. Lo neutralizamos a 100% del padre padded. */
+          .app-layout.has-left-sidebar .c-container-1,
+          .app-layout.has-right-sidebar .c-container-1 {
+            width: 100% !important;
           }
         }
       `}</style>
