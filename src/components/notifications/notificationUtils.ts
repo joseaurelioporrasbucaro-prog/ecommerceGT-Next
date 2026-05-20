@@ -79,20 +79,30 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
       icon: 'fa-comment',
       iconColor: '#00b894',
     }),
-    sale_closed: () => ({
-      text: `${name} cerró la venta`,
-      snippet: null,
-      href: '/activity',
-      icon: 'fa-handshake',
-      iconColor: '#e17055',
-    }),
-    review_received: () => ({
-      text: `${name} te dejó una reseña`,
-      snippet,
-      href: notif.actor_cus_id ? `/creator-profile/${notif.actor_cus_id}` : '/activity',
-      icon: 'fa-star',
-      iconColor: '#fdcb6e',
-    }),
+    sale_closed: () => {
+      const token = notif.payload?.surveyToken;
+      const pubTitle = typeof notif.payload?.pubTitle === 'string' ? notif.payload.pubTitle : null;
+      return {
+        text: `${name} cerró la venta contigo. ¡Califícalo!`,
+        snippet: pubTitle,
+        // Link directo al formulario de calificación (calificar desde la notificación)
+        href: typeof token === 'string' ? `/survey/${token}` : '/activity',
+        icon: 'fa-handshake',
+        iconColor: '#16a34a',
+      };
+    },
+    review_received: () => {
+      const stars = typeof notif.payload?.stars === 'number' ? notif.payload.stars : null;
+      return {
+        text: stars
+          ? `${name} te calificó con ${stars} ${stars === 1 ? 'estrella' : 'estrellas'}`
+          : `${name} te dejó una reseña`,
+        snippet,
+        href: notif.recipient_cus_id ? `/creator-profile/${notif.recipient_cus_id}` : '/activity',
+        icon: 'fa-star',
+        iconColor: '#f59e0b',
+      };
+    },
   };
 
   return cfg[notif.notif_type]();
