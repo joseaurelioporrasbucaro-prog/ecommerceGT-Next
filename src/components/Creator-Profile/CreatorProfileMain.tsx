@@ -121,8 +121,8 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                         width={300}
                         height={300}
                         sizes="300px"
+                        quality={90}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        unoptimized
                       />
                     ) : (
                       <span className="profile-initials" aria-hidden>
@@ -371,6 +371,15 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         .profile-rating-count {
           opacity: 0.55;
           font-size: 13px;
+        }
+        /* Tabs (Publicaciones / Reseñas): juntar las pestañas (la plantilla las
+           separa con space-between para 5 tabs) y dar aire entre texto y número. */
+        .creator-info-tab :global(.creator-info-tab-nav .nav-tabs) {
+          justify-content: flex-start;
+          gap: 36px;
+        }
+        .creator-info-tab :global(.creator-info-tab-nav .artist-meta-type) {
+          margin-right: 7px;
         }
         .profile-detail-list {
           list-style: none;

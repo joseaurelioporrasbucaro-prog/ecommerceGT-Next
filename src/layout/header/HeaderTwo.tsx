@@ -7,6 +7,7 @@ import SidebarMenuSection from "../sidebar/SidebarMenuSection";
 import AccountRightSidebar from "../sidebar/AccountRightSidebar";
 import PublicCategoriesSidebar from "../sidebar/PublicCategoriesSidebar";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import HeaderSearch from "./component/HeaderSearch";
 import { useAuth } from "@/utils/AuthContext";
 
 const HeaderTwo = () => {
@@ -54,15 +55,7 @@ const HeaderTwo = () => {
                         </div>
                       </a>
                     </div>
-                    <form
-                      action="#"
-                      className="filter-search-input header-search d-none d-md-inline-block"
-                    >
-                      <input type="text" placeholder="Buscar..." />
-                      <button>
-                        <i className="fal fa-search"></i>
-                      </button>
-                    </form>
+                    <HeaderSearch className="d-none d-md-inline-block" />
                   </div>
                 </div>
                 <div className="col-xl-5 col-lg-5 col-md-5 col-5">

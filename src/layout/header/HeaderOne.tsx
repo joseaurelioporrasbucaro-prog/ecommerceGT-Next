@@ -7,6 +7,7 @@ import useSticky from '@/hooks/useSticky';
 import useGlobalContext from '@/hooks/use-context';
 import Image from 'next/image';
 import HeaderOneMenu from './component/HeaderOneMenu';
+import HeaderSearch from './component/HeaderSearch';
 import MobileMenu from '@/utils/MobileMenu';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTheme } from 'next-themes';
@@ -47,11 +48,10 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                                  <HeaderOneMenu/>
                               </nav>
                            </div>
-                           <form action="#" className="filter-search-input header-search d-none d-xl-inline-block">
-                              {/* El buscador ahora usa tu diccionario */}
-                              <input type="text" placeholder={t('serchproducts') || "Buscar..."} />
-                              <button><i className="fal fa-search"></i></button>
-                           </form>
+                           <HeaderSearch
+                              className="d-none d-xl-inline-block"
+                              placeholder={t('serchproducts') || 'Buscar usuarios o propiedades...'}
+                           />
 
                            {/* --- SELECTOR DE IDIOMAS (ES | EN) --- */}
                            <div className="header-lang ml-20 d-none d-md-inline-block" style={{ fontWeight: '600', cursor: 'pointer', fontSize: '15px' }}>
