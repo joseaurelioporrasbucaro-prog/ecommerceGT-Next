@@ -538,26 +538,26 @@ export interface SellerInfoRow {
 export type SellerInfoResponse = SellerInfoRow[];
 
 export interface SellerReview {
-  rating_id: number;
   rating_stars: number;
-  rating_comment: string;
-  buyer_name: string;
-  pub_title: string;
-  created_at: string;
+  rating_comment: string | null;
+  completed_at: string;
+  cus_first_name: string;
+  cus_last_name: string;
 }
 
 export interface SellerReviewsResponse {
   average: number;
+  totalReviews: number;
   reviews: SellerReview[];
 }
 
-export interface SubmitSurveyPayload {
+export interface SubmitSurveyPayload extends Record<string, unknown> {
   token: string;
   stars: number;
   comment: string;
 }
 
-export interface CloseSalePayload {
+export interface CloseSalePayload extends Record<string, unknown> {
   pub_id: number;
   buyer_id: number;
 }

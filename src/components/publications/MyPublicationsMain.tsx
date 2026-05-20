@@ -10,15 +10,18 @@ import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiError } from '@/utils/Api';
 import { useMyPublications } from '@/hooks/api/useMyPublications';
 import { useDeletePublication } from '@/hooks/api/useDeletePublication';
+import { useCloseSale } from '@/hooks/api/useCloseSale';
+import { useSearchUsers } from '@/hooks/api/useSearchUsers';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { getImageVariant } from '@/utils/imageVariants';
-import type { MyPublicationItem } from '@/types/api';
+import type { MyPublicationItem, UserSearchResult } from '@/types/api';
 import { CARD_PLACEHOLDER, formatPrice } from './publicationUtils';
 
 const PUBSTA_SOLD = 3;
 const PUBSTA_DRAFT = 1;
 const PUBSTA_VOID = 4;
+const PUBSTA_ACTIVE = 2;
 
 interface PublicationRowImageProps {
   src: string | null | undefined;
@@ -73,6 +76,177 @@ function getErrorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Error inesperado';
 }
 
+// ─── Sub-componente: modal de "Cerrar venta" ──────────────────────────────────
+interface CloseSaleModalProps {
+  publication: MyPublicationItem | null;
+  onClose: () => void;
+}
+
+const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
+  const [buyerQuery, setBuyerQuery] = useState('');
+  const [selectedBuyer, setSelectedBuyer] = useState<UserSearchResult | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const closeSaleMutation = useCloseSale();
+  const searchQuery = useSearchUsers(buyerQuery);
+
+  const users = searchQuery.data?.users ?? [];
+
+  const handleSelectBuyer = (user: UserSearchResult) => {
+    setSelectedBuyer(user);
+    setBuyerQuery('');
+    setDropdownOpen(false);
+  };
+
+  const handleConfirm = () => {
+    if (!publication || !selectedBuyer) return;
+    closeSaleMutation.mutate(
+      { pub_id: publication.pub_id, buyer_id: selectedBuyer.cusId },
+      {
+        onSuccess: () => {
+          toast.success('¡Venta cerrada! El comprador recibirá un email para calificarte.');
+          onClose();
+        },
+        onError: (err) => {
+          toast.error(err instanceof ApiError ? err.message : 'No se pudo cerrar la venta.');
+        },
+      },
+    );
+  };
+
+  return (
+    <Modal
+      open={publication !== null}
+      onClose={onClose}
+      center
+      classNames={{ modal: 'close-sale-modal' }}
+      styles={{
+        overlay: { background: 'rgba(0,0,0,0.55)' },
+        modal: { maxWidth: 480, width: '90%', padding: '32px 28px', borderRadius: 14 },
+        closeButton: { display: 'none' },
+      }}
+    >
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          width: 64, height: 64, margin: '0 auto 18px', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          borderRadius: '50%', background: 'rgba(34,197,94,0.12)', color: '#16a34a', fontSize: 26,
+        }}>
+          <i className="fas fa-handshake" />
+        </div>
+        <h4 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700 }}>Cerrar venta</h4>
+        <p style={{ margin: '0 0 20px', fontSize: 15, opacity: 0.75, lineHeight: 1.5 }}>
+          Indica quién compró <strong>&ldquo;{publication?.pub_title}&rdquo;</strong>. Se enviará un email al comprador para que te califique.
+        </p>
+
+        {/* Búsqueda de comprador */}
+        <div style={{ position: 'relative', marginBottom: 20, textAlign: 'left' }}>
+          {selectedBuyer ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 14px', border: '2px solid var(--tp-theme-1,#6c5ce7)',
+              borderRadius: 8, background: 'rgba(108,92,231,0.06)',
+            }}>
+              <span style={{ flex: 1, fontWeight: 600 }}>
+                {selectedBuyer.firstName} {selectedBuyer.lastName}
+                <span style={{ opacity: 0.6, fontWeight: 400, marginLeft: 6 }}>@{selectedBuyer.handle}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedBuyer(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 16 }}
+                title="Cambiar comprador"
+              >
+                <i className="fas fa-times" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                type="text"
+                placeholder="Busca al comprador por nombre o @handle..."
+                value={buyerQuery}
+                onChange={(e) => { setBuyerQuery(e.target.value); setDropdownOpen(true); }}
+                onFocus={() => setDropdownOpen(true)}
+                onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+                style={{
+                  width: '100%', padding: '10px 14px', border: '1px solid rgba(128,128,128,0.3)',
+                  borderRadius: 8, fontSize: 14, boxSizing: 'border-box',
+                  background: 'var(--clr-bg-white,#fff)', color: 'inherit',
+                  outline: 'none',
+                }}
+              />
+              {dropdownOpen && users.length > 0 && (
+                <ul style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                  background: 'var(--clr-bg-white,#fff)', border: '1px solid rgba(128,128,128,0.2)',
+                  borderRadius: 8, margin: 0, padding: '4px 0', listStyle: 'none',
+                  boxShadow: '0 6px 24px rgba(0,0,0,0.12)',
+                }}>
+                  {users.map((u) => (
+                    <li key={u.cusId}>
+                      <button
+                        type="button"
+                        onMouseDown={() => handleSelectBuyer(u)}
+                        style={{
+                          width: '100%', textAlign: 'left', background: 'none', border: 'none',
+                          padding: '9px 14px', cursor: 'pointer', display: 'flex',
+                          alignItems: 'center', gap: 10, fontSize: 14,
+                        }}
+                      >
+                        <span style={{ fontWeight: 600 }}>{u.firstName} {u.lastName}</span>
+                        <span style={{ opacity: 0.55 }}>@{u.handle}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {dropdownOpen && buyerQuery.length >= 2 && users.length === 0 && !searchQuery.isLoading && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0,
+                  background: 'var(--clr-bg-white,#fff)', border: '1px solid rgba(128,128,128,0.2)',
+                  borderRadius: 8, padding: '12px 14px', fontSize: 13, opacity: 0.65,
+                  boxShadow: '0 6px 24px rgba(0,0,0,0.1)',
+                }}>
+                  No se encontraron usuarios
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="border-btn"
+            onClick={onClose}
+            disabled={closeSaleMutation.isPending}
+            style={{ height: 44, padding: '0 22px', fontSize: 14, minWidth: 120 }}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="border-btn"
+            onClick={handleConfirm}
+            disabled={!selectedBuyer || closeSaleMutation.isPending}
+            style={{
+              height: 44, padding: '0 22px', fontSize: 14, minWidth: 150,
+              background: selectedBuyer && !closeSaleMutation.isPending ? '#16a34a' : undefined,
+              borderColor: selectedBuyer && !closeSaleMutation.isPending ? '#16a34a' : undefined,
+              color: selectedBuyer && !closeSaleMutation.isPending ? '#fff' : undefined,
+              cursor: !selectedBuyer || closeSaleMutation.isPending ? 'not-allowed' : 'pointer',
+              opacity: !selectedBuyer || closeSaleMutation.isPending ? 0.6 : 1,
+            }}
+          >
+            {closeSaleMutation.isPending ? 'Cerrando…' : 'Confirmar venta'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ─── Componente principal ──────────────────────────────────────────────────────
 const MyPublicationsMain = () => {
   const { user } = useAuth();
   const publicationsQuery = useMyPublications(user?.id);
@@ -80,6 +254,7 @@ const MyPublicationsMain = () => {
   const deleteMutation = useDeletePublication(user?.id);
 
   const [pendingDelete, setPendingDelete] = useState<MyPublicationItem | null>(null);
+  const [pendingCloseSale, setPendingCloseSale] = useState<MyPublicationItem | null>(null);
 
   const handleConfirmDelete = () => {
     if (!pendingDelete) return;
@@ -159,6 +334,18 @@ const MyPublicationsMain = () => {
                         </div>
 
                         <div className="my-publication-actions">
+                          {/* Botón "Cerrar venta" — solo publicaciones activas */}
+                          {publication.pubsta_id === PUBSTA_ACTIVE && (
+                            <button
+                              type="button"
+                              className="border-btn close-sale-btn"
+                              onClick={() => setPendingCloseSale(publication)}
+                              title="Marca esta publicación como vendida y notifica al comprador"
+                            >
+                              <i className="fas fa-handshake" style={{ marginRight: 6 }} />
+                              Cerrar venta
+                            </button>
+                          )}
                           {(() => {
                             const isVoid = publication.pubsta_id === PUBSTA_VOID;
                             const isSold = publication.pubsta_id === PUBSTA_SOLD;
@@ -221,6 +408,12 @@ const MyPublicationsMain = () => {
           )}
         </div>
       </section>
+
+      {/* Modal: cerrar venta */}
+      <CloseSaleModal
+        publication={pendingCloseSale}
+        onClose={() => setPendingCloseSale(null)}
+      />
 
       <Modal
         open={pendingDelete !== null}
@@ -347,6 +540,16 @@ const MyPublicationsMain = () => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
+        }
+        .my-publications-list :global(.close-sale-btn) {
+          background: #16a34a;
+          border-color: #16a34a;
+          color: #fff;
+        }
+        .my-publications-list :global(.close-sale-btn:hover) {
+          background: #15803d;
+          border-color: #15803d;
+          color: #fff;
         }
         .my-publications-list :global(button.border-btn:disabled) {
           cursor: not-allowed;
