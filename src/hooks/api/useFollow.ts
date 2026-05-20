@@ -56,6 +56,19 @@ export function useToggleFollow(sellerId: number) {
         queryClient.setQueryData(queryKey, context.previous);
       }
     },
+    onSuccess: (data) => {
+      // Reconcilia con la verdad del servidor. Si el update optimista ya dejó
+      // isFollowing == data.following, no hace nada (evita doble conteo).
+      // Si por algún motivo no aplicó, lo corrige aquí.
+      queryClient.setQueryData<SellerInfo | null>(queryKey, (curr) => {
+        if (!curr || curr.isFollowing === data.following) return curr;
+        return {
+          ...curr,
+          isFollowing: data.following,
+          followers: Math.max(0, curr.followers + (data.following ? 1 : -1)),
+        };
+      });
+    },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey });
     },
