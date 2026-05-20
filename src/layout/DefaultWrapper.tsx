@@ -97,6 +97,16 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
               width: 100% !important;
             }
           }
+          /* Mismo override de HeaderOne en /messages — el menú horizontal con
+             el bell se parte en 2 filas entre 1600-1851 si no apretamos. */
+          @media (min-width: 1600px) and (max-width: 1851px) {
+            .header1 .filter-search-input.header-search {
+              width: 220px !important;
+            }
+            .main-menu1 {
+              margin-right: 30px !important;
+            }
+          }
         `}</style>
       </ThemeProvider>
     );
@@ -159,6 +169,27 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           .app-layout.has-left-sidebar .c-container-1,
           .app-layout.has-right-sidebar .c-container-1 {
             width: 100% !important;
+          }
+        }
+
+        /* Entre 1600 y 1851 los sidebars ya ocupan 550px y el template define
+           anchos fijos de búsqueda (600px en HeaderTwo, 330px en HeaderOne)
+           + un margin-right enorme del menú (95px) que sobran espacio. El
+           resultado: en HeaderTwo se ocultan/cortan los botones de la derecha
+           (lang/bell/theme) y en HeaderOne el menú se parte en 2 filas. Acá
+           apretamos los hardcoded del template a valores responsive. */
+        @media (min-width: 1600px) and (max-width: 1851px) {
+          .header-main2-content .filter-search-input.header-search {
+            width: 380px !important;
+          }
+          .header-main2-content .filter-search-input.header-search input {
+            width: 100% !important;
+          }
+          .header1 .filter-search-input.header-search {
+            width: 220px !important;
+          }
+          .main-menu1 {
+            margin-right: 30px !important;
           }
         }
       `}</style>
