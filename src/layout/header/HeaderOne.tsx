@@ -39,7 +39,10 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                      </div>
                      <div className="col-xl-10 col-lg-10 col-md-8 col-8">
                         <div className="header-main-right">
-                           <div className="main-menu main-menu1 d-none d-lg-block">
+                           {/* d-xl-block (no d-lg-block) para que el menú solo
+                                aparezca desde 1200px. Abajo de eso se muestra el
+                                hamburguesa (d-xl-none) y NO se solapan. */}
+                           <div className="main-menu main-menu1 d-none d-xl-block">
                               <nav id="mobile-menu">
                                  <HeaderOneMenu/>
                               </nav>

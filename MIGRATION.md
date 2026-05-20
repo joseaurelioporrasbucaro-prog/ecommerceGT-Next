@@ -1471,3 +1471,41 @@ El primer hotfix no cubrió suficiente:
 **Key insight:** agregamos `max-width: 100%` como safety net. Aunque el template define `width: 600px` con !important en otra parte (hipotéticamente), el `max-width: 100%` hace que el search bar nunca exceda su columna padre. Esto elimina la posibilidad de que cubra visualmente al bell/theme del col-xl-5.
 
 **Importante para ver los cambios:** correr `rm -rf .next && npm run dev`. Sin esto el HMR puede dejar el CSS viejo cacheado y las overrides nuevas no aparecen.
+
+---
+
+### Hotfix v3 — HeaderOne en lg + HeaderTwo con selectores más específicos
+
+**Bug 1: HeaderOne (`/messages`) se rompe entre 992 y 1199**
+
+Causa: el `<div className="main-menu1 d-none d-lg-block">` se hace visible desde lg (≥992px), pero el hamburguesa `<menu-bar d-xl-none>` también se muestra abajo de xl (<1200px). Resultado: entre 992-1199 **ambos** elementos se renderizan y compiten por el espacio — el menú horizontal se mete y el hamburguesa también, partiendo todo en 2 filas.
+
+**Fix:** cambiar el menú a `d-xl-block`. Así:
+- ≥1200 (xl+) → solo menú horizontal.
+- <1200 → solo hamburguesa.
+- Nunca ambos al mismo tiempo.
+
+**Bug 2: HeaderTwo bell + theme ocultos en 1600-1851 (continuación)**
+
+El override de v2 con `.header-main2-content` (especificidad: 2 clases) podía estar siendo overrideado por algún CSS heredado o por orden de inyección de styled-jsx global vs los `.scss` importados en `layout.tsx`.
+
+**Fix:** se agrega más especificidad al override (`.app-layout .header2 .header-main2-content ...`) y se fuerza el comportamiento flex correcto en `header-main-right`:
+
+```css
+.app-layout .header2 .header-main2-content .header-main-right {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+.app-layout .header2 .header-main2-content .header-main-right > * {
+  flex-shrink: 0;
+}
+.app-layout .header2 .header-main2-content .filter-search-input.header-search {
+  width: 320px !important;
+  max-width: 100% !important;
+  flex-shrink: 1 !important;
+}
+```
+
+`flex-wrap: nowrap` evita que los elementos se partan en 2 filas. `flex-shrink: 0` en los hijos directos (lang, bell, theme) garantiza que ningún ícono se "shrinkee" a 0 ancho. Y `flex-shrink: 1` en la búsqueda permite que SOLO ella se ajuste si hay falta de espacio.
+
+**Importante:** después de pull, correr `rm -rf .next && npm run dev` — los overrides de styled-jsx global pueden quedar cacheados.
