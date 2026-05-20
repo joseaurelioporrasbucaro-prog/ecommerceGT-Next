@@ -1395,3 +1395,36 @@ El usuario reportó que `/favorites` se veía roto comparado con `/publications`
 ```
 
 Aplicado también a la rama de `/messages` (HeaderOne) por consistencia.
+
+---
+
+### Hotfix — Headers responsive en rango 1600–1851
+
+**Problema reportado:**
+1. **HeaderOne (`/messages`)**: el menú horizontal (Home / Propiedades / Creators / Pages / Forum / Contact + búsqueda + lang + bell + theme) se parte en 2 filas entre 1600 y 1799px.
+2. **HeaderTwo (resto de features)**: la búsqueda gigante (600px hardcoded) + los botones de la derecha (lang + bell + theme) se ocultan / cortan entre 1600 y 1851px.
+
+**Causa raíz:** el template define anchos FIJOS sin media queries para esos rangos:
+- `.header-main2-content .filter-search-input.header-search { width: 600px; }` en HeaderTwo.
+- `.filter-search-input.header-search { width: 330px; }` en HeaderOne.
+- `.main-menu1 { margin-right: 95px; }` margen enorme del menú.
+
+A 1600px de viewport con los dos sidebars visibles, el área útil queda en 1050px. `col-xl-7` da ~612px de los cuales el search consume 600 → sobran 12px para hamburguesa/etc. Y en `col-xl-5` (~480px) el bell que agregamos en Fase 6.3.1 termina empujando todo afuera. En HeaderOne pasa lo mismo con el menú de 7 items + 95px de margin-right + el bell.
+
+**Fix:** override responsive en `DefaultWrapper` para el rango 1600–1851:
+
+```css
+@media (min-width: 1600px) and (max-width: 1851px) {
+  .header-main2-content .filter-search-input.header-search { width: 380px !important; }
+  .header-main2-content .filter-search-input.header-search input { width: 100% !important; }
+  .header1 .filter-search-input.header-search { width: 220px !important; }
+  .main-menu1 { margin-right: 30px !important; }
+}
+```
+
+Aplicado en ambas ramas del `DefaultWrapper` (la principal con HeaderTwo y la de `/messages` con HeaderOne). Resultado:
+- Search bar de HeaderTwo: 600px → 380px en este rango (sigue siendo cómodo para escribir).
+- Search bar de HeaderOne: 330px → 220px.
+- Margin-right del menú: 95px → 30px (el template ya lo usa así en xxl/xl, lo extendemos al rango siguiente).
+
+A partir de 1852px el viewport ya tiene espacio sobrado y vuelven los anchos originales del template.
