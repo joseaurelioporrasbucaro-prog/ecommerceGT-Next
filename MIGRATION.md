@@ -1509,3 +1509,27 @@ El override de v2 con `.header-main2-content` (especificidad: 2 clases) podía e
 `flex-wrap: nowrap` evita que los elementos se partan en 2 filas. `flex-shrink: 0` en los hijos directos (lang, bell, theme) garantiza que ningún ícono se "shrinkee" a 0 ancho. Y `flex-shrink: 1` en la búsqueda permite que SOLO ella se ajuste si hay falta de espacio.
 
 **Importante:** después de pull, correr `rm -rf .next && npm run dev` — los overrides de styled-jsx global pueden quedar cacheados.
+
+---
+
+### Hotfix v4 — HeaderTwo 1600-1840: cambio de proporción de columnas
+
+Las versiones v2/v3 achicaban la búsqueda pero no resolvían que el bell + theme quedaran tapados/ocultos entre 1600 y 1840. El problema de fondo: el template usa `col-xl-7` (58%) para la búsqueda y `col-xl-5` (42%) para los íconos. Con los sidebars ocupando 550px, la columna derecha (42% de ~995px = ~418px) no garantizaba que los íconos no se salieran de su espacio visible.
+
+**Fix definitivo:** en 1600-1840 cambiamos la PROPORCIÓN de las columnas en vez de solo el ancho de la búsqueda:
+
+```css
+@media (min-width: 1600px) and (max-width: 1840px) {
+  .col-xl-7 { width: 45% !important; }   /* búsqueda: era 58% */
+  .col-xl-5 { width: 55% !important; }   /* íconos: era 42% */
+  .filter-search-input.header-search { width: 260px !important; }
+  .header-main-right { flex-wrap: nowrap !important; overflow: visible !important; }
+  .header-main-right > * { flex-shrink: 0 !important; }
+}
+```
+
+Al darle 55% a la columna de los íconos (lang + bell + theme), siempre tienen lugar de sobra. La búsqueda baja a 260px en el 45% restante. Selectores con `.app-layout .header2 .header-main2-content` para máxima especificidad.
+
+**Verificado con `next build` limpio** (no solo tsc) para descartar que fuera un problema de compilación.
+
+> ⚠️ **Si después de pull sigue sin verse:** es caché de `.next`. Detené el dev server, `rm -rf .next`, y `npm run dev` de nuevo. Los `<style jsx global>` se cachean agresivamente con HMR.

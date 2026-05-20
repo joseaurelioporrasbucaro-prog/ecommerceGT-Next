@@ -195,18 +195,25 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           }
         }
 
-        /* Entre 1600 y 1851 los sidebars ocupan 550px y los anchos fijos
-           del template (600px búsqueda en HeaderTwo, 330px en HeaderOne)
-           sobran espacio. El selector .app-layout .header2 es más específico
-           que el del template (.header-main2-content alone) para asegurar
-           que el override realmente se aplica. flex-shrink en la búsqueda y
-           explicit flex-shrink: 0 en los elementos del header-main-right
-           evita que el browser intente esconder los íconos de la derecha. */
-        @media (min-width: 1600px) and (max-width: 1851px) {
+        /* En 1600-1840 los sidebars ocupan 550px y el espacio para el header
+           queda apretado. En vez de solo achicar la búsqueda (que no bastaba),
+           cambiamos la PROPORCIÓN de las columnas: la izquierda (búsqueda)
+           pasa de 58% a 45%, y la derecha (lang + bell + theme) de 42% a 55%.
+           Así los íconos siempre tienen lugar y no quedan tapados/ocultos. */
+        @media (min-width: 1600px) and (max-width: 1840px) {
+          .app-layout .header2 .header-main2-content .col-xl-7 {
+            flex: 0 0 auto !important;
+            width: 45% !important;
+            max-width: 45% !important;
+          }
+          .app-layout .header2 .header-main2-content .col-xl-5 {
+            flex: 0 0 auto !important;
+            width: 55% !important;
+            max-width: 55% !important;
+          }
           .app-layout .header2 .header-main2-content .filter-search-input.header-search {
-            width: 320px !important;
+            width: 260px !important;
             max-width: 100% !important;
-            flex-shrink: 1 !important;
           }
           .app-layout .header2 .header-main2-content .filter-search-input.header-search input {
             width: 100% !important;
@@ -214,10 +221,11 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           }
           .app-layout .header2 .header-main2-content .header-main-right {
             min-width: 0;
-            flex-wrap: nowrap;
+            flex-wrap: nowrap !important;
+            overflow: visible !important;
           }
           .app-layout .header2 .header-main2-content .header-main-right > * {
-            flex-shrink: 0;
+            flex-shrink: 0 !important;
           }
           .app-layout .header1 .filter-search-input.header-search {
             width: 220px !important;
