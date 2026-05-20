@@ -11,7 +11,7 @@ interface ForumReplyProps {
   avatarSrc: string | StaticImageData;
   date: string;
   time?: string;
-  content: string;
+  content: React.ReactNode;
   likes?: number;
   isLiked?: boolean;
   onLike?: () => void;

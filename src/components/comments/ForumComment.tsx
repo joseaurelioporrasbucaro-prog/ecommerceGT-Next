@@ -12,7 +12,7 @@ interface ForumCommentProps {
   date: string;
   time?: string;
   title?: React.ReactNode;
-  content: string;
+  content: React.ReactNode;
   afterContent?: React.ReactNode;
   likes?: number;
   isLiked?: boolean;

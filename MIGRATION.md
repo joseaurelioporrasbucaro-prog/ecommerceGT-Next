@@ -133,7 +133,7 @@ El backend está estable y se comparte. La regla:
 | **6.2** | UI estilo Messenger (3 cols, sin footer, ancho completo) + reacciones, reply y denuncia | ✅ Completada | 1–2 días |
 | **6.3.1** | Centro de notificaciones unificado: tabla, endpoints, inserción auto + bell badge en headers + `/activity` real | ✅ Completada | 1 día |
 | **6.3.2** | Notifs faltantes (`comment` y `pub_favorite`) + UI `/activity` con tabs por categoría (estilo plantilla) + footer fix | ✅ Completada | 0.5 día |
-| **6.3.3** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ⬜ Pendiente | 1 día |
+| **6.3.3** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ✅ Completada | 1 día |
 | **7** | Cierre de venta + reseñas | ⬜ Pendiente | 1 día |
 | **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
@@ -1559,3 +1559,21 @@ Así header, cards y footer libran los sidebars con el mismo aire que la plantil
 **Bonus — HeaderOne en `/messages`:** el menú horizontal de 4 ítems se partía en 2 líneas en el rango **1600-1605px**, porque justo a 1600 entra el `padding-right:275` del sidebar **y** la búsqueda saltaba de 180→220px a la vez (`.container.header-container` tiene `max-width: 1650px`, así que abajo de eso el ancho sigue al viewport). Fix: mantener la búsqueda en 180px hasta 1699 y ensancharla a 220px recién en 1700+, donde ya sobra ancho.
 
 Commit: `ae6997f` en `main`. Reemplaza los hotfixes v1–v4 (cuyo CSS fue borrado).
+
+### ✅ Fase 6.3.3 (completada) — Menciones `@usuario`: dropdown + linkificación
+
+Las notificaciones de `mention`/`reply` ya se insertaban desde 6.3.1/6.3.2 (el backend parsea `@handle` en `POST /addcomment` vía `resolveMentions`). Faltaba la UX: poder elegir a quién mencionar y que las menciones renderizadas sean clickeables.
+
+**Backend (`// Codigo Aurelio`, commit `b68c23f` en `techmindsgt`, deployado):**
+- `GET /search/users?q=` (público, prefijo ≥2): busca `cus_handle ILIKE 'q%'`, limit 8, devuelve `{cusId, handle, firstName, lastName, avatar}`. Alimenta el dropdown.
+- `getComments` ahora adjunta `mentions: [{handle, cusId}]` por comentario — recolecta todos los `@handle` y los resuelve en **una sola query** (sin N+1), para que el front linkifique sin requests extra. Mantiene el shape array.
+
+**Frontend (`main`):**
+- `types/api.ts`: `CommentMention`, `UserSearchResult`, y `mentions?` en `Comment`.
+- `useSearchUsers(q)`: hook React Query, `enabled` con prefijo ≥2, `staleTime 60s`.
+- `MentionTextarea`: textarea controlada que detecta `@palabra` en el caret, abre dropdown con avatar+nombre+handle, navegación con flechas/Enter/Escape, inserta `@handle ` al elegir. Reemplaza los `<textarea>` del comentario nuevo y del reply inline.
+- `renderCommentContent(content, mentions)`: helper que parte el texto y reemplaza cada `@handle` resuelto por `<Link href="/creator-profile/[cusId]">`. Los `@algo` sin resolver quedan como texto. `ForumComment`/`ForumReply` ahora aceptan `content: React.ReactNode`.
+
+**Verificación:** endpoint probado local (`q=au` → aurelio), `getComments` devuelve `mentions`, `tsc --noEmit` limpio, `/publications/1` compila 200. UX del dropdown pendiente de verificación visual del usuario.
+
+**Siguiente:** Fase 7 (cierre de venta + reseñas).

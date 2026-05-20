@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import ForumComment from '@/components/comments/ForumComment';
 import ForumReply from '@/components/comments/ForumReply';
+import MentionTextarea from '@/components/comments/MentionTextarea';
+import { renderCommentContent } from '@/components/comments/renderCommentContent';
 import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { useAddComment, usePublicationComments } from '@/hooks/api/usePublicationComments';
@@ -85,11 +87,6 @@ interface InlineReplyFormProps {
 const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineReplyFormProps) => {
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,14 +110,13 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
         <i className="fal fa-reply"></i>
         Respondiendo a <strong>{authorName}</strong>
       </div>
-      <textarea
-        ref={textareaRef}
+      <MentionTextarea
         rows={3}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={`Escribe tu respuesta a ${authorName}...`}
+        onChange={setContent}
+        placeholder={`Escribe tu respuesta a ${authorName}... (usa @ para mencionar)`}
         disabled={isPending}
-        className="form-control"
+        autoFocus
       />
       {error && <div className="text-danger inline-reply-error">{error}</div>}
       <div className="inline-reply-actions">
@@ -295,7 +291,7 @@ const CommentNodeView = ({
         avatarSrc={DEFAULT_AVATAR}
         date={date}
         time={time}
-        content={node.content}
+        content={renderCommentContent(node.content, node.mentions)}
         likes={node.likesCount}
         isLiked={node.isLiked}
         onLike={likeHandler}
@@ -315,7 +311,7 @@ const CommentNodeView = ({
       avatarSrc={DEFAULT_AVATAR}
       date={date}
       time={time}
-      content={node.content}
+      content={renderCommentContent(node.content, node.mentions)}
       likes={node.likesCount}
       isLiked={node.isLiked}
       onLike={likeHandler}
@@ -433,12 +429,11 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                       <i className="fal fa-comment"></i>
                       Deja un comentario
                     </label>
-                    <textarea
-                      className="form-control"
+                    <MentionTextarea
                       rows={4}
                       value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Escribe un comentario..."
+                      onChange={setContent}
+                      placeholder="Escribe un comentario... (usa @ para mencionar)"
                       disabled={addCommentMutation.isPending}
                     />
                     {formError && <div className="text-danger mt-2">{formError}</div>}
@@ -610,6 +605,16 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        /* Menciones @handle linkificadas dentro de los comentarios (Fase 6.3.3) */
+        :global(.comment-mention) {
+          color: var(--tp-theme-1, #6c5ce7);
+          font-weight: 600;
+          text-decoration: none;
+        }
+        :global(.comment-mention:hover) {
+          text-decoration: underline;
         }
       `}</style>
     </section>

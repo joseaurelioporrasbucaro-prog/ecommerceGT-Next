@@ -330,6 +330,12 @@ export interface SavePublicationResponse {
 // Comentarios
 // ============================================================================
 
+/** Mención @handle resuelta a su cusId, para linkificar en el render (Fase 6.3.3). */
+export interface CommentMention {
+  handle: string;
+  cusId: number;
+}
+
 export interface Comment {
   comment_id: number;
   content: string;
@@ -340,6 +346,17 @@ export interface Comment {
   cus_last_name: string;
   likesCount: number;
   isLiked: boolean;
+  /** @handle mencionados en el contenido, resueltos a cusId por el backend. */
+  mentions?: CommentMention[];
+}
+
+/** Resultado del dropdown de menciones (@usuario) — GET /search/users (Fase 6.3.3). */
+export interface UserSearchResult {
+  cusId: number;
+  handle: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatar: string | null;
 }
 
 /** Respuesta de `POST /comments/:comment_id/like` (toggle). */
