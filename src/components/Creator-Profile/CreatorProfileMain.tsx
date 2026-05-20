@@ -84,7 +84,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
   };
 
   const handleToggleFollow = () => {
+    const wasFollowing = seller?.isFollowing ?? false;
     followMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success(wasFollowing ? `Dejaste de seguir a ${displayName}` : `Ahora sigues a ${displayName}`);
+      },
       onError: (err) => {
         if (err.message && !err.message.includes('iniciar sesión')) {
           toast.error('No se pudo actualizar el seguimiento.');
@@ -352,11 +356,13 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           justify-content: center;
           width: 100%;
           height: 100%;
-          font-size: 40px;
+          font-size: 80px;
           font-weight: 700;
           color: #fff;
           background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-          border-radius: 50%;
+          /* La foto del template es un rectángulo redondeado (10px), no un
+             círculo; con 50% el placeholder se veía ovalado. */
+          border-radius: 10px;
         }
         .profile-rating-line {
           display: flex;
@@ -411,7 +417,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           background-image: none;
           background-color: rgba(108, 92, 231, 0.12);
           color: var(--tp-theme-1, #6c5ce7);
-          padding-left: 27px;
+        }
+        /* Al seguir, el "+" de la plantilla pasa a un check (✓ Siguiendo). */
+        .creator-info-bar :global(.follow-artist.is-following::before) {
+          content: '\f00c';
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .creator-info-bar :global(.follow-artist:disabled) {
           opacity: 0.6;

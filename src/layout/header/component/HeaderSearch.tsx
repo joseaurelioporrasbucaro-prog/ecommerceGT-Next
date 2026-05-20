@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import React, { useMemo, useRef, useState } from 'react';
 import { useSearchUsers } from '@/hooks/api/useSearchUsers';
 import { usePublications } from '@/hooks/api/usePublications';
@@ -24,7 +24,6 @@ const MAX_RESULTS = 5;
  * con ambas secciones y navega al elegir.
  */
 const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propiedades...' }: HeaderSearchProps) => {
-  const router = useRouter();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,6 +41,8 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
     if (!enabled) return [];
     const all = publicationsQuery.data ?? [];
     return all
+      // Excluye vendidas (pubsta 3) y anuladas (4): no deben buscarse.
+      .filter((p) => p.pubstaId !== 3 && p.pubstaId !== 4)
       .filter((p) => p.title?.toLowerCase().includes(normalized))
       .slice(0, MAX_RESULTS);
   }, [enabled, normalized, publicationsQuery.data]);
@@ -55,10 +56,9 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
     if (blurTimer.current) clearTimeout(blurTimer.current);
   };
 
-  const go = (href: string) => {
+  const closeAfterSelect = () => {
     setOpen(false);
     setQuery('');
-    router.push(href);
   };
 
   const pubThumb = (p: (typeof publications)[number]): string => {
@@ -104,11 +104,11 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
                 const name = `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || `@${u.handle}`;
                 const avatar = u.avatar ? getBackendUrl(u.avatar) : generateInitialsAvatar(name, 64);
                 return (
-                  <button
+                  <Link
                     key={`u-${u.cusId}`}
-                    type="button"
+                    href={`/creator-profile/${u.cusId}`}
                     className="hsd-item"
-                    onMouseDown={() => go(`/creator-profile/${u.cusId}`)}
+                    onClick={closeAfterSelect}
                   >
                     <Image src={avatar} alt={name} width={34} height={34} unoptimized
                       style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
@@ -116,7 +116,7 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
                       <span className="hsd-name">{name}</span>
                       <span className="hsd-sub">@{u.handle}</span>
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -128,11 +128,11 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
               {publications.map((p) => {
                 const thumb = pubThumb(p);
                 return (
-                  <button
+                  <Link
                     key={`p-${p.id}`}
-                    type="button"
+                    href={`/publications/${p.id}`}
                     className="hsd-item"
-                    onMouseDown={() => go(`/publications/${p.id}`)}
+                    onClick={closeAfterSelect}
                   >
                     <Image src={thumb} alt={p.title} width={34} height={34}
                       unoptimized={thumb === CARD_PLACEHOLDER}
@@ -141,7 +141,7 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
                       <span className="hsd-name">{p.title}</span>
                       <span className="hsd-sub">{p.town || p.city || 'Propiedad'}</span>
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -194,6 +194,8 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
           border-radius: 8px;
           cursor: pointer;
           text-align: left;
+          color: inherit;
+          text-decoration: none;
         }
         .hsd-item:hover {
           background: rgba(108, 92, 231, 0.08);
