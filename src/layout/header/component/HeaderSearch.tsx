@@ -68,22 +68,26 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
   };
 
   return (
-    <form
-      action="#"
-      className={`filter-search-input header-search header-search-live ${className}`}
-      onSubmit={(e) => e.preventDefault()}
+    <div
+      className={`header-search-wrap ${className}`}
       onFocus={cancelClose}
       onBlur={closeSoon}
       style={{ position: 'relative' }}
     >
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={query}
-        onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
-      />
-      <button type="submit"><i className="fal fa-search"></i></button>
+      <form
+        action="#"
+        className="filter-search-input header-search"
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+        />
+        <button type="submit"><i className="fal fa-search"></i></button>
+      </form>
 
       {open && enabled && (
         <div className="header-search-dropdown">
@@ -214,8 +218,14 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
           overflow: hidden;
           text-overflow: ellipsis;
         }
+        /* La plantilla posiciona absolutos los <button> dentro de
+           .filter-search-input; al estar el dropdown FUERA del form, sus
+           botones quedan en flujo normal. Refuerzo defensivo: */
+        .hsd-item {
+          position: static;
+        }
       `}</style>
-    </form>
+    </div>
   );
 };
 
