@@ -1596,4 +1596,23 @@ El backend ya tenía `closeSale`, `submitSurvey` y `getSellerReviews` con rutas 
 - **`/survey/[token]`** (nueva ruta): `SurveyMain` con selector de estrellas interactivo (hover + clic), label descriptivo por puntuación, textarea de comentario, submit al backend, estado de éxito post-envío.
 - **`CreatorProfileMain`**: eliminados datos estáticos. Conectado a `useSellerInfo` (`GET /infoCustomer/:id`) y `useSellerReviews`. Muestra avatar real, nombre, handle, estadísticas (publicaciones, reseñas, calificación promedio) y tarjetas de reseñas con `StarDisplay`, fecha y comentario.
 
+---
+
+### ✅ Fase 7.1 (completada) — Calificar desde la notificación + perfil reconstruido sobre la plantilla
+
+Feedback del usuario: (1) las notificaciones deben permitir calificar directamente y traer un texto claro ("X cerró la venta contigo. ¡Califícalo!"), y (2) `creator-profile` debía basarse en la **plantilla** (que se compró justamente para eso), no en un layout custom. La primera versión de `CreatorProfileMain` (Fase 7) usaba estilos inline propios en lugar de la estructura del scaffold — corregido aquí.
+
+**Backend (`// Codigo Aurelio`, commit `5dec9d2` en `techmindsgt`):**
+- `closeSale`: el payload de la notificación `sale_closed` ahora incluye `surveyToken` + `pubTitle`, para poder linkear al formulario de calificación desde la propia notificación. Email link corregido de `/complete-survey/` a `/survey/[token]` (estaba desalineado con la ruta del front) y rediseñado.
+- `submitSurvey`: al completar una calificación, inserta una notificación `review_received` al vendedor (estrellas + comentario como snippet). Decodifica `seller_id`/`buyer_id` del token JWT.
+- `getSellerPublications` + `GET /seller-publications/:id`: publicaciones públicas de un vendedor (mismo shape que el listado público, `pubsta <> 4` y `<> 1`), para alimentar el tab "Publicaciones" del perfil reutilizando `PublicationCard`.
+
+**Frontend (`main`, commit `6c61f3e`):**
+- `notificationUtils.ts`: `sale_closed` → texto "X cerró la venta contigo. ¡Califícalo!" + `href` directo a `/survey/[token]` (lee `payload.surveyToken`), snippet con el título de la publicación. `review_received` → muestra las estrellas recibidas y enlaza al perfil propio del vendedor (`recipient_cus_id`).
+- `useSellerPublications(id)`: hook React Query para el nuevo endpoint.
+- **`CreatorProfileMain` reconstruido sobre la plantilla**: usa la estructura nativa del scaffold `creator-details-area` (cover + `creator-about` card + `creator-info-bar` con `artist-meta-info` + `creator-info-tab` con `nav-tabs`). Tabs reales: **Publicaciones** (grid de `PublicationCard`) y **Reseñas** (resumen con promedio + tarjetas con avatar, estrellas, fecha y comentario). Datos reales de `useSellerInfo` + `useSellerReviews` + `useSellerPublications`.
+- Calificar desde el email **y** desde la notificación: ambos llevan a `/survey/[token]` (ruta pública, no requiere sesión).
+
+**Verificación:** `tsc --noEmit` limpio, `next build` OK (`/survey/[token]` y `/creator-profile/[id]` compilan). Pendiente de verificación visual del usuario.
+
 **Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (Ranking de vendedores / follow).
