@@ -97,11 +97,21 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
               width: 100% !important;
             }
           }
-          /* Mismo override de HeaderOne en /messages — el menú horizontal con
-             el bell se parte en 2 filas entre 1600-1851 si no apretamos. */
+          /* HeaderOne en /messages — el menú horizontal con el bell se parte
+             en 2 filas en xl (1200-1399), xxl (1400-1599) y 1600-1851. */
+          @media (min-width: 1200px) and (max-width: 1599px) {
+            .header1 .filter-search-input.header-search {
+              width: 180px !important;
+              max-width: 180px !important;
+            }
+            .main-menu1 {
+              margin-right: 20px !important;
+            }
+          }
           @media (min-width: 1600px) and (max-width: 1851px) {
             .header1 .filter-search-input.header-search {
               width: 220px !important;
+              max-width: 220px !important;
             }
             .main-menu1 {
               margin-right: 30px !important;
@@ -172,21 +182,35 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           }
         }
 
-        /* Entre 1600 y 1851 los sidebars ya ocupan 550px y el template define
-           anchos fijos de búsqueda (600px en HeaderTwo, 330px en HeaderOne)
-           + un margin-right enorme del menú (95px) que sobran espacio. El
-           resultado: en HeaderTwo se ocultan/cortan los botones de la derecha
-           (lang/bell/theme) y en HeaderOne el menú se parte en 2 filas. Acá
-           apretamos los hardcoded del template a valores responsive. */
+        /* HeaderOne (/messages) — el menú horizontal de 7 items + búsqueda
+           330px + margen 95px del .main-menu1 no caben en xl (1200-1399)
+           ni en parte de xxl (1400-1599) sin partirse en 2 filas. */
+        @media (min-width: 1200px) and (max-width: 1599px) {
+          .header1 .filter-search-input.header-search {
+            width: 180px !important;
+            max-width: 180px !important;
+          }
+          .main-menu1 {
+            margin-right: 20px !important;
+          }
+        }
+
+        /* Entre 1600 y 1851 los sidebars ocupan 550px y los anchos fijos
+           del template (600px búsqueda en HeaderTwo, 330px en HeaderOne)
+           sobran espacio. max-width: 100% es safety net para que la
+           búsqueda NUNCA exceda su columna aunque el width fijo lo permita. */
         @media (min-width: 1600px) and (max-width: 1851px) {
           .header-main2-content .filter-search-input.header-search {
-            width: 380px !important;
+            width: 320px !important;
+            max-width: 100% !important;
           }
           .header-main2-content .filter-search-input.header-search input {
             width: 100% !important;
+            max-width: 100% !important;
           }
           .header1 .filter-search-input.header-search {
             width: 220px !important;
+            max-width: 220px !important;
           }
           .main-menu1 {
             margin-right: 30px !important;
