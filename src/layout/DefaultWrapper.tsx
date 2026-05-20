@@ -197,22 +197,33 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
 
         /* Entre 1600 y 1851 los sidebars ocupan 550px y los anchos fijos
            del template (600px búsqueda en HeaderTwo, 330px en HeaderOne)
-           sobran espacio. max-width: 100% es safety net para que la
-           búsqueda NUNCA exceda su columna aunque el width fijo lo permita. */
+           sobran espacio. El selector .app-layout .header2 es más específico
+           que el del template (.header-main2-content alone) para asegurar
+           que el override realmente se aplica. flex-shrink en la búsqueda y
+           explicit flex-shrink: 0 en los elementos del header-main-right
+           evita que el browser intente esconder los íconos de la derecha. */
         @media (min-width: 1600px) and (max-width: 1851px) {
-          .header-main2-content .filter-search-input.header-search {
+          .app-layout .header2 .header-main2-content .filter-search-input.header-search {
             width: 320px !important;
             max-width: 100% !important;
+            flex-shrink: 1 !important;
           }
-          .header-main2-content .filter-search-input.header-search input {
+          .app-layout .header2 .header-main2-content .filter-search-input.header-search input {
             width: 100% !important;
             max-width: 100% !important;
           }
-          .header1 .filter-search-input.header-search {
+          .app-layout .header2 .header-main2-content .header-main-right {
+            min-width: 0;
+            flex-wrap: nowrap;
+          }
+          .app-layout .header2 .header-main2-content .header-main-right > * {
+            flex-shrink: 0;
+          }
+          .app-layout .header1 .filter-search-input.header-search {
             width: 220px !important;
             max-width: 220px !important;
           }
-          .main-menu1 {
+          .app-layout .main-menu1 {
             margin-right: 30px !important;
           }
         }
