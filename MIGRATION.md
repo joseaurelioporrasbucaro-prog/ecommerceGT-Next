@@ -1428,3 +1428,46 @@ Aplicado en ambas ramas del `DefaultWrapper` (la principal con HeaderTwo y la de
 - Margin-right del menú: 95px → 30px (el template ya lo usa así en xxl/xl, lo extendemos al rango siguiente).
 
 A partir de 1852px el viewport ya tiene espacio sobrado y vuelven los anchos originales del template.
+
+---
+
+### Hotfix v2 — Headers responsive (rangos extendidos + safety net)
+
+El primer hotfix no cubrió suficiente:
+
+1. **HeaderOne (`/messages`)** se seguía partiendo en 2 filas en **1200-1302** (rango xl) — el primer fix solo cubría 1600-1851.
+2. **HeaderTwo** la búsqueda seguía tapando el bell y el toggle de tema entre 1600 y 1851 — el width 380px probablemente no era suficiente porque el template tiene varios `.filter-search-input.header-search input { width: 100% }` heredados que extendían el input al 100% del wrapper.
+
+**Cambios v2:**
+
+```css
+/* HeaderOne tighter en xl + xxl (1200-1599) — no solo en 1600-1851 */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .header1 .filter-search-input.header-search {
+    width: 180px !important;
+    max-width: 180px !important;
+  }
+  .main-menu1 { margin-right: 20px !important; }
+}
+
+/* HeaderTwo + HeaderOne en 1600-1851 — más conservador + safety net */
+@media (min-width: 1600px) and (max-width: 1851px) {
+  .header-main2-content .filter-search-input.header-search {
+    width: 320px !important;
+    max-width: 100% !important;  /* nunca excede su columna */
+  }
+  .header-main2-content .filter-search-input.header-search input {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .header1 .filter-search-input.header-search {
+    width: 220px !important;
+    max-width: 220px !important;
+  }
+  .main-menu1 { margin-right: 30px !important; }
+}
+```
+
+**Key insight:** agregamos `max-width: 100%` como safety net. Aunque el template define `width: 600px` con !important en otra parte (hipotéticamente), el `max-width: 100%` hace que el search bar nunca exceda su columna padre. Esto elimina la posibilidad de que cubra visualmente al bell/theme del col-xl-5.
+
+**Importante para ver los cambios:** correr `rm -rf .next && npm run dev`. Sin esto el HMR puede dejar el CSS viejo cacheado y las overrides nuevas no aparecen.
