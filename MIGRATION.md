@@ -1615,4 +1615,27 @@ Feedback del usuario: (1) las notificaciones deben permitir calificar directamen
 
 **Verificación:** `tsc --noEmit` limpio, `next build` OK (`/survey/[token]` y `/creator-profile/[id]` compilan). Pendiente de verificación visual del usuario.
 
-**Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (Ranking de vendedores / follow).
+---
+
+### ✅ Fase 7.2 (completada) — Perfil estilo plantilla: seguir, stats, ubicación, antigüedad, compartir
+
+Feedback del usuario sobre el `creator-profile`: traer los elementos de la plantilla (likes, seguidores, seguidos, botón seguir, compartir, ubicación, antigüedad) con datos reales. El follow se adelantó desde la Fase 9.
+
+> ⚠️ **Migración de BD requerida.** Esta fase añade la tabla `ecom.customer_follows`. **Hay que correr el `CREATE TABLE` en producción ANTES de desplegar el backend**, o `getInfoCus` falla (consulta la tabla). No hay runner de migraciones automático; se aplica a mano (igual que mensajería/notifs). El SQL está en `database.sql`.
+
+**Backend (`// Codigo Aurelio`, commit `2819127` en `techmindsgt`):**
+- Nueva tabla `ecom.customer_follows` (`follower_cus_id`, `followed_cus_id`, unique + CHECK anti-auto-follow + índices).
+- `getInfoCus` ahora pasa por `authMiddlewareAux` (auth opcional) y devuelve, además de nombre/handle/avatar: `address`, `joindate` (cus_create_date), `likes` (favoritos recibidos en sus publicaciones), `followers`, `following` e `isfollowing` (relativo al viewer logueado). `totalpublis` ahora cuenta solo `pubsta NOT IN (1,4)`.
+- `followUser` / `unfollowUser` + rutas `POST /follow/:id` y `DELETE /follow/:id` (auth).
+
+**Frontend (`main`, commit `c3846bb`):**
+- `types/api.ts` + `usePublications`: `SellerInfoRow`/`SellerInfo` extendidos con los nuevos campos + normalización (`toInt`, booleano).
+- `useToggleFollow(sellerId)`: mutation `POST`/`DELETE /follow/:id` con **actualización optimista** del cache `['sellerInfo', id]` (alterna `isFollowing`, ajusta `followers ±1`). Si no hay sesión, redirige a `/login?from=`.
+- `CreatorProfileMain`:
+  - Tarjeta izquierda: lista con **ubicación** (`fa-map-marker-alt`) y **antigüedad** ("Se unió en {mes año}", `flaticon-calendar`).
+  - Barra de stats (`artist-meta-info`): **Publicaciones · Likes · Seguidores · Siguiendo**, con formato `1.2k`/`3.4M`.
+  - `creator-details-action`: botón **Seguir/Siguiendo** (funcional, optimista, oculto en el perfil propio) + botón **Compartir** (Web Share API con fallback a copiar enlace + toast).
+
+**Verificación:** migración aplicada a la BD local; `GET /infoCustomer/:id` devuelve los nuevos campos; `POST`/`DELETE /follow/:id` responden 401 sin sesión. `tsc --noEmit` limpio, `next build` OK.
+
+**Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (ranking de vendedores; el follow ya quedó hecho).
