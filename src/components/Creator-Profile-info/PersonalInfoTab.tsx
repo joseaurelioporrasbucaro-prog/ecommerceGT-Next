@@ -5,8 +5,10 @@ import { ApiError, ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGenders, useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useCheckHandle, useUpdateHandle } from '@/hooks/api/useHandle';
+import { SELLER_INFO_QUERY_KEY } from '@/hooks/api/usePublications';
 
 interface UpdateInfoResponse {
     message?: string;
@@ -17,6 +19,7 @@ const GUATEMALA_COUNTRY_ID = 502;
 
 const PersonalInfoTab = () => {
     const { user, checkAuth } = useAuth();
+    const queryClient = useQueryClient();
     const [loading, setLoading] = useState(false);
     const [handleValue, setHandleValue] = useState(user?.handle ?? '');
     const { data: genders = [] } = useGenders();
@@ -55,19 +58,14 @@ const PersonalInfoTab = () => {
             firstName: Yup.string().required('El nombre es obligatorio'),
             lastName: Yup.string().required('El apellido es obligatorio'),
             phone: Yup.string().max(8, 'Máximo 8 dígitos').required('El teléfono es obligatorio'),
-            address: Yup.string().max(55, 'Máximo 55 caracteres').required('La dirección es obligatoria'),
+            // La dirección (texto libre) es opcional.
+            address: Yup.string().max(55, 'Máximo 55 caracteres'),
             birthday: Yup.string().required('Fecha requerida'),
             genid: Yup.string().required('Género requerido'),
             lang: Yup.string().required('Idioma requerido'),
-            // Si quiere mostrar ubicación, exige departamento + municipio.
-            citId: Yup.string().when('showLocation', {
-                is: true,
-                then: (s) => s.required('Selecciona el departamento'),
-            }),
-            towId: Yup.string().when('showLocation', {
-                is: true,
-                then: (s) => s.required('Selecciona el municipio'),
-            }),
+            // Departamento y municipio son obligatorios.
+            citId: Yup.string().required('Selecciona el departamento'),
+            towId: Yup.string().required('Selecciona el municipio'),
         }),
         onSubmit: async (values) => {
             setLoading(true);
@@ -93,6 +91,8 @@ const PersonalInfoTab = () => {
 
                 toast.success("¡Toda la información actualizada!");
                 await checkAuth();
+                // Refresca el perfil público para reflejar ubicación/visibilidad sin recargar.
+                queryClient.invalidateQueries({ queryKey: SELLER_INFO_QUERY_KEY });
             } catch (error) {
                 toast.error(error instanceof ApiError ? error.message : "Error al actualizar la información");
             } finally {
@@ -287,17 +287,24 @@ const PersonalInfoTab = () => {
                     </div>
 
                     <div className="col-md-12">
-                        <div className="single-input-unit">
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={formik.values.showLocation}
-                                    onChange={(e) => formik.setFieldValue('showLocation', e.target.checked)}
-                                    style={{ width: 18, height: 18 }}
-                                />
-                                Mostrar mi ubicación (departamento y municipio) en mi perfil público
-                            </label>
-                        </div>
+                        <label
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                cursor: 'pointer',
+                                marginTop: 18,
+                                marginBottom: 10,
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={formik.values.showLocation}
+                                onChange={(e) => formik.setFieldValue('showLocation', e.target.checked)}
+                                style={{ width: 18, height: 18, flexShrink: 0, margin: 0 }}
+                            />
+                            <span>Mostrar mi ubicación (departamento y municipio) en mi perfil público</span>
+                        </label>
                     </div>
                 </div>
 
