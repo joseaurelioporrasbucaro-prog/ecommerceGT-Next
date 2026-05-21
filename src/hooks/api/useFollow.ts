@@ -22,26 +22,28 @@ export function useToggleFollow(sellerId: number) {
   const queryClient = useQueryClient();
   const queryKey = [...SELLER_INFO_QUERY_KEY, sellerId] as const;
 
-  return useMutation<{ following: boolean }, Error, void, FollowContext>({
-    mutationFn: () => {
+  // La variable `currentlyFollowing` se pasa explícitamente al llamar a mutate()
+  // capturada al hacer clic. NO se lee del cache dentro de mutationFn, porque
+  // onMutate corre ANTES y ya habría alternado isFollowing → mutationFn vería el
+  // valor invertido y haría la acción contraria (POST vs DELETE).
+  return useMutation<{ following: boolean }, Error, boolean, FollowContext>({
+    mutationFn: (currentlyFollowing: boolean) => {
       if (!user) {
         const from = pathname || '/';
         router.push(`/login?from=${encodeURIComponent(from)}`);
         return Promise.reject(new Error('Debes iniciar sesión para seguir usuarios'));
       }
-      const current = queryClient.getQueryData<SellerInfo | null>(queryKey);
-      const isFollowing = current?.isFollowing ?? false;
-      return isFollowing
+      return currentlyFollowing
         ? ApiFetch.delete<{ following: boolean }>(`/follow/${sellerId}`)
         : ApiFetch.post<{ following: boolean }>(`/follow/${sellerId}`, {});
     },
-    onMutate: async () => {
+    onMutate: async (currentlyFollowing) => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<SellerInfo | null>(queryKey);
 
+      const willFollow = !currentlyFollowing;
       queryClient.setQueryData<SellerInfo | null>(queryKey, (curr) => {
         if (!curr) return curr;
-        const willFollow = !curr.isFollowing;
         return {
           ...curr,
           isFollowing: willFollow,

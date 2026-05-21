@@ -84,10 +84,14 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
   };
 
   const handleToggleFollow = () => {
-    const wasFollowing = seller?.isFollowing ?? false;
-    followMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success(wasFollowing ? `Dejaste de seguir a ${displayName}` : `Ahora sigues a ${displayName}`);
+    if (followMutation.isPending) return; // evita clicks rápidos en bucle
+    const currentlyFollowing = seller?.isFollowing ?? false;
+    followMutation.mutate(currentlyFollowing, {
+      onSuccess: (data) => {
+        // Usa la verdad del servidor (data.following), no un valor capturado.
+        toast.success(
+          data.following ? `Ahora sigues a ${displayName}` : `Dejaste de seguir a ${displayName}`,
+        );
       },
       onError: (err) => {
         if (err.message && !err.message.includes('iniciar sesión')) {
