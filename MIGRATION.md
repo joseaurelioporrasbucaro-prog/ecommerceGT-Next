@@ -135,7 +135,7 @@ El backend está estable y se comparte. La regla:
 | **6.3.2** | Notifs faltantes (`comment` y `pub_favorite`) + UI `/activity` con tabs por categoría (estilo plantilla) + footer fix | ✅ Completada | 0.5 día |
 | **6.3.3** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ✅ Completada | 1 día |
 | **7** | Cierre de venta + reseñas | ✅ Completada | 1 día |
-| **8** | Empresas y planes (opcional) | ⬜ Pendiente | 1–2 días |
+| **8** | Empresas y planes | ✅ Completada | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
 | **10** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
 | **11** | Logging estructurado + alertas (Pino/Winston, log rotation, integración con Sentry/BetterStack, tabla `system_alerts`) | ⬜ Pendiente | 1–2 días |
@@ -1671,4 +1671,34 @@ Feedback del usuario: (1) avatar pixelado, (2) ubicación solo departamento+muni
 
 **Verificación:** migraciones aplicadas a BD local; `POST /publications/:id/view` suma vistas anónimas (no del dueño); `getInfoCus` devuelve `totalviews`, y `department`/`municipality` solo con `show_location` ON. `tsc --noEmit` limpio.
 
-**Siguiente:** Fase 8 (Empresas y planes) o Fase 9 (ranking de vendedores).
+**Siguiente:** Fase 9 (sponsors / destacados + ranking de vendedores).
+
+---
+
+### Fase 8 — Empresas y planes ✅
+
+Aprovecha el modelo que ya existía en `database.sql` (`subscriptions`, `business`,
+`customer_subscription`, `customer.bus_id`/`cus_is_admin`). **Sin cambios de esquema.**
+
+- **Página de planes `/pricing-plan`** (`PricingPlanMain`): cards en lenguaje visual de
+  la plantilla, toggle Mensual/Anual, marca el plan actual y permite cambiarlo. Hook
+  `usePlans` → `POST /getplans` (ya existía en backend).
+- **Suscripción del usuario:** backend nuevo `getMySubscription` (`POST /my-subscription`)
+  y `changeSubscription` (`POST /change-subscription`, upsert del `sub_id` en
+  `customer_subscription` sin reiniciar `cussub_pubcount`). Hooks `useMySubscription`/
+  `useChangeSubscription`.
+- **Gestión de empresa `/company`** (`CompanyMain`): editar datos de la empresa (solo
+  `cus_is_admin`), listar el equipo, indicador "X / Y usuarios" según el plan, y formulario
+  de invitar empleado. Hooks `useCompany`/`useEmployees`/`useUpdateCompany`/`useAddEmployee`
+  sobre `/getcompany`, `/getemployees`, `/changeinfoc` (ya existían) y el nuevo
+  `addEmployee` (`POST /add-employee`) que valida el límite `sub_users` del plan del admin.
+- **Límite de publicaciones:** ya estaba — `useCheckerPublications` (`POST /checkerpub`) +
+  enforcement en `UploadMain` que enlaza a `/pricing-plan` al agotar la cuota.
+- **Navegación:** links "Planes" (todos) y "Mi empresa" (solo admins) en el sidebar de cuenta.
+
+> Nota legacy: `POST /getemployees` no lleva `authMiddleware` (estado heredado); se invoca
+> con el `busid` que devuelve `/getcompany`. Endurecerlo a `req.user` queda como follow-up.
+
+**Verificación:** `tsc --noEmit` limpio; `node -c` OK en backend. Endpoints probados contra
+backend local (mismo repo en disco; `node --watch` recarga). Pendiente de push a infra
+compartida (techmindsgt) cuando se autorice.
