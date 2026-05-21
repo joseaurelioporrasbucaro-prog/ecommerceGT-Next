@@ -639,6 +639,36 @@ export interface AddEmployeePayload extends Record<string, unknown> {
   email: string;
 }
 
+/** Miembro del equipo — `POST /company-team` (campo members[]). */
+export interface CompanyTeamMember {
+  cusid: number;
+  firstname: string | null;
+  lastname: string | null;
+  email: string | null;
+  dcreate: string | null;
+  status: string;
+  isadmin: boolean;
+  pubused: number;
+  /** Límite efectivo (override o del plan). null si el miembro aún no tiene suscripción. */
+  publimit: number | null;
+}
+
+/** Invitación pendiente — `POST /company-team` (campo pending[]). */
+export interface CompanyPendingInvite {
+  invid: number;
+  cusid: number;
+  firstname: string | null;
+  lastname: string | null;
+  email: string | null;
+}
+
+/** Respuesta de `POST /company-team`. */
+export interface CompanyTeamResponse {
+  isAdmin: boolean;
+  members: CompanyTeamMember[];
+  pending: CompanyPendingInvite[];
+}
+
 /** Detalle de una invitación a empresa — `GET /invitation/:token`. */
 export interface CompanyInvitation {
   status: 'pending' | 'accepted' | 'rejected';

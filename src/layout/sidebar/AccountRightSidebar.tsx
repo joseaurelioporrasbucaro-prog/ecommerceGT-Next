@@ -53,7 +53,10 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
     // Fase 8 — planes (todos) y empresa (solo admins de empresa).
     { href: '/pricing-plan', label: 'Planes', icon: 'fal fa-gem' },
     ...(user?.isAdmin
-      ? [{ href: '/company', label: 'Mi empresa', icon: 'fal fa-building' }]
+      ? [
+          { href: '/company', label: 'Mi empresa', icon: 'fal fa-building' },
+          { href: '/company/equipo', label: 'Equipo', icon: 'fal fa-users' },
+        ]
       : []),
     { onClick: handleLogout, label: 'Cerrar sesión', icon: 'fal fa-sign-out' },
   ];

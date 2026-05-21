@@ -10,6 +10,7 @@ import type {
   UpdateCompanyPayload,
   AddEmployeePayload,
 } from '@/types/api';
+import { COMPANY_TEAM_QUERY_KEY } from './useCompanyTeam';
 
 export const COMPANY_QUERY_KEY = ['company'] as const;
 export const EMPLOYEES_QUERY_KEY = ['employees'] as const;
@@ -100,6 +101,7 @@ export function useAddEmployee(busid: number | undefined) {
     onSuccess: (data) => {
       toast.success(data.message || 'Empleado agregado');
       void queryClient.invalidateQueries({ queryKey: [...EMPLOYEES_QUERY_KEY, busid] });
+      void queryClient.invalidateQueries({ queryKey: COMPANY_TEAM_QUERY_KEY });
     },
     onError: (err) => toast.error(err.message || 'No se pudo agregar el empleado'),
   });
@@ -113,11 +115,13 @@ export function useAddEmployee(busid: number | undefined) {
  * haya ya una invitación pendiente.
  */
 export function useInviteExistingUser() {
+  const queryClient = useQueryClient();
   return useMutation<{ message: string }, Error, number>({
     mutationFn: (cusId) =>
       ApiFetch.post<{ message: string }>('/invite-existing-user', { cusId }),
     onSuccess: (data) => {
       toast.success(data.message || 'Invitación enviada');
+      void queryClient.invalidateQueries({ queryKey: COMPANY_TEAM_QUERY_KEY });
     },
     onError: (err) => toast.error(err.message || 'No se pudo enviar la invitación'),
   });
