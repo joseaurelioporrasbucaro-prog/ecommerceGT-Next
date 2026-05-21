@@ -146,6 +146,21 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           sidebars DOS veces (padding + calc) y col-xl-5 quedaría tapado. Sin
           hacks de proporción de columnas — el 58/42 del template alcanza. */}
       <style jsx global>{`
+        /* El header de estas páginas (.header-main2) es position:fixed;top:0,
+           por lo que sale del flujo y NO reserva alto. Sin esto, el primer
+           bloque de cada página (el breadcrumb .page-title-area) queda DEBAJO
+           del header y se ve tapado. Reservamos el alto real del header
+           (padding 20+20 + input 50 = 90px) en el contenido en-flujo del
+           layout; el header, al ser fixed, se ancla al viewport y no se mueve.
+           En xs el header es un poco más bajo (sin buscador), basta con menos. */
+        .app-layout.has-left-sidebar {
+          padding-top: 90px;
+        }
+        @media (max-width: 767px) {
+          .app-layout.has-left-sidebar {
+            padding-top: 80px;
+          }
+        }
         /* 1400-1599: sidebars off-canvas (hamburguesa) para no apretar el
            contenido; desde 1600 se ven fijos siempre. */
         @media (min-width: 1400px) and (max-width: 1599px) {
