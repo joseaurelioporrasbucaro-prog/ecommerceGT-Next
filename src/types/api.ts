@@ -639,6 +639,21 @@ export interface AddEmployeePayload extends Record<string, unknown> {
   email: string;
 }
 
+/** Detalle de una invitación a empresa — `GET /invitation/:token`. */
+export interface CompanyInvitation {
+  status: 'pending' | 'accepted' | 'rejected';
+  busName: string;
+  inviterName: string;
+  /** true si la invitación es para el usuario logueado. */
+  isForMe: boolean;
+}
+
+/** Respuesta de `POST /invitation/respond`. */
+export interface RespondInvitationResponse {
+  status: 'accepted' | 'rejected';
+  message: string;
+}
+
 /** Fila cruda de `POST /search-buyers` (búsqueda de usuarios por nombre/correo). */
 export interface BuyerSearchRow {
   cus_id: number;
@@ -837,7 +852,9 @@ export type NotificationType =
   | 'message'
   | 'sale_closed'
   | 'review_received'
-  | 'company_added';
+  | 'company_added'
+  | 'company_invite'
+  | 'company_invite_accepted';
 
 /**
  * Notificación individual del usuario logueado.

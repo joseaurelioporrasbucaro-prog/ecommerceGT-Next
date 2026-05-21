@@ -113,6 +113,26 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
         iconColor: '#5a5af2',
       };
     },
+    company_invite: () => {
+      const busName = typeof notif.payload?.busName === 'string' ? notif.payload.busName : null;
+      const token = typeof notif.payload?.token === 'string' ? notif.payload.token : null;
+      return {
+        text: busName
+          ? `${name} te invitó al equipo de ${busName}`
+          : `${name} te invitó a una empresa`,
+        snippet: 'Toca para aceptar o rechazar',
+        href: token ? `/invite/${token}` : '/activity',
+        icon: 'fa-user-plus',
+        iconColor: '#5a5af2',
+      };
+    },
+    company_invite_accepted: () => ({
+      text: `${name} aceptó tu invitación a la empresa`,
+      snippet: null,
+      href: '/company',
+      icon: 'fa-user-check',
+      iconColor: '#16a34a',
+    }),
   };
 
   return cfg[notif.notif_type]();

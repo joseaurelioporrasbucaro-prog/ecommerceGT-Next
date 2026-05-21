@@ -8,7 +8,7 @@ import {
   useEmployees,
   useUpdateCompany,
   useAddEmployee,
-  useAddExistingEmployee,
+  useInviteExistingUser,
 } from '@/hooks/api/useCompany';
 import { useSearchBuyers } from '@/hooks/api/useSearchBuyers';
 import { useMySubscription } from '@/hooks/api/useSubscription';
@@ -23,7 +23,7 @@ const CompanyMain = () => {
   const subQuery = useMySubscription();
   const updateCompany = useUpdateCompany();
   const addEmployee = useAddEmployee(busid);
-  const addExistingEmployee = useAddExistingEmployee(busid);
+  const inviteExistingUser = useInviteExistingUser();
 
   const isAdmin = Boolean(user?.isAdmin);
 
@@ -74,9 +74,9 @@ const CompanyMain = () => {
     });
   };
 
-  const handleAddExisting = (cusId: number) => {
+  const handleInviteExisting = (cusId: number) => {
     if (!canAddMore) return;
-    addExistingEmployee.mutate(cusId, {
+    inviteExistingUser.mutate(cusId, {
       onSuccess: () => setSearch(''),
     });
   };
@@ -204,8 +204,8 @@ const CompanyMain = () => {
                         </p>
                       )}
 
-                      {/* Agregar un usuario YA registrado (sin crear cuenta nueva) */}
-                      <h4 className="cm-subtitle">Agregar usuario existente</h4>
+                      {/* Invitar a un usuario YA registrado (sin crear cuenta nueva) */}
+                      <h4 className="cm-subtitle">Invitar usuario existente</h4>
                       <div className="cm-search-wrap">
                         <input
                           className="cm-input"
@@ -233,10 +233,10 @@ const CompanyMain = () => {
                                 <button
                                   type="button"
                                   className="cm-mini-btn"
-                                  onClick={() => handleAddExisting(b.cusId)}
-                                  disabled={!canAddMore || addExistingEmployee.isPending}
+                                  onClick={() => handleInviteExisting(b.cusId)}
+                                  disabled={!canAddMore || inviteExistingUser.isPending}
                                 >
-                                  Agregar
+                                  Invitar
                                 </button>
                               </li>
                             ))}

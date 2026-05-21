@@ -106,19 +106,19 @@ export function useAddEmployee(busid: number | undefined) {
 }
 
 /**
- * Fase 8 — agregar a la empresa un usuario YA existente (sin crear cuenta).
- * POST /add-existing-employee (auth) { cusId }. El backend valida el límite del
- * plan y que el usuario no pertenezca ya a otra empresa.
+ * Fase 8 — INVITAR a la empresa a un usuario YA existente (sin crear cuenta).
+ * POST /invite-existing-user (auth) { cusId }. Crea una invitación pendiente que
+ * el usuario debe aceptar/rechazar (desde la notificación o el correo). El
+ * backend valida el límite del plan, que no pertenezca a otra empresa y que no
+ * haya ya una invitación pendiente.
  */
-export function useAddExistingEmployee(busid: number | undefined) {
-  const queryClient = useQueryClient();
+export function useInviteExistingUser() {
   return useMutation<{ message: string }, Error, number>({
     mutationFn: (cusId) =>
-      ApiFetch.post<{ message: string }>('/add-existing-employee', { cusId }),
+      ApiFetch.post<{ message: string }>('/invite-existing-user', { cusId }),
     onSuccess: (data) => {
-      toast.success(data.message || 'Usuario agregado');
-      void queryClient.invalidateQueries({ queryKey: [...EMPLOYEES_QUERY_KEY, busid] });
+      toast.success(data.message || 'Invitación enviada');
     },
-    onError: (err) => toast.error(err.message || 'No se pudo agregar el usuario'),
+    onError: (err) => toast.error(err.message || 'No se pudo enviar la invitación'),
   });
 }
