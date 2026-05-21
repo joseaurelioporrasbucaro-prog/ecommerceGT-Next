@@ -601,10 +601,47 @@ export interface Employee {
 export interface Plan {
   id: number;
   description: string;
+  /** Mensaje/eslogan corto del plan (sub_msg). */
+  msg: string;
+  /** Intervalo de cobro: "Mensual" | "Anual" (sub_interval). */
   interval: string;
   price: number;
   userLimit: number;
   pubPerUser: number;
+}
+
+/** Fila cruda de `POST /getplans` (alias del backend). */
+export interface PlanRow {
+  id: number;
+  description: string;
+  msg: string;
+  recurrent: string;
+  price: number | string;
+  users: number;
+  pubperuser: number;
+}
+
+/** Suscripción actual del usuario — `POST /my-subscription`. */
+export interface MySubscription {
+  subId: number;
+  description: string;
+  interval: string;
+  price: number;
+  userLimit: number;
+  pubPerUser: number;
+  /** Publicaciones usadas en el periodo actual (cussub_pubcount). */
+  pubCount: number;
+}
+
+/** Fila cruda de `POST /my-subscription`. */
+export interface MySubscriptionRow {
+  subid: number;
+  description: string;
+  recurrent: string;
+  price: number | string;
+  users: number;
+  pubperuser: number;
+  pubcount: number;
 }
 
 export interface CheckerPubResponse {
