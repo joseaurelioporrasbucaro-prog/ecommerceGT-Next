@@ -9,6 +9,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useGenders, useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useCheckHandle, useUpdateHandle } from '@/hooks/api/useHandle';
 import { SELLER_INFO_QUERY_KEY } from '@/hooks/api/usePublications';
+import { uploadImage } from '@/utils/uploadImage';
+import { getBackendUrl } from '@/utils/backendUrl';
 
 interface UpdateInfoResponse {
     message?: string;
@@ -22,6 +24,9 @@ const PersonalInfoTab = () => {
     const queryClient = useQueryClient();
     const [loading, setLoading] = useState(false);
     const [handleValue, setHandleValue] = useState(user?.handle ?? '');
+    // Avatar: se sube vía /upload y se persiste al guardar Información Personal.
+    const [avatarPath, setAvatarPath] = useState(user?.imagenu ?? '');
+    const [avatarUploading, setAvatarUploading] = useState(false);
     const { data: genders = [] } = useGenders();
     const updateHandleMutation = useUpdateHandle();
     const normalizedHandle = handleValue.trim().toLowerCase();
@@ -39,6 +44,30 @@ const PersonalInfoTab = () => {
     useEffect(() => {
         setHandleValue(user?.handle ?? '');
     }, [user?.handle]);
+
+    useEffect(() => {
+        setAvatarPath(user?.imagenu ?? '');
+    }, [user?.imagenu]);
+
+    const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Selecciona un archivo de imagen.');
+            return;
+        }
+        setAvatarUploading(true);
+        try {
+            const path = await uploadImage(file);
+            setAvatarPath(path);
+            toast.info('Imagen lista. Guarda la información personal para aplicarla.');
+        } catch (error) {
+            toast.error(error instanceof ApiError ? error.message : 'No se pudo subir la imagen');
+        } finally {
+            setAvatarUploading(false);
+            event.target.value = '';
+        }
+    };
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -83,7 +112,7 @@ const PersonalInfoTab = () => {
                 await ApiFetch.post<UpdateInfoResponse>('/changeinfob', {
                     phone: values.phone,
                     address: values.address,
-                    imagen: user?.imagenu || '', // Conservamos la imagen por ahora
+                    imagen: avatarPath || '', // Avatar subido vía /upload
                     citId: values.citId ? Number(values.citId) : null,
                     towId: values.towId ? Number(values.towId) : null,
                     showLocation: values.showLocation,
@@ -183,6 +212,50 @@ const PersonalInfoTab = () => {
             </form>
             <form className="personal-info-form mb-5" onSubmit={formik.handleSubmit}>
                 <div className="row">
+                    <div className="col-md-12">
+                        <div className="single-input-unit">
+                            <label>Foto de perfil</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                                <span
+                                    style={{
+                                        width: 90,
+                                        height: 90,
+                                        borderRadius: 12,
+                                        overflow: 'hidden',
+                                        flexShrink: 0,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+                                        color: '#fff',
+                                        fontSize: 34,
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {avatarPath ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                            src={getBackendUrl(avatarPath)}
+                                            alt="avatar"
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        (user?.firstName?.[0] ?? '?').toUpperCase()
+                                    )}
+                                </span>
+                                <label className="fill-btn" style={{ cursor: 'pointer', margin: 0 }}>
+                                    {avatarUploading ? 'Subiendo...' : 'Cambiar foto'}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatarChange}
+                                        disabled={avatarUploading}
+                                        style={{ display: 'none' }}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <div className="col-md-6">
                         <div className="single-input-unit">
                             <label>Nombre(s)</label>

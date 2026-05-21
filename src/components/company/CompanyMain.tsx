@@ -3,7 +3,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
+import { toast } from 'react-toastify';
 import { useCompany, useUpdateCompany } from '@/hooks/api/useCompany';
+import { uploadImage } from '@/utils/uploadImage';
+import { getBackendUrl } from '@/utils/backendUrl';
+import { ApiError } from '@/utils/Api';
 
 const CompanyMain = () => {
   const { user } = useAuth();
@@ -15,6 +19,8 @@ const CompanyMain = () => {
 
   const [form, setForm] = useState({ bname: '', btname: '', baddress: '', bphone: '' });
   const [showEmployees, setShowEmployees] = useState(false);
+  const [logoPath, setLogoPath] = useState('');
+  const [logoUploading, setLogoUploading] = useState(false);
   useEffect(() => {
     if (company) {
       setForm({
@@ -24,8 +30,29 @@ const CompanyMain = () => {
         bphone: company.phone ?? '',
       });
       setShowEmployees(Boolean(company.showEmployees));
+      setLogoPath(company.logo ?? '');
     }
   }, [company]);
+
+  const handleLogoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecciona un archivo de imagen.');
+      return;
+    }
+    setLogoUploading(true);
+    try {
+      const path = await uploadImage(file);
+      setLogoPath(path);
+      toast.info('Logo listo. Guarda los cambios para aplicarlo.');
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'No se pudo subir el logo');
+    } finally {
+      setLogoUploading(false);
+      event.target.value = '';
+    }
+  };
 
   const handleSaveCompany = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +63,7 @@ const CompanyMain = () => {
       btname: form.btname,
       baddress: form.baddress,
       bphone: form.bphone,
-      busimg: company.logo ?? '',
+      busimg: logoPath || '',
       showEmployees,
     });
   };
@@ -88,6 +115,30 @@ const CompanyMain = () => {
                   )}
 
                   <form onSubmit={handleSaveCompany}>
+                    <label className="cm-label">Logo de la empresa</label>
+                    <div className="cm-logo-row">
+                      <span className="cm-logo">
+                        {logoPath ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={getBackendUrl(logoPath)} alt="logo" />
+                        ) : (
+                          (form.btname?.[0] ?? 'E').toUpperCase()
+                        )}
+                      </span>
+                      {isAdmin && (
+                        <label className="cm-btn cm-btn-file">
+                          {logoUploading ? 'Subiendo…' : 'Cambiar logo'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoChange}
+                            disabled={logoUploading}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
                     <label className="cm-label">Razón social</label>
                     <input
                       className="cm-input"
@@ -210,6 +261,35 @@ const CompanyMain = () => {
           width: 18px;
           height: 18px;
           flex-shrink: 0;
+        }
+        .cm-logo-row {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          margin-bottom: 6px;
+        }
+        .cm-logo {
+          width: 90px;
+          height: 90px;
+          border-radius: 12px;
+          overflow: hidden;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #d4af37, #f1c75b);
+          color: #fff;
+          font-size: 34px;
+          font-weight: 700;
+        }
+        .cm-logo :global(img) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .cm-btn-file {
+          cursor: pointer;
+          margin: 0;
         }
         .cm-btn {
           display: inline-block;
