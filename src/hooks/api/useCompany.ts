@@ -23,6 +23,7 @@ function normalizeCompany(row: CompanyRow): Company {
     address: row.baddress ?? '',
     phone: row.bphone ?? '',
     logo: row.blogo || null,
+    showEmployees: Boolean(row.showemployees),
   };
 }
 

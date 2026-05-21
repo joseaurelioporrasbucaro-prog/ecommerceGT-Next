@@ -148,6 +148,13 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
 
                   {seller.handle && <div className="artist-id">@{seller.handle}</div>}
 
+                  {seller.companyName && seller.busId && (
+                    <Link href={`/empresa/${seller.busId}`} className="artist-company">
+                      <i className="fas fa-check-circle" />
+                      <span>{seller.companyName}</span>
+                    </Link>
+                  )}
+
                   {totalReviews > 0 && (
                     <div className="profile-rating-line">
                       <Stars value={average} size={15} />
@@ -354,6 +361,27 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
       </section>
 
       <style jsx>{`
+        .creator-about :global(.artist-company) {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 8px;
+          padding: 4px 14px;
+          border-radius: 20px;
+          background: rgba(212, 175, 55, 0.12);
+          color: var(--clr-common-heading);
+          font-weight: 600;
+          font-size: 14px;
+          text-decoration: none;
+          transition: 0.3s;
+        }
+        .creator-about :global(.artist-company:hover) {
+          background: rgba(212, 175, 55, 0.22);
+        }
+        .creator-about :global(.artist-company i) {
+          color: #d4af37;
+          font-size: 16px;
+        }
         .creator-about :global(.profile-initials) {
           display: flex;
           align-items: center;

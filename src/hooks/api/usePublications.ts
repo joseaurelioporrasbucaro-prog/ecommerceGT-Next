@@ -25,6 +25,9 @@ export interface SellerInfo {
   showLocation: boolean;
   department: string | null;
   municipality: string | null;
+  // Fase 8 — empresa del usuario (nombre comercial + check dorado, siempre visible)
+  busId: number | null;
+  companyName: string | null;
 }
 
 export const PUBLICATIONS_QUERY_KEY = ['publications'] as const;
@@ -66,6 +69,8 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
     showLocation: Boolean(row.showlocation),
     department: row.department ?? null,
     municipality: row.municipality ?? null,
+    busId: parseId(row.busid),
+    companyName: row.companyname ?? null,
   };
 }
 

@@ -14,6 +14,7 @@ const CompanyMain = () => {
   const isAdmin = Boolean(user?.isAdmin);
 
   const [form, setForm] = useState({ bname: '', btname: '', baddress: '', bphone: '' });
+  const [showEmployees, setShowEmployees] = useState(false);
   useEffect(() => {
     if (company) {
       setForm({
@@ -22,6 +23,7 @@ const CompanyMain = () => {
         baddress: company.address ?? '',
         bphone: company.phone ?? '',
       });
+      setShowEmployees(Boolean(company.showEmployees));
     }
   }, [company]);
 
@@ -35,6 +37,7 @@ const CompanyMain = () => {
       baddress: form.baddress,
       bphone: form.bphone,
       busimg: company.logo ?? '',
+      showEmployees,
     });
   };
 
@@ -115,6 +118,17 @@ const CompanyMain = () => {
                       onChange={(e) => setForm({ ...form, bphone: e.target.value })}
                       disabled={!isAdmin}
                     />
+
+                    <label className="cm-check">
+                      <input
+                        type="checkbox"
+                        checked={showEmployees}
+                        onChange={(e) => setShowEmployees(e.target.checked)}
+                        disabled={!isAdmin}
+                      />
+                      <span>Mostrar mis empleados en el perfil público de la empresa</span>
+                    </label>
+
                     {isAdmin && (
                       <button
                         type="submit"
@@ -182,6 +196,20 @@ const CompanyMain = () => {
         }
         .cm-input:disabled {
           opacity: 0.7;
+        }
+        .cm-check {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 20px 0 4px;
+          font-weight: 500;
+          color: var(--clr-common-heading);
+          cursor: pointer;
+        }
+        .cm-check input {
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
         }
         .cm-btn {
           display: inline-block;

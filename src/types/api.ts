@@ -550,6 +550,9 @@ export interface SellerInfoRow {
   showlocation: boolean;
   department: string | null;
   municipality: string | null;
+  // Fase 8 — empresa (nombre comercial + busId para enlazar al perfil de empresa)
+  busid: number | string | null;
+  companyname: string | null;
 }
 export type SellerInfoResponse = SellerInfoRow[];
 
@@ -589,6 +592,8 @@ export interface Company {
   address: string;
   phone: string;
   logo: string | null;
+  /** Fase 8 — mostrar empleados en el perfil público de la empresa. */
+  showEmployees: boolean;
 }
 
 /** Fila cruda de `POST /getcompany` → { company: CompanyRow }. */
@@ -599,6 +604,7 @@ export interface CompanyRow {
   baddress: string;
   bphone: string;
   blogo: string | null;
+  showemployees: boolean;
 }
 
 export interface Employee {
@@ -630,6 +636,7 @@ export interface UpdateCompanyPayload extends Record<string, unknown> {
   baddress: string;
   bphone: string;
   busimg: string;
+  showEmployees?: boolean;
 }
 
 /** Payload para `POST /add-employee`. */
@@ -667,6 +674,36 @@ export interface CompanyTeamResponse {
   isAdmin: boolean;
   members: CompanyTeamMember[];
   pending: CompanyPendingInvite[];
+}
+
+/** Empleado en el perfil público de empresa — `GET /company-profile/:id`. */
+export interface CompanyProfileEmployee {
+  cusid: number;
+  firstname: string | null;
+  lastname: string | null;
+  handle: string | null;
+  imagenu: string | null;
+  isadmin: boolean;
+}
+
+/** Datos de empresa en su perfil público. */
+export interface CompanyProfileData {
+  busid: number;
+  name: string;
+  tradename: string;
+  address: string;
+  phone: string;
+  logo: string | null;
+  showemployees: boolean;
+  joindate: string | null;
+  membercount: number | string;
+  totalpublis: number | string;
+}
+
+/** Respuesta de `GET /company-profile/:id`. */
+export interface CompanyProfileResponse {
+  company: CompanyProfileData;
+  employees: CompanyProfileEmployee[];
 }
 
 /** Detalle de una invitación a empresa — `GET /invitation/:token`. */
