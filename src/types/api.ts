@@ -591,8 +591,49 @@ export interface Company {
   logo: string | null;
 }
 
+/** Fila cruda de `POST /getcompany` → { company: CompanyRow }. */
+export interface CompanyRow {
+  busid: number;
+  bname: string;
+  btname: string;
+  baddress: string;
+  bphone: string;
+  blogo: string | null;
+}
+
 export interface Employee {
   id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+  isAdmin: boolean;
+  createdAt: string | null;
+}
+
+/** Fila cruda de `POST /getemployees`. */
+export interface EmployeeRow {
+  cusid: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  dcreate: string | null;
+  status: string;
+  isadmin: boolean;
+}
+
+/** Payload para `POST /changeinfoc` (actualizar empresa). */
+export interface UpdateCompanyPayload extends Record<string, unknown> {
+  busid: number;
+  bname: string;
+  btname: string;
+  baddress: string;
+  bphone: string;
+  busimg: string;
+}
+
+/** Payload para `POST /add-employee`. */
+export interface AddEmployeePayload extends Record<string, unknown> {
   firstName: string;
   lastName: string;
   email: string;

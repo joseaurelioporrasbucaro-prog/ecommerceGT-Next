@@ -50,6 +50,11 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
     { href: '/messages', label: 'Mensajes', icon: 'fal fa-comments' },
     // "Configuraciones" → edición de info personal (privado)
     { href: '/creator-profile-info-personal', label: 'Configuraciones', icon: 'fal fa-cog' },
+    // Fase 8 — planes (todos) y empresa (solo admins de empresa).
+    { href: '/pricing-plan', label: 'Planes', icon: 'fal fa-gem' },
+    ...(user?.isAdmin
+      ? [{ href: '/company', label: 'Mi empresa', icon: 'fal fa-building' }]
+      : []),
     { onClick: handleLogout, label: 'Cerrar sesión', icon: 'fal fa-sign-out' },
   ];
 
