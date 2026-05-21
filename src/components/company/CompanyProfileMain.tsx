@@ -141,10 +141,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                               )}
                             </div>
                             <div className="cp-emp-info">
-                              <span className="cp-emp-name">
-                                {name}
-                                {e.isadmin && <span className="cp-emp-admin">Admin</span>}
-                              </span>
+                              <span className="cp-emp-name">{name}</span>
                               {e.handle && <span className="cp-emp-handle">@{e.handle}</span>}
                             </div>
                           </Link>

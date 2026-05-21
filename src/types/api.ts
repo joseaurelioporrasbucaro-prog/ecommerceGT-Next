@@ -676,14 +676,16 @@ export interface CompanyTeamResponse {
   pending: CompanyPendingInvite[];
 }
 
-/** Empleado en el perfil público de empresa — `GET /company-profile/:id`. */
+/**
+ * Empleado en el perfil público de empresa — `GET /company-profile/:id`.
+ * Nota: por seguridad NO se expone el rol de administrador en este endpoint.
+ */
 export interface CompanyProfileEmployee {
   cusid: number;
   firstname: string | null;
   lastname: string | null;
   handle: string | null;
   imagenu: string | null;
-  isadmin: boolean;
 }
 
 /** Datos de empresa en su perfil público. */
