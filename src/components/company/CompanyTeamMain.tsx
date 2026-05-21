@@ -106,8 +106,8 @@ const CompanyTeamMain = () => {
                           <span className="tm-email">{m.email}</span>
                         </div>
 
-                        <div className="tm-controls">
-                          {isAdmin ? (
+                        {isAdmin ? (
+                          <>
                             <div className="tm-limit">
                               <label>Publicaciones</label>
                               <div className="tm-limit-row">
@@ -135,24 +135,25 @@ const CompanyTeamMain = () => {
                                 {m.publimit != null ? ` / ${m.publimit}` : ''}
                               </span>
                             </div>
-                          ) : (
-                            <span className="tm-used">
-                              {m.pubused}{m.publimit != null ? ` / ${m.publimit}` : ''} publicaciones
-                            </span>
-                          )}
-
-                          {isAdmin && !m.isadmin && !isSelf && (
-                            <button
-                              type="button"
-                              className="tm-remove"
-                              onClick={() => removeEmployee.mutate(m.cusid)}
-                              disabled={removeEmployee.isPending}
-                              title="Quitar de la empresa"
-                            >
-                              <i className="fal fa-user-times" /> Quitar
-                            </button>
-                          )}
-                        </div>
+                            <div className="tm-action">
+                              {!m.isadmin && !isSelf && (
+                                <button
+                                  type="button"
+                                  className="tm-remove"
+                                  onClick={() => removeEmployee.mutate(m.cusid)}
+                                  disabled={removeEmployee.isPending}
+                                  title="Quitar de la empresa"
+                                >
+                                  <i className="fal fa-user-times" /> Quitar
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="tm-used">
+                            {m.pubused}{m.publimit != null ? ` / ${m.publimit}` : ''} publicaciones
+                          </span>
+                        )}
                       </div>
                     );
                   })}
@@ -173,16 +174,18 @@ const CompanyTeamMain = () => {
                           </span>
                           <span className="tm-email">{p.email}</span>
                         </div>
-                        {isAdmin && (
-                          <button
-                            type="button"
-                            className="tm-remove"
-                            onClick={() => cancelInvitation.mutate(p.invid)}
-                            disabled={cancelInvitation.isPending}
-                          >
-                            <i className="fal fa-times" /> Cancelar
-                          </button>
-                        )}
+                        <div className="tm-action">
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              className="tm-remove"
+                              onClick={() => cancelInvitation.mutate(p.invid)}
+                              disabled={cancelInvitation.isPending}
+                            >
+                              <i className="fal fa-times" /> Cancelar
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -320,9 +323,8 @@ const CompanyTeamMain = () => {
         .tm-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          padding: 14px 0;
+          gap: 20px;
+          padding: 16px 0;
           border-bottom: 1px solid var(--clr-common-border);
           flex-wrap: wrap;
         }
@@ -330,6 +332,7 @@ const CompanyTeamMain = () => {
           border-bottom: none;
         }
         .tm-person {
+          flex: 1 1 220px;
           min-width: 200px;
         }
         .tm-name {
@@ -360,11 +363,15 @@ const CompanyTeamMain = () => {
           background: #f59e0b;
           color: #fff;
         }
-        .tm-controls {
+        .tm-limit {
+          width: 230px;
+          flex-shrink: 0;
+        }
+        .tm-action {
+          width: 130px;
+          flex-shrink: 0;
           display: flex;
-          align-items: flex-end;
-          gap: 16px;
-          flex-wrap: wrap;
+          justify-content: flex-end;
         }
         .tm-limit label {
           display: block;
