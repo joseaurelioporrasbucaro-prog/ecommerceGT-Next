@@ -639,6 +639,22 @@ export interface AddEmployeePayload extends Record<string, unknown> {
   email: string;
 }
 
+/** Fila cruda de `POST /search-buyers` (búsqueda de usuarios por nombre/correo). */
+export interface BuyerSearchRow {
+  cus_id: number;
+  cus_first_name: string | null;
+  cus_last_name: string | null;
+  cus_email_address: string | null;
+}
+
+/** Resultado normalizado de búsqueda de usuarios existentes. */
+export interface BuyerSearchResult {
+  cusId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface Plan {
   id: number;
   description: string;
@@ -820,7 +836,8 @@ export type NotificationType =
   | 'pub_favorite'
   | 'message'
   | 'sale_closed'
-  | 'review_received';
+  | 'review_received'
+  | 'company_added';
 
 /**
  * Notificación individual del usuario logueado.

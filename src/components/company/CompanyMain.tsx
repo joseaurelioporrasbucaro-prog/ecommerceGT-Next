@@ -8,7 +8,9 @@ import {
   useEmployees,
   useUpdateCompany,
   useAddEmployee,
+  useAddExistingEmployee,
 } from '@/hooks/api/useCompany';
+import { useSearchBuyers } from '@/hooks/api/useSearchBuyers';
 import { useMySubscription } from '@/hooks/api/useSubscription';
 
 const CompanyMain = () => {
@@ -21,8 +23,14 @@ const CompanyMain = () => {
   const subQuery = useMySubscription();
   const updateCompany = useUpdateCompany();
   const addEmployee = useAddEmployee(busid);
+  const addExistingEmployee = useAddExistingEmployee(busid);
 
   const isAdmin = Boolean(user?.isAdmin);
+
+  // Búsqueda de usuarios existentes para agregar al equipo.
+  const [search, setSearch] = useState('');
+  const buyersQuery = useSearchBuyers(search);
+  const buyers = buyersQuery.data ?? [];
 
   // Form de empresa
   const [form, setForm] = useState({ bname: '', btname: '', baddress: '', bphone: '' });
@@ -63,6 +71,13 @@ const CompanyMain = () => {
     if (!emp.firstName || !emp.lastName || !emp.email) return;
     addEmployee.mutate(emp, {
       onSuccess: () => setEmp({ firstName: '', lastName: '', email: '' }),
+    });
+  };
+
+  const handleAddExisting = (cusId: number) => {
+    if (!canAddMore) return;
+    addExistingEmployee.mutate(cusId, {
+      onSuccess: () => setSearch(''),
     });
   };
 
@@ -181,49 +196,93 @@ const CompanyMain = () => {
                   </ul>
 
                   {isAdmin && (
-                    <form onSubmit={handleAddEmployee} className="cm-add-form">
-                      <h4 className="cm-subtitle">Agregar empleado</h4>
+                    <div className="cm-add-form">
                       {!canAddMore && (
                         <p className="cm-note">
                           Alcanzaste el límite de tu plan.{' '}
                           <Link href="/pricing-plan">Mejóralo</Link> para agregar más.
                         </p>
                       )}
-                      <div className="cm-row2">
+
+                      {/* Agregar un usuario YA registrado (sin crear cuenta nueva) */}
+                      <h4 className="cm-subtitle">Agregar usuario existente</h4>
+                      <div className="cm-search-wrap">
                         <input
                           className="cm-input"
-                          placeholder="Nombre"
-                          value={emp.firstName}
-                          onChange={(e) => setEmp({ ...emp, firstName: e.target.value })}
+                          placeholder="Buscar por nombre o correo"
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
                           disabled={!canAddMore}
-                          required
                         />
-                        <input
-                          className="cm-input"
-                          placeholder="Apellido"
-                          value={emp.lastName}
-                          onChange={(e) => setEmp({ ...emp, lastName: e.target.value })}
-                          disabled={!canAddMore}
-                          required
-                        />
+                        {search.trim().length >= 2 && (
+                          <ul className="cm-search-results">
+                            {buyersQuery.isLoading && (
+                              <li className="cm-search-empty">Buscando…</li>
+                            )}
+                            {!buyersQuery.isLoading && buyers.length === 0 && (
+                              <li className="cm-search-empty">Sin resultados</li>
+                            )}
+                            {buyers.map((b) => (
+                              <li key={b.cusId} className="cm-search-item">
+                                <div>
+                                  <span className="cm-emp-name">
+                                    {b.firstName} {b.lastName}
+                                  </span>
+                                  <span className="cm-emp-email">{b.email}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="cm-mini-btn"
+                                  onClick={() => handleAddExisting(b.cusId)}
+                                  disabled={!canAddMore || addExistingEmployee.isPending}
+                                >
+                                  Agregar
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                      <input
-                        className="cm-input"
-                        type="email"
-                        placeholder="Correo electrónico"
-                        value={emp.email}
-                        onChange={(e) => setEmp({ ...emp, email: e.target.value })}
-                        disabled={!canAddMore}
-                        required
-                      />
-                      <button
-                        type="submit"
-                        className="cm-btn mt-10"
-                        disabled={!canAddMore || addEmployee.isPending}
-                      >
-                        {addEmployee.isPending ? 'Enviando…' : 'Invitar empleado'}
-                      </button>
-                    </form>
+
+                      {/* Crear una cuenta nueva e invitar por correo */}
+                      <form onSubmit={handleAddEmployee}>
+                        <h4 className="cm-subtitle">¿No tiene cuenta? Invítalo por correo</h4>
+                        <div className="cm-row2">
+                          <input
+                            className="cm-input"
+                            placeholder="Nombre"
+                            value={emp.firstName}
+                            onChange={(e) => setEmp({ ...emp, firstName: e.target.value })}
+                            disabled={!canAddMore}
+                            required
+                          />
+                          <input
+                            className="cm-input"
+                            placeholder="Apellido"
+                            value={emp.lastName}
+                            onChange={(e) => setEmp({ ...emp, lastName: e.target.value })}
+                            disabled={!canAddMore}
+                            required
+                          />
+                        </div>
+                        <input
+                          className="cm-input"
+                          type="email"
+                          placeholder="Correo electrónico"
+                          value={emp.email}
+                          onChange={(e) => setEmp({ ...emp, email: e.target.value })}
+                          disabled={!canAddMore}
+                          required
+                        />
+                        <button
+                          type="submit"
+                          className="cm-btn mt-10"
+                          disabled={!canAddMore || addEmployee.isPending}
+                        >
+                          {addEmployee.isPending ? 'Enviando…' : 'Invitar empleado'}
+                        </button>
+                      </form>
+                    </div>
                   )}
                 </div>
               </div>
@@ -356,6 +415,53 @@ const CompanyMain = () => {
         }
         .cm-add-form {
           margin-top: 10px;
+        }
+        .cm-search-wrap {
+          margin-bottom: 18px;
+        }
+        .cm-search-results {
+          list-style: none;
+          margin: 8px 0 0;
+          padding: 6px;
+          border: 1px solid var(--clr-common-border);
+          border-radius: 10px;
+          background: var(--clr-bg-white);
+          max-height: 240px;
+          overflow-y: auto;
+        }
+        .cm-search-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 10px;
+          border-radius: 8px;
+        }
+        .cm-search-item:hover {
+          background: var(--clr-common-border);
+        }
+        .cm-search-empty {
+          padding: 10px;
+          color: var(--clr-common-body-text);
+          font-size: 14px;
+        }
+        .cm-mini-btn {
+          flex-shrink: 0;
+          padding: 6px 16px;
+          border-radius: 20px;
+          background: var(--clr-theme-1);
+          color: #fff;
+          font-weight: 600;
+          font-size: 13px;
+          border: none;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+        .cm-mini-btn:hover:not(:disabled) {
+          opacity: 0.9;
+        }
+        .cm-mini-btn:disabled {
+          opacity: 0.6;
+          cursor: default;
         }
         .cm-empty {
           text-align: center;

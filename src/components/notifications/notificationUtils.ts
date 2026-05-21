@@ -103,6 +103,16 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
         iconColor: '#f59e0b',
       };
     },
+    company_added: () => {
+      const busName = typeof notif.payload?.busName === 'string' ? notif.payload.busName : null;
+      return {
+        text: busName ? `Te agregaron al equipo de ${busName}` : `Te agregaron a una empresa`,
+        snippet: null,
+        href: '/company',
+        icon: 'fa-building',
+        iconColor: '#5a5af2',
+      };
+    },
   };
 
   return cfg[notif.notif_type]();

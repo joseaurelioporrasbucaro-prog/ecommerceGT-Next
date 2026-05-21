@@ -104,3 +104,21 @@ export function useAddEmployee(busid: number | undefined) {
     onError: (err) => toast.error(err.message || 'No se pudo agregar el empleado'),
   });
 }
+
+/**
+ * Fase 8 — agregar a la empresa un usuario YA existente (sin crear cuenta).
+ * POST /add-existing-employee (auth) { cusId }. El backend valida el límite del
+ * plan y que el usuario no pertenezca ya a otra empresa.
+ */
+export function useAddExistingEmployee(busid: number | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation<{ message: string }, Error, number>({
+    mutationFn: (cusId) =>
+      ApiFetch.post<{ message: string }>('/add-existing-employee', { cusId }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Usuario agregado');
+      void queryClient.invalidateQueries({ queryKey: [...EMPLOYEES_QUERY_KEY, busid] });
+    },
+    onError: (err) => toast.error(err.message || 'No se pudo agregar el usuario'),
+  });
+}
