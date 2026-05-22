@@ -174,6 +174,13 @@ const CreatorProfileInfoMain = () => {
                                                 <i className="flaticon-check-mark"></i>Verificar cuenta
                                             </Link>
                                         </li>
+                                        {(user?.role === 'support' || user?.role === 'admin') && (
+                                            <li>
+                                                <Link href="/soporte/verificaciones">
+                                                    <i className="flaticon-settings"></i>Panel de soporte
+                                                </Link>
+                                            </li>
+                                        )}
                                     </ul>
                                 </div>
                             </div>

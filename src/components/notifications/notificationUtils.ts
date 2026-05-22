@@ -133,6 +133,26 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
       icon: 'fa-user-check',
       iconColor: '#16a34a',
     }),
+    verification_approved: () => {
+      const isBusiness = notif.payload?.verType === 'business';
+      return {
+        text: isBusiness ? 'Tu empresa fue verificada ✓' : 'Tu cuenta fue verificada ✓',
+        snippet: 'Tu check ya es visible en tu perfil',
+        href: notif.recipient_cus_id ? `/creator-profile/${notif.recipient_cus_id}` : '/activity',
+        icon: 'fa-check-circle',
+        iconColor: '#16a34a',
+      };
+    },
+    verification_rejected: () => {
+      const reason = typeof notif.payload?.reason === 'string' ? notif.payload.reason : null;
+      return {
+        text: 'Tu solicitud de verificación fue rechazada',
+        snippet: reason ? `Motivo: ${reason}` : 'Puedes corregir y volver a enviar',
+        href: '/creator-profile-info-personal',
+        icon: 'fa-times-circle',
+        iconColor: '#dc2626',
+      };
+    },
   };
 
   return cfg[notif.notif_type]();

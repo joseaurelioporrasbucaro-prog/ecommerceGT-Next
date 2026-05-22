@@ -3,8 +3,7 @@ import React, { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
-import { uploadImage } from '@/utils/uploadImage';
-import { uploadPdf } from '@/utils/uploadPdf';
+import { uploadVerificationFile } from '@/utils/uploadVerificationFile';
 import ImageCropperModal from '@/components/common/ImageCropperModal';
 import { useVerificationStatus, useRequestVerification } from '@/hooks/api/useVerification';
 import type { VerificationStatus } from '@/types/api';
@@ -91,7 +90,7 @@ const VerifyForm = ({
   const handleCropped = async (file: File) => {
     setBusy(true);
     try {
-      const path = await uploadImage(file, 'doc');
+      const path = await uploadVerificationFile(file);
       if (cropSide === 'front') setFrontImage(path);
       else setBackImage(path);
       toast.success(`Foto del ${cropSide === 'front' ? 'frente' : 'reverso'} adjuntada.`);
@@ -114,7 +113,7 @@ const VerifyForm = ({
     }
     setBusy(true);
     try {
-      const path = await uploadPdf(file);
+      const path = await uploadVerificationFile(file);
       setFrontImage(path);
       toast.success('RTU adjuntado.');
     } catch (error) {

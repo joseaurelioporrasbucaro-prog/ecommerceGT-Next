@@ -57,6 +57,29 @@ export interface AuthUser {
   // Fase 8.1 — verificación de identidad
   verified: boolean;
   verificationStatus: VerificationStatus;
+  // Fase 8.2 — rol de plataforma (user | support | admin)
+  role: PlatformRole;
+}
+
+/** Rol de plataforma (Fase 8.2). Distinto de isAdmin (admin de empresa). */
+export type PlatformRole = 'user' | 'support' | 'admin';
+
+/** Fila de solicitud de verificación para el portal de soporte (Fase 8.2). */
+export interface VerificationRequestRow {
+  ver_id: number;
+  cus_id: number;
+  bus_id: number | null;
+  ver_type: 'personal' | 'business';
+  ver_document: string;
+  ver_document_image: string | null;
+  ver_document_image_back: string | null;
+  ver_status: VerificationStatus;
+  ver_reject_reason: string | null;
+  created_at: string;
+  firstname: string | null;
+  lastname: string | null;
+  handle: string | null;
+  companyname: string | null;
 }
 
 /** Estado de verificación de identidad (Fase 8.1). */
@@ -969,7 +992,9 @@ export type NotificationType =
   | 'review_received'
   | 'company_added'
   | 'company_invite'
-  | 'company_invite_accepted';
+  | 'company_invite_accepted'
+  | 'verification_approved'
+  | 'verification_rejected';
 
 /**
  * Notificación individual del usuario logueado.
