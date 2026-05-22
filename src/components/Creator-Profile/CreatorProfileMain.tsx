@@ -421,14 +421,18 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           border-radius: 50%;
         }
-        /* Prueba de alineación: nombre centrado, el resto de los datos
-           (handle, insignia de empresa, fecha de ingreso) alineados a la izq. */
+        /* Alineación: nombre centrado, handle / insignia empresa / fecha a la izq. */
         .creator-about :global(.artist-name) {
           display: block;
+          width: 100%;
           text-align: center;
         }
-        .creator-about :global(.artist-id),
+        .creator-about :global(.artist-id) {
+          align-self: flex-start;
+          text-align: left;
+        }
         .creator-about :global(.profile-detail-list) {
+          align-self: flex-start;
           text-align: left;
         }
         .creator-about :global(.artist-company) {
