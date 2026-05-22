@@ -390,11 +390,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           border-radius: 50%;
         }
-        /* ── Nombre centrado + check-circle azul inline ── */
+        /* ── Nombre alineado a la izq. + check-circle azul inline ── */
         .creator-about :global(.artist-name) {
           display: block;
           width: 100%;
-          text-align: center;
+          text-align: left;
           margin-bottom: 2px;
         }
         .profile-verified-icon {
@@ -403,16 +403,16 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           font-size: 17px;
           vertical-align: middle;
         }
-        /* ── Handle en azul, centrado, sin margen superior ── */
+        /* ── Handle en azul, a la izq., sin margen superior ── */
         .creator-about :global(.artist-id) {
-          text-align: center;
+          text-align: left;
           color: #3b82f6;
           margin-top: 0;
           margin-bottom: 12px;
         }
-        /* ── Badge empresa: píldora centrada, check dorado ── */
+        /* ── Badge empresa: píldora a la izq., check dorado ── */
         .artist-company-wrap {
-          text-align: center;
+          text-align: left;
           margin-bottom: 10px;
         }
         .creator-about :global(.artist-company) {
@@ -436,11 +436,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           color: #d4af37;
           font-size: 15px;
         }
-        /* ── Fecha de registro: pequeña, muted, centrada ── */
+        /* ── Fecha de registro: pequeña, muted, a la izq. ── */
         .profile-join-date {
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
           gap: 7px;
           font-size: 13px;
           opacity: 0.55;
@@ -454,7 +454,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         .profile-rating-line {
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
           gap: 8px;
           margin: 6px 0 14px;
         }
