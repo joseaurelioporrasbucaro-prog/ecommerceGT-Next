@@ -115,17 +115,17 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                                   {avatar ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
-                                      width={40}
-                                      height={40}
-                                      style={{ width: "100%", height: "auto", borderRadius: "50%" }}
+                                      width={45}
+                                      height={45}
+                                      style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }}
                                       src={avatar}
                                       alt={name}
                                     />
                                   ) : (
                                     <Image
-                                      width={40}
-                                      height={40}
-                                      style={{ width: "100%", height: "auto" }}
+                                      width={45}
+                                      height={45}
+                                      style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }}
                                       src={FALLBACK_AVATARS[i % FALLBACK_AVATARS.length]}
                                       alt={name}
                                     />
