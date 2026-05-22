@@ -62,6 +62,22 @@ export interface AuthUser {
 /** Estado de verificación de identidad (Fase 8.1). */
 export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
+/** Fase 9 — fila del ranking de vendedores (`GET /top-sellers`). */
+export interface TopSellerRow {
+  id: number | string;
+  firstname: string | null;
+  lastname: string | null;
+  handle: string | null;
+  imagenu: string | null;
+  verified: boolean;
+  avgrating: number | string;
+  numreviews: number | string;
+  followers: number | string;
+  totalviews: number | string;
+  totalpubs: number | string;
+  score: number | string;
+}
+
 /** Respuesta de `GET /verification/status`. */
 export interface VerificationStatusResponse {
   personal: { status: VerificationStatus; rejectReason: string | null };

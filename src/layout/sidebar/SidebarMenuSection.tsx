@@ -10,6 +10,11 @@ import profile9 from "../../../public/assets/img/profile/profile9.jpg";
 import listIconTwo from "../../../public/assets/img/shape/list-icon-2.png";
 import Image from "next/image";
 import { menuItems } from "@/data/menu-data";
+import { useTopSellers } from "@/hooks/api/useTopSellers";
+import { getBackendUrl } from "@/utils/backendUrl";
+
+// Imágenes de respaldo cuando el vendedor no tiene avatar.
+const FALLBACK_AVATARS = [profile6, profile7, profile8, profile9];
 
 interface propsType {
   menuOpen1: boolean;
@@ -20,6 +25,8 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
   const [activeMenu, setActiveMenu] = useState(false);
   const [sideMenuOpen2, setSideMenuOpen2] = useState(false);
   const [menuId, setmenuId] = useState(0);
+  // Fase 9 — ranking real de vendedores (reemplaza la lista demo hardcodeada).
+  const { data: topSellers } = useTopSellers(4);
 
 
 
@@ -95,118 +102,56 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
               <div className="menu2-sidebar-widget">
                 <h5 className="menu2-sidebar-widget-title mb-35">Top Seller</h5>
                 <div className="sidebar-creators-list">
-                  <div className="creator-single creator-single-short">
-                    <div className="creator-wraper">
-                      <div className="creator-inner">
-                        <div className="artist">
-                          <div className="profile-img pos-rel">
-                            <Link href="/creators">
-                              <Image
-                                width={40}
-                                height={40}
-                                style={{ width: "100%", height: "auto" }}
-                                src={profile6}
-                                alt="profile-img"
-                              />
-                            </Link>
-                            <div className="profile-verification verified">
-                              <i className="fas fa-check"></i>
+                  {(topSellers ?? []).map((s, i) => {
+                    const name = `${s.firstname ?? ""} ${s.lastname ?? ""}`.trim() || "Vendedor";
+                    const avatar = s.imagenu ? getBackendUrl(s.imagenu) : null;
+                    return (
+                      <div className="creator-single creator-single-short" key={s.id}>
+                        <div className="creator-wraper">
+                          <div className="creator-inner">
+                            <div className="artist">
+                              <div className="profile-img pos-rel">
+                                <Link href={`/creator-profile/${s.id}`}>
+                                  {avatar ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      width={40}
+                                      height={40}
+                                      style={{ width: "100%", height: "auto", borderRadius: "50%" }}
+                                      src={avatar}
+                                      alt={name}
+                                    />
+                                  ) : (
+                                    <Image
+                                      width={40}
+                                      height={40}
+                                      style={{ width: "100%", height: "auto" }}
+                                      src={FALLBACK_AVATARS[i % FALLBACK_AVATARS.length]}
+                                      alt={name}
+                                    />
+                                  )}
+                                </Link>
+                                {s.verified && (
+                                  <div className="profile-verification verified">
+                                    <i className="fas fa-check"></i>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="creator-name-id">
+                                <h4 className="artist-name">
+                                  <Link href={`/creator-profile/${s.id}`}>{name}</Link>
+                                </h4>
+                                {s.handle && <div className="artist-id">@{s.handle}</div>}
+                              </div>
                             </div>
-                          </div>
-                          <div className="creator-name-id">
-                            <h4 className="artist-name">
-                              <Link href="/creators">Stive Machman</Link>
-                            </h4>
-                            <div className="artist-id">@stive.lio</div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="creator-single creator-single-short">
-                    <div className="creator-wraper">
-                      <div className="creator-inner">
-                        <div className="artist">
-                          <div className="profile-img pos-rel">
-                            <Link href="/creators">
-                              <Image
-                                width={40}
-                                height={40}
-                                style={{ width: "100%", height: "auto" }}
-                                src={profile7}
-                                alt="profile-img"
-                              />
-                            </Link>
-                            <div className="profile-verification verified">
-                              <i className="fas fa-check"></i>
-                            </div>
-                          </div>
-                          <div className="creator-name-id">
-                            <h4 className="artist-name">
-                              <Link href="/creators">Jobanico Mina</Link>
-                            </h4>
-                            <div className="artist-id">@jobanico</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="creator-single creator-single-short">
-                    <div className="creator-wraper">
-                      <div className="creator-inner">
-                        <div className="artist">
-                          <div className="profile-img pos-rel">
-                            <Link href="/creators">
-                              <Image
-                                width={40}
-                                height={40}
-                                style={{ width: "100%", height: "auto" }}
-                                src={profile8}
-                                alt="profile-img"
-                              />
-                            </Link>
-                            <div className="profile-verification verified">
-                              <i className="fas fa-check"></i>
-                            </div>
-                          </div>
-                          <div className="creator-name-id">
-                            <h4 className="artist-name">
-                              <Link href="/creators">Paul Hayman</Link>
-                            </h4>
-                            <div className="artist-id">@paul</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="creator-single creator-single-short">
-                    <div className="creator-wraper">
-                      <div className="creator-inner">
-                        <div className="artist">
-                          <div className="profile-img pos-rel">
-                            <Link href="/creators">
-                              <Image
-                                width={40}
-                                height={40}
-                                style={{ width: "100%", height: "auto" }}
-                                src={profile9}
-                                alt="profile-img"
-                              />
-                            </Link>
-                            <div className="profile-verification verified">
-                              <i className="fas fa-check"></i>
-                            </div>
-                          </div>
-                          <div className="creator-name-id">
-                            <h4 className="artist-name">
-                              <Link href="/creators">Broke Lesner</Link>
-                            </h4>
-                            <div className="artist-id">@broke</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
+                  {(!topSellers || topSellers.length === 0) && (
+                    <p style={{ opacity: 0.5, fontSize: 13 }}>Aún no hay vendedores destacados.</p>
+                  )}
                 </div>
               </div>
               <div className="menu2-sidebar-widget mt-35">

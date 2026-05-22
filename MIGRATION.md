@@ -1848,3 +1848,30 @@ Objetivo: dar a soporte una forma segura de revisar y resolver solicitudes.
 
 Sin esto, la aprobación/rechazo se hace manualmente por SQL y los documentos
 quedan accesibles vía URL pública.
+
+---
+
+### Fase 10 — Sistema de pauta/sponsors por publicación (PENDIENTE, grande)
+
+> Requisito de Aurelio (2026-05-22): "para sponsorear una publicación la persona
+> debe **pagar** para que se vea destacada; sistema de **pauta por publicación**
+> para que aparezca destacada, **personalizado por ubicación y edad**" (por eso se
+> recolectan ubicación y edad de cada usuario).
+
+Es una feature mayor con dinero de por medio → fase propia. Esbozo:
+
+1. **Modelo de campañas** (`ecom.ad_campaigns` o similar): pub_id, anunciante
+   (cus_id), presupuesto, fechas inicio/fin, estado, segmentación
+   (departamento/municipio objetivo, rango de edad), métricas (impresiones/clics).
+2. **Pago**: integrar una pasarela (no ejecutar transacciones desde el agente;
+   el usuario/empresa paga). Definir proveedor (ej. local GT) y webhook de
+   confirmación que activa la campaña.
+3. **Segmentación/targeting**: al servir listados/destacados, filtrar/priorizar
+   publicaciones con campaña activa cuyo target (ubicación + edad) coincida con el
+   usuario que mira (usa `cit_id`/`tow_id`/`cus_birthday`). Respetar privacidad:
+   el targeting es server-side, no se expone la data del usuario.
+4. **Render**: carrusel/“Destacados” en home + badge “Patrocinado” en las cards.
+5. **Tope/rotación**: repartir impresiones entre campañas activas (round-robin o
+   por presupuesto) para no mostrar siempre la misma.
+
+Por ahora **no implementado**. La Fase 9 (abajo) hace solo el ranking de vendedores.
