@@ -82,9 +82,11 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
 
                   {company.name && <div className="artist-id">{company.name}</div>}
 
-                  <span className="cp-badge">
-                    <i className="fas fa-check-circle" /> Empresa verificada
-                  </span>
+                  <div className="cp-badge-wrap">
+                    <span className="cp-badge">
+                      <i className="fas fa-check-circle" /> Empresa verificada
+                    </span>
+                  </div>
 
                   {(company.address || joinDate) && (
                     <ul className="profile-detail-list">
@@ -222,11 +224,15 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           font-size: 12px;
           vertical-align: middle;
         }
+        /* Badge en su propia línea (antes quedaba al lado de la fecha). */
+        .cp-badge-wrap {
+          text-align: center;
+          margin: 8px 0 4px;
+        }
         .cp-badge {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          margin-top: 8px;
           padding: 4px 14px;
           border-radius: 20px;
           background: rgba(212, 175, 55, 0.12);
@@ -236,6 +242,12 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
         }
         .cp-badge i {
           color: #d4af37;
+        }
+        /* Stats: juntar Empleados / Publicaciones (el template las separa con
+           espacio amplio pensado para 5 columnas; aquí solo hay 2). */
+        .company-profile :global(.creator-details-meta-info) {
+          justify-content: flex-start;
+          gap: 48px;
         }
         .cp-employees {
           background: var(--clr-bg-white);
