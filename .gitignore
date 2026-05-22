@@ -5,3 +5,6 @@ build
 .env*.local
 .DS_Store
 *.tsbuildinfo
+
+# Claude Code worktrees (no versionar)
+.claude/worktrees/
