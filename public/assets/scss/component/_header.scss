@@ -649,6 +649,9 @@ div.mean-container {
 	border-right: 1px solid var(--clr-common-border);
 	right: auto;
 	top: 0;
+	// Fase 8: el fondo blanco llega hasta abajo (el wrapper es 100vh; sin esto
+	// la tarjeta solo crecía al alto del contenido y dejaba un hueco gris).
+	min-height: 100vh;
 }
 
 .menu2-sidebar-widget-title {

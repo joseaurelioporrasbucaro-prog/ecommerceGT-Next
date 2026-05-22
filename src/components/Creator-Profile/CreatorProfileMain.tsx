@@ -391,6 +391,24 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           color: #d4af37;
           font-size: 16px;
         }
+        /* Avatar circular (como en la config de perfil). El template lo trae
+           rectangular (calc(100%+20px) x 280px); lo forzamos a un cuadrado
+           centrado para que el 50% sea un círculo perfecto, no un óvalo. */
+        .creator-about :global(.profile-img) {
+          width: 200px;
+          height: 200px;
+          max-width: 100%;
+          padding: 0;
+          margin: -100px auto 16px;
+          border-radius: 50%;
+          overflow: hidden;
+        }
+        .creator-about :global(.profile-img img) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+        }
         .creator-about :global(.profile-initials) {
           display: flex;
           align-items: center;
@@ -401,9 +419,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           font-weight: 700;
           color: #fff;
           background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-          /* La foto del template es un rectángulo redondeado (10px), no un
-             círculo; con 50% el placeholder se veía ovalado. */
-          border-radius: 10px;
+          border-radius: 50%;
         }
         .profile-rating-line {
           display: flex;

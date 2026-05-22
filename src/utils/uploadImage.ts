@@ -4,7 +4,7 @@ interface UploadResponse {
   message: string;
   file: string;
   path: string;
-  variants?: { thumb?: string; card?: string; detail?: string };
+  variants?: { thumb?: string; card?: string; detail?: string; cover?: string };
 }
 
 /**
@@ -14,13 +14,14 @@ interface UploadResponse {
  * El backend borra el original tras generar variantes, así que guardamos la
  * variante (un archivo real) para evitar imágenes rotas:
  *   - `card`   → 800x800 (cuadrada): avatar y logo.
- *   - `detail` → 1600x900 (16:9): portada.
+ *   - `detail` → 1600x900 (16:9): imagen de detalle.
+ *   - `cover`  → 1920x500 (banner): portada de perfil.
  * Si sharp falló y no hay variantes, cae al `path` original (que en ese caso
  * sí se conserva).
  */
 export async function uploadImage(
   file: File,
-  variant: 'card' | 'detail' = 'card',
+  variant: 'card' | 'detail' | 'cover' = 'card',
 ): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);

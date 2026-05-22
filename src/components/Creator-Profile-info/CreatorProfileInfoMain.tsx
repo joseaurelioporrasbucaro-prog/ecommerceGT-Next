@@ -61,7 +61,7 @@ const CreatorProfileInfoMain = () => {
         if (!cropTarget) return;
         setBusy(true);
         try {
-            const variant = cropTarget === 'cover' ? 'detail' : 'card';
+            const variant = cropTarget === 'cover' ? 'cover' : 'card';
             const path = await uploadImage(file, variant);
             if (cropTarget === 'avatar') {
                 await ApiFetch.post('/update-avatar', { imagen: path });
@@ -186,7 +186,7 @@ const CreatorProfileInfoMain = () => {
             {cropSrc && cropTarget && (
                 <ImageCropperModal
                     imageSrc={cropSrc}
-                    aspect={cropTarget === 'cover' ? 16 / 9 : 1}
+                    aspect={cropTarget === 'cover' ? 1920 / 500 : 1}
                     cropShape={cropTarget === 'avatar' ? 'round' : 'rect'}
                     title={cropTarget === 'avatar' ? 'Encuadra tu foto de perfil' : 'Encuadra tu portada'}
                     busy={busy}
