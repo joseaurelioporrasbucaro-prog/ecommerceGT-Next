@@ -175,11 +175,18 @@ const CreatorProfileInfoMain = () => {
                                             </Link>
                                         </li>
                                         {(user?.role === 'support' || user?.role === 'admin') && (
-                                            <li>
-                                                <Link href="/soporte/verificaciones">
-                                                    <i className="flaticon-settings"></i>Panel de soporte
-                                                </Link>
-                                            </li>
+                                            <>
+                                                <li>
+                                                    <Link href="/soporte/verificaciones">
+                                                        <i className="flaticon-settings"></i>Verificaciones (soporte)
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/soporte/usuarios">
+                                                        <i className="flaticon-account"></i>Usuarios (soporte)
+                                                    </Link>
+                                                </li>
+                                            </>
                                         )}
                                     </ul>
                                 </div>

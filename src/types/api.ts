@@ -64,6 +64,23 @@ export interface AuthUser {
 /** Rol de plataforma (Fase 8.2). Distinto de isAdmin (admin de empresa). */
 export type PlatformRole = 'user' | 'support' | 'admin';
 
+/** Estado de cuenta (Fase 8.3). suspended/banned no pueden iniciar sesión. */
+export type AccountStatus = 'active' | 'suspended' | 'banned';
+
+/** Fila de usuario en el portal de gestión de soporte (Fase 8.3). */
+export interface SupportUserRow {
+  cus_id: number;
+  firstname: string | null;
+  lastname: string | null;
+  handle: string | null;
+  email: string | null;
+  role: PlatformRole;
+  status: AccountStatus;
+  banreason: string | null;
+  bannedat: string | null;
+  imagenu: string | null;
+}
+
 /** Fila de solicitud de verificación para el portal de soporte (Fase 8.2). */
 export interface VerificationRequestRow {
   ver_id: number;

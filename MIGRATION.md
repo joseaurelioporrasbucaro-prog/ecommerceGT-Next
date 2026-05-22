@@ -1901,3 +1901,39 @@ Es una feature mayor con dinero de por medio → fase propia. Esbozo:
    por presupuesto) para no mostrar siempre la misma.
 
 Por ahora **no implementado**. La Fase 9 (abajo) hace solo el ranking de vendedores.
+
+---
+
+### Fase 8.3 — Gestión de usuarios (bloqueo/baneo) ✅
+
+Soporte puede suspender (temporal) o banear (permanente) usuarios. Un usuario
+sancionado no puede iniciar sesión (enforcement en `login`). Base para que las
+denuncias (Fase 8.4) puedan sancionar al autor.
+
+**SQL para BDs existentes** (correr antes de desplegar el backend):
+
+```sql
+ALTER TABLE ecom.customer
+  ADD COLUMN IF NOT EXISTS cus_account_status varchar(20) NOT NULL DEFAULT 'active',
+  ADD COLUMN IF NOT EXISTS cus_ban_reason varchar(255) NULL,
+  ADD COLUMN IF NOT EXISTS cus_banned_at TIMESTAMP NULL;
+```
+
+- `cus_account_status`: `active` | `suspended` | `banned`. `login` rechaza
+  suspended/banned mostrando el motivo (`cus_ban_reason`).
+- **Endpoints (auth + requireSupport):** `GET /support/users?search=&status=`
+  (lista/busca, máx 100), `POST /support/users/:cus_id/ban` (status+reason),
+  `POST /support/users/:cus_id/unban`. No se puede sancionar a uno mismo ni a
+  otro support/admin.
+- **Frontend:** portal `/soporte/usuarios` (tabla con buscador + filtro por estado,
+  modal de sanción suspender/banear con motivo, reactivar). Enlace en el menú de
+  configuración solo para rol support/admin.
+
+> Nota de alcance v1: el baneo bloquea **nuevos** inicios de sesión; una sesión
+> activa con token vigente (≤1 h) sigue hasta expirar. Si se requiere corte
+> inmediato, añadir un check de estado en `authMiddleware` (costo: 1 query por
+> request) — pendiente de evaluar.
+
+**Pendientes del back-office de soporte:** Fase 8.4 (bandeja de denuncias:
+comentarios/mensajes/publicaciones) y Fase 8.5 (sistema de tickets + delegación
+equitativa a agentes de soporte).
