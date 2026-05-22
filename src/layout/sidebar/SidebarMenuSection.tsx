@@ -26,7 +26,7 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
   const [sideMenuOpen2, setSideMenuOpen2] = useState(false);
   const [menuId, setmenuId] = useState(0);
   // Fase 9 — ranking real de vendedores (reemplaza la lista demo hardcodeada).
-  const { data: topSellers } = useTopSellers(4);
+  const { data: topSellers } = useTopSellers(10);
 
 
 
