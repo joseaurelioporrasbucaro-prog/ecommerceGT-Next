@@ -1702,3 +1702,33 @@ Aprovecha el modelo que ya existía en `database.sql` (`subscriptions`, `busines
 **Verificación:** `tsc --noEmit` limpio; `node -c` OK en backend. Endpoints probados contra
 backend local (mismo repo en disco; `node --watch` recarga). Pendiente de push a infra
 compartida (techmindsgt) cuando se autorice.
+
+---
+
+### Pendiente — Tabs en el perfil de empresa (Empleados / Publicaciones)
+
+> Planificado, **no implementado**. Surgió al pulir el perfil público de empresa
+> (`/empresa/[id]`). Se difirió por presupuesto de tokens; retomar en frío.
+
+Objetivo: que `/empresa/[id]` tenga pestañas como el `creator-profile`:
+
+- **Empleados** (ya existe): grid de empleados, respetando el flag `bus_show_employees`
+  (`showemployees`). Sin exponer quién es admin (decisión de seguridad de Fase 8).
+- **Publicaciones** (nuevo): mostrar las publicaciones activas de **todos** los
+  empleados de la empresa, renderizadas con `PublicationCard` (igual que el
+  creator-profile).
+
+Trabajo estimado (fase contenida):
+
+1. **Backend** (`ecommerceGTBackEnd`, marcar `// Codigo Aurelio`):
+   nuevo endpoint público `GET /company-publications/:id`. Reutiliza la query de
+   `getSellerPublications` pero filtrando
+   `cus_id IN (SELECT cus_id FROM ecom.customer WHERE bus_id = $1)`.
+2. **Frontend** (`ecommerceGT-Next`):
+   - Hook `useCompanyPublications(id)`.
+   - Refactor de `CompanyProfileMain` a tabs (patrón de `CreatorProfileMain`):
+     Empleados | Publicaciones.
+   - La columna de stats "Publicaciones" (ya muestra `totalpublis`) puede activar
+     la pestaña.
+
+Sin cambios de esquema. No requiere ALTER TABLE.
