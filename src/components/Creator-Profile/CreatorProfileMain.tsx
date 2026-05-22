@@ -148,22 +148,28 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     )}
                   </div>
 
-                  <h4 className="artist-name pos-rel">
+                  {/* Nombre + ícono de verificación azul en la misma línea */}
+                  <h4 className="artist-name">
                     {displayName}
-                    <span className="profile-verification verified">
-                      <i className="fas fa-check" />
-                    </span>
+                    <i className="fas fa-check-circle profile-verified-icon" />
                   </h4>
 
-                  {seller.handle && <div className="artist-id">@{seller.handle}</div>}
-
-                  {seller.companyName && seller.busId && (
-                    <Link href={`/empresa/${seller.busId}`} className="artist-company">
-                      <i className="fas fa-check-circle" />
-                      <span>{seller.companyName}</span>
-                    </Link>
+                  {/* Handle en azul */}
+                  {seller.handle && (
+                    <div className="artist-id">@{seller.handle}</div>
                   )}
 
+                  {/* Badge de empresa: píldora centrada con check dorado */}
+                  {seller.companyName && seller.busId && (
+                    <div className="artist-company-wrap">
+                      <Link href={`/empresa/${seller.busId}`} className="artist-company">
+                        <i className="fas fa-check-circle" />
+                        <span>{seller.companyName}</span>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Estrellas */}
                   {totalReviews > 0 && (
                     <div className="profile-rating-line">
                       <Stars value={average} size={15} />
@@ -172,29 +178,15 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     </div>
                   )}
 
-                  {/* Ubicación (departamento/municipio, solo si el usuario la muestra) + antigüedad */}
-                  {(() => {
-                    const locationParts = [seller.municipality, seller.department].filter(Boolean);
-                    const locationLabel = locationParts.join(', ');
-                    if (!locationLabel && !joinDate) return null;
-                    return (
-                      <ul className="profile-detail-list">
-                        {locationLabel && (
-                          <li>
-                            <i className="fas fa-map-marker-alt" />
-                            {locationLabel}
-                          </li>
-                        )}
-                        {joinDate && (
-                          <li>
-                            <i className="flaticon-calendar" />
-                            Se unió en {joinDate}
-                          </li>
-                        )}
-                      </ul>
-                    );
-                  })()}
+                  {/* Fecha de registro: sutil, pequeña, ícono de calendario */}
+                  {joinDate && (
+                    <p className="profile-join-date">
+                      <i className="far fa-calendar-alt" />
+                      Se unió en {joinDate}
+                    </p>
+                  )}
 
+                  {/* Botón enviar mensaje — ancho completo */}
                   <div className="message-creator-btn">
                     <Link href="/messages" className="fill-btn icon-left">
                       <i className="fas fa-paper-plane" />Enviar mensaje
@@ -370,36 +362,13 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
       </section>
 
       <style jsx>{`
-        .creator-about :global(.artist-company) {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          margin-top: 8px;
-          padding: 4px 14px;
-          border-radius: 20px;
-          background: rgba(212, 175, 55, 0.12);
-          color: var(--clr-common-heading);
-          font-weight: 600;
-          font-size: 14px;
-          text-decoration: none;
-          transition: 0.3s;
-        }
-        .creator-about :global(.artist-company:hover) {
-          background: rgba(212, 175, 55, 0.22);
-        }
-        .creator-about :global(.artist-company i) {
-          color: #d4af37;
-          font-size: 16px;
-        }
-        /* Avatar circular (como en la config de perfil). El template lo trae
-           rectangular (calc(100%+20px) x 280px); lo forzamos a un cuadrado
-           centrado para que el 50% sea un círculo perfecto, no un óvalo. */
+        /* ── Avatar circular centrado ── */
         .creator-about :global(.profile-img) {
           width: 200px;
           height: 200px;
           max-width: 100%;
           padding: 0;
-          margin: -100px auto 16px;
+          margin: -100px auto 20px;
           border-radius: 50%;
           overflow: hidden;
         }
@@ -421,28 +390,73 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           border-radius: 50%;
         }
-        /* Alineación: nombre centrado, handle / insignia empresa / fecha a la izq. */
+        /* ── Nombre centrado + check-circle azul inline ── */
         .creator-about :global(.artist-name) {
           display: block;
           width: 100%;
           text-align: center;
+          margin-bottom: 2px;
         }
+        .profile-verified-icon {
+          margin-left: 7px;
+          color: #3b82f6;
+          font-size: 17px;
+          vertical-align: middle;
+        }
+        /* ── Handle en azul, centrado, sin margen superior ── */
         .creator-about :global(.artist-id) {
-          align-self: flex-start;
-          text-align: left;
+          text-align: center;
+          color: #3b82f6;
+          margin-top: 0;
+          margin-bottom: 12px;
         }
-        .creator-about :global(.profile-detail-list) {
-          align-self: flex-start;
-          text-align: left;
+        /* ── Badge empresa: píldora centrada, check dorado ── */
+        .artist-company-wrap {
+          text-align: center;
+          margin-bottom: 10px;
         }
         .creator-about :global(.artist-company) {
-          align-self: flex-start;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 14px;
+          border-radius: 20px;
+          border: 1px solid rgba(212, 175, 55, 0.35);
+          background: rgba(212, 175, 55, 0.08);
+          color: var(--clr-common-heading);
+          font-weight: 600;
+          font-size: 14px;
+          text-decoration: none;
+          transition: background 0.2s;
         }
+        .creator-about :global(.artist-company:hover) {
+          background: rgba(212, 175, 55, 0.18);
+        }
+        .creator-about :global(.artist-company i) {
+          color: #d4af37;
+          font-size: 15px;
+        }
+        /* ── Fecha de registro: pequeña, muted, centrada ── */
+        .profile-join-date {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          font-size: 13px;
+          opacity: 0.55;
+          margin: 8px 0 20px;
+        }
+        .profile-join-date :global(i) {
+          font-size: 13px;
+          flex-shrink: 0;
+        }
+        /* ── Estrellas ── */
         .profile-rating-line {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
-          margin: 6px 0 18px;
+          margin: 6px 0 14px;
         }
         .profile-rating-num {
           font-weight: 700;
@@ -452,34 +466,13 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           opacity: 0.55;
           font-size: 13px;
         }
-        /* Tabs (Publicaciones / Reseñas): juntar las pestañas (la plantilla las
-           separa con space-between para 5 tabs) y dar aire entre texto y número. */
+        /* ── Tabs (Publicaciones / Reseñas) ── */
         .creator-info-tab :global(.creator-info-tab-nav .nav-tabs) {
           justify-content: flex-start;
           gap: 36px;
         }
         .creator-info-tab :global(.creator-info-tab-nav .artist-meta-type) {
           margin-right: 7px;
-        }
-        .profile-detail-list {
-          list-style: none;
-          padding: 0;
-          margin: 4px 0 20px;
-          text-align: left;
-        }
-        .profile-detail-list li {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          font-size: 14px;
-          opacity: 0.8;
-          margin-bottom: 8px;
-        }
-        .profile-detail-list :global(i) {
-          color: var(--tp-theme-1, #6c5ce7);
-          width: 16px;
-          text-align: center;
-          flex-shrink: 0;
         }
         /* Acciones (seguir + compartir) — alinea con la barra de stats del template */
         .creator-info-bar :global(.creator-details-action) {
