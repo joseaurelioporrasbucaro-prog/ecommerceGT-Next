@@ -1821,3 +1821,30 @@ ALTER TABLE ecom.verification_requests
 
 **Pendiente (fase próxima):** portal de soporte para aprobar/rechazar solicitudes
 (incluye el endpoint de descarga autenticado de los documentos).
+
+---
+
+### Fase 8.2 — Portal de soporte + descarga autenticada de documentos (PENDIENTE)
+
+> Planificado, **no implementado**. No olvidar: hoy los documentos de verificación
+> (DPI/RTU) se guardan en `uploads/verification` y `/uploads` se sirve **estático y
+> público** (URL con timestamp+random, no adivinable fácilmente, pero accesible con
+> el link). El DPI/RTU es **PII sensible** → esto es una deuda de privacidad a saldar.
+
+Objetivo: dar a soporte una forma segura de revisar y resolver solicitudes.
+
+1. **Descarga autenticada (prioridad de privacidad):**
+   - Endpoint `GET /verification/document/:ver_id/:side` (auth + rol soporte) que
+     hace `res.sendFile` del documento solo si el solicitante es soporte.
+   - Dejar de servir `uploads/verification` de forma estática (sacarlo del
+     `express.static`), o moverlo fuera de la carpeta pública.
+2. **Portal de revisión:**
+   - Listado de solicitudes `pending` (DPI frente/reverso o RTU + número).
+   - Acciones: aprobar → setea `cus/bus_verification_status='verified'`,
+     `*_verified_at=now()`, `verification_requests.ver_status='verified'`,
+     `ver_reviewed_by`, `responded_at`. Rechazar → `'rejected'` + `ver_reject_reason`.
+   - Requiere un rol/flag de "soporte" (hoy no existe; definirlo).
+3. **Notificar** al usuario el resultado (reusa el centro de notificaciones).
+
+Sin esto, la aprobación/rechazo se hace manualmente por SQL y los documentos
+quedan accesibles vía URL pública.
