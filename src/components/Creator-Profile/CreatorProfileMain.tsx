@@ -362,21 +362,29 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
       </section>
 
       <style jsx>{`
-        /* ── Avatar circular centrado ── */
+        /* La tarjeta centra su contenido; el avatar (inline-block) queda centrado
+           sin pelear contra el longhand margin-left:-10px del template. */
+        .creator-about {
+          text-align: center;
+        }
+        /* ── Avatar circular centrado con anillo degradado ── */
         .creator-about :global(.profile-img) {
+          display: inline-block;
           width: 200px;
           height: 200px;
           max-width: 100%;
-          padding: 0;
-          margin: -100px auto 20px;
+          padding: 4px;
+          margin: -100px 0 20px;
           border-radius: 50%;
           overflow: hidden;
+          background: linear-gradient(135deg, #6c5ce7, #4f8cff);
         }
         .creator-about :global(.profile-img img) {
           width: 100%;
           height: 100%;
           object-fit: cover;
           border-radius: 50%;
+          border: 3px solid #fff;
         }
         .creator-about :global(.profile-initials) {
           display: flex;
@@ -390,11 +398,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           border-radius: 50%;
         }
-        /* ── Nombre alineado a la izq. + check-circle azul inline ── */
+        /* ── Nombre centrado + check-circle azul inline ── */
         .creator-about :global(.artist-name) {
           display: block;
           width: 100%;
-          text-align: left;
+          text-align: center;
           margin-bottom: 2px;
         }
         .profile-verified-icon {
@@ -403,16 +411,16 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           font-size: 17px;
           vertical-align: middle;
         }
-        /* ── Handle en azul, a la izq., sin margen superior ── */
+        /* ── Handle en azul, centrado, sin margen superior ── */
         .creator-about :global(.artist-id) {
-          text-align: left;
+          text-align: center;
           color: #3b82f6;
           margin-top: 0;
           margin-bottom: 12px;
         }
-        /* ── Badge empresa: píldora a la izq., check dorado ── */
+        /* ── Badge empresa: píldora centrada, check dorado ── */
         .artist-company-wrap {
-          text-align: left;
+          text-align: center;
           margin-bottom: 10px;
         }
         .creator-about :global(.artist-company) {
@@ -436,11 +444,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           color: #d4af37;
           font-size: 15px;
         }
-        /* ── Fecha de registro: pequeña, muted, a la izq. ── */
+        /* ── Fecha de registro: pequeña, muted, centrada ── */
         .profile-join-date {
           display: flex;
           align-items: center;
-          justify-content: flex-start;
+          justify-content: center;
           gap: 7px;
           font-size: 13px;
           opacity: 0.55;
@@ -454,7 +462,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         .profile-rating-line {
           display: flex;
           align-items: center;
-          justify-content: flex-start;
+          justify-content: center;
           gap: 8px;
           margin: 6px 0 14px;
         }
