@@ -157,6 +157,46 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
       </section>
 
       <style jsx>{`
+        /* La tarjeta centra su contenido (igual que el perfil personal). */
+        .company-profile :global(.creator-about) {
+          text-align: center;
+        }
+        /* Logo CUADRADO centrado con anillo dorado (no circular). El avatar
+           personal usa inline-block para centrarse sin pelear contra el
+           longhand margin-left:-10px del template; aquí aplica lo mismo. */
+        .company-profile :global(.profile-img) {
+          display: inline-block;
+          width: 200px;
+          height: 200px;
+          max-width: 100%;
+          padding: 4px;
+          margin: -100px 0 20px;
+          border-radius: 16px;
+          overflow: hidden;
+          background: linear-gradient(135deg, #d4af37, #f1c75b);
+        }
+        .company-profile :global(.profile-img img) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 12px;
+          border: 3px solid #fff;
+        }
+        .company-profile :global(.artist-name) {
+          display: block;
+          width: 100%;
+          text-align: center;
+          margin-bottom: 6px;
+        }
+        .company-profile :global(.artist-id) {
+          text-align: center;
+          margin-bottom: 12px;
+        }
+        .company-profile :global(.profile-detail-list) {
+          display: inline-block;
+          text-align: left;
+          margin-top: 16px;
+        }
         .company-profile :global(.profile-initials) {
           display: flex;
           align-items: center;
@@ -167,7 +207,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           font-weight: 700;
           color: #fff;
           background: linear-gradient(135deg, #d4af37, #f1c75b);
-          border-radius: 10px;
+          border-radius: 12px;
         }
         .cp-gold-check {
           display: inline-flex;
