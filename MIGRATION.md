@@ -1987,3 +1987,68 @@ CREATE INDEX IF NOT EXISTS idx_publication_reports_status ON ecom.publication_re
 
 **Pendiente del back-office:** Fase 8.5 — sistema de tickets + delegación
 equitativa a agentes de soporte (las denuncias podrían volverse tickets).
+
+---
+
+### Fase 8.5 — Sistema de tickets + delegación (PENDIENTE, grande)
+
+> Planificada para la próxima ventana semanal. Es la más grande del back-office.
+> Cierra la gestión de soporte: tickets ordenados y repartidos equitativamente
+> entre agentes. Las denuncias (8.4) podrían convertirse en tickets.
+
+**Esquema (dentro de CREATE TABLE + ALTER en esta sección):**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.tickets (
+    ticket_id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    cus_id        BIGINT NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE, -- quien lo abre
+    assigned_to   BIGINT NULL REFERENCES ecom.customer(cus_id),     -- agente de soporte
+    subject       VARCHAR(150) NOT NULL,
+    category      VARCHAR(30) NOT NULL DEFAULT 'otro', -- cuenta | pago | denuncia | verificacion | otro
+    priority      VARCHAR(10) NOT NULL DEFAULT 'normal', -- low | normal | high
+    status        VARCHAR(20) NOT NULL DEFAULT 'open',   -- open | in_progress | resolved | closed
+    -- opcional: vínculo a una denuncia que originó el ticket
+    source_type   VARCHAR(20) NULL,  -- 'report' | null
+    source_id     BIGINT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS ecom.ticket_messages (
+    tmsg_id    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ticket_id  BIGINT NOT NULL REFERENCES ecom.tickets(ticket_id) ON DELETE CASCADE,
+    cus_id     BIGINT NOT NULL REFERENCES ecom.customer(cus_id),
+    body       TEXT NOT NULL,
+    is_internal BOOLEAN NOT NULL DEFAULT false, -- nota interna de soporte (no la ve el usuario)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_tickets_status ON ecom.tickets(status);
+CREATE INDEX IF NOT EXISTS idx_tickets_assigned ON ecom.tickets(assigned_to);
+```
+
+**Delegación equitativa (round-robin):** al crear/auto-asignar un ticket, elegir el
+agente `support` con MENOS tickets abiertos asignados:
+```sql
+SELECT cus_id FROM ecom.customer
+ WHERE cus_role IN ('support','admin')
+ ORDER BY (SELECT COUNT(*) FROM ecom.tickets t
+            WHERE t.assigned_to = customer.cus_id AND t.status IN ('open','in_progress')) ASC,
+          random()
+ LIMIT 1;
+```
+
+**Backend (// Codigo Aurelio):**
+- `POST /tickets` (auth, usuario): crea ticket (subject, category, body inicial) → auto-asigna por round-robin.
+- `GET /tickets/mine` (auth): tickets del usuario. `GET /tickets/:id` (auth, dueño o soporte): detalle + mensajes (filtrar `is_internal` para el usuario).
+- `POST /tickets/:id/messages` (auth): responder.
+- Soporte (requireSupport): `GET /support/tickets?status=&assignee=` (lista/filtra),
+  `POST /support/tickets/:id/assign` (reasignar), `POST /support/tickets/:id/status`,
+  notas internas (`is_internal=true`).
+- Opcional: "convertir denuncia en ticket" desde la bandeja 8.4 (source_type='report').
+
+**Frontend:**
+- Usuario: `/soporte/tickets` (mis tickets) + detalle con hilo + crear ticket.
+- Soporte: `/soporte/tickets-admin` — tabla con filtros (estado, agente), reasignar,
+  cambiar estado, responder, notas internas. Reusar patrón de tabla de 8.3/8.4.
+- Notificaciones: `ticket_reply` / `ticket_assigned` (reusar centro de notif).
+
+Tamaño estimado: 1 ventana completa. Empezar por backend (esquema + endpoints +
+round-robin), luego frontend usuario, luego panel de soporte.
