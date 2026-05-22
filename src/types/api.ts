@@ -73,7 +73,10 @@ export interface VerificationStatusResponse {
 export type RequestVerificationPayload = {
   type: 'personal' | 'business';
   document: string;
+  /** personal: DPI frente | business: PDF del RTU. */
   documentImage?: string;
+  /** personal: DPI reverso. */
+  documentImageBack?: string;
 };
 
 /** Payload para `PUT /handle`. */

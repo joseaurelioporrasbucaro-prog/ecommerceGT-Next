@@ -4,7 +4,7 @@ interface UploadResponse {
   message: string;
   file: string;
   path: string;
-  variants?: { thumb?: string; card?: string; detail?: string; cover?: string };
+  variants?: { thumb?: string; card?: string; detail?: string; cover?: string; doc?: string };
 }
 
 /**
@@ -21,7 +21,7 @@ interface UploadResponse {
  */
 export async function uploadImage(
   file: File,
-  variant: 'card' | 'detail' | 'cover' = 'card',
+  variant: 'card' | 'detail' | 'cover' | 'doc' = 'card',
 ): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);

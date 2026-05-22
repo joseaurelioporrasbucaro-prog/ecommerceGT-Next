@@ -1795,4 +1795,29 @@ y `getCompanyProfile` exponen un flag `verified` para condicionar el check.
 **Frontend:** checks condicionados a `verified`; sección "Verificar cuenta" en
 configuraciones (envía DPI/NIT + foto, muestra estado).
 
-**Pendiente (fase próxima):** portal de soporte para aprobar/rechazar solicitudes.
+**Documentos que se piden (refinado):**
+- **Personal:** número de DPI + **2 fotos** (frente y reverso). Variante de imagen
+  `_doc` (1400x880 ≈ aspecto carné, calidad 88) para que los datos sean legibles.
+- **Empresarial:** número de NIT + **RTU en PDF**. El backend lo comprime con
+  Ghostscript (`gs -dPDFSETTINGS=/ebook`); si `gs` no está instalado, guarda el PDF
+  tal cual. Endpoint `POST /upload-pdf` (auth), guarda en `uploads/verification`,
+  límite 8 MB, solo `application/pdf`.
+
+**SQL extra** (columna para el reverso del DPI):
+
+```sql
+ALTER TABLE ecom.verification_requests
+  ADD COLUMN IF NOT EXISTS ver_document_image_back varchar(200) NULL;
+```
+
+> Para que la compresión del RTU funcione, instalar Ghostscript en el servidor
+> (local: `brew install ghostscript`). Sin él, el PDF se guarda sin comprimir.
+
+> ⚠️ **Follow-up de privacidad (pendiente):** los documentos se guardan en
+> `uploads/verification` y hoy `/uploads` se sirve estático (URL no adivinable,
+> pero accesible con el link). El DPI/RTU es PII sensible → conviene un endpoint
+> de descarga **autenticado** (solo soporte) en lugar de servirlo estático. Hacerlo
+> junto con el portal de revisión.
+
+**Pendiente (fase próxima):** portal de soporte para aprobar/rechazar solicitudes
+(incluye el endpoint de descarga autenticado de los documentos).
