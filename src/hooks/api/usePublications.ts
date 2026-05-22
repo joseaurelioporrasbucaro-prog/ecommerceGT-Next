@@ -12,6 +12,7 @@ export interface SellerInfo {
   lastName: string;
   handle: string | null;
   imageUrl: string | null;
+  cover: string | null;
   totalPublications: number;
   // Fase 7.2
   address: string | null;
@@ -58,6 +59,7 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
     lastName: row.lastname,
     handle: row.handle,
     imageUrl: row.imagenu,
+    cover: row.cover ?? null,
     totalPublications: toInt(row.totalpublis),
     address: row.address ?? null,
     joinDate: row.joindate ?? null,

@@ -8,6 +8,7 @@ import { useCompany, useUpdateCompany } from '@/hooks/api/useCompany';
 import { uploadImage } from '@/utils/uploadImage';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { ApiError } from '@/utils/Api';
+import ImageCropperModal from '@/components/common/ImageCropperModal';
 
 const CompanyMain = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const CompanyMain = () => {
   const [showEmployees, setShowEmployees] = useState(false);
   const [logoPath, setLogoPath] = useState('');
   const [logoUploading, setLogoUploading] = useState(false);
+  const [logoCropSrc, setLogoCropSrc] = useState<string | null>(null);
   useEffect(() => {
     if (company) {
       setForm({
@@ -34,23 +36,33 @@ const CompanyMain = () => {
     }
   }, [company]);
 
-  const handleLogoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoPick = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast.error('Selecciona un archivo de imagen.');
       return;
     }
+    setLogoCropSrc(URL.createObjectURL(file));
+  };
+
+  const closeLogoCropper = () => {
+    if (logoCropSrc) URL.revokeObjectURL(logoCropSrc);
+    setLogoCropSrc(null);
+  };
+
+  const handleLogoCropped = async (file: File) => {
     setLogoUploading(true);
     try {
-      const path = await uploadImage(file);
+      const path = await uploadImage(file, 'card');
       setLogoPath(path);
       toast.info('Logo listo. Guarda los cambios para aplicarlo.');
+      closeLogoCropper();
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : 'No se pudo subir el logo');
     } finally {
       setLogoUploading(false);
-      event.target.value = '';
     }
   };
 
@@ -131,7 +143,7 @@ const CompanyMain = () => {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={handleLogoChange}
+                            onChange={handleLogoPick}
                             disabled={logoUploading}
                             style={{ display: 'none' }}
                           />
@@ -196,6 +208,18 @@ const CompanyMain = () => {
           )}
         </div>
       </section>
+
+      {logoCropSrc && (
+        <ImageCropperModal
+          imageSrc={logoCropSrc}
+          aspect={1}
+          cropShape="rect"
+          title="Encuadra el logo"
+          busy={logoUploading}
+          onCancel={closeLogoCropper}
+          onConfirm={handleLogoCropped}
+        />
+      )}
 
       <style jsx>{`
         .cm-card {

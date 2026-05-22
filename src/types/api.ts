@@ -48,6 +48,8 @@ export interface AuthUser {
   lang: string | null;
   isAdmin: boolean;
   imagenu: string | null;
+  /** Fase 8 — imagen de portada del perfil. */
+  cover: string | null;
   // Fase 7.3 — ubicación de perfil
   citId: number | null;
   towId: number | null;
@@ -537,6 +539,7 @@ export interface SellerInfoRow {
   lastname: string;
   handle: string | null;
   imagenu: string | null;
+  cover: string | null;
   totalpublis: string | number;
   // Fase 7.2 — stats de perfil estilo plantilla
   address: string | null;

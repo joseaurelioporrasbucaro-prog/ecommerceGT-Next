@@ -109,7 +109,16 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
       <section className="creator-details-area pt-0 pb-90">
         {/* Cover (estructura del template) */}
         <div className="creator-cover-img creator-details-cover-img pos-rel wow fadeInUp">
-          <Image src={coverImg} alt="cover" />
+          {seller?.cover ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={getBackendUrl(seller.cover)}
+              alt="cover"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <Image src={coverImg} alt="cover" />
+          )}
         </div>
 
         <div className="container">
