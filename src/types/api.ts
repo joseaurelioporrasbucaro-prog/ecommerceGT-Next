@@ -54,7 +54,27 @@ export interface AuthUser {
   citId: number | null;
   towId: number | null;
   showLocation: boolean;
+  // Fase 8.1 — verificación de identidad
+  verified: boolean;
+  verificationStatus: VerificationStatus;
 }
+
+/** Estado de verificación de identidad (Fase 8.1). */
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+
+/** Respuesta de `GET /verification/status`. */
+export interface VerificationStatusResponse {
+  personal: { status: VerificationStatus; rejectReason: string | null };
+  business: { status: VerificationStatus; rejectReason: string | null } | null;
+  canRequestBusiness: boolean;
+}
+
+/** Payload para `POST /verification/request`. */
+export type RequestVerificationPayload = {
+  type: 'personal' | 'business';
+  document: string;
+  documentImage?: string;
+};
 
 /** Payload para `PUT /handle`. */
 export interface UpdateHandlePayload extends Record<string, unknown> {
@@ -556,6 +576,8 @@ export interface SellerInfoRow {
   // Fase 8 — empresa (nombre comercial + busId para enlazar al perfil de empresa)
   busid: number | string | null;
   companyname: string | null;
+  // Fase 8.1 — verificación de identidad (el check azul solo si verified)
+  verified: boolean;
 }
 export type SellerInfoResponse = SellerInfoRow[];
 
@@ -703,6 +725,8 @@ export interface CompanyProfileData {
   joindate: string | null;
   membercount: number | string;
   totalpublis: number | string;
+  // Fase 8.1 — verificación de identidad (el check dorado solo si verified)
+  verified: boolean;
 }
 
 /** Respuesta de `GET /company-profile/:id`. */

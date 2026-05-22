@@ -29,6 +29,8 @@ export interface SellerInfo {
   // Fase 8 — empresa del usuario (nombre comercial + check dorado, siempre visible)
   busId: number | null;
   companyName: string | null;
+  // Fase 8.1 — verificación de identidad (check azul solo si verified)
+  verified: boolean;
 }
 
 export const PUBLICATIONS_QUERY_KEY = ['publications'] as const;
@@ -73,6 +75,7 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
     municipality: row.municipality ?? null,
     busId: parseId(row.busid),
     companyName: row.companyname ?? null,
+    verified: Boolean(row.verified),
   };
 }
 

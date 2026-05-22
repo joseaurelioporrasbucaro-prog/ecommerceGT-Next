@@ -16,6 +16,7 @@ import ImageCropperModal from '@/components/common/ImageCropperModal';
 // Importamos los submódulos que crearemos en el Paso 2
 import PersonalInfoTab from './PersonalInfoTab';
 import AccountSettingsTab from './AccountSettingsTab';
+import VerifyAccountTab from './VerifyAccountTab';
 
 type CropTarget = 'avatar' | 'cover';
 
@@ -144,9 +145,11 @@ const CreatorProfileInfoMain = () => {
                                     <div className="creator-name-id">
                                         <h4 className="artist-name pos-rel">
                                             {user?.firstName} {user?.lastName}
-                                            <span className="profile-verification verified">
-                                                <i className="fas fa-check"></i>
-                                            </span>
+                                            {user?.verified && (
+                                                <span className="profile-verification verified" title="Cuenta verificada">
+                                                    <i className="fas fa-check"></i>
+                                                </span>
+                                            )}
                                         </h4>
                                         <div className="artist-id">{user?.email}</div>
                                     </div>
@@ -166,7 +169,11 @@ const CreatorProfileInfoMain = () => {
                                             </Link>
                                         </li>
                                         <li><Link href="#"><i className="flaticon-notification"></i>Notification Settings</Link></li>
-                                        <li><Link href="/forgot"><i className="flaticon-check-mark"></i>Verify Account</Link></li>
+                                        <li className={activeTab === 2 ? "active" : ""}>
+                                            <Link href="#" onClick={(e) => { e.preventDefault(); setActiveTab(2); }}>
+                                                <i className="flaticon-check-mark"></i>Verificar cuenta
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -177,6 +184,7 @@ const CreatorProfileInfoMain = () => {
                             <div className="creator-info-personal mb-40 wow fadeInUp">
                                 {activeTab === 0 && <PersonalInfoTab />}
                                 {activeTab === 1 && <AccountSettingsTab />}
+                                {activeTab === 2 && <VerifyAccountTab />}
                             </div>
                         </div>
                     </div>

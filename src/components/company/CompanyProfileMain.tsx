@@ -1,11 +1,15 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProfileBreadCamb from '@/components/Creator-Profile/ProfileBreadCamb';
+import PublicationCard from '@/components/publications/PublicationCard';
 import { useCompanyProfile } from '@/hooks/api/useCompanyProfile';
+import { useCompanyPublications } from '@/hooks/api/useCompanyPublications';
 import { getBackendUrl } from '@/utils/backendUrl';
 import coverImg from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
+
+type TabKey = 'publicaciones' | 'empleados';
 
 const fmtCount = (n: number): string => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
@@ -26,10 +30,13 @@ const toInt = (v: number | string | null | undefined): number => {
 };
 
 const CompanyProfileMain = ({ id }: { id: string }) => {
+  const [activeTab, setActiveTab] = useState<TabKey>('publicaciones');
   const profileQuery = useCompanyProfile(id);
+  const pubsQuery = useCompanyPublications(id);
   const data = profileQuery.data;
   const company = data?.company;
   const employees = data?.employees ?? [];
+  const publications = pubsQuery.data ?? [];
 
   const tradeName = company?.tradename || 'Empresa';
   const logoUrl = company?.logo ? getBackendUrl(company.logo) : null;
@@ -75,18 +82,22 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
 
                   <h4 className="artist-name pos-rel">
                     {tradeName}
-                    <span className="cp-gold-check" title="Empresa verificada">
-                      <i className="fas fa-check" />
-                    </span>
+                    {company.verified && (
+                      <span className="cp-gold-check" title="Empresa verificada">
+                        <i className="fas fa-check" />
+                      </span>
+                    )}
                   </h4>
 
                   {company.name && <div className="artist-id">{company.name}</div>}
 
-                  <div className="cp-badge-wrap">
-                    <span className="cp-badge">
-                      <i className="fas fa-check-circle" /> Empresa verificada
-                    </span>
-                  </div>
+                  {company.verified && (
+                    <div className="cp-badge-wrap">
+                      <span className="cp-badge">
+                        <i className="fas fa-check-circle" /> Empresa verificada
+                      </span>
+                    </div>
+                  )}
 
                   {(company.address || joinDate) && (
                     <ul className="profile-detail-list">
@@ -107,7 +118,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                 </div>
               </div>
 
-              {/* Stats + empleados */}
+              {/* Stats + tabs (Publicaciones / Empleados) */}
               <div className="col-xl-9">
                 <div className="creator-info-bar mb-30 wow fadeInUp">
                   <div className="artist-meta-info creator-details-meta-info">
@@ -122,35 +133,94 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                   </div>
                 </div>
 
-                <div className="cp-employees">
-                  <h4 className="cp-emp-title">Empleados</h4>
-                  {!company.showemployees ? (
-                    <p className="cp-emp-note">Esta empresa no muestra a sus empleados.</p>
-                  ) : employees.length === 0 ? (
-                    <p className="cp-emp-note">Aún no hay empleados para mostrar.</p>
-                  ) : (
-                    <div className="cp-emp-grid">
-                      {employees.map((e) => {
-                        const name = `${e.firstname ?? ''} ${e.lastname ?? ''}`.trim() || 'Usuario';
-                        const avatar = e.imagenu ? getBackendUrl(e.imagenu) : null;
-                        return (
-                          <Link key={e.cusid} href={`/creator-profile/${e.cusid}`} className="cp-emp-card">
-                            <div className="cp-emp-avatar">
-                              {avatar ? (
-                                <Image src={avatar} alt={name} width={64} height={64} />
-                              ) : (
-                                <span>{name[0]?.toUpperCase() ?? '?'}</span>
-                              )}
-                            </div>
-                            <div className="cp-emp-info">
-                              <span className="cp-emp-name">{name}</span>
-                              {e.handle && <span className="cp-emp-handle">@{e.handle}</span>}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
+                <div className="creator-info-tab wow fadeInUp">
+                  <div className="creator-info-tab-nav mb-30">
+                    <nav>
+                      <div className="nav nav-tabs" role="tablist">
+                        <button
+                          className={`nav-link ${activeTab === 'publicaciones' ? 'active' : ''}`}
+                          type="button"
+                          role="tab"
+                          onClick={() => setActiveTab('publicaciones')}
+                        >
+                          <span className="profile-nav-button">
+                            <span className="artist-meta-item artist-meta-item-border">
+                              <span className="artist-meta-type">Publicaciones</span>
+                              <span className="artist-created">{fmtCount(toInt(company.totalpublis))}</span>
+                            </span>
+                          </span>
+                        </button>
+                        <button
+                          className={`nav-link ${activeTab === 'empleados' ? 'active' : ''}`}
+                          type="button"
+                          role="tab"
+                          onClick={() => setActiveTab('empleados')}
+                        >
+                          <span className="profile-nav-button">
+                            <span className="artist-meta-item">
+                              <span className="artist-meta-type">Empleados</span>
+                              <span className="artist-created">{fmtCount(toInt(company.membercount))}</span>
+                            </span>
+                          </span>
+                        </button>
+                      </div>
+                    </nav>
+                  </div>
+
+                  <div className="creator-info-tab-contents mb-30">
+                    {/* ── Tab Publicaciones: las de todos los empleados ── */}
+                    {activeTab === 'publicaciones' && (
+                      <div className="created-items-wrapper">
+                        {pubsQuery.isLoading && <p style={{ opacity: 0.6 }}>Cargando publicaciones…</p>}
+                        {!pubsQuery.isLoading && publications.length === 0 && (
+                          <div className="profile-empty">
+                            <i className="fal fa-folder-open" />
+                            <p>Esta empresa todavía no tiene publicaciones activas.</p>
+                          </div>
+                        )}
+                        {publications.length > 0 && (
+                          <div className="row">
+                            {publications.map((pub) => (
+                              <PublicationCard key={pub.id} publication={pub} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ── Tab Empleados: solo si la empresa lo habilitó ── */}
+                    {activeTab === 'empleados' && (
+                      <div className="cp-employees">
+                        {!company.showemployees ? (
+                          <p className="cp-emp-note">Esta empresa no muestra a sus empleados.</p>
+                        ) : employees.length === 0 ? (
+                          <p className="cp-emp-note">Aún no hay empleados para mostrar.</p>
+                        ) : (
+                          <div className="cp-emp-grid">
+                            {employees.map((e) => {
+                              const name = `${e.firstname ?? ''} ${e.lastname ?? ''}`.trim() || 'Usuario';
+                              const avatar = e.imagenu ? getBackendUrl(e.imagenu) : null;
+                              return (
+                                <Link key={e.cusid} href={`/creator-profile/${e.cusid}`} className="cp-emp-card">
+                                  <div className="cp-emp-avatar">
+                                    {avatar ? (
+                                      <Image src={avatar} alt={name} width={64} height={64} />
+                                    ) : (
+                                      <span>{name[0]?.toUpperCase() ?? '?'}</span>
+                                    )}
+                                  </div>
+                                  <div className="cp-emp-info">
+                                    <span className="cp-emp-name">{name}</span>
+                                    {e.handle && <span className="cp-emp-handle">@{e.handle}</span>}
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -248,6 +318,26 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
         .company-profile :global(.creator-details-meta-info) {
           justify-content: flex-start;
           gap: 48px;
+        }
+        /* Tabs (Publicaciones / Empleados): juntar las pestañas y dar aire. */
+        .creator-info-tab :global(.creator-info-tab-nav .nav-tabs) {
+          justify-content: flex-start;
+          gap: 36px;
+        }
+        .creator-info-tab :global(.creator-info-tab-nav .artist-meta-type) {
+          margin-right: 7px;
+        }
+        /* Estado vacío de publicaciones. */
+        .creator-info-tab :global(.profile-empty) {
+          padding: 50px 20px;
+          text-align: center;
+          opacity: 0.6;
+        }
+        .creator-info-tab :global(.profile-empty i) {
+          font-size: 36px;
+          display: block;
+          margin-bottom: 14px;
+          color: var(--clr-theme-1, #6c5ce7);
         }
         .cp-employees {
           background: var(--clr-bg-white);

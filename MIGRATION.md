@@ -1732,3 +1732,67 @@ Trabajo estimado (fase contenida):
      la pestaña.
 
 Sin cambios de esquema. No requiere ALTER TABLE.
+
+---
+
+### Fase 8.1 — Verificación de identidad (DPI / NIT)
+
+El check (azul personal / dorado empresa) y el mensaje "cuenta/empresa verificada"
+**solo aparecen si la cuenta está verificada**. El usuario envía su DPI (personal)
+o NIT (empresa) + foto del documento desde Configuraciones → "Verificar cuenta";
+soporte lo valida **manualmente** (el portal de revisión es una fase próxima).
+
+Estados: `unverified` → `pending` (enviado) → `verified` / `rejected` (con motivo).
+
+> ⚠️ `cus_dpi` / `bus_nit` y `ver_document` son **datos sensibles**: nunca se
+> devuelven en endpoints públicos, solo se usan internamente para validar.
+
+**SQL para BDs existentes** (correr **antes** de desplegar el backend):
+
+```sql
+-- Columnas de estado en customer
+ALTER TABLE ecom.customer
+  ADD COLUMN IF NOT EXISTS cus_dpi varchar(20) NULL,
+  ADD COLUMN IF NOT EXISTS cus_verification_status varchar(20) NOT NULL DEFAULT 'unverified',
+  ADD COLUMN IF NOT EXISTS cus_verified_at TIMESTAMP NULL;
+
+-- Columnas de estado en business
+ALTER TABLE ecom.business
+  ADD COLUMN IF NOT EXISTS bus_nit varchar(20) NULL,
+  ADD COLUMN IF NOT EXISTS bus_verification_status varchar(20) NOT NULL DEFAULT 'unverified',
+  ADD COLUMN IF NOT EXISTS bus_verified_at TIMESTAMP NULL;
+
+-- Tabla de solicitudes de verificación
+CREATE TABLE IF NOT EXISTS ecom.verification_requests (
+    ver_id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    cus_id          BIGINT NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+    bus_id          BIGINT NULL REFERENCES ecom.business(bus_id) ON DELETE CASCADE,
+    ver_type        VARCHAR(20) NOT NULL,
+    ver_document    VARCHAR(20) NOT NULL,
+    ver_document_image VARCHAR(200) NULL,
+    ver_status      VARCHAR(20) NOT NULL DEFAULT 'pending',
+    ver_reject_reason VARCHAR(255) NULL,
+    ver_reviewed_by BIGINT NULL REFERENCES ecom.customer(cus_id),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    responded_at    TIMESTAMP NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_verification_pending_personal
+    ON ecom.verification_requests(cus_id)
+    WHERE ver_status = 'pending' AND ver_type = 'personal';
+CREATE UNIQUE INDEX IF NOT EXISTS uq_verification_pending_business
+    ON ecom.verification_requests(bus_id)
+    WHERE ver_status = 'pending' AND ver_type = 'business';
+```
+
+> Nota: `customer` ya tenía `cus_is_verified`/`cus_verification_token`, pero esos
+> son de **verificación de email** (registro). La verificación de identidad usa
+> columnas nuevas (`cus_verification_status`), no se reutilizan.
+
+**Backend:** `POST /verification/request` (auth) crea la solicitud pending;
+`GET /verification/status` (auth) devuelve el estado. `verifyMe`, `getInfoCus`
+y `getCompanyProfile` exponen un flag `verified` para condicionar el check.
+
+**Frontend:** checks condicionados a `verified`; sección "Verificar cuenta" en
+configuraciones (envía DPI/NIT + foto, muestra estado).
+
+**Pendiente (fase próxima):** portal de soporte para aprobar/rechazar solicitudes.

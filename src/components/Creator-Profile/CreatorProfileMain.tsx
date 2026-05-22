@@ -148,10 +148,12 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     )}
                   </div>
 
-                  {/* Nombre + ícono de verificación azul en la misma línea */}
+                  {/* Nombre + check azul SOLO si la cuenta está verificada */}
                   <h4 className="artist-name">
                     {displayName}
-                    <i className="fas fa-check-circle profile-verified-icon" />
+                    {seller.verified && (
+                      <i className="fas fa-check-circle profile-verified-icon" title="Cuenta verificada" />
+                    )}
                   </h4>
 
                   {/* Handle en azul */}
