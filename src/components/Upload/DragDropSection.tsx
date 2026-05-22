@@ -5,6 +5,7 @@ import { FileUploader } from 'react-drag-drop-files';
 import { toast } from 'react-toastify';
 import { ApiError, ApiFetch } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
+import { getImageVariant } from '@/utils/imageVariants';
 import type { UploadedImage } from '@/types/api';
 
 const ACCEPTED_TYPES = ['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF'];
@@ -170,8 +171,11 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
         <div className="upload-thumbs">
           {uploaded.map((image) => (
             <div key={image.id} className="upload-thumb">
+              {/* El backend borra el original tras generar variantes WebP, así
+                  que la preview debe apuntar a la variante (card), no al path
+                  original (que ya no existe → imagen rota). */}
               <Image
-                src={getBackendUrl(image.url)}
+                src={getBackendUrl(getImageVariant(image.url, 'card'))}
                 alt={image.id}
                 fill
                 sizes="120px"
