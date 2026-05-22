@@ -186,6 +186,11 @@ const CreatorProfileInfoMain = () => {
                                                         <i className="flaticon-account"></i>Usuarios (soporte)
                                                     </Link>
                                                 </li>
+                                                <li>
+                                                    <Link href="/soporte/denuncias">
+                                                        <i className="flaticon-notification"></i>Denuncias (soporte)
+                                                    </Link>
+                                                </li>
                                             </>
                                         )}
                                     </ul>

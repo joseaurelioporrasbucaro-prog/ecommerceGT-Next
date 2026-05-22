@@ -67,6 +67,26 @@ export type PlatformRole = 'user' | 'support' | 'admin';
 /** Estado de cuenta (Fase 8.3). suspended/banned no pueden iniciar sesión. */
 export type AccountStatus = 'active' | 'suspended' | 'banned';
 
+/** Tipo de contenido denunciado (Fase 8.4). */
+export type ReportType = 'comment' | 'message' | 'publication';
+
+/** Fila normalizada de la bandeja de denuncias de soporte (Fase 8.4). */
+export interface SupportReportRow {
+  report_type: ReportType;
+  report_id: number;
+  content_id: number;
+  content_excerpt: string | null;
+  reason: string;
+  detail: string | null;
+  status: 'pending' | 'resolved' | 'dismissed';
+  created_at: string;
+  author_id: number;
+  author_first: string | null;
+  author_last: string | null;
+  author_handle: string | null;
+  pub_id: number | null;
+}
+
 /** Fila de usuario en el portal de gestión de soporte (Fase 8.3). */
 export interface SupportUserRow {
   cus_id: number;

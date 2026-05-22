@@ -1937,3 +1937,53 @@ ALTER TABLE ecom.customer
 **Pendientes del back-office de soporte:** Fase 8.4 (bandeja de denuncias:
 comentarios/mensajes/publicaciones) y Fase 8.5 (sistema de tickets + delegación
 equitativa a agentes de soporte).
+
+---
+
+### Fase 8.4 — Bandeja de denuncias (soporte) ✅
+
+Soporte revisa y resuelve denuncias de **comentarios, mensajes y publicaciones**
+en una bandeja unificada. Comentarios y mensajes ya se podían denunciar; se agrega
+la denuncia de **publicaciones**.
+
+**SQL para BDs existentes** (correr antes de desplegar el backend):
+
+```sql
+-- Estado de resolución en denuncias existentes
+ALTER TABLE ecom.comment_reports
+  ADD COLUMN IF NOT EXISTS report_status varchar(20) NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS resolved_by BIGINT NULL,
+  ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP NULL;
+ALTER TABLE ecom.message_reports
+  ADD COLUMN IF NOT EXISTS report_status varchar(20) NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS resolved_by BIGINT NULL,
+  ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP NULL;
+
+-- Denuncias de publicaciones (nueva)
+CREATE TABLE IF NOT EXISTS ecom.publication_reports (
+    report_id        SERIAL PRIMARY KEY,
+    pub_id           BIGINT NOT NULL REFERENCES ecom.publications(pub_id) ON DELETE CASCADE,
+    reporter_cus_id  BIGINT NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+    reason           VARCHAR(40) NOT NULL,
+    detail           TEXT NULL,
+    report_status    varchar(20) NOT NULL DEFAULT 'pending',
+    resolved_by      BIGINT NULL,
+    resolved_at      TIMESTAMP NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_publication_reports UNIQUE (pub_id, reporter_cus_id)
+);
+CREATE INDEX IF NOT EXISTS idx_publication_reports_status ON ecom.publication_reports(report_status);
+```
+
+- **Denunciar publicación:** `POST /reportpublication/:pub_id` (auth) + botón
+  "Denunciar" en el detalle de publicación (motivo + detalle).
+- **Bandeja (requireSupport):** `GET /support/reports?status=pending|resolved|dismissed`
+  (UNION normalizado de las 3 fuentes), `POST /support/reports/resolve`
+  (`{type, reportId, contentId, action}`): `dismiss` (descarta) o `delete`
+  (comentario/mensaje → borrado; publicación → soft-delete pubsta_id=4 + reportes
+  resueltos).
+- **Frontend:** portal `/soporte/denuncias` (tabla con tipo, contenido+enlace,
+  autor, motivo, fecha, descartar/eliminar). Enlace en el menú solo support/admin.
+
+**Pendiente del back-office:** Fase 8.5 — sistema de tickets + delegación
+equitativa a agentes de soporte (las denuncias podrían volverse tickets).

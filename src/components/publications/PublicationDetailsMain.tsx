@@ -10,6 +10,7 @@ import { getBackendUrl } from '@/utils/backendUrl';
 import PublicationComments from './PublicationComments';
 import PublicationContent from './PublicationContent';
 import PublicationGallery from './PublicationGallery';
+import ReportPublicationButton from './ReportPublicationButton';
 import { getPublicationImagePath } from './publicationUtils';
 
 interface PublicationDetailsMainProps {
@@ -92,6 +93,11 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
 
           {/* ───────── Info abajo ───────── */}
           <PublicationContent publication={publication} />
+
+          {/* ───────── Denunciar (Fase 8.4) ───────── */}
+          <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+            <ReportPublicationButton pubId={publication.pub_id} />
+          </div>
 
           {/* ───────── Comentarios ───────── */}
           <PublicationComments
