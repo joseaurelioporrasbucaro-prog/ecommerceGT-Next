@@ -1812,6 +1812,21 @@ ALTER TABLE ecom.verification_requests
 
 > Para que la compresión del RTU funcione, instalar Ghostscript en el servidor
 > (local: `brew install ghostscript`). Sin él, el PDF se guarda sin comprimir.
+>
+> 📌 **DESPLIEGUE — instalar Ghostscript (pendiente, fase final):**
+> - **¿Dónde?** En el **BACKEND** (donde corre `/upload-pdf`), que está en **Render**.
+>   En **Vercel** corre el frontend (Next.js) → ahí **NO** se necesita Ghostscript.
+> - **Cómo en Render:** el runtime nativo de Node **no** trae `gs` y no permite
+>   `apt-get` fácilmente. Lo más limpio es desplegar el backend con un **Dockerfile**
+>   que incluya:
+>   ```dockerfile
+>   RUN apt-get update && apt-get install -y ghostscript && rm -rf /var/lib/apt/lists/*
+>   ```
+>   (en Render: cambiar el servicio a "Docker" o agregar el Dockerfile al repo).
+> - **No es bloqueante:** si `gs` no está, `/upload-pdf` guarda el PDF tal cual
+>   (el código ya tiene fallback). Es solo una optimización de tamaño.
+> - **Verificar tras desplegar:** subir un RTU y confirmar en logs que NO aparece
+>   "ghostscript no disponible".
 
 > ⚠️ **Follow-up de privacidad (pendiente):** los documentos se guardan en
 > `uploads/verification` y hoy `/uploads` se sirve estático (URL no adivinable,
