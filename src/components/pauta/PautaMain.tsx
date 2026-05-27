@@ -87,15 +87,15 @@ const PautaMain = () => {
             <p>Promociona una de tus publicaciones para que aparezca en <strong>Destacados</strong>, segmentada por <strong>ubicación y edad</strong> (igual que en plataformas como Meta Ads). Eliges un <strong>objetivo</strong>, un <strong>presupuesto</strong> y por <strong>cuánto tiempo</strong> corre.</p>
             <div className="pa-obj-cards">
               <div className="pa-obj-card">
-                <strong><i className="fas fa-bolt" /> Destacar</strong>
-                <span>Se muestra arriba con el sello "Patrocinado". El presupuesto se consume por <em>impresiones</em> (cada vez que se muestra a alguien del público objetivo).</span>
+                <strong><i className="fas fa-bolt" /> Destacar — Q0.05 / impresión</strong>
+                <span>Se muestra arriba con el sello "Patrocinado". Cada vez que se muestra a alguien del público objetivo se descuenta Q0.05. Ej: Q10 ≈ 200 vistas, Q1000 ≈ 20,000 vistas.</span>
               </div>
               <div className="pa-obj-card">
-                <strong><i className="fas fa-paper-plane" /> Mensajes</strong>
-                <span>Igual de destacada, pero pensada para recibir contactos: el presupuesto se consume por <em>clic</em> en "Enviar mensaje".</span>
+                <strong><i className="fas fa-paper-plane" /> Mensajes — Q0.50 / clic</strong>
+                <span>Muestra un botón "Enviar mensaje". Solo se descuenta cuando alguien hace clic. Ej: Q10 ≈ 20 contactos, Q1000 ≈ 2,000 contactos.</span>
               </div>
             </div>
-            <p className="pa-explain-note"><i className="fas fa-info-circle" /> El cobro real se habilitará al integrar la pasarela de pago. Por ahora la campaña se activa al crearse (sin cobro). Presupuesto mínimo: <strong>Q{MIN_BUDGET}</strong>.</p>
+            <p className="pa-explain-note"><i className="fas fa-info-circle" /> A más presupuesto, <strong>más alcance y prioridad</strong> (las campañas con más saldo se muestran primero). Al agotarse el presupuesto la campaña finaliza sola. El cobro real se habilitará con la pasarela; por ahora se activa sin cobro. Mínimo <strong>Q{MIN_BUDGET}</strong>.</p>
           </div>
 
           <div className="row">
@@ -178,9 +178,11 @@ const PautaMain = () => {
                     <div className="pa-metrics">
                       <span><i className="fas fa-eye" /> {c.impressions}</span>
                       <span><i className="fas fa-mouse-pointer" /> {c.clicks}</span>
-                      <span><i className="fas fa-coins" /> Q{Number(c.budget).toFixed(2)}</span>
+                      <span><i className="fas fa-coins" /> Q{Number(c.spent).toFixed(2)} / Q{Number(c.budget).toFixed(2)}</span>
+                      <span><i className="fas fa-wallet" /> Resta Q{Math.max(0, Number(c.budget) - Number(c.spent)).toFixed(2)}</span>
                       <span><i className="fas fa-clock" /> {daysBetween(c.start_date, c.end_date)}</span>
                     </div>
+                    <div className="pa-progress"><div className="pa-progress-bar" style={{ width: `${Math.min(100, (Number(c.spent) / Math.max(1, Number(c.budget))) * 100)}%` }} /></div>
                     <div className="pa-camp-actions">
                       {c.camp_status === 'active' && <button onClick={() => changeStatus(c.camp_id, 'paused')}>Pausar</button>}
                       {c.camp_status === 'paused' && <button onClick={() => changeStatus(c.camp_id, 'active')}>Reanudar</button>}
@@ -226,7 +228,9 @@ const PautaMain = () => {
         .pa-status-paused { background: rgba(245,158,11,0.18); color: #b8860b; }
         .pa-status-finished { background: rgba(128,128,128,0.18); color: #777; }
         .pa-obj-tag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(108,92,231,0.12); color: #6c5ce7; }
-        .pa-metrics { display: flex; gap: 16px; font-size: 13px; opacity: 0.75; margin-bottom: 10px; flex-wrap: wrap; }
+        .pa-metrics { display: flex; gap: 16px; font-size: 13px; opacity: 0.75; margin-bottom: 8px; flex-wrap: wrap; }
+        .pa-progress { height: 6px; border-radius: 4px; background: rgba(128,128,128,0.18); overflow: hidden; margin-bottom: 10px; }
+        .pa-progress-bar { height: 100%; background: var(--clr-theme-1, #6c5ce7); }
         .pa-camp-actions { display: flex; gap: 8px; }
         .pa-camp-actions button { border: 1px solid rgba(128,128,128,0.3); background: transparent; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .pa-camp-actions .pa-finish { color: #dc2626; border-color: rgba(239,68,68,0.4); }

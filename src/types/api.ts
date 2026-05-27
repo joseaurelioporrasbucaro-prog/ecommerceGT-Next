@@ -80,6 +80,7 @@ export interface Campaign {
   camp_status: CampaignStatus;
   camp_objective: CampaignObjective;
   budget: number | string;
+  spent: number | string;
   start_date: string;
   end_date: string | null;
   target_cit_id: number | null;

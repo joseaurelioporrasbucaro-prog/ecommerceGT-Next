@@ -1901,10 +1901,19 @@ CREATE TABLE IF NOT EXISTS ecom.ad_campaigns (
 );
 CREATE INDEX IF NOT EXISTS idx_ad_campaigns_status ON ecom.ad_campaigns(camp_status);
 CREATE INDEX IF NOT EXISTS idx_ad_campaigns_cus ON ecom.ad_campaigns(cus_id);
--- Objetivo de campaña (si ya creaste la tabla antes, corre solo este ALTER):
+-- Objetivo + consumo de presupuesto (si ya creaste la tabla antes):
 ALTER TABLE ecom.ad_campaigns
-  ADD COLUMN IF NOT EXISTS camp_objective VARCHAR(20) NOT NULL DEFAULT 'destacar';
+  ADD COLUMN IF NOT EXISTS camp_objective VARCHAR(20) NOT NULL DEFAULT 'destacar',
+  ADD COLUMN IF NOT EXISTS spent NUMERIC(10,2) NOT NULL DEFAULT 0;
 ```
+
+> **Consumo de presupuesto (Fase 10.1):** `destacar` descuenta **Q0.05/impresión**;
+> `mensajes` descuenta **Q0.50/clic** en "Enviar mensaje". Al llegar `spent` al
+> `budget` la campaña pasa a `finished` sola. El serving ordena por **saldo
+> restante DESC** (más presupuesto = más prioridad y alcance). Tarifas en
+> `connPostgresDB.js` (`AD_IMPRESSION_COST` / `AD_CLICK_COST`). Las campañas
+> `mensajes` muestran un botón "Enviar mensaje" en Destacados. Métricas casi en
+> tiempo real (refetch al enfocar + cada 30s).
 
 > `camp_objective`: `destacar` (consume por impresión) | `mensajes` (consume por
 > clic en "Enviar mensaje"). Presupuesto mínimo Q10. El form de `/pauta` incluye
