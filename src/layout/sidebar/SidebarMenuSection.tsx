@@ -12,9 +12,20 @@ import Image from "next/image";
 import { menuItems } from "@/data/menu-data";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
 import { getBackendUrl } from "@/utils/backendUrl";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/utils/AuthContext";
 
 // Imágenes de respaldo cuando el vendedor no tiene avatar.
 const FALLBACK_AVATARS = [profile6, profile7, profile8, profile9];
+
+// Fase 8.5 — navegación de soporte (reemplaza el Top Seller en rutas /soporte).
+const SUPPORT_LINKS = [
+  { href: "/soporte/tickets-admin", label: "Tickets", icon: "flaticon-settings" },
+  { href: "/soporte/verificaciones", label: "Verificaciones", icon: "flaticon-check-mark" },
+  { href: "/soporte/denuncias", label: "Denuncias", icon: "flaticon-notification" },
+  { href: "/soporte/usuarios", label: "Usuarios", icon: "flaticon-account" },
+  { href: "/soporte/tickets", label: "Mis tickets", icon: "flaticon-account" },
+];
 
 interface propsType {
   menuOpen1: boolean;
@@ -27,6 +38,12 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
   const [menuId, setmenuId] = useState(0);
   // Fase 9 — ranking real de vendedores (reemplaza la lista demo hardcodeada).
   const { data: topSellers } = useTopSellers(10);
+  // Fase 8.5 — en rutas de soporte, el widget muestra el menú de soporte.
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const inSupport = pathname?.startsWith('/soporte') ?? false;
+  const isSupportUser = user?.role === 'support' || user?.role === 'admin';
+  const showSupportNav = inSupport && isSupportUser;
 
 
 
@@ -99,6 +116,26 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                    
               </ul>
               </div>
+              {showSupportNav && (
+                <div className="menu2-sidebar-widget">
+                  <h5 className="menu2-sidebar-widget-title mb-35">Soporte</h5>
+                  <ul className="support-nav">
+                    {SUPPORT_LINKS.map((l) => (
+                      <li key={l.href} className={pathname === l.href ? "active" : ""}>
+                        <Link href={l.href}><i className={l.icon}></i>{l.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <style jsx>{`
+                    .support-nav { list-style: none; padding: 0; margin: 0; }
+                    .support-nav li { margin-bottom: 6px; }
+                    .support-nav li :global(a) { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: inherit; text-decoration: none; font-weight: 600; transition: 0.2s; }
+                    .support-nav li :global(a:hover) { background: rgba(108,92,231,0.08); }
+                    .support-nav li.active :global(a) { background: var(--clr-theme-1, #6c5ce7); color: #fff; }
+                  `}</style>
+                </div>
+              )}
+              {!showSupportNav && (
               <div className="menu2-sidebar-widget">
                 <h5 className="menu2-sidebar-widget-title mb-35">Top Seller</h5>
                 <div className="sidebar-creators-list">
@@ -154,6 +191,7 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                   )}
                 </div>
               </div>
+              )}
               <div className="menu2-sidebar-widget mt-35">
                 <div className="work-process-single pos-rel">
                   <div className="work-process-content">

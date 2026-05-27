@@ -24,23 +24,20 @@ const SupportTicketsMain = () => {
       <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Tickets" />
 
-      <section className="creator-area pt-130 pb-100">
+      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           {!isSupport ? (
             <div className="alert alert-danger">Acceso restringido. Solo el equipo de soporte puede ver esta página.</div>
           ) : (
             <>
               <div className="st-filters">
-                <div className="st-group">
-                  {([['', 'Todos'], ['open', 'Abiertos'], ['in_progress', 'En progreso'], ['resolved', 'Resueltos'], ['closed', 'Cerrados']] as const).map(([v, l]) => (
-                    <button key={v} className={`st-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>{l}</button>
-                  ))}
-                </div>
-                <div className="st-group">
-                  {([['', 'Todos los agentes'], ['me', 'Asignados a mí'], ['unassigned', 'Sin asignar']] as const).map(([v, l]) => (
-                    <button key={v} className={`st-tab ${assignee === v ? 'active' : ''}`} onClick={() => setAssignee(v)}>{l}</button>
-                  ))}
-                </div>
+                {([['', 'Todos'], ['open', 'Abiertos'], ['in_progress', 'En progreso'], ['resolved', 'Resueltos'], ['closed', 'Cerrados']] as const).map(([v, l]) => (
+                  <button key={v} className={`st-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>{l}</button>
+                ))}
+                <span className="st-sep" />
+                {([['', 'Todos los agentes'], ['me', 'Asignados a mí'], ['unassigned', 'Sin asignar']] as const).map(([v, l]) => (
+                  <button key={v} className={`st-tab ${assignee === v ? 'active' : ''}`} onClick={() => setAssignee(v)}>{l}</button>
+                ))}
               </div>
 
               {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
@@ -81,9 +78,9 @@ const SupportTicketsMain = () => {
       </section>
 
       <style jsx>{`
-        .st-filters { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-        .st-group { display: flex; gap: 8px; flex-wrap: wrap; }
-        .st-tab { padding: 7px 16px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .st-filters { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+        .st-sep { width: 1px; height: 22px; background: rgba(128,128,128,0.3); margin: 0 6px; }
+        .st-tab { padding: 7px 16px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
         .st-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
         .st-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
         .st-table { width: 100%; border-collapse: collapse; min-width: 760px; background: var(--clr-bg-white, #fff); }

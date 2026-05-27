@@ -43,7 +43,7 @@ const MyTicketsMain = () => {
       <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Mis tickets" />
 
-      <section className="creator-area pt-130 pb-100">
+      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           <div className="mt-toolbar">
             <h4 style={{ margin: 0 }}>Mis tickets de soporte</h4>

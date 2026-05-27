@@ -66,7 +66,7 @@ const SupportUsersMain = () => {
       <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Usuarios" />
 
-      <section className="creator-area pt-130 pb-100">
+      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           {!isSupport ? (
             <div className="alert alert-danger">Acceso restringido. Solo el equipo de soporte puede ver esta página.</div>

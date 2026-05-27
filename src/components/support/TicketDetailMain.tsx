@@ -36,8 +36,8 @@ const TicketDetailMain = ({ id }: { id: string }) => {
     );
   };
 
-  if (isLoading) return <main><ThemeChanger /><div className="container pt-130 pb-100"><p style={{ opacity: 0.6 }}>Cargando ticket…</p></div></main>;
-  if (isError || !data) return <main><ThemeChanger /><div className="container pt-130 pb-100"><div className="alert alert-danger">No se pudo cargar el ticket.</div></div></main>;
+  if (isLoading) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><p style={{ opacity: 0.6 }}>Cargando ticket…</p></div></main>;
+  if (isError || !data) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><div className="alert alert-danger">No se pudo cargar el ticket.</div></div></main>;
 
   const { ticket, messages } = data;
   const owner = `${ticket.owner_first ?? ''} ${ticket.owner_last ?? ''}`.trim() || 'Usuario';
@@ -47,7 +47,7 @@ const TicketDetailMain = ({ id }: { id: string }) => {
       <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle={`Ticket #${ticket.ticket_id}`} />
 
-      <section className="creator-area pt-130 pb-100">
+      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           <Link href={staff ? '/soporte/tickets-admin' : '/soporte/tickets'} className="td-back">← Volver</Link>
 
