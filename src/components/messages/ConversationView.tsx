@@ -704,6 +704,7 @@ interface ReportModalProps {
 const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, isSubmitting }) => {
   const [reason, setReason] = useState<MessageReportReason>('spam');
   const [detail, setDetail] = useState('');
+  const [consent, setConsent] = useState(false);
 
   return (
     <div className="report-overlay" onClick={onCancel}>
@@ -745,6 +746,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
             rows={3}
             maxLength={500}
           />
+
+          <label className="report-consent">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+            <span>Entiendo y acepto que el equipo de soporte tendrá acceso a esta conversación para revisar la denuncia y tomar las medidas que correspondan.</span>
+          </label>
         </div>
 
         <footer className="report-footer">
@@ -755,7 +761,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
             type="button"
             className="fill-btn"
             onClick={() => onSubmit(reason, detail)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !consent}
           >
             {isSubmitting ? 'Enviando…' : 'Enviar denuncia'}
           </button>
@@ -863,6 +869,20 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
         }
         .report-body textarea:focus {
           border-color: var(--clr-theme-1, #6c5ce7);
+        }
+        .report-consent {
+          display: flex;
+          gap: 9px;
+          align-items: flex-start;
+          margin-top: 14px;
+          font-size: 13px;
+          opacity: 0.85;
+          line-height: 1.4;
+          cursor: pointer;
+        }
+        .report-consent input {
+          margin-top: 3px;
+          flex-shrink: 0;
         }
         .report-footer {
           display: flex;

@@ -70,6 +70,21 @@ export type AccountStatus = 'active' | 'suspended' | 'banned';
 /** Tipo de contenido denunciado (Fase 8.4). */
 export type ReportType = 'comment' | 'message' | 'publication';
 
+/** Mensaje en el contexto de conversación que ve soporte (Fase 8.4). */
+export interface ConversationContextMessage {
+  message_id: number;
+  sender_id: number;
+  content: string;
+  created_at: string;
+  first: string | null;
+  last: string | null;
+  handle: string | null;
+}
+export interface MessageContextResponse {
+  reportedMessageId: number;
+  messages: ConversationContextMessage[];
+}
+
 /** Fase 8.5 — tickets de soporte. */
 export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type TicketCategory = 'cuenta' | 'pago' | 'denuncia' | 'verificacion' | 'otro';
