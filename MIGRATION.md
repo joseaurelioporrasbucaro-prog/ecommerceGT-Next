@@ -1877,7 +1877,51 @@ ALTER TABLE ecom.customer
 
 ---
 
-### Fase 10 — Sistema de pauta/sponsors por publicación (PENDIENTE, grande)
+### Fase 10 — Sistema de pauta/sponsors por publicación ✅ (estructura; pago = stub)
+
+> **Implementada la estructura.** Falta SOLO la pasarela de pago: hoy la campaña
+> se activa al crearse (`camp_status='active'`) sin cobrar. Cuando se integre el
+> proveedor (Recurrente/NeoNet/etc.), agregar el gate de pago antes de activar.
+
+**SQL para BDs existentes:**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.ad_campaigns (
+    camp_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pub_id BIGINT NOT NULL REFERENCES ecom.publications(pub_id) ON DELETE CASCADE,
+    cus_id BIGINT NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+    camp_status VARCHAR(20) NOT NULL DEFAULT 'active',
+    budget NUMERIC(10,2) NOT NULL DEFAULT 0,
+    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    end_date DATE NULL,
+    target_cit_id INT NULL REFERENCES ecom.cat_city(cit_id),
+    target_tow_id INT NULL REFERENCES ecom.cat_town(tow_id),
+    target_age_min INT NULL, target_age_max INT NULL,
+    impressions BIGINT NOT NULL DEFAULT 0, clicks BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ad_campaigns_status ON ecom.ad_campaigns(camp_status);
+CREATE INDEX IF NOT EXISTS idx_ad_campaigns_cus ON ecom.ad_campaigns(cus_id);
+```
+
+- **Anunciante:** `/pauta` (crear campaña: publicación propia, presupuesto, fecha
+  fin, segmentación departamento/municipio/edad) + lista con métricas
+  (impresiones/clics) y pausar/reanudar/finalizar. Endpoints `POST /campaigns`,
+  `GET /campaigns/mine`, `POST /campaigns/:id/status`.
+- **Serving segmentado:** `GET /featured-publications` (authMiddlewareAux) filtra
+  **server-side** por ubicación (`cit_id`/`tow_id`) y edad (de `cus_birthday`) del
+  viewer; sin sesión solo muestra campañas sin segmentar. Rota con `random()`, suma
+  impresiones. Clic → `POST /featured/:campId/click`.
+- **Render:** sección "Destacados" en el listado de publicaciones con badge
+  **"Patrocinado"** (PublicationCard `isFeatured`).
+- **Privacidad:** el targeting es server-side; nunca se expone la ubicación/edad
+  del viewer al anunciante.
+
+**Pendiente:** integrar pasarela de pago (gate antes de activar la campaña;
+webhook de confirmación). Esa es la única pieza faltante de la Fase 10.
+
+---
+
+### Fase 10 (plan original) — Sistema de pauta/sponsors por publicación
 
 > Requisito de Aurelio (2026-05-22): "para sponsorear una publicación la persona
 > debe **pagar** para que se vea destacada; sistema de **pauta por publicación**

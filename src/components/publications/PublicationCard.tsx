@@ -101,7 +101,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
                 {isFeatured && (
                   <div className="publication-featured-badge">
                     <i className="fas fa-bolt"></i>
-                    Destacada
+                    Patrocinado
                   </div>
                 )}
                 {isNew && !statusBadge && (

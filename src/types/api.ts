@@ -70,6 +70,36 @@ export type AccountStatus = 'active' | 'suspended' | 'banned';
 /** Tipo de contenido denunciado (Fase 8.4). */
 export type ReportType = 'comment' | 'message' | 'publication';
 
+/** Fase 10 — campaña de pauta. */
+export type CampaignStatus = 'active' | 'paused' | 'finished';
+export interface Campaign {
+  camp_id: number;
+  pub_id: number;
+  title: string;
+  camp_status: CampaignStatus;
+  budget: number | string;
+  start_date: string;
+  end_date: string | null;
+  target_cit_id: number | null;
+  target_tow_id: number | null;
+  target_age_min: number | null;
+  target_age_max: number | null;
+  impressions: number | string;
+  clicks: number | string;
+  created_at: string;
+}
+/** Payload para crear campaña. */
+export type CreateCampaignPayload = {
+  pubId: number;
+  budget?: number;
+  startDate?: string;
+  endDate?: string;
+  targetCitId?: number | null;
+  targetTowId?: number | null;
+  targetAgeMin?: number | null;
+  targetAgeMax?: number | null;
+};
+
 /** Mensaje en el contexto de conversación que ve soporte (Fase 8.4). */
 export interface ConversationContextMessage {
   message_id: number;
