@@ -1901,7 +1901,14 @@ CREATE TABLE IF NOT EXISTS ecom.ad_campaigns (
 );
 CREATE INDEX IF NOT EXISTS idx_ad_campaigns_status ON ecom.ad_campaigns(camp_status);
 CREATE INDEX IF NOT EXISTS idx_ad_campaigns_cus ON ecom.ad_campaigns(cus_id);
+-- Objetivo de campaña (si ya creaste la tabla antes, corre solo este ALTER):
+ALTER TABLE ecom.ad_campaigns
+  ADD COLUMN IF NOT EXISTS camp_objective VARCHAR(20) NOT NULL DEFAULT 'destacar';
 ```
+
+> `camp_objective`: `destacar` (consume por impresión) | `mensajes` (consume por
+> clic en "Enviar mensaje"). Presupuesto mínimo Q10. El form de `/pauta` incluye
+> objetivo, fecha inicio/fin (duración), segmentación y un explicador estilo Meta.
 
 - **Anunciante:** `/pauta` (crear campaña: publicación propia, presupuesto, fecha
   fin, segmentación departamento/municipio/edad) + lista con métricas

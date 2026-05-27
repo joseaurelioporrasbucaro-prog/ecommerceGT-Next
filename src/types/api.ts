@@ -72,11 +72,13 @@ export type ReportType = 'comment' | 'message' | 'publication';
 
 /** Fase 10 — campaña de pauta. */
 export type CampaignStatus = 'active' | 'paused' | 'finished';
+export type CampaignObjective = 'destacar' | 'mensajes';
 export interface Campaign {
   camp_id: number;
   pub_id: number;
   title: string;
   camp_status: CampaignStatus;
+  camp_objective: CampaignObjective;
   budget: number | string;
   start_date: string;
   end_date: string | null;
@@ -91,6 +93,7 @@ export interface Campaign {
 /** Payload para crear campaña. */
 export type CreateCampaignPayload = {
   pubId: number;
+  objective?: CampaignObjective;
   budget?: number;
   startDate?: string;
   endDate?: string;
