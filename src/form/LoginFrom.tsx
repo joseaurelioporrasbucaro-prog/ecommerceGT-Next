@@ -8,7 +8,7 @@ import ErrorMessage from "@/utils/ErrorMessage";
 // Importaciones nuevas para tu lógica
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { ApiFetch } from "@/utils/Api";
+import { ApiError, ApiFetch } from "@/utils/Api";
 import type { LoginResponse } from "@/types/api";
 import { useAuth } from "@/utils/AuthContext";
 
@@ -16,6 +16,27 @@ const LoginFrom = () => {
   const router = useRouter();
   const { checkAuth, setUserForgot } = useAuth() as any; // Traemos checkAuth para actualizar el estado de autenticación después del login exitoso, y setUserForgot para manejar el flujo de "Olvidé mi contraseña"
   const [loading, setLoading] = useState(false);
+  // Fase 8.3.1 — bloqueo por sanción + flujo de apelación.
+  const [bannedMsg, setBannedMsg] = useState<string | null>(null);
+  const [appealOpen, setAppealOpen] = useState(false);
+  const [appealText, setAppealText] = useState("");
+  const [appealEmail, setAppealEmail] = useState("");
+  const [appealing, setAppealing] = useState(false);
+
+  const submitAppeal = async () => {
+    if (appealText.trim().length < 10) { toast.error("Explica tu apelación (mín. 10 caracteres)."); return; }
+    setAppealing(true);
+    try {
+      const r = await ApiFetch.post<{ message: string }>("/appeal", { email: appealEmail, message: appealText.trim() });
+      toast.success(r.message || "Apelación enviada.");
+      setAppealOpen(false);
+      setAppealText("");
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "No se pudo enviar la apelación.");
+    } finally {
+      setAppealing(false);
+    }
+  };
 
 
   // use formik
@@ -29,6 +50,7 @@ const LoginFrom = () => {
       validationSchema: login_schema,
       onSubmit: async (values, { resetForm }) => {
         setLoading(true);
+        setBannedMsg(null);
         try {
           // 1. Llamada a tu backend en Node.js (Puerto 4000)
           const res = await ApiFetch.post<LoginResponse>("/login", {
@@ -49,8 +71,16 @@ const LoginFrom = () => {
             router.push("/forgot"); 
           }
         } catch (error: any) {
-          toast.error("Credenciales incorrectas o error de servidor");
-          console.error("Error en login:", error);
+          // Cuenta sancionada (403 con banned): mostramos motivo + apelación.
+          if (error instanceof ApiError && error.status === 403 && (error.body as any)?.banned) {
+            setBannedMsg(error.message);
+            setAppealEmail(values.email);
+            setAppealText("");
+            setAppealOpen(false);
+          } else {
+            toast.error("Credenciales incorrectas o error de servidor");
+            console.error("Error en login:", error);
+          }
         } finally {
           setLoading(false);
         }
@@ -59,6 +89,35 @@ const LoginFrom = () => {
 
   return (
     <>
+      {bannedMsg && (
+        <div className="appeal-box">
+          <p className="appeal-msg"><i className="fas fa-ban" /> {bannedMsg}</p>
+          {!appealOpen ? (
+            <button type="button" className="appeal-link" onClick={() => setAppealOpen(true)}>
+              Apelar esta decisión
+            </button>
+          ) : (
+            <div className="appeal-form">
+              <textarea
+                rows={3}
+                placeholder="Explica por qué deberíamos revisar la sanción…"
+                value={appealText}
+                onChange={(e) => setAppealText(e.target.value)}
+              />
+              <button type="button" className="fill-btn" onClick={submitAppeal} disabled={appealing}>
+                {appealing ? "Enviando…" : "Enviar apelación"}
+              </button>
+            </div>
+          )}
+          <style jsx>{`
+            .appeal-box { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+            .appeal-msg { margin: 0 0 10px; color: #dc2626; font-size: 14px; display: flex; gap: 8px; }
+            .appeal-link { background: none; border: none; color: #dc2626; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 0; }
+            .appeal-form textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; margin-bottom: 10px; resize: vertical; }
+          `}</style>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="login-form" action="#">
         <div className="row">
           <div className="col-md-12">

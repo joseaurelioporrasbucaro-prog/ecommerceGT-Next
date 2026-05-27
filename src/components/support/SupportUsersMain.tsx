@@ -31,6 +31,7 @@ const SupportUsersMain = () => {
   const [banTarget, setBanTarget] = useState<SupportUserRow | null>(null);
   const [banStatus, setBanStatus] = useState<'suspended' | 'banned'>('suspended');
   const [reason, setReason] = useState('');
+  const [banDays, setBanDays] = useState(7);
 
   const isSupport = user?.role === 'support' || user?.role === 'admin';
 
@@ -47,7 +48,7 @@ const SupportUsersMain = () => {
       return;
     }
     banUser.mutate(
-      { cusId: banTarget.cus_id, status: banStatus, reason: reason.trim() },
+      { cusId: banTarget.cus_id, status: banStatus, reason: reason.trim(), days: banStatus === 'suspended' ? banDays : undefined },
       {
         onSuccess: (r) => {
           toast.success(r.message || 'Hecho.');
@@ -127,6 +128,9 @@ const SupportUsersMain = () => {
                               <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
                                 {STATUS_LABEL[u.status]}
                               </span>
+                              {u.status === 'suspended' && u.banneduntil && (
+                                <div className="su-until">hasta {new Date(u.banneduntil).toLocaleDateString('es-GT')}</div>
+                              )}
                             </td>
                             <td>
                               {isStaff ? (
@@ -170,6 +174,16 @@ const SupportUsersMain = () => {
                 Banear (permanente)
               </label>
             </div>
+
+            {banStatus === 'suspended' && (
+              <div className="su-days">
+                <label>Duración:</label>
+                {[7, 15, 30].map((d) => (
+                  <button key={d} type="button" className={`su-day ${banDays === d ? 'active' : ''}`} onClick={() => setBanDays(d)}>{d} días</button>
+                ))}
+                <input type="number" min={1} max={3650} value={banDays} onChange={(e) => setBanDays(Math.max(1, Number(e.target.value) || 1))} />
+              </div>
+            )}
 
             <textarea
               placeholder="Motivo (el usuario lo verá al intentar iniciar sesión)"
@@ -221,6 +235,12 @@ const SupportUsersMain = () => {
         .su-radio-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
         .su-radio-row label { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .su-radio-row label.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .su-days { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .su-days label { font-size: 14px; font-weight: 600; }
+        .su-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
+        .su-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
+        .su-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
+        .su-until { font-size: 11px; opacity: 0.6; margin-top: 4px; }
         .su-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
         .su-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
         .su-ghost { background: transparent; border: 1px solid rgba(128,128,128,0.4); padding: 9px 18px; border-radius: 24px; }

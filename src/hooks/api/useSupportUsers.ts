@@ -23,8 +23,8 @@ export function useSupportUsers(search: string, status: '' | AccountStatus) {
 export function useBanUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ cusId, status, reason }: { cusId: number; status: 'suspended' | 'banned'; reason: string }) =>
-      ApiFetch.post<{ message: string }>(`/support/users/${cusId}/ban`, { status, reason }),
+    mutationFn: ({ cusId, status, reason, days }: { cusId: number; status: 'suspended' | 'banned'; reason: string; days?: number }) =>
+      ApiFetch.post<{ message: string }>(`/support/users/${cusId}/ban`, { status, reason, days }),
     onSuccess: () => qc.invalidateQueries({ queryKey: SUPPORT_USERS_KEY }),
   });
 }

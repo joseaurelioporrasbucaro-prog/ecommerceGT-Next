@@ -193,6 +193,7 @@ export interface SupportUserRow {
   status: AccountStatus;
   banreason: string | null;
   bannedat: string | null;
+  banneduntil: string | null;
   imagenu: string | null;
 }
 

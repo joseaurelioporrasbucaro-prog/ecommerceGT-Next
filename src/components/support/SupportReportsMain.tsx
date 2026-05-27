@@ -76,6 +76,7 @@ const SupportReportsMain = () => {
   const [banRow, setBanRow] = useState<SupportReportRow | null>(null);
   const [banStatus, setBanStatus] = useState<'suspended' | 'banned'>('suspended');
   const [banReason, setBanReason] = useState('');
+  const [banDays, setBanDays] = useState(7);
 
   const isSupport = user?.role === 'support' || user?.role === 'admin';
 
@@ -94,7 +95,7 @@ const SupportReportsMain = () => {
     if (!banRow) return;
     if (banReason.trim().length < 4) { toast.error('Escribe un motivo.'); return; }
     ban.mutate(
-      { cusId: banRow.author_id, status: banStatus, reason: banReason.trim() },
+      { cusId: banRow.author_id, status: banStatus, reason: banReason.trim(), days: banStatus === 'suspended' ? banDays : undefined },
       {
         onSuccess: (r) => { toast.success(r.message || 'Usuario sancionado.'); setBanRow(null); setBanReason(''); },
         onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo sancionar'),
@@ -202,6 +203,15 @@ const SupportReportsMain = () => {
                 <input type="radio" checked={banStatus === 'banned'} onChange={() => setBanStatus('banned')} /> Banear (permanente)
               </label>
             </div>
+            {banStatus === 'suspended' && (
+              <div className="sr-days">
+                <label>Duración:</label>
+                {[7, 15, 30].map((d) => (
+                  <button key={d} type="button" className={`sr-day ${banDays === d ? 'active' : ''}`} onClick={() => setBanDays(d)}>{d} días</button>
+                ))}
+                <input type="number" min={1} max={3650} value={banDays} onChange={(e) => setBanDays(Math.max(1, Number(e.target.value) || 1))} />
+              </div>
+            )}
             <textarea rows={3} placeholder="Motivo (lo verá el usuario al iniciar sesión)" value={banReason} onChange={(e) => setBanReason(e.target.value)} autoFocus />
             <div className="sr-modal-actions">
               <button className="sr-btn sr-dismiss" onClick={() => setBanRow(null)}>Cancelar</button>
@@ -246,6 +256,11 @@ const SupportReportsMain = () => {
         .sr-radio-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
         .sr-radio-row label { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .sr-radio-row label.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .sr-days { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .sr-days label { font-size: 14px; font-weight: 600; }
+        .sr-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
+        .sr-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
+        .sr-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
         .sr-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
         .sr-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
         .sr-sanction-full { background: #dc2626; color: #fff; padding: 9px 18px; border-radius: 24px; }

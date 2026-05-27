@@ -2061,3 +2061,26 @@ SELECT cus_id FROM ecom.customer
 
 Tamaño estimado: 1 ventana completa. Empezar por backend (esquema + endpoints +
 round-robin), luego frontend usuario, luego panel de soporte.
+
+---
+
+### Fase 8.3.1 — Suspensión con duración + apelación ✅
+
+Mejoras a la sanción de usuarios (Fase 8.3):
+
+**SQL para BDs existentes:**
+```sql
+ALTER TABLE ecom.customer
+  ADD COLUMN IF NOT EXISTS cus_banned_until TIMESTAMP NULL;
+```
+
+- **Suspensión temporal:** al sancionar con "Suspender" se elige un plazo (7/15/30
+  días o personalizado) → `cus_banned_until = now() + N días`. El `login`
+  **reactiva sola** la cuenta cuando vence (`active` + limpia campos). Banear sigue
+  siendo permanente (`cus_banned_until = NULL`). `supportBanUser` acepta `days`.
+- **Apelación pública:** un usuario sancionado no puede entrar, así que en el login,
+  al bloquearse (403 con `banned:true`), se muestra el motivo + botón "Apelar esta
+  decisión" → `POST /appeal` (SIN auth) con `{ email, message }`. Valida que la
+  cuenta esté suspendida/baneada, no duplica apelaciones abiertas, y crea un
+  **ticket categoría `apelacion`** (prioridad alta) asignado por round-robin → cae
+  en el panel de tickets de soporte. Al resolver, soporte reactiva desde /soporte/usuarios.
