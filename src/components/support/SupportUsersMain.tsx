@@ -6,6 +6,7 @@ import { useAuth } from '@/utils/AuthContext';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useSupportUsers, useBanUser, useUnbanUser } from '@/hooks/api/useSupportUsers';
+import Pagination from './Pagination';
 import type { SupportUserRow, AccountStatus } from '@/types/api';
 
 const STATUS_LABEL: Record<AccountStatus, string> = {
@@ -13,11 +14,15 @@ const STATUS_LABEL: Record<AccountStatus, string> = {
   suspended: 'Suspendido',
   banned: 'Baneado',
 };
+const PAGE_SIZE = 15;
 
 const SupportUsersMain = () => {
   const { user } = useAuth();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'' | AccountStatus>('');
+  const [search, setSearchRaw] = useState('');
+  const [statusFilter, setStatusFilterRaw] = useState<'' | AccountStatus>('');
+  const [page, setPage] = useState(1);
+  const setSearch = (s: string) => { setSearchRaw(s); setPage(1); };
+  const setStatusFilter = (s: '' | AccountStatus) => { setStatusFilterRaw(s); setPage(1); };
   const { data, isLoading } = useSupportUsers(search, statusFilter);
   const banUser = useBanUser();
   const unbanUser = useUnbanUser();
@@ -60,6 +65,7 @@ const SupportUsersMain = () => {
     });
 
   const rows = data ?? [];
+  const paged = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <main>
@@ -104,7 +110,7 @@ const SupportUsersMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((u) => {
+                      {paged.map((u) => {
                         const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || 'Usuario';
                         const isStaff = u.role === 'support' || u.role === 'admin';
                         return (
@@ -140,6 +146,7 @@ const SupportUsersMain = () => {
                       })}
                     </tbody>
                   </table>
+                  <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
                 </div>
               )}
             </>

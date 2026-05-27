@@ -8,7 +8,10 @@ import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useSupportReports, useResolveReport, useMessageContext } from '@/hooks/api/useSupportReports';
 import { useBanUser } from '@/hooks/api/useSupportUsers';
+import Pagination from './Pagination';
 import type { SupportReportRow, ReportType } from '@/types/api';
+
+const PAGE_SIZE = 15;
 
 const TYPE_LABEL: Record<ReportType, string> = {
   comment: 'Comentario', message: 'Mensaje', publication: 'Publicación',
@@ -61,7 +64,9 @@ const ConversationModal = ({ messageId, onClose }: { messageId: number; onClose:
 
 const SupportReportsMain = () => {
   const { user } = useAuth();
-  const [status, setStatus] = useState<'pending' | 'resolved' | 'dismissed'>('pending');
+  const [status, setStatusRaw] = useState<'pending' | 'resolved' | 'dismissed'>('pending');
+  const [page, setPage] = useState(1);
+  const setStatus = (s: 'pending' | 'resolved' | 'dismissed') => { setStatusRaw(s); setPage(1); };
   const { data, isLoading } = useSupportReports(status);
   const resolve = useResolveReport();
   const ban = useBanUser();
@@ -98,6 +103,7 @@ const SupportReportsMain = () => {
   };
 
   const rows = data ?? [];
+  const paged = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <main>
@@ -129,7 +135,7 @@ const SupportReportsMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((r) => {
+                      {paged.map((r) => {
                         const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || 'Usuario';
                         const href = contentHref(r);
                         return (
@@ -173,6 +179,7 @@ const SupportReportsMain = () => {
                       })}
                     </tbody>
                   </table>
+                  <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
                 </div>
               )}
             </>

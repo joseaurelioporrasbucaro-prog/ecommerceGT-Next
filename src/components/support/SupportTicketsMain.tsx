@@ -5,19 +5,25 @@ import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { useSupportTickets } from '@/hooks/api/useTickets';
+import Pagination from './Pagination';
 import type { TicketStatus } from '@/types/api';
 
 const STATUS_LABEL: Record<TicketStatus, string> = {
   open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
 };
+const PAGE_SIZE = 15;
 
 const SupportTicketsMain = () => {
   const { user } = useAuth();
-  const [status, setStatus] = useState<'' | TicketStatus>('');
-  const [assignee, setAssignee] = useState<'' | 'me' | 'unassigned'>('');
+  const [status, setStatusRaw] = useState<'' | TicketStatus>('');
+  const [assignee, setAssigneeRaw] = useState<'' | 'me' | 'unassigned'>('');
+  const [page, setPage] = useState(1);
+  const setStatus = (s: '' | TicketStatus) => { setStatusRaw(s); setPage(1); };
+  const setAssignee = (a: '' | 'me' | 'unassigned') => { setAssigneeRaw(a); setPage(1); };
   const { data, isLoading } = useSupportTickets(status, assignee);
   const isSupport = user?.role === 'support' || user?.role === 'admin';
   const rows = data ?? [];
+  const paged = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <main>
@@ -53,7 +59,7 @@ const SupportTicketsMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((t) => {
+                      {paged.map((t) => {
                         const owner = `${t.owner_first ?? ''} ${t.owner_last ?? ''}`.trim() || 'Usuario';
                         const agent = t.assigned_to ? `${t.agent_first ?? ''} ${t.agent_last ?? ''}`.trim() : '—';
                         return (
@@ -70,6 +76,7 @@ const SupportTicketsMain = () => {
                       })}
                     </tbody>
                   </table>
+                  <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
                 </div>
               )}
             </>
