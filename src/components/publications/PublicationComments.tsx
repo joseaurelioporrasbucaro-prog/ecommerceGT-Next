@@ -11,6 +11,7 @@ import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { useAddComment, usePublicationComments } from '@/hooks/api/usePublicationComments';
 import { useToggleCommentLike } from '@/hooks/api/useToggleCommentLike';
+import ReportCommentButton from './ReportCommentButton';
 import type { Comment } from '@/types/api';
 import { getPublicationStatusInfo } from './publicationUtils';
 
@@ -236,6 +237,7 @@ interface CommentNodeProps {
   isPending: boolean;
   onLike: (commentId: number) => void;
   isClosed: boolean;
+  currentUserId: number | null;
 }
 
 const CommentNodeView = ({
@@ -248,12 +250,20 @@ const CommentNodeView = ({
   isPending,
   onLike,
   isClosed,
+  currentUserId,
 }: CommentNodeProps) => {
   const { date, time } = formatCommentDate(node.created_at);
   const authorName = `${node.cus_first_name} ${node.cus_last_name}`;
   const authorHref = `/creator-profile/${node.cus_id}`;
   const isReplyingHere = replyingTo === node.comment_id;
   const likeHandler = isClosed ? undefined : () => onLike(node.comment_id);
+  // Fase 8.4 — denunciar comentario (no el propio, y solo logueado).
+  const canReport = currentUserId != null && currentUserId !== node.cus_id;
+  const reportRow = canReport && (
+    <div className="comment-report-row">
+      <ReportCommentButton commentId={node.comment_id} />
+    </div>
+  );
 
   const replyForm = isReplyingHere && (
     <InlineReplyForm
@@ -278,6 +288,7 @@ const CommentNodeView = ({
           isPending={isPending}
           onLike={onLike}
           isClosed={isClosed}
+          currentUserId={currentUserId}
         />
       ))}
     </div>
@@ -298,6 +309,7 @@ const CommentNodeView = ({
         repliesCount={node.children.length}
         onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
       >
+        {reportRow}
         {replyForm}
         {childrenView}
       </ForumComment>
@@ -317,6 +329,7 @@ const CommentNodeView = ({
       onLike={likeHandler}
       onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
     >
+      {reportRow}
       {replyForm}
       {childrenView}
     </ForumReply>
@@ -416,6 +429,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                   isPending={addCommentMutation.isPending}
                   onLike={handleLike}
                   isClosed={isClosed}
+                  currentUserId={user?.id ?? null}
                 />
               ))}
             </div>
