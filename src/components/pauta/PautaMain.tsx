@@ -12,6 +12,8 @@ import type { CampaignStatus, CampaignObjective } from '@/types/api';
 
 const GUATEMALA = 502; // cou_id
 const MIN_BUDGET = 10;
+const IMPRESSION_COST = 0.05; // Q por impresión (destacar)
+const CLICK_COST = 0.50;      // Q por clic (mensajes)
 const STATUS_LABEL: Record<CampaignStatus, string> = { active: 'Activa', paused: 'Pausada', finished: 'Finalizada' };
 const OBJ_LABEL: Record<CampaignObjective, string> = { destacar: 'Destacar', mensajes: 'Mensajes' };
 
@@ -119,6 +121,14 @@ const PautaMain = () => {
 
                 <label className="pa-label">Presupuesto (Q, mín. {MIN_BUDGET})</label>
                 <input type="number" min={MIN_BUDGET} step="0.01" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder={`${MIN_BUDGET}.00`} />
+                {(Number(budget) || 0) >= MIN_BUDGET && (
+                  <div className="pa-estimate">
+                    <i className="fas fa-chart-line" />
+                    {objective === 'destacar'
+                      ? <>Alcance estimado: <strong>~{Math.floor(Number(budget) / IMPRESSION_COST).toLocaleString('es-GT')} personas</strong> verán tu anuncio (impresiones).</>
+                      : <>Estimado: <strong>~{Math.floor(Number(budget) / CLICK_COST).toLocaleString('es-GT')} contactos</strong> (clics en "Enviar mensaje").</>}
+                  </div>
+                )}
 
                 <div className="pa-age">
                   <div>
@@ -211,6 +221,7 @@ const PautaMain = () => {
         .pa-label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 5px; }
         .pa-card select, .pa-card input { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 9px 11px; }
         .pa-hint { font-size: 12px; color: #b8860b; margin-top: 6px; }
+        .pa-estimate { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; font-size: 13px; background: rgba(34,197,94,0.1); color: #16a34a; padding: 9px 12px; border-radius: 8px; }
         .pa-objective { display: flex; gap: 10px; }
         .pa-objective button { flex: 1; border: 1px solid rgba(128,128,128,0.3); background: transparent; border-radius: 10px; padding: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
         .pa-objective button.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.08); color: var(--clr-theme-1, #6c5ce7); }
