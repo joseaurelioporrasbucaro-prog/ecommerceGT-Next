@@ -1990,11 +1990,20 @@ equitativa a agentes de soporte (las denuncias podrían volverse tickets).
 
 ---
 
-### Fase 8.5 — Sistema de tickets + delegación (PENDIENTE, grande)
+### Fase 8.5 — Sistema de tickets + delegación ✅
 
-> Planificada para la próxima ventana semanal. Es la más grande del back-office.
-> Cierra la gestión de soporte: tickets ordenados y repartidos equitativamente
-> entre agentes. Las denuncias (8.4) podrían convertirse en tickets.
+Implementada. Cierra la gestión de soporte: tickets ordenados y repartidos
+equitativamente (round-robin) entre agentes. Correr el SQL de abajo (las dos
+`CREATE TABLE IF NOT EXISTS`) en BDs existentes antes de desplegar el backend.
+
+- **Usuario:** `/soporte/tickets` (lista + crear, modal) → detalle `/soporte/tickets/[id]`
+  (hilo + responder). `POST /tickets`, `GET /tickets/mine`, `GET /tickets/:id`,
+  `POST /tickets/:id/messages`.
+- **Soporte (requireSupport):** `/soporte/tickets-admin` (tabla con filtros estado/agente).
+  `GET /support/tickets`, `GET /support/agents`, `POST /support/tickets/:id/assign`,
+  `POST /support/tickets/:id/status`. Notas internas (is_internal) ocultas al usuario.
+- **Notificaciones:** `ticket_assigned` (al agente) y `ticket_reply` (a la otra parte).
+- Detalle compartido usuario/soporte (`viewerIsStaff` controla controles y notas internas).
 
 **Esquema (dentro de CREATE TABLE + ALTER en esta sección):**
 ```sql

@@ -153,6 +153,27 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
         iconColor: '#dc2626',
       };
     },
+    ticket_reply: () => {
+      const ticketId = notif.payload?.ticketId;
+      return {
+        text: `${name} respondió tu ticket`,
+        snippet: null,
+        href: typeof ticketId === 'number' ? `/soporte/tickets/${ticketId}` : '/soporte/tickets',
+        icon: 'fa-comment-dots',
+        iconColor: '#6c5ce7',
+      };
+    },
+    ticket_assigned: () => {
+      const ticketId = notif.payload?.ticketId;
+      const subject = typeof notif.payload?.subject === 'string' ? notif.payload.subject : null;
+      return {
+        text: 'Se te asignó un ticket de soporte',
+        snippet: subject,
+        href: typeof ticketId === 'number' ? `/soporte/tickets/${ticketId}` : '/soporte/tickets-admin',
+        icon: 'fa-headset',
+        iconColor: '#0984e3',
+      };
+    },
   };
 
   return cfg[notif.notif_type]();

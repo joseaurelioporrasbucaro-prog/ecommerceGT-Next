@@ -70,6 +70,86 @@ export type AccountStatus = 'active' | 'suspended' | 'banned';
 /** Tipo de contenido denunciado (Fase 8.4). */
 export type ReportType = 'comment' | 'message' | 'publication';
 
+/** Fase 8.5 — tickets de soporte. */
+export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+export type TicketCategory = 'cuenta' | 'pago' | 'denuncia' | 'verificacion' | 'otro';
+
+/** Ticket en la lista del usuario. */
+export interface MyTicketRow {
+  ticket_id: number;
+  subject: string;
+  category: TicketCategory;
+  priority: string;
+  status: TicketStatus;
+  created_at: string;
+  updated_at: string;
+  agent_first: string | null;
+  agent_last: string | null;
+}
+
+/** Mensaje del hilo de un ticket. */
+export interface TicketMessage {
+  tmsg_id: number;
+  cus_id: number;
+  body: string;
+  is_internal: boolean;
+  created_at: string;
+  first: string | null;
+  last: string | null;
+  role: PlatformRole;
+}
+
+/** Detalle de ticket. */
+export interface TicketDetail {
+  ticket_id: number;
+  cus_id: number;
+  assigned_to: number | null;
+  subject: string;
+  category: TicketCategory;
+  priority: string;
+  status: TicketStatus;
+  source_type: string | null;
+  source_id: number | null;
+  created_at: string;
+  updated_at: string;
+  owner_first: string | null;
+  owner_last: string | null;
+  owner_handle: string | null;
+  agent_first: string | null;
+  agent_last: string | null;
+}
+
+export interface TicketDetailResponse {
+  ticket: TicketDetail;
+  messages: TicketMessage[];
+  viewerIsStaff: boolean;
+}
+
+/** Fila de ticket en el panel de soporte. */
+export interface SupportTicketRow {
+  ticket_id: number;
+  subject: string;
+  category: TicketCategory;
+  priority: string;
+  status: TicketStatus;
+  created_at: string;
+  updated_at: string;
+  cus_id: number;
+  owner_first: string | null;
+  owner_last: string | null;
+  owner_handle: string | null;
+  assigned_to: number | null;
+  agent_first: string | null;
+  agent_last: string | null;
+}
+
+export interface SupportAgent {
+  cus_id: number;
+  firstname: string | null;
+  lastname: string | null;
+  role: PlatformRole;
+}
+
 /** Fila normalizada de la bandeja de denuncias de soporte (Fase 8.4). */
 export interface SupportReportRow {
   report_type: ReportType;
@@ -1031,7 +1111,9 @@ export type NotificationType =
   | 'company_invite'
   | 'company_invite_accepted'
   | 'verification_approved'
-  | 'verification_rejected';
+  | 'verification_rejected'
+  | 'ticket_reply'
+  | 'ticket_assigned';
 
 /**
  * Notificación individual del usuario logueado.

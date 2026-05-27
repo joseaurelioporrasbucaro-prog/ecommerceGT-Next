@@ -169,6 +169,7 @@ const CreatorProfileInfoMain = () => {
                                             </Link>
                                         </li>
                                         <li><Link href="#"><i className="flaticon-notification"></i>Notification Settings</Link></li>
+                                        <li><Link href="/soporte/tickets"><i className="flaticon-account"></i>Mis tickets</Link></li>
                                         <li className={activeTab === 2 ? "active" : ""}>
                                             <Link href="#" onClick={(e) => { e.preventDefault(); setActiveTab(2); }}>
                                                 <i className="flaticon-check-mark"></i>Verificar cuenta
@@ -189,6 +190,11 @@ const CreatorProfileInfoMain = () => {
                                                 <li>
                                                     <Link href="/soporte/denuncias">
                                                         <i className="flaticon-notification"></i>Denuncias (soporte)
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/soporte/tickets-admin">
+                                                        <i className="flaticon-settings"></i>Tickets (soporte)
                                                     </Link>
                                                 </li>
                                             </>
