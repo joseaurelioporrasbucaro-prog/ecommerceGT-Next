@@ -2352,6 +2352,105 @@ mensaje correcto.
 
 ---
 
+### Fase 13 (pendiente) — Documentación técnica completa de la plataforma
+
+**Objetivo:** crear un set de documentos de referencia que sobrevivan a la
+rotación del equipo, sirvan para onboarding de nuevos colaboradores
+(actuales y futuros) y permitan a soporte/ops resolver problemas sin
+necesitar al desarrollador original.
+
+**Estado actual:** `MIGRATION.md` (este archivo) es una bitácora cronológica
+de decisiones por fase. Sirve para reconstruir "por qué" pero no para
+"cómo opero X". Hace falta documentación de referencia.
+
+**Documentos a crear (sugerencia de estructura `docs/` en cada repo):**
+
+#### Backend (`ecommerceGTBackEnd/docs/`)
+1. **`API.md`** — todos los endpoints agrupados por dominio:
+   - Path, método, auth requerido (middleware), body, query params,
+     respuestas posibles (códigos + shape), notas.
+   - Ejemplo por endpoint:
+     ```
+     POST /campaigns                Auth: requerida
+     Body: { pubId, objective, budget, ... useCredit? }
+     200: { message, campId, creditUsed? }
+     409: si ya hay campaña active/paused para pub_id
+     ```
+   - Generación: scrapear `server.js` automáticamente con un script
+     (`scripts/extract-endpoints.js`) que parse cada `app.<method>`.
+
+2. **`DATABASE.md`** — esquema completo del `ecom.*`:
+   - Tabla por tabla: columnas, tipos, FKs, índices, comentarios.
+   - Diagrama ER (mermaid o dbdiagram.io export).
+   - Convenciones: prefijo `cus_`, `pub_`, `cat_`, `pubsta_id=4` = Anulada.
+
+3. **`QUERIES.md`** — biblioteca de queries útiles para soporte/ops:
+   - "Buscar usuario por DPI", "ver campañas activas por mes", "top
+     anunciantes por gasto", "campañas con saldo no gastado próximas a
+     expirar", "publicaciones sin imágenes", etc.
+   - Cada query con descripción y ejemplo de uso.
+   - **Incluir queries de Fase 10.7** (cambiar precios sin redeploy):
+     ```sql
+     UPDATE ecom.platform_config SET config_value = X WHERE config_key = '...';
+     ```
+
+4. **`OPS.md`** — runbook operativo:
+   - Cómo desplegar (Render + Dockerfile + Ghostscript).
+   - Cómo reiniciar el backend, migrar BD, restaurar backup.
+   - Variables de entorno (lista completa con descripción).
+   - Cron jobs (si hay).
+   - Logs: cómo verlos en Render, qué buscar cuando algo falla.
+
+5. **`MIGRATIONS.md`** — separar las SQL ALTER de MIGRATION.md (que es
+   bitácora) en un archivo numerado por fase con scripts ejecutables.
+   Ejemplo: `migrations/2026-05-27-fase-10.6.sql`, `2026-05-28-fase-10.7.sql`.
+
+#### Frontend (`ecommerceGT-Next/docs/`)
+1. **`COMPONENTS.md`** — componentes principales agrupados por dominio:
+   - `PublicationCard` (props, variantes, isFeatured, ctaOverride…).
+   - `MessageBubble`, `ConversationView`, `MentionTextarea`, etc.
+   - Una sección por dominio (publications, messages, support, pauta).
+
+2. **`HOOKS.md`** — todos los `useXxx` de `src/hooks/api/`:
+   - Endpoint que consumen, queryKey, staleTime, invalidaciones, errores.
+   - Tabla resumen para encontrar rápido cuál usar.
+
+3. **`ROUTES.md`** — todas las rutas de `src/app/`:
+   - Path, componente Main, auth requerida, props/searchParams, dependencias.
+
+4. **`STYLE.md`** — convenciones:
+   - styled-jsx con `:global()` para penetrar Next.js Link wrappers.
+   - Patrón de loading/error/empty en cada query.
+   - Variables CSS (`--clr-theme-1`, etc.).
+   - Cuándo usar `react-responsive-modal`, `react-toastify`, etc.
+
+#### Compartido (`README.md` principal de cada repo)
+- Reescribir con secciones claras: "Qué es esta plataforma", "Stack",
+  "Setup local en 5 min", "Cómo correr tests/lint", "Cómo contribuir",
+  "Quién mantiene".
+
+**Herramientas sugeridas:**
+- **Mermaid** para diagramas (compatible con GitHub Markdown).
+- **dbdiagram.io** para el ER (exportable a markdown).
+- **Swagger/OpenAPI** opcional para `API.md` si el equipo crece y quieren
+  un Try-it-out interactivo. Por ahora markdown plano es suficiente.
+
+**Prioridad sugerida cuando se aborde la fase:**
+1. `QUERIES.md` + `OPS.md` (más valor para soporte/ops).
+2. `API.md` (onboarding de nuevos devs).
+3. `DATABASE.md` + `MIGRATIONS.md`.
+4. Frontend docs (menos urgentes — el código se auto-documenta más).
+
+**Estimación:** ~2 días de trabajo concentrado. Posiblemente delegable
+parcialmente a un script que parse `server.js` y `database.sql`
+automáticamente.
+
+> **Trigger sugerido:** abordar Fase 13 **antes** del lanzamiento público,
+> después de Fase 11 (pasarela) y Fase 12 (legal). Para entonces el
+> esquema ya estará casi congelado y vale la pena documentarlo.
+
+---
+
 ### Fase 12 (pendiente) — Cumplimiento legal antes de producción
 
 **Objetivo:** dejar la plataforma lista legalmente para operar en Guatemala
