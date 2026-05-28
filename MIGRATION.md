@@ -2122,6 +2122,62 @@ mensajes (menos "hola" sueltos).
 
 ---
 
+### Fase 10.6 — Denuncias enriquecidas + reembolso automático al sancionar ✅
+
+**Pregunta de Aurelio:** ¿hay que crear flujo de denuncias separado para
+pauta? **Respuesta:** no — el contenido violatorio es el mismo, así que la
+denuncia es la misma. Lo que sí enriquecemos es el **contexto** que ve
+soporte: si la publicación está pautada, eso amplifica el daño (mayor
+alcance) y debe priorizarse.
+
+**Backend — `getSupportReports`:**
+- Cada fila ahora trae `active_camp_id`, `active_camp_objective`,
+  `active_camp_remaining` (NUMERIC, devuelto como string por pg). Se calcula
+  con `LEFT JOIN ad_campaigns` filtrando por `camp_status IN ('active','paused')`.
+- `ORDER BY (active_camp_remaining IS NULL), active_camp_remaining DESC NULLS LAST, created_at DESC`
+  → las denuncias sobre publicaciones pautadas aparecen primero, y entre
+  ellas las de mayor saldo restante (mayor alcance/daño potencial).
+
+**Backend — `resolveReport` (cuando soporte anula publicación):**
+- Se ejecuta en transacción con `FOR UPDATE` sobre las campañas afectadas.
+- Busca campañas `active|paused` para esa publicación, las marca `finished`
+  y suma `(budget - spent)` al `cus_ad_credit` del anunciante.
+- Inserta notificación `pub_sanctioned_refund` con `payload.refunded`.
+- La respuesta incluye `{ refund: { campaigns: N, totalRefunded: Q } }` para
+  que el frontend muestre el monto exacto.
+- **Justificación:** la publicación se baja por contenido violatorio, pero
+  no nos quedamos con el dinero del anunciante por dos razones: (1) es justo
+  (el incumplimiento de las reglas no implica decomiso unilateral), (2) nos
+  protege legalmente — DIACO/Código de Comercio podrían interpretar retener
+  el saldo como enriquecimiento sin causa (Fase 12).
+
+**Frontend — `SupportReportsMain`:**
+- Chip dorado **"Pautada Q123.45"** junto al tipo de la denuncia cuando hay
+  campaña activa. Tooltip con detalle.
+- Fila con `background: rgba(251,191,36,0.05)` y borde izquierdo dorado para
+  reforzar la prioridad visual.
+- `act(r, 'delete')`: si la denuncia es sobre una publicación pautada, el
+  `window.confirm` ahora muestra explícitamente:
+  > *"Esta publicación tiene una campaña activa. Al eliminarla:
+  > • Se finalizará la campaña.
+  > • Se reembolsarán Q123.45 al crédito del anunciante."*
+
+**Frontend — notificaciones:**
+- Nuevo tipo `pub_sanctioned_refund` en `NotificationType`.
+- Renderizado en `notificationUtils.ts`: ícono `fa-undo` dorado, snippet con
+  el monto reembolsado, `href: '/pauta'`.
+
+**Archivos tocados:**
+- Backend: `config/connPostgresDB.js` (getSupportReports + resolveReport).
+- Frontend: `src/types/api.ts` (SupportReportRow + NotificationType),
+  `src/components/support/SupportReportsMain.tsx` (chip + confirm),
+  `src/components/notifications/notificationUtils.ts`.
+
+> Sin schema nuevo. Compatible con BD existente — el LEFT JOIN devuelve
+> NULL si no hay campaña activa.
+
+---
+
 ### Fase 12 (pendiente) — Cumplimiento legal antes de producción
 
 **Objetivo:** dejar la plataforma lista legalmente para operar en Guatemala

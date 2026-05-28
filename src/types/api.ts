@@ -215,6 +215,10 @@ export interface SupportReportRow {
   author_last: string | null;
   author_handle: string | null;
   pub_id: number | null;
+  // Fase 10.6: info de campaña activa (si la publicación está pautada).
+  active_camp_id?: number | null;
+  active_camp_objective?: CampaignObjective | null;
+  active_camp_remaining?: number | string | null; // pg devuelve NUMERIC como string
 }
 
 /** Fila de usuario en el portal de gestión de soporte (Fase 8.3). */
@@ -1164,7 +1168,8 @@ export type NotificationType =
   | 'verification_approved'
   | 'verification_rejected'
   | 'ticket_reply'
-  | 'ticket_assigned';
+  | 'ticket_assigned'
+  | 'pub_sanctioned_refund'; // Fase 10.6: pub anulada con campaña activa → reembolso a crédito
 
 /**
  * Notificación individual del usuario logueado.
