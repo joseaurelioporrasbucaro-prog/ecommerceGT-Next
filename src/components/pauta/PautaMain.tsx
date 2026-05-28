@@ -9,13 +9,12 @@ import { ApiError } from '@/utils/Api';
 import { useMyPublications } from '@/hooks/api/useMyPublications';
 import { useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useMyCampaigns, useCreateCampaign, useSetCampaignStatus, useAdCredit } from '@/hooks/api/useCampaigns';
+import { usePricingConfig } from '@/hooks/api/usePricingConfig';
 import Pagination from '@/components/support/Pagination';
 import type { CampaignStatus, CampaignObjective } from '@/types/api';
 
 const GUATEMALA = 502; // cou_id
-const MIN_BUDGET = 10;
-const IMPRESSION_COST = 0.05; // Q por impresión (destacar)
-const CLICK_COST = 0.50;      // Q por clic (mensajes)
+// Fase 10.7: las tarifas se leen de ecom.platform_config vía usePricingConfig().
 const STATUS_LABEL: Record<CampaignStatus, string> = { active: 'Activa', paused: 'Pausada', finished: 'Finalizada' };
 const OBJ_LABEL: Record<CampaignObjective, string> = { destacar: 'Destacar', mensajes: 'Mensajes' };
 
@@ -37,6 +36,10 @@ const PautaMain = () => {
   const myPubs = useMyPublications(user?.id);
   const campaigns = useMyCampaigns();
   const credit = useAdCredit(); // Fase 10.2
+  const pricing = usePricingConfig(); // Fase 10.7
+  const MIN_BUDGET = pricing.adMinBudget;
+  const IMPRESSION_COST = pricing.adImpressionCost;
+  const CLICK_COST = pricing.adClickCost;
   const createMut = useCreateCampaign();
   const statusMut = useSetCampaignStatus();
 
@@ -157,12 +160,12 @@ const PautaMain = () => {
             <p>Promociona una de tus publicaciones para que aparezca en <strong>Destacados</strong>, segmentada por <strong>ubicación y edad</strong> (igual que en plataformas como Meta Ads). Eliges un <strong>objetivo</strong>, un <strong>presupuesto</strong> y por <strong>cuánto tiempo</strong> corre.</p>
             <div className="pa-obj-cards">
               <div className="pa-obj-card">
-                <strong><i className="fas fa-bolt" /> Destacar — Q0.05 / impresión</strong>
-                <span>Se muestra arriba con el sello "Patrocinado". Cada vez que se muestra a alguien del público objetivo se descuenta Q0.05. Ej: Q10 ≈ 200 vistas, Q1000 ≈ 20,000 vistas.</span>
+                <strong><i className="fas fa-bolt" /> Destacar — Q{IMPRESSION_COST.toFixed(2)} / impresión</strong>
+                <span>Se muestra arriba con el sello "Patrocinado". Cada vez que se muestra a alguien del público objetivo se descuenta Q{IMPRESSION_COST.toFixed(2)}. Ej: Q10 ≈ {Math.floor(10 / IMPRESSION_COST).toLocaleString('es-GT')} vistas, Q1000 ≈ {Math.floor(1000 / IMPRESSION_COST).toLocaleString('es-GT')} vistas.</span>
               </div>
               <div className="pa-obj-card">
-                <strong><i className="fas fa-paper-plane" /> Mensajes — Q0.50 / clic</strong>
-                <span>Muestra un botón "Enviar mensaje". Solo se descuenta cuando alguien hace clic. Ej: Q10 ≈ 20 contactos, Q1000 ≈ 2,000 contactos.</span>
+                <strong><i className="fas fa-paper-plane" /> Mensajes — Q{CLICK_COST.toFixed(2)} / clic</strong>
+                <span>Muestra un botón "Enviar mensaje". Solo se descuenta cuando alguien hace clic. Ej: Q10 ≈ {Math.floor(10 / CLICK_COST).toLocaleString('es-GT')} contactos, Q1000 ≈ {Math.floor(1000 / CLICK_COST).toLocaleString('es-GT')} contactos.</span>
               </div>
             </div>
             <ul className="pa-explain-list">

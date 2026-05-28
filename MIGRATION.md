@@ -2203,6 +2203,83 @@ alcance) y debe priorizarse.
 
 ---
 
+### Fase 10.7 — Precios de pauta dinámicos (config en BD) ✅
+
+**Problema:** los precios de pauta estaban hardcoded en backend
+(`AD_IMPRESSION_COST=0.05`, `AD_CLICK_COST=0.50`) y frontend
+(constantes en `PautaMain.tsx`). Cualquier ajuste requería redeploy de ambos
+repos. Además, Aurelio anticipó (correctamente) que con CPM Q50 una
+campaña de Q1000 necesita 20,000 impresiones que en los primeros meses son
+inalcanzables → las campañas no terminan → mal mensaje para anunciantes.
+
+**Modelo de pricing — supuestos y decisiones (para revisión legal/finanzas):**
+
+| Concepto | MVP (launch) | Cuando DAU > 5,000 | Justificación |
+|---|---|---|---|
+| CPM (Q por 1,000 imp) | **Q10** | Q20-Q50 | Meta GT cobra Q8-Q40. Empezamos abajo para incentivar prueba. |
+| Q por impresión | **0.01** | 0.02-0.05 | CPM / 1000. |
+| Q por clic (mensajes) | **0.50** | 0.50-1.00 | Click vale lo mismo en cualquier escala porque mide intención real. Meta GT cobra Q0.80-Q4.00. |
+| Min budget | **Q10** | Q10-Q50 | Permite probar sin compromiso. |
+
+**Decisión filosófica:** preferimos **subir precios** cuando hay tracción a
+**bajarlos** cuando no hay (lo segundo daña confianza y métricas). Los
+defaults seedeados están calibrados para "no llegamos a 10k usuarios en los
+primeros meses" — escenario real de Aurelio, 2026-05-28.
+
+**Schema:**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.platform_config (
+    config_key   VARCHAR(60) PRIMARY KEY,
+    config_value NUMERIC(12,4) NOT NULL,
+    description  TEXT,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by   BIGINT REFERENCES ecom.customer(cus_id)
+);
+INSERT INTO ecom.platform_config (config_key, config_value, description) VALUES
+    ('ad_impression_cost', 0.01, 'Q por impresión en campañas "destacar". Subir cuando DAU >= 5000.'),
+    ('ad_click_cost',      0.50, 'Q por clic en botón "Enviar mensaje" de campañas "mensajes".'),
+    ('ad_min_budget',     10.00, 'Presupuesto mínimo (Q) para crear una campaña.')
+ON CONFLICT (config_key) DO NOTHING;
+```
+
+**Backend (`connPostgresDB.js`):**
+- `getPlatformConfig()` con cache en memoria 60s y fallback a defaults si la
+  tabla aún no existe (compatibilidad con BDs viejas sin migrar).
+- `invalidatePlatformConfig()` se llama al actualizar.
+- `createCampaign`, `getFeaturedPublications`, `recordAdClick` ahora leen
+  del config en vez de constantes.
+
+**Endpoints nuevos (`server.js`):**
+- `GET /pricing-config` — **público** (sin auth). Devuelve
+  `{ adImpressionCost, adClickCost, adMinBudget }`. Lo consume el form de
+  `/pauta` para mostrar tarifas y estimados actualizados.
+- `POST /admin/config` — requiere `cus_role='admin'`. Body: `{ key, value }`.
+  Valida que `value >= 0`. Al éxito, invalida cache.
+
+**Frontend:**
+- Hook `usePricingConfig()` (staleTime 5 min, defaults intermedios para
+  primer render).
+- `PautaMain.tsx`: las constantes `MIN_BUDGET`, `IMPRESSION_COST`,
+  `CLICK_COST` ahora son derivadas del hook. El explicador "¿Cómo funciona?"
+  muestra los ejemplos numéricos calculados en runtime (Q10 ≈ 1,000 vistas
+  en lugar del antiguo "Q10 ≈ 200 vistas").
+
+**Cómo cambiar precios en producción (sin redeploy):**
+```sql
+UPDATE ecom.platform_config
+   SET config_value = 0.025, updated_at = now()
+ WHERE config_key = 'ad_impression_cost';
+```
+Backend invalida cache en ≤60s. Frontend en ≤5 min. Los cambios aplican a
+**campañas nuevas y a impresiones futuras de campañas existentes** (no se
+retroactiva el `spent` ya acumulado).
+
+**Pendiente para Fase 11.x (opcional):** UI admin en `/admin/config` para
+editar valores sin SQL directo. Por ahora un admin con acceso a Render/psql
+es suficiente.
+
+---
+
 ### Fase 11.1 — Eliminar cuenta + anonimización (GDPR-light) ✅
 
 **Contribuye a Fase 12** (cumplimiento legal): habilita el "derecho al
