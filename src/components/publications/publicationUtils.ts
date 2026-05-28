@@ -1,4 +1,4 @@
-import type { AnyPublicationListItem, PublicationDetail, PublicationImage, PublicationListItemAuth } from '@/types/api';
+import type { AnyPublicationListItem, PublicationDetail, PublicationImage, PublicationImageGlb, PublicationListItemAuth } from '@/types/api';
 import { getBackendUrl } from '@/utils/backendUrl';
 
 // ============================================================================
@@ -120,6 +120,23 @@ export function getPublicationListAllImages(publication: AnyPublicationListItem)
   return result;
 }
 
+export function getPublicationListAllImagesGlb(publication: AnyPublicationListItem): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+
+  const push = (path: string | null | undefined) => {
+    if (!path) return;
+    const url = getBackendUrl(path);
+    if (url && !seen.has(url)) {
+      seen.add(url);
+      result.push(url);
+    }
+  };
+  //push(publication.image);
+  publication.imagesglb.forEach((img) => push(img.url));
+  return result;
+}
+
 /** Detecta si una categoría es terreno (no aplican habitaciones/baños/parqueos). */
 export function isLandCategory(category: string | null | undefined): boolean {
   if (!category) return false;
@@ -183,8 +200,18 @@ export function getPublicationImagePath(image: PublicationImage): string {
   return image.pubima_url || image.url || '';
 }
 
+export function getPublicationImagePathGlb(imageglb: PublicationImageGlb): string {
+  return imageglb.pubimaglb_url || imageglb.url || '';
+}
+
 /** Devuelve URLs absolutas de la galería del detalle, o array vacío. */
 export function getPublicationDetailImages(publication: PublicationDetail): string[] {
+  return publication.images
+    .map((image) => getPublicationImagePath(image))
+    .filter((imagePath) => imagePath !== '')
+    .map((imagePath) => getBackendUrl(imagePath));
+}
+export function getPublicationDetailImagesGlb(publication: PublicationDetail): string[] {
   return publication.images
     .map((image) => getPublicationImagePath(image))
     .filter((imagePath) => imagePath !== '')

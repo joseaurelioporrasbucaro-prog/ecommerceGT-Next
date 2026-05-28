@@ -386,6 +386,18 @@ export interface PublicationImage {
   pubima_url?: string;
 }
 
+export interface PublicationImageGlb {
+  /** URL relativa que devuelve el backend, ej. `/uploads/images/<file>`. */
+  url: string;
+  /** Nombre/ID del archivo (ej. para borrarlo con `/deleteimg`). */
+  id: string;
+  /** Solo presente en `/publication/:id` (raw images table). */
+  pubimaglb_id?: number;
+  pub_id?: number;
+  pubimaglb_name?: string;
+  pubimaglb_url?: string;
+}
+
 /**
  * Item de listado en `GET /publications` (sin sesión).
  * SIC: el backend usa `levell` y `sizee` en el alias SQL.
@@ -411,6 +423,7 @@ export interface PublicationListItem {
   category: string;
   image: string;
   images: PublicationImage[];
+  imagesglb: PublicationImageGlb[];
 }
 
 /** Mismo shape que `PublicationListItem` pero con sesión: añade `id_cus` y `isFavorite`. */
@@ -456,6 +469,7 @@ export interface PublicationDetail {
   /** Si el usuario autenticado ya guardó esta publicación. False sin sesión. */
   isFavorite: boolean;
   images: PublicationImage[];
+  imagesglb: PublicationImageGlb[];
 }
 
 /**
@@ -618,6 +632,7 @@ export interface CreatePublicationPayload extends Record<string, unknown> {
   /** ISO 4217 — 'GTQ' (default) o 'USD'. */
   currency: 'GTQ' | 'USD';
   images: UploadedImage[];
+  imagesglb: UploadedImage[];
 }
 
 /** Respuesta de `POST /savepubl`. */
@@ -657,6 +672,7 @@ export interface PublicationEditData {
   city: number | null;
   municipality: number | null;
   images: UploadedImage[];
+  imagesglb: UploadedImage[];
 }
 
 /** Body de `PUT /publications/:id`. Mismos campos que crear. */

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import DragDropSection from './DragDropSection';
+import DragDropSectionGlb from './DragDropSectionGlb';
 import {
   useCities,
   useCountries,
@@ -124,6 +125,7 @@ export interface PublicationFormProps {
   initialValues?: PublicationFormValues;
   /** Imágenes ya cargadas (modo editar). */
   initialImages?: UploadedImage[];
+  initialImagesGlb?: UploadedImage[];
   /** Texto del botón principal cuando no está enviando. */
   submitLabel: string;
   /** Texto del botón principal mientras envía. */
@@ -134,7 +136,7 @@ export interface PublicationFormProps {
    * Handler genérico de submit. Recibe valores ya validados + imágenes.
    * Debe retornar Promise para que el form sepa cuándo termina.
    */
-  onSubmit: (values: PublicationFormValues, images: UploadedImage[]) => Promise<void>;
+  onSubmit: (values: PublicationFormValues, images: UploadedImage[], imagesglb: UploadedImage[]) => Promise<void>;
   /** Si true, oculta el botón cancelar. */
   hideCancel?: boolean;
 }
@@ -147,6 +149,7 @@ export interface PublicationFormProps {
 const PublicationForm: React.FC<PublicationFormProps> = ({
   initialValues = EMPTY_FORM_VALUES,
   initialImages = [],
+  initialImagesGlb = [],
   submitLabel,
   submittingLabel,
   cancelHref,
@@ -154,6 +157,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   hideCancel = false,
 }) => {
   const [images, setImages] = useState<UploadedImage[]>(initialImages);
+  const [imagesGlb, setImagesGlb] = useState<UploadedImage[]>(initialImages);
   const [imagesError, setImagesError] = useState<string | null>(null);
   // No sync con initialImages — el componente se monta UNA vez con los datos
   // del backend (gracias al key={publicationId} del padre). El usuario gestiona
@@ -165,6 +169,14 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   }, []);
   const handleRemoveImage = useCallback((imageId: string) => {
     setImages((prev) => prev.filter((img) => img.id !== imageId));
+  }, []);
+
+  const handleAddImageGlb = useCallback((image: UploadedImage) => {
+    setImagesGlb((prev) => [...prev, image]);
+  }, []);
+
+  const handleRemoveImageGlb = useCallback((imageId: string) => {
+    setImagesGlb((prev) => prev.filter((img) => img.id !== imageId));
   }, []);
 
   const categoriesQuery = usePublicationCategories();
@@ -185,7 +197,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         return;
       }
       setImagesError(null);
-      await onSubmit(values, images);
+      await onSubmit(values, images, imagesGlb);
     },
   });
 
@@ -618,14 +630,26 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
             </div>
           </div>
 
+
           <div className="col-lg-4">
-            <DragDropSection
-              uploaded={images}
-              onAdd={handleAddImage}
-              onRemove={handleRemoveImage}
-              disabled={submitting}
-            />
-            {imagesError && <p className="field-error">{imagesError}</p>}
+            <div>
+              <DragDropSectionGlb
+                uploadedGlb={imagesGlb}
+                onAdd={handleAddImageGlb}
+                onRemove={handleRemoveImageGlb}
+                disabled={submitting}
+              />
+            </div>
+
+            <div className='pt-3'>
+              <DragDropSection
+                uploaded={images}
+                onAdd={handleAddImage}
+                onRemove={handleRemoveImage}
+                disabled={submitting}
+              />
+              {imagesError && <p className="field-error">{imagesError}</p>}
+            </div>
           </div>
         </div>
       </form>

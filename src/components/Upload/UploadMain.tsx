@@ -21,7 +21,7 @@ const UploadMain: React.FC = () => {
   const checkerQuery = useCheckerPublications();
   const createMutation = useCreatePublication();
 
-  const handleSubmit = async (values: PublicationFormValues, images: UploadedImage[]) => {
+  const handleSubmit = async (values: PublicationFormValues, images: UploadedImage[], imagesglb: UploadedImage[]) => {
     const propertieNum = Number(values.propertie);
     const isCasa = propertieNum === PUBGEN_CASA;
     const isApto = propertieNum === PUBGEN_APTO;
@@ -45,6 +45,7 @@ const UploadMain: React.FC = () => {
         nlevel: isApto ? Number(values.nlevel) : null,
         size: isTerreno ? Number(values.size) : null,
         images,
+        imagesglb,
       });
       toast.success('Publicación creada correctamente.');
       router.push(`/publications/${response.id}`);

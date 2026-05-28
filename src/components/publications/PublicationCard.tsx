@@ -14,6 +14,7 @@ import {
   formatPrice,
   getCategoryFallbackIcon,
   getPublicationListAllImages,
+  getPublicationListAllImagesGlb,
   getStatusBadge,
   isLandCategory,
   isPublicationListItemAuth,
@@ -28,6 +29,9 @@ interface PublicationCardProps {
 }
 
 const PublicationCard = ({ publication, isNew = false, isFeatured = false }: PublicationCardProps) => {
+  const allImagesGlb = useMemo(() => getPublicationListAllImagesGlb(publication), [publication]);
+  const hasGlb = allImagesGlb.length > 0;
+
   const allImages = useMemo(() => getPublicationListAllImages(publication), [publication]);
   const hasMultiple = allImages.length > 1;
 
