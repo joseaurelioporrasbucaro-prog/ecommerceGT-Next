@@ -2352,6 +2352,136 @@ mensaje correcto.
 
 ---
 
+### Fase 16 (pendiente) — Home Style 3 con datos reales
+
+**Decisión (Aurelio, 2026-05-28):** la home oficial pasa a ser
+`/home-three` (`HomeThreeMain` + `HeroSectionThree` + `ExploreArtsThree`).
+Hoy muestra contenido de template NFT-themed en inglés ("Discover Digital
+Artworks & Collect Best NFTs") con imágenes y perfiles hardcoded.
+
+**Cambios necesarios:**
+
+1. **Convertir `/home-three` en la home oficial** — `src/app/page.tsx`
+   apunta a `HomeThreeMain`, redirigir `/home-three` a `/` (o dejar de
+   alias). Quitar el otro home (`home-two` si existe).
+
+2. **Hero section** (`HeroSectionThree`):
+   - Quitar copy NFT, reescribir para bienes raíces GT.
+   - **Imagen hero**: leerla del nuevo `site_assets` (Fase 15) para que se
+     pueda cambiar desde el portal sin redeploy.
+   - Sidebar con 3 cards: mostrar las 3 **propiedades destacadas activas
+     más relevantes** (mezcla de `useFeaturedPublications` Fase 10).
+
+3. **Sección "Categorías"** (nueva o reutilizar `ExploreArtsThree`):
+   - Mostrar las categorías de propiedad (`cat_publication_gender`) con
+     ícono y cantidad de publicaciones activas.
+   - Click → `/publications?category=X`.
+
+4. **Sección "Top Creators"**:
+   - Reutilizar el endpoint `getTopSellers` (Fase 9) que ya existe.
+   - Cards con avatar, nombre, badge de verificación, total de pubs.
+   - Click → `/creator-profile/[id]`.
+
+5. **Sección "Propiedades destacadas"** (debajo del hero):
+   - Grid de 6-8 publicaciones más recientes con tag de "Patrocinado" si
+     vienen del feed de pauta.
+   - "Ver todas" → `/publications`.
+
+6. **Sección "Cómo funciona"** (opcional pero recomendado):
+   - 3 pasos: Crear cuenta → Publicar/Buscar → Conectar.
+   - Construye confianza para visitantes nuevos.
+
+**Endpoints nuevos requeridos:**
+- `GET /home-stats` (público): `{ totalActivePubs, totalSellers,
+  totalCompanies }` para mostrar "1,234 propiedades activas" en el hero.
+- `GET /categories-with-counts` (público): `[{ pubgen_id,
+  pubgen_description, count }]` para la sección Categorías.
+
+**Endpoints reutilizables:**
+- `GET /top-sellers` (Fase 9).
+- `GET /featured-publications?limit=8` (Fase 10).
+- `GET /publications` (lista general).
+
+**Estimación:** 1.5 días (redactar copy + adaptar componentes + endpoints +
+estilos). Posiblemente más si el copy publicitario lo escribe un copywriter.
+
+**Trigger:** después de Fase 15 (portal de imágenes) para que la imagen
+hero sea dinámica desde día 1.
+
+---
+
+### Fase 15 (pendiente) — Portal de gestión de imágenes (CMS-lite)
+
+**Recordatorio (Aurelio, 2026-05-28):** poder cambiar las imágenes de la
+página (404, hero, banners, etc.) **sin redeploy**, desde un panel admin.
+
+**Imágenes candidatas para migrar a dinámicas:**
+- `404` (`error-404.png`) — la que se muestra en `/error-404`.
+- Hero principal (`banner-3-bg.jpg`) — fondo del Home Style 3.
+- Cards laterales del hero (3 imágenes en `HeroSectionThree`).
+- Logo (`logo/logo.png`, `logo/logo-white.png`).
+- About hero, login background, register background.
+- Cover por defecto de perfiles sin portada.
+- Placeholder de publicación sin imagen.
+
+**NO migrar a dinámicas** (cambian rara vez, no vale la pena):
+- Iconos SVG, shapes decorativos del template.
+- Avatares de perfil generados por el usuario (ya son dinámicos vía R2).
+
+**Schema (Fase 15):**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.site_assets (
+    asset_key    VARCHAR(60) PRIMARY KEY,        -- 'hero_home_bg', 'logo_light', etc.
+    asset_url    TEXT NOT NULL,                  -- ruta servida (R2 o local)
+    asset_label  TEXT,                           -- descripción para el admin
+    width        INT, height INT,                -- para Image fit; null si desconocido
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by   BIGINT REFERENCES ecom.customer(cus_id)
+);
+-- Seed con keys + URLs actuales como fallback.
+INSERT INTO ecom.site_assets (asset_key, asset_url, asset_label, width, height) VALUES
+    ('error_404',    '/assets/img/shape/error-404.png',     'Imagen del error 404',      602, 354),
+    ('hero_home_bg', '/assets/img/banner/banner-3-bg.jpg',  'Fondo del hero principal',  1920, 800),
+    ('hero_card_1',  '/assets/img/bids/oc-category-2-2.jpg','Card lateral 1',            500, 500),
+    ('hero_card_2',  '/assets/img/bids/oc-category-1.jpg',  'Card lateral 2',            500, 500),
+    ('hero_card_3',  '/assets/img/bids/oc-category-3.jpg',  'Card lateral 3',            500, 500),
+    ('logo_light',   '/assets/img/logo/logo.png',           'Logo (modo claro)',         null, null),
+    ('logo_dark',    '/assets/img/logo/logo-white.png',     'Logo (modo oscuro)',        null, null),
+    ('cover_default','/assets/img/profile/profile-cover/profile-cover-big-1.jpg',
+                                                            'Portada por defecto',       1200, 400)
+ON CONFLICT (asset_key) DO NOTHING;
+```
+
+**Backend:**
+- `GET /site-assets` (público): `{ [asset_key]: { url, width, height, label } }`.
+  Cacheado en memoria 5 min (igual que `platform_config`).
+- `POST /admin/site-assets/upload` (solo `cus_role='admin'`):
+  - Body multipart con `asset_key` + archivo.
+  - Sube a R2/local en `uploads/site-assets/<asset_key>-<hash>.<ext>`.
+  - Updates `asset_url` en la tabla.
+  - Invalida cache.
+- `GET /admin/site-assets` (solo `cus_role='admin'`): lista todas las keys
+  con preview, para el portal admin.
+
+**Frontend:**
+- Hook `useSiteAssets()` — fetch una vez con staleTime 10 min.
+- Helper `useSiteAsset('hero_home_bg')` → `{ url, width, height }`.
+- Reemplazar `import errorLogo from "../../../public/assets/img/shape/error-404.png"`
+  por `const { url, width, height } = useSiteAsset('error_404');` +
+  `<Image src={url} width={width} height={height} />`.
+- Página admin `/admin/imagenes`: lista de assets con preview, botón
+  "Cambiar imagen" por cada uno → modal con cropper + upload.
+- Reutilizar cropper de Fase 7 (avatar/cover).
+
+**Estimación:** 2 días (schema + endpoints + hook + reemplazo en
+componentes + página admin).
+
+**Importante:** mover SOLO las imágenes user-facing donde tiene sentido
+cambiar sin redeploy. Iconos SVG decorativos NO entran al portal — saturan
+el UI sin valor.
+
+---
+
 ### Fase 14 (pendiente) — Internacionalización (i18n) completa (es / en)
 
 **Recordatorio (Aurelio, 2026-05-28):** la plataforma originalmente apuntaba
@@ -2375,37 +2505,47 @@ el trabajo.
 - ❌ Mensajes/textos en correos electrónicos del backend (verification
   approved, notifications, etc.) están en español.
 
-**Decisiones técnicas a tomar antes de empezar:**
+**Decisiones técnicas confirmadas (Aurelio, 2026-05-28):**
 
-1. **¿Seguir con `react-i18next` o migrar a `next-intl`?**
-   - `next-intl` está hecho para Next.js App Router y soporta SSR/SSG
-     correctamente. Mejor SEO multi-idioma (`/es/...` vs `/en/...`).
-   - `react-i18next` ya está instalado pero es client-only por defecto;
-     en App Router cada componente que use `useTranslation` debe ser
-     `"use client"`, lo cual ya hacemos en su mayoría.
-   - **Recomendación:** migrar a `next-intl` si queremos SEO bilingüe
-     real (Google indexa `/en/properties` como página separada). Si solo
-     queremos UI traducida sin SEO bilingüe, quedarse con `react-i18next`
-     es menos trabajo.
+1. **Librería: `next-intl`** (migramos desde `react-i18next`).
+   - SEO bilingüe real con `app/[locale]/...`.
+   - Server Components siguen funcionando.
+   - Middleware automático para detección + redirect.
+   - Doc oficial de las mejores del ecosistema Next.
 
-2. **¿Locale en URL o en cookie?**
-   - URL (`/es/...`, `/en/...`): mejor SEO, shareable links muestran
-     idioma correcto, navegador respeta.
-   - Cookie: más simple de implementar, pero rompe SSR multi-idioma.
-   - **Recomendación:** URL si vamos con `next-intl`; cookie si nos
-     quedamos con `react-i18next`.
+2. **Locale en URL: `/es/...` y `/en/...`.**
+   - Mejor SEO (Google indexa páginas separadas en español/inglés).
+   - Links compartibles preservan el idioma.
+   - Middleware de `next-intl` lee `Accept-Language` en primera visita y
+     hace redirect al locale correcto.
+   - Override manual: selector en header persiste en cookie + URL.
 
-3. **¿Detección automática de idioma?**
-   - Header `Accept-Language` del navegador en primera visita.
-   - Default: `es` (mercado principal GT).
-   - Override manual: persistir elección en cookie/localStorage.
+3. **Default: `es` (mercado principal GT).**
 
-4. **¿Traducir errores y notificaciones del backend?**
-   - Opción A: backend devuelve **claves** (`"error.budget_too_low"`) y
-     frontend las traduce. Más limpio pero refactor grande.
-   - Opción B: frontend ignora el message del backend en casos comunes
-     y muestra su propio texto traducido. Más rápido.
-   - **Recomendación:** opción B para launch; opción A si el equipo crece.
+4. **Errores y notificaciones del backend: con códigos de error.**
+   Patrón:
+   ```js
+   // Backend
+   return response.status(400).json({
+     code: 'error.budget_too_low',
+     message: 'El presupuesto mínimo es Q10.', // fallback si falla traducción
+     params: { min: 10 },
+   });
+
+   // Frontend (ApiError extendido)
+   toast.error(t(err.body.code, err.body.params) ?? err.body.message);
+   ```
+   Backwards-compatible: si el frontend no encuentra la key, muestra el
+   `message` del backend. Esto permite migrar gradualmente: empezar por
+   los toasts de pauta/soporte (más visibles) y dejar los menos críticos
+   para después.
+
+5. **Migración desde `react-i18next`:**
+   - `react-i18next` actualmente cubre: Login, Register, Forgot, HeaderTwo.
+   - Mantener el bundle inline de `src/i18n.js` durante la transición —
+     `next-intl` y `react-i18next` pueden coexistir mientras se migra
+     componente por componente.
+   - Eliminar `i18next` + `react-i18next` del package.json al terminar.
 
 **Plan de trabajo (estimación: 3-4 días concentrados):**
 
