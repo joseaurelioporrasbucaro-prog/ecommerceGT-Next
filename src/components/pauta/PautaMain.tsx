@@ -168,6 +168,7 @@ const PautaMain = () => {
             <ul className="pa-explain-list">
               <li><i className="fas fa-info-circle" /><span>A más presupuesto, <strong>más alcance y prioridad</strong>: las campañas con más saldo se muestran primero. Al agotarse, la campaña finaliza sola. Mínimo <strong>Q{MIN_BUDGET}</strong>. El cobro real se habilitará con la pasarela; por ahora se activa sin cobro.</span></li>
               <li><i className="fas fa-undo" /><span>Si tu campaña <strong>termina antes de gastar todo</strong> (por fecha o porque la finalizas manualmente), el saldo no gastado se devuelve como <strong>crédito reutilizable</strong> en próximas campañas.</span></li>
+              <li><i className="fas fa-exclamation-circle" /><span><strong>Importante:</strong> no realizamos reembolsos a tarjeta ni efectivo. Las devoluciones se hacen <strong>únicamente como crédito interno</strong> (saldo de pauta) reutilizable en futuras campañas. El crédito no caduca, no es transferible y no es canjeable por dinero.</span></li>
             </ul>
           </div>
 
@@ -179,7 +180,7 @@ const PautaMain = () => {
               <div className="pa-credit-card-amount">Q{availableCredit.toFixed(2)}</div>
               <div className="pa-credit-card-note">
                 {availableCredit > 0
-                  ? 'Disponible para usar en tu próxima campaña.'
+                  ? 'Disponible para usar en tu próxima campaña. No es canjeable por dinero.'
                   : 'Aún no tienes saldo. Se genera del presupuesto no gastado al finalizar campañas.'}
               </div>
             </div>

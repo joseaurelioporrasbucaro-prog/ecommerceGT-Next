@@ -1996,6 +1996,31 @@ mensaje de respuesta indica cuánto crédito se aplicó.
 > contable". Al conectar pasarela real, el flujo es:
 > `if useCredit: deduct credit; charge remainder via gateway`.
 
+> **POLÍTICA DE NO-REEMBOLSO-A-TARJETA (importante, decidido 2026-05-27):**
+> Esta plataforma **NO realiza reembolsos a dinero físico ni a tarjeta**. El
+> único mecanismo de devolución es **crédito reutilizable** dentro de la
+> aplicación (`cus_ad_credit`). Esto aplica a:
+>   - Saldo no gastado al expirar una campaña (Fase 10.2).
+>   - Saldo no gastado al finalizar una campaña manualmente.
+>   - Saldo restante al anular una publicación con campaña activa por motivos
+>     de moderación (Fase 10.6).
+>
+> El crédito no caduca, no es transferible entre cuentas, no se canjea por
+> dinero. Solo se puede aplicar a nuevas campañas del mismo anunciante.
+>
+> Esta política **debe quedar declarada explícitamente** en:
+>   - Términos y Condiciones de uso (sección "Pauta paga" → cláusula
+>     "Reembolsos y créditos").
+>   - El formulario de creación de campaña en `/pauta` (mostrar una nota
+>     breve junto al selector de método de pago).
+>   - La descripción de la tarjeta "Mi saldo de pauta" en `/pauta`.
+>
+> Justificación: este modelo es estándar en plataformas de pauta (Meta,
+> Google, X) y simplifica enormemente la contabilidad. Evita disputas con
+> pasarelas, reduce fraude (chargebacks repetidos), y nos protege frente a
+> DIACO porque (1) el dinero se preserva 1:1 como crédito y (2) la política
+> se declara antes del cobro con aceptación explícita.
+
 ---
 
 ### Fase 10.3 — UX de pauta: método de pago, prefill, badge "Pautada" ✅
@@ -2190,12 +2215,21 @@ Aurelio el 2026-05-27.
 
 **Documentos a redactar y publicar:**
 
-1. **Términos y Condiciones de uso** — con sección específica de "Pauta paga":
-   - Describe que el anuncio compite por saldo restante (no garantizamos
-     posición específica).
-   - El presupuesto no se reembolsa al efectivo; queda como crédito en la
-     cuenta (Fase 10.2) usable en futuras campañas.
-   - Si el anuncio se rechaza por contenido prohibido, el crédito se conserva.
+1. **Términos y Condiciones de uso** — con sección específica de "Pauta paga"
+   y sub-cláusula "Reembolsos y créditos" (texto sugerido):
+   - El anuncio compite por saldo restante; no garantizamos posición
+     específica ni resultados (impresiones/clics) determinísticos.
+   - **No se reembolsa dinero físico ni a tarjeta bajo ninguna circunstancia.**
+     El único mecanismo de devolución es **crédito interno** (`cus_ad_credit`)
+     reutilizable en futuras campañas del mismo anunciante.
+   - El crédito **no caduca**, **no es transferible** entre cuentas, **no es
+     canjeable por dinero**, y se conserva indefinidamente mientras la cuenta
+     esté activa.
+   - Si la publicación pautada se anula por incumplir las reglas de la
+     comunidad (Fase 10.6), el saldo no gastado se acredita igualmente
+     (no decomisamos saldo por incumplimientos).
+   - Al cerrar la cuenta voluntariamente, el crédito **se pierde** (cláusula
+     necesaria — abrir cuenta nueva no transfiere saldo).
    - No nos hacemos responsables de transacciones entre usuarios fuera de
      la plataforma.
 
