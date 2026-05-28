@@ -2203,6 +2203,78 @@ alcance) y debe priorizarse.
 
 ---
 
+### Fase 11.1 — Eliminar cuenta + anonimización (GDPR-light) ✅
+
+**Contribuye a Fase 12** (cumplimiento legal): habilita el "derecho al
+olvido" preventivo antes de tener una ley de datos personales fuerte en GT.
+
+**Backend — `POST /account/delete`** (auth requerido):
+- Requiere la contraseña actual; bcrypt-compare contra `cus_password`.
+- Transacción con `FOR UPDATE` sobre la fila del cliente.
+- Finaliza campañas `active|paused` del usuario **sin reembolso** (el saldo
+  se pierde por política T&C — Fase 10.2 / Fase 12 cláusula "Reembolsos y
+  créditos"). El usuario es advertido explícitamente en el modal.
+- Anula publicaciones del usuario (`pubsta_id = 4`), excepto vendidas (`= 3`).
+- Anonimiza columnas PII de `customer`:
+  ```
+  cus_first_name='Usuario', cus_last_name='eliminado',
+  cus_email_address=NULL, cus_phone=NULL, cus_birthday=NULL,
+  cus_address=NULL, cus_imagen=NULL, cus_cover=NULL, cus_dpi=NULL,
+  cus_handle='deleted_'||cus_id, cus_show_location=false, cus_ad_credit=0,
+  cus_account_status='deleted', cus_ban_reason='Cuenta eliminada por el usuario.'
+  ```
+- Limpia la cookie `jwt` con `response.clearCookie`.
+
+> **No hacemos hard-delete** por integridad referencial. Tenemos FKs desde
+> `publications`, `messages`, `messages_reactions`, `tickets`,
+> `customer_reviews`, etc. Borrar el row dejaría conversaciones huérfanas.
+> El nombre "Usuario eliminado" preserva trazabilidad histórica anonimizada.
+
+**Backend — enforcement en login:**
+```js
+if (user.cus_account_status === 'deleted') {
+  return response.status(403).json({
+    message: "Esta cuenta fue eliminada. Si deseas regresar, crea una cuenta nueva."
+  });
+}
+```
+Se chequea ANTES de las verificaciones de `banned`/`suspended` para dar el
+mensaje correcto.
+
+**Schema** (sin migración nueva; columna existente):
+```sql
+-- Solo se actualizó el comentario de cus_account_status para incluir 'deleted'.
+-- En BD existente NO necesitas hacer nada: el VARCHAR(20) ya acepta el valor.
+```
+
+**Frontend:**
+- Hook `useDeleteAccount` (POST /account/delete con password).
+- Componente `DangerZone` (`src/components/Creator-Profile-info/`):
+  caja con borde rojo al final de la sección Información Personal, botón
+  "Eliminar cuenta" → modal con:
+    1. Lista detallada de consecuencias (PII, pubs anuladas, campañas sin
+       reembolso, no podrá volver a entrar).
+    2. Checkbox de aceptación obligatorio.
+    3. Campo de contraseña actual.
+    4. Botón rojo "Eliminar definitivamente" (deshabilitado hasta cumplir
+       las dos condiciones).
+- Tras éxito: `logout()` del AuthContext (limpia caché de React Query) +
+  `router.push('/')`.
+
+**Archivos tocados:**
+- Backend: `database.sql` (comment), `config/connPostgresDB.js` (login +
+  `deleteAccount`), `server.js` (`POST /account/delete`).
+- Frontend: `src/hooks/api/useDeleteAccount.ts` (nuevo),
+  `src/components/Creator-Profile-info/DangerZone.tsx` (nuevo),
+  `PersonalInfoTab.tsx` (monta `<DangerZone />`).
+
+> **Importante para soporte:** un usuario que pidió eliminar su cuenta NO
+> debería poder ser "reactivado" desde `/soporte/usuarios` sin un proceso
+> formal (sería socavar su decisión de eliminación). Ver Fase 12 →
+> implementar excepción en `supportUnbanUser` para no tocar status='deleted'.
+
+---
+
 ### Fase 12 (pendiente) — Cumplimiento legal antes de producción
 
 **Objetivo:** dejar la plataforma lista legalmente para operar en Guatemala
