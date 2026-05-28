@@ -2352,6 +2352,115 @@ mensaje correcto.
 
 ---
 
+### Fase 14 (pendiente) — Internacionalización (i18n) completa (es / en)
+
+**Recordatorio (Aurelio, 2026-05-28):** la plataforma originalmente apuntaba
+a ser leíble en inglés también. Hay scaffold parcial pero la mayoría del
+contenido nuevo (Fases 5-11) está en español hardcoded. Esta fase termina
+el trabajo.
+
+**Estado actual:**
+- ✅ `i18next@26` + `react-i18next@17` instalados.
+- ✅ `src/i18n.js` con bundle inline (es/en) — cubre algunos forms viejos:
+  Login, Register, Forgot, HeaderTwo.
+- ❌ NO hay selector de idioma visible al usuario.
+- ❌ NO está integrado en App Router (init solo se ejecuta cuando se
+  importa el módulo; no hay locale en URL o cookie).
+- ❌ TODO el contenido nuevo de las fases 5-11 está en español hardcoded:
+  mensajes, soporte (verificaciones, usuarios, denuncias, tickets), pauta,
+  notificaciones, perfiles, configuraciones, danger zone, etc.
+- ❌ Errores del backend (toasts) están en español.
+- ❌ Fechas formateadas con `toLocaleDateString('es-GT', ...)` en muchos
+  lugares — tienen que respetar el locale activo.
+- ❌ Mensajes/textos en correos electrónicos del backend (verification
+  approved, notifications, etc.) están en español.
+
+**Decisiones técnicas a tomar antes de empezar:**
+
+1. **¿Seguir con `react-i18next` o migrar a `next-intl`?**
+   - `next-intl` está hecho para Next.js App Router y soporta SSR/SSG
+     correctamente. Mejor SEO multi-idioma (`/es/...` vs `/en/...`).
+   - `react-i18next` ya está instalado pero es client-only por defecto;
+     en App Router cada componente que use `useTranslation` debe ser
+     `"use client"`, lo cual ya hacemos en su mayoría.
+   - **Recomendación:** migrar a `next-intl` si queremos SEO bilingüe
+     real (Google indexa `/en/properties` como página separada). Si solo
+     queremos UI traducida sin SEO bilingüe, quedarse con `react-i18next`
+     es menos trabajo.
+
+2. **¿Locale en URL o en cookie?**
+   - URL (`/es/...`, `/en/...`): mejor SEO, shareable links muestran
+     idioma correcto, navegador respeta.
+   - Cookie: más simple de implementar, pero rompe SSR multi-idioma.
+   - **Recomendación:** URL si vamos con `next-intl`; cookie si nos
+     quedamos con `react-i18next`.
+
+3. **¿Detección automática de idioma?**
+   - Header `Accept-Language` del navegador en primera visita.
+   - Default: `es` (mercado principal GT).
+   - Override manual: persistir elección en cookie/localStorage.
+
+4. **¿Traducir errores y notificaciones del backend?**
+   - Opción A: backend devuelve **claves** (`"error.budget_too_low"`) y
+     frontend las traduce. Más limpio pero refactor grande.
+   - Opción B: frontend ignora el message del backend en casos comunes
+     y muestra su propio texto traducido. Más rápido.
+   - **Recomendación:** opción B para launch; opción A si el equipo crece.
+
+**Plan de trabajo (estimación: 3-4 días concentrados):**
+
+1. **Setup** (medio día):
+   - Decidir librería + estrategia (URL/cookie).
+   - Si migramos a `next-intl`: setup `app/[locale]/...` + middleware.
+   - Separar bundle inline en archivos: `src/locales/es/common.json`,
+     `src/locales/es/auth.json`, `src/locales/en/...`, etc. Por dominio.
+
+2. **Extracción de strings** (1.5 días):
+   - Script que parsee `.tsx` y encuentre strings hardcoded (no
+     perfecto, pero acelera).
+   - Reemplazar manualmente `<button>Guardar</button>` →
+     `<button>{t('common.save')}</button>` etc.
+   - Foco en componentes nuevos: messages, support, pauta, danger zone,
+     notifications, settings.
+
+3. **Selector de idioma** (medio día):
+   - Toggle en el header (icono globo o "ES / EN") junto al botón de
+     usuario / notificaciones.
+   - Persistir en cookie (Next-intl) o localStorage (react-i18next).
+
+4. **Fechas y números** (medio día):
+   - Reemplazar `toLocaleDateString('es-GT', ...)` por uso del locale
+     activo: `toLocaleDateString(i18n.language, ...)`.
+   - Helper `formatPrice` ya respeta currency; verificar que use locale.
+
+5. **Errores backend** (medio día, opcional para launch):
+   - Mapear los toasts más comunes a traducciones del frontend.
+
+6. **QA** (medio día):
+   - Recorrer todos los flujos en ambos idiomas.
+   - Verificar que no quede texto hardcoded visible.
+
+**Prioridad de dominios a traducir (orden sugerido):**
+1. Auth + Register + Recovery (puerta de entrada — debe verse pro en EN).
+2. Header, footer, navegación, breadcrumbs.
+3. Publicaciones públicas (lo primero que ve un visitante).
+4. Settings + Mi perfil.
+5. Mensajes + Notificaciones.
+6. Soporte (verificaciones, denuncias, tickets, usuarios) — solo si
+   habrá agentes de soporte en inglés, si no es opcional.
+7. Pauta (anunciantes — probablemente bilingüe esperado).
+
+**Trigger sugerido:** **antes** del lanzamiento público o como fase
+inmediatamente post-launch si priorizas salir rápido al mercado GT. Lo
+óptimo es lanzarlo bilingüe desde el día 1 si se va a apuntar a
+extranjeros (inversionistas inmobiliarios fuera de GT, expats, etc.).
+
+**Riesgo si NO se hace:** se pierden usuarios extranjeros (turistas,
+inversionistas, expats interesados en bienes raíces GT). Es un segmento
+que paga bien por pauta y compra propiedades de alto valor.
+
+---
+
 ### Fase 13 (pendiente) — Documentación técnica completa de la plataforma
 
 **Objetivo:** crear un set de documentos de referencia que sobrevivan a la
