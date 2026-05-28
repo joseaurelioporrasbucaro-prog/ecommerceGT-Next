@@ -102,6 +102,7 @@ export type CreateCampaignPayload = {
   targetTowId?: number | null;
   targetAgeMin?: number | null;
   targetAgeMax?: number | null;
+  useCredit?: boolean; // Fase 10.2: descontar saldo del crédito del anunciante
 };
 
 /** Mensaje en el contexto de conversación que ve soporte (Fase 8.4). */

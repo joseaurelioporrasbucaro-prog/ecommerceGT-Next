@@ -1937,6 +1937,281 @@ webhook de confirmación). Esa es la única pieza faltante de la Fase 10.
 
 ---
 
+### Fase 10.2 — Crédito reutilizable por campaña expirada ✅
+
+**Problema:** la query de serving deja de mostrar una campaña cuando
+`end_date < CURRENT_DATE`, pero `camp_status` seguía en `active` y el saldo no
+gastado quedaba atrapado en BD sin servir y sin reembolso. El anunciante perdía
+el remanente.
+
+**Solución:** al expirar la fecha, marcar la campaña como `finished` y devolver
+`(budget - spent)` como **crédito reutilizable** del anunciante. El crédito se
+aplica en futuras campañas (descuenta del campo `cus_ad_credit`). Cuando se
+integre la pasarela real, el crédito reemplaza 1:1 el cobro.
+
+```sql
+-- BD existente: agregar columna de crédito al cliente.
+ALTER TABLE ecom.customer
+  ADD COLUMN IF NOT EXISTS cus_ad_credit NUMERIC(10,2) NOT NULL DEFAULT 0;
+```
+
+**Reembolso automático** (`reconcileExpiredCampaignsForUser` en
+`connPostgresDB.js`): se ejecuta lazy al abrir `/pauta` (en `getMyCampaigns` y
+en `getAdCredit`) dentro de transacción con `FOR UPDATE` para evitar dobles
+abonos en concurrencia. Busca todas las campañas del usuario con
+`camp_status='active' AND end_date < CURRENT_DATE`, las pasa a `finished` y
+suma el saldo no gastado a `cus_ad_credit`.
+
+**Reembolso manual:** `setCampaignStatus` también devuelve `(budget - spent)`
+cuando el anunciante hace clic en "Finalizar" (solo en la transición
+`active|paused → finished`, para no acreditar dos veces si reintentan).
+
+**Uso del crédito en nueva campaña:** `createCampaign` acepta `useCredit` en el
+payload. Si es `true`, descuenta `min(budget, available_credit)` de
+`cus_ad_credit` atómicamente (con `FOR UPDATE` sobre la fila del cliente). El
+mensaje de respuesta indica cuánto crédito se aplicó.
+
+**UI (`/pauta`):**
+- Banner verde con saldo disponible cuando `credit > 0`.
+- Checkbox "Usar mi crédito disponible (Q X.XX)" debajo del campo de
+  presupuesto (solo se muestra si hay saldo).
+- Bloque informativo en el explicador menciona la devolución del saldo no
+  gastado.
+- **Paginación de "Mis campañas"** a 10/página (reutiliza el componente
+  `Pagination` del soporte). El form a la izquierda + el feed a la derecha; al
+  pasar de 10 campañas aparecen los controles.
+
+**Endpoints nuevos:**
+- `GET /ad-credit` (auth requerido) → `{ credit: number }`. Antes de leer
+  ejecuta el reconcile, por lo que el saldo siempre está al día.
+
+**Frontend nuevos:**
+- Hook `useAdCredit()` en `src/hooks/api/useCampaigns.ts` (staleTime 5s,
+  refetch al enfocar).
+- `useCreateCampaign` y `useSetCampaignStatus` invalidan tanto
+  `MY_CAMPAIGNS_KEY` como `AD_CREDIT_KEY` al éxito.
+
+> **Nota:** mientras el cobro siga siendo stub, las campañas se activan sin
+> cobro y el crédito solo cobra sentido como "presupuesto reutilizable
+> contable". Al conectar pasarela real, el flujo es:
+> `if useCredit: deduct credit; charge remainder via gateway`.
+
+---
+
+### Fase 10.3 — UX de pauta: método de pago, prefill, badge "Pautada" ✅
+
+**Mejoras de UX** (sin schema nuevo). Tres cambios concretos surgidos del feedback de Aurelio:
+
+1. **Tarjeta de saldo siempre visible** en `/pauta` (verde si > 0, gris si vacío),
+   reemplazando el banner condicional. Es la fuente de verdad de cuánto saldo
+   tiene el anunciante para reutilizar.
+
+2. **Selector de método de pago (3 opciones)** que aparece cuando el presupuesto
+   supera el mínimo:
+   - **Solo mi saldo** — disponible si el saldo cubre todo el presupuesto.
+     Envía `useCredit: true` y descuenta del crédito.
+   - **Saldo + tarjeta** — aplica el saldo disponible y el resto se cobra a la
+     tarjeta (stub hasta pasarela). Default cuando hay saldo > 0.
+   - **Solo con tarjeta** — conserva el saldo para después. Default cuando no
+     hay saldo.
+
+   Bajo el selector hay un **resumen del pago** (Presupuesto / Desde tu saldo /
+   A cobrar con tarjeta) que se actualiza en vivo. Si el método elegido
+   requiere tarjeta y la pasarela aún no está, se muestra una nota informativa
+   y la campaña se crea sin cobro (igual que antes).
+
+3. **Botón "Pautar" en `/mis-publicaciones`** (publicaciones activas no
+   pautadas) → enlace a `/pauta?pub=<id>`. `PautaMain` lee el query param con
+   `useSearchParams` y prellena el selector de publicación. Si la publicación
+   ya tiene una campaña activa, el botón cambia a **"Ver pauta"** (color
+   naranja) y aparece un **badge dorado "Pautada"** en la imagen.
+
+**Fix de layout:** el bloque "¿Cómo funciona la pauta?" usaba
+`<p className="pa-explain-note" style="display:flex">`, lo que convertía los
+hijos del párrafo (icono, `<strong>`, paréntesis, "Q10") en flex items y
+fragmentaba el texto en columnas raras. Se reemplazó por una `<ul
+className="pa-explain-list">` con dos `<li>`; cada item tiene su ícono flex y
+el texto fluye normalmente.
+
+**Archivos:**
+- `src/components/pauta/PautaMain.tsx`: estados `paymentMethod`, derivados
+  `creditApplied`/`cardCharge`/`paymentValid`, `useSearchParams` para prefill,
+  bloque de selector + resumen, fix de layout.
+- `src/components/publications/MyPublicationsMain.tsx`: cruce con
+  `useMyCampaigns` para `pautadasIds`, botón "Pautar"/"Ver pauta", badge
+  "Pautada".
+
+> **Pendiente para Fase 10.5** (espera pasarela): wiring real del flujo de
+> cobro. El método `card` y `credit_plus_card` actualmente activan la campaña
+> sin cobrar la diferencia.
+
+---
+
+### Fase 10.4 — Una campaña activa por publicación + fix crash en cards ✅
+
+**Bug detectado** (gracias al feedback de Aurelio que creó 2 campañas de
+"mensajes" + 1 de "destacar" sobre la misma publicación): la misma publicación
+aparecía duplicada en la sección Destacados (una vez por cada campaña activa)
+y, peor, `PublicationCard` crasheaba en `publicationUtils.ts:119` con
+`Cannot read properties of undefined (reading 'forEach')` porque el endpoint
+`/featured-publications` solo devuelve `image` (string), no la galería
+completa `images: { url }[]` que sí incluye `/publications`. La función
+`getPublicationListAllImages` hacía `publication.images.forEach(...)` sin
+guard, asumiendo siempre forma de listado público.
+
+**Solución (3 capas):**
+
+1. **Frontend (defensiva):** `publication.images?.forEach(...)` —
+   `publicationUtils.ts`. Aunque el dato esté incompleto, no rompe la card.
+
+2. **Backend (regla de negocio):** `createCampaign` rechaza con **HTTP 409**
+   si ya existe una campaña en estado `active` o `paused` para esa
+   publicación. Mensaje: *"Esta publicación ya tiene una campaña activa o
+   pausada. Finaliza la actual antes de crear otra."* Esto simplifica
+   métricas, evita doble cobro al integrar pasarela y evita duplicados en
+   Destacados.
+
+3. **Backend (dedup defensivo):** `getFeaturedPublications` usa `DISTINCT ON
+   (p.pub_id)` para colapsar duplicados históricos (BD que ya tenía 2+
+   campañas por pub). Se queda con la de mayor saldo restante.
+
+**UI** (`PautaMain`): el dropdown de publicaciones oculta las que ya tienen
+campaña activa/pausada y muestra un hint:
+> 🔒 *2 publicaciones ya tienen una campaña activa y no aparecen aquí.
+> Finaliza la actual desde "Mis campañas" si quieres crear otra.*
+
+**Modelo de Meta para referencia:** Meta sí permite múltiples ad sets sobre
+el mismo "post" promocionado, pero entre ellos compiten en subasta. Como
+nosotros no tenemos subasta real, una sola campaña activa por publicación es
+el modelo correcto para esta fase.
+
+**UI polish (mismo Fase 10.4):**
+- Badge "PATROCINADO" pasa de verde a **dorado** (gradient `#fbbf24 → #d97706`)
+  para reforzar visualmente que es contenido pagado y diferenciarlo de los
+  badges verdes de status.
+- `PublicationCard` ahora acepta un prop `ctaOverride` para sobrescribir el
+  botón "Ver propiedad". Para campañas con objetivo `mensajes`, el CTA se
+  reemplaza por un botón **dorado "Enviar mensaje"** (mismo tamaño/forma que
+  el botón morado de "Ver propiedad", con ícono de avión) que enlaza a
+  `/messages?pub=<id>` y registra el clic vía `recordAdClick`. Esto sustituye
+  el link externo `featured-msg-btn` que aparecía debajo de la card y se veía
+  desbalanceado en el grid.
+
+---
+
+### Fase 12 (pendiente) — Cumplimiento legal antes de producción
+
+**Objetivo:** dejar la plataforma lista legalmente para operar en Guatemala
+antes del lanzamiento público. Recopilación de los puntos discutidos con
+Aurelio el 2026-05-27.
+
+> **Disclaimer:** Claude no es abogado. Esta fase debe ser auditada por un
+> abogado mercantil/IT guatemalteco antes del launch (~Q1,500-Q3,000 por
+> 1-2h de revisión).
+
+**Documentos a redactar y publicar:**
+
+1. **Términos y Condiciones de uso** — con sección específica de "Pauta paga":
+   - Describe que el anuncio compite por saldo restante (no garantizamos
+     posición específica).
+   - El presupuesto no se reembolsa al efectivo; queda como crédito en la
+     cuenta (Fase 10.2) usable en futuras campañas.
+   - Si el anuncio se rechaza por contenido prohibido, el crédito se conserva.
+   - No nos hacemos responsables de transacciones entre usuarios fuera de
+     la plataforma.
+
+2. **Política de Privacidad** — debe declarar:
+   - Recopilamos ubicación (`cit_id`, `tow_id`) y edad (`cus_birthday`) para
+     segmentar anuncios (Fase 10).
+   - DPI/NIT/RTU se almacenan privados con acceso controlado (Fase 8.1/8.2).
+   - El equipo de soporte puede acceder al contexto de conversaciones cuando
+     se denuncia un mensaje (Fase 8.4 ya tiene checkbox de consentimiento
+     en cada denuncia, pero hay que reforzarlo en la política).
+   - Usamos cookies para sesión y preferencias (ningún tracker de terceros
+     por ahora).
+
+3. **Política de Contenido / Reglas de la comunidad** — qué se puede pautar
+   y publicar: bienes raíces legítimos, sin esquemas piramidales, sin
+   propiedades sin verificación del propietario, etc.
+
+4. **Aviso de cookies** — banner inicial con opciones (aceptar / rechazar
+   no-esenciales). Por ahora solo tenemos cookies de sesión, así que el
+   aviso es relativamente simple.
+
+5. **Correo legal/DPO** — `legal@<dominio>.gt` para recibir denuncias,
+   notificaciones de autoridades, y peticiones de eliminación de datos
+   (right-to-be-forgotten preventivo).
+
+**Implementaciones técnicas pendientes:**
+
+6. **Factura electrónica (FEL)** — al integrar pasarela (Fase 11) la pauta es
+   un servicio gravado con **IVA 12%** en GT. Cada cobro debe generar FEL
+   automática (proveedores: G4S, INFILE, etc.). Ver SAT — Decreto Gubernativo
+   FEL 5-2022.
+
+7. **SLA de denuncias de pauta** — 24h máximo para resolver una denuncia de
+   contenido pagado. Ya hay tickets (Fase 8.5); falta categoría específica
+   "denuncia de pauta" + priorización en el round-robin.
+
+8. **Botón "Eliminar mi cuenta"** — derecho al olvido preventivo. Si el
+   usuario lo pide, anonimizar (`cus_first_name = "Usuario eliminado"`,
+   `cus_email = NULL`, etc.) y anular publicaciones. No borramos en hard
+   delete por integridad referencial (FKs en publications, messages,
+   tickets).
+
+9. **Registro de consentimiento explícito** — al crear cuenta, checkbox no
+   pre-marcado para "Acepto términos y política de privacidad". Guardar
+   `cus_terms_accepted_at` con la versión vigente (`cus_terms_version`).
+   Si se actualizan los términos, forzar re-aceptación en próximo login.
+
+**Marcos legales aplicables (GT):**
+- Constitución Art. 24 (correspondencia privada) → afecta a `getMessageContext`.
+- Decreto 6-2003 (Ley de Protección al Consumidor / DIACO) → ya cumplimos
+  con PQRS vía tickets, falta T&C públicos.
+- Código de Comercio (publicidad engañosa) → SLA de denuncias.
+- Decreto 5-2022 FEL → al integrar pasarela.
+- *(GT no tiene aún Ley de Datos Personales aprobada; usar GDPR-light como
+  best practice para usuarios extranjeros.)*
+
+---
+
+### Fase 11 (pendiente) — Método de pago en el perfil del usuario
+
+**Objetivo:** habilitar el campo "Método de pago" dentro de
+`creator-profile-info-personal` (sección de Configuraciones) para que el
+usuario pueda guardar una tarjeta antes de pautar.
+
+**Por qué se difiere:** depende de la pasarela elegida (Recurrente / NeoNet /
+Visanet GT). No se almacenan datos de tarjeta en nuestra BD: solo el token /
+último-4 / brand devueltos por la pasarela. Ver bloque de seguridad de la
+sección `user_privacy` en system prompt (nunca pedir CVV/PAN completos al
+LLM/Claude — el usuario los ingresa directo en el iframe del proveedor).
+
+**Esbozo de tareas:**
+1. Decisión técnica: pasarela. Recurrente parece la opción más probable para
+   GT (acepta tarjetas locales + transferencia bancaria).
+2. Tabla `ecom.customer_payment_methods` (`paymet_id`, `cus_id`,
+   `gateway_token`, `brand`, `last_four`, `is_default`, `created_at`).
+3. Endpoints: `GET /payment-methods`, `POST /payment-methods` (recibe token
+   del front), `DELETE /payment-methods/:id`, `POST /payment-methods/:id/default`.
+4. UI: nueva sección en `PersonalInfoTab` con lista de tarjetas, botón
+   "Agregar tarjeta" que abre el iframe/SDK del proveedor, botón "Eliminar" y
+   marcar default.
+5. Integrar en Fase 10.3 (Pauta): cuando el método de pago elegido implique
+   cobro a tarjeta, requerir tarjeta default y mostrar `last_four`/`brand`
+   antes de crear. Si no hay tarjeta, deshabilitar y enlazar al perfil.
+6. Webhook del proveedor para confirmar el cobro y desbloquear la campaña
+   (transición `pending_payment → active`).
+7. Reembolsos: cuando el sistema actual genera `cus_ad_credit` (Fase 10.2) y
+   la fuente original fue tarjeta, idealmente reembolsar a la tarjeta vía API
+   del proveedor; mantener el crédito como fallback.
+
+> **Importante (AMOS):** todo el flujo de tarjetas vive en el iframe/SDK del
+> proveedor. El backend nunca ve PAN/CVV. Si la pasarela elegida no expone
+> PCI-tokenization, se descarta.
+
+---
+
 ### Fase 10 (plan original) — Sistema de pauta/sponsors por publicación
 
 > Requisito de Aurelio (2026-05-22): "para sponsorear una publicación la persona

@@ -23,11 +23,19 @@ interface PublicationCardProps {
   publication: AnyPublicationListItem;
   /** Tag "NUEVO" naranja — primera publicación cuando se ordena por más recientes. */
   isNew?: boolean;
-  /** Tag "DESTACADA" verde — publicaciones sponsoreadas (Fase futura: backend `pub_featured`). */
+  /** Tag "PATROCINADO" dorado — publicaciones sponsoreadas (Fase 10). */
   isFeatured?: boolean;
+  /** Fase 10.4: sobrescribe el botón "Ver propiedad" (ej. con "Enviar mensaje" en dorado). */
+  ctaOverride?: {
+    label: string;
+    href: string;
+    iconClass?: string; // ej. 'fa-paper-plane'
+    gold?: boolean;
+    onMouseDown?: () => void;
+  };
 }
 
-const PublicationCard = ({ publication, isNew = false, isFeatured = false }: PublicationCardProps) => {
+const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOverride }: PublicationCardProps) => {
   const allImages = useMemo(() => getPublicationListAllImages(publication), [publication]);
   const hasMultiple = allImages.length > 1;
 
@@ -167,12 +175,23 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
                   <div className="art-meta-type">Precio</div>
                   <div className="art-price">{formatPrice(publication.price, publication.currency)}</div>
                 </div>
-                <Link
-                  href={`/publications/${publication.id}`}
-                  className="publication-view-btn"
-                >
-                  Ver propiedad
-                </Link>
+                {ctaOverride ? (
+                  <Link
+                    href={ctaOverride.href}
+                    className={`publication-view-btn${ctaOverride.gold ? ' publication-view-btn-gold' : ''}`}
+                    onMouseDown={ctaOverride.onMouseDown}
+                  >
+                    {ctaOverride.iconClass && <i className={`fas ${ctaOverride.iconClass}`} style={{ marginRight: 6 }} />}
+                    {ctaOverride.label}
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/publications/${publication.id}`}
+                    className="publication-view-btn"
+                  >
+                    Ver propiedad
+                  </Link>
+                )}
               </div>
 
               {/* Stats: features + icono de categoría a la derecha */}
@@ -264,8 +283,9 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
           }
           .publication-card :global(.publication-featured-badge) {
-            background: linear-gradient(135deg, #2ed573, #22b964);
-            box-shadow: 0 4px 12px rgba(46, 213, 115, 0.4);
+            /* Fase 10.4: badge dorado para reforzar el sello de "patrocinado". */
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
           }
           .publication-card :global(.publication-new-badge) {
             background: linear-gradient(135deg, #ff7e3d, #ff5e3a);
@@ -394,6 +414,13 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false }: Pub
           .publication-card :global(.publication-view-btn:hover) {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(108, 92, 231, 0.3);
+          }
+          /* Fase 10.4: variante dorada para CTAs de campañas de mensajes. */
+          .publication-card :global(.publication-view-btn-gold) {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+          }
+          .publication-card :global(.publication-view-btn-gold:hover) {
+            box-shadow: 0 6px 16px rgba(217, 119, 6, 0.4);
           }
 
           /* ──────────────── Stats + icono categoría ──────────────── */
