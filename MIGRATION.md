@@ -2410,7 +2410,70 @@ hero sea dinámica desde día 1.
 
 ---
 
-### Fase 15 (pendiente) — Portal de gestión de imágenes (CMS-lite)
+### Fase 15 — Portal de gestión de imágenes (CMS-lite) ✅
+
+**Implementado 2026-05-28.** Permite cambiar imágenes user-facing del sitio
+sin redeploy. Patrón inspirado en `ecom.platform_config` (Fase 10.7).
+
+**Schema:**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.site_assets (
+    asset_key    VARCHAR(60) PRIMARY KEY,
+    asset_url    TEXT NOT NULL,
+    asset_label  TEXT,
+    width        INT, height INT,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by   BIGINT REFERENCES ecom.customer(cus_id)
+);
+```
+Seed inicial con 8 keys: `error_404`, `hero_home_bg`, `hero_card_1..3`,
+`logo_light`, `logo_dark`, `cover_default`. URLs apuntan a los assets
+estáticos del template como fallback inicial.
+
+**Backend:**
+- `getSiteAssetsFromDb()` con cache 5 min (igual patrón que
+  `platform_config`). Fallback a `{}` si la tabla no existe.
+- `GET /site-assets` (público): mapa `{ asset_key: { url, label, width,
+  height } }`. Frontend lo consume con staleTime 10 min.
+- `GET /admin/site-assets` (admin): lista con metadata extra (updated_at,
+  updated_by_name).
+- `POST /admin/site-assets` (admin): actualiza `asset_url` de una key
+  específica. Invalida cache.
+- `POST /upload-site-asset` (admin, multipart): subida dedicada que
+  preserva aspect ratio con `sharp.resize({fit:'inside'})` — crítico para
+  logos. Devuelve `{ path, width, height }` y la guarda en
+  `uploads/site-assets/`. **Distinto del `/upload` general** que usa
+  `fit:'cover'` y rompería logos.
+
+**Frontend:**
+- Hook `useSiteAssets()` (todos) + `useSiteAsset(key)` (uno).
+- Helper `resolveAssetUrl(url)`: prefija con backend si empieza con
+  `/uploads/`, deja relativa si empieza con `/assets/` (Next public).
+- Página admin `/admin/imagenes` (`AdminImagesMain`): grid de cards con
+  preview, key, label, dimensiones, "última actualización por X". Botón
+  "Cambiar imagen" → file input → sube vía `/upload-site-asset` → updatea
+  asset_url. Bloquea con mensaje si `user.role !== 'admin'`.
+- **404 ya migrado** (`ErrorMain.tsx`) como prueba de fuego: usa
+  `useSiteAsset('error_404')` con fallback al import estático.
+
+**Migración SQL para BDs existentes:**
+```sql
+-- copy/paste del bloque ecom.site_assets de database.sql
+```
+
+**Cómo agregar una nueva imagen al portal:**
+1. `INSERT` en `ecom.site_assets` con la URL del template como fallback.
+2. En el componente que la usaba, reemplazar el `import` estático por
+   `useSiteAsset('mi_key')` + fallback al import original.
+3. Listo — aparece automáticamente en `/admin/imagenes`.
+
+**Pendiente para Fase 16 (Home Style 3):**
+- Migrar `HeroSectionThree` para que lea `hero_home_bg`, `hero_card_1..3`
+  vía `useSiteAsset` (las keys ya están seedeadas).
+
+---
+
+### ~~Fase 15 (planning original)~~ — Portal de gestión de imágenes (CMS-lite)
 
 **Recordatorio (Aurelio, 2026-05-28):** poder cambiar las imágenes de la
 página (404, hero, banners, etc.) **sin redeploy**, desde un panel admin.
