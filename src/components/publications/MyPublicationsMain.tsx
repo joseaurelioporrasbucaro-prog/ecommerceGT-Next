@@ -253,14 +253,17 @@ const MyPublicationsMain = () => {
   const publicationsQuery = useMyPublications(user?.id);
   const publications = publicationsQuery.data ?? [];
   const deleteMutation = useDeletePublication(user?.id);
-  // Fase 10.3: pub_ids con campaña activa, para mostrar el tag "Pautada".
+  // Fase 10.3: pub_ids con campaña activa/pausada (mismo criterio que el lock
+  // del backend) para mostrar tag "Pautada" + botón "Ver pauta".
   const campaignsQuery = useMyCampaigns();
-  const pautadasIds = React.useMemo(() => {
-    const set = new Set<number>();
+  const pautadaCampaignByPub = React.useMemo(() => {
+    const map = new Map<number, number>(); // pub_id → camp_id
     (campaignsQuery.data ?? []).forEach((c) => {
-      if (c.camp_status === 'active') set.add(Number(c.pub_id));
+      if (c.camp_status === 'active' || c.camp_status === 'paused') {
+        map.set(Number(c.pub_id), Number(c.camp_id));
+      }
     });
-    return set;
+    return map;
   }, [campaignsQuery.data]);
 
   const [pendingDelete, setPendingDelete] = useState<MyPublicationItem | null>(null);
@@ -306,7 +309,7 @@ const MyPublicationsMain = () => {
             <div className="my-publications-list">
                   {publications.map((publication) => {
                     const badge = getStatusBadge(publication.pubsta_id);
-                    const isPautada = pautadasIds.has(publication.pub_id); // Fase 10.3
+                    const isPautada = pautadaCampaignByPub.has(Number(publication.pub_id)); // Fase 10.3
 
                     return (
                       <article key={publication.pub_id} className="my-publication-row">

@@ -2097,6 +2097,29 @@ el modelo correcto para esta fase.
   el link externo `featured-msg-btn` que aparecía debajo de la card y se veía
   desbalanceado en el grid.
 
+**Bug fix "Ver pauta" no aparecía:** en `MyPublicationsMain.tsx` se filtraba
+solo por `camp_status === 'active'`, pero el lock del backend (1 campaña por
+publicación) cubre también `'paused'`. Si el anunciante pausaba la campaña, el
+botón mostraba "Pautar" en vez de "Ver pauta" y el badge dorado desaparecía.
+Se unificó al mismo criterio (`active OR paused`) que usa el dropdown de
+`/pauta`. El mapa pasa de `Set<pub_id>` a `Map<pub_id, camp_id>` para que en
+el futuro "Ver pauta" pueda profundizar al detalle de esa campaña específica.
+
+**`/messages?pub=<id>` ahora abre la conversación con el dueño:** al hacer
+clic en "Enviar mensaje" desde un anuncio patrocinado solo se pasa
+`?pub=<id>` (no se sabe el `with` desde la card). `MessagesMain` detecta el
+caso `pub presente + with ausente`, usa `usePublicationDetail` para resolver
+`cus_id` del dueño y hace `router.replace('/messages?pub=X&with=Y')`. Si el
+viewer es el propio dueño, redirige a `/messages` (no tiene sentido hablar
+consigo mismo).
+
+**Sugerencias de inicio de conversación:** cuando el chat está vacío,
+`ConversationView` ahora muestra 4 chips con prompts predefinidos
+(disponibilidad, visita, precio, qué incluye). Hacer clic en una rellena el
+textarea pero NO envía — el usuario revisa/edita antes de mandar. Esto reduce
+fricción para anuncios de "mensajes" y mejora la calidad de los primeros
+mensajes (menos "hola" sueltos).
+
 ---
 
 ### Fase 12 (pendiente) — Cumplimiento legal antes de producción

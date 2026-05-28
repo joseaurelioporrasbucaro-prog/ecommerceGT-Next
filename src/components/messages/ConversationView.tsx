@@ -19,6 +19,17 @@ import type {
 } from '@/types/api';
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
+// Fase 10.4: prompts sugeridos para arrancar una conversación con el dueño
+// de una propiedad (especialmente útil cuando se llega desde un anuncio
+// patrocinado con CTA "Enviar mensaje"). Se inyecta el título de la
+// publicación dinámicamente en runtime.
+const CONVERSATION_STARTERS = [
+  '¡Hola! Me interesa tu propiedad. ¿Sigue disponible?',
+  '¿Podemos coordinar una visita esta semana?',
+  '¿Aceptas alguna oferta o el precio es fijo?',
+  '¿Qué incluye exactamente la propiedad? (servicios, mobiliario, etc.)',
+];
 const REPORT_REASONS: { value: MessageReportReason; label: string }[] = [
   { value: 'spam', label: 'Spam o publicidad no deseada' },
   { value: 'ofensivo', label: 'Lenguaje ofensivo o acoso' },
@@ -160,8 +171,24 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           </div>
         )}
         {conversationQuery.data && conversationQuery.data.length === 0 && (
-          <div className="conversation-state">
-            Es el inicio de tu conversación. Escribí el primer mensaje.
+          <div className="conversation-empty">
+            <div className="conversation-empty-icon"><i className="fas fa-comments" /></div>
+            <p className="conversation-empty-title">
+              Es el inicio de tu conversación{inboxItem?.contact_name ? ` con ${inboxItem.contact_name}` : ''}.
+            </p>
+            <p className="conversation-empty-subtitle">Puedes usar uno de estos mensajes para romper el hielo:</p>
+            <div className="conversation-starters">
+              {CONVERSATION_STARTERS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="conversation-starter"
+                  onClick={() => setDraft(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {conversationQuery.data?.map((msg) => (
@@ -275,6 +302,61 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         .conversation-state-error {
           color: #ef4444;
           opacity: 1;
+        }
+
+        /* Fase 10.4: estado vacío + sugerencias de inicio */
+        .conversation-empty {
+          padding: 40px 24px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+        .conversation-empty-icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: rgba(108, 92, 231, 0.12);
+          color: var(--clr-theme-1, #6c5ce7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 26px;
+          margin-bottom: 4px;
+        }
+        .conversation-empty-title {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0;
+        }
+        .conversation-empty-subtitle {
+          font-size: 13px;
+          opacity: 0.7;
+          margin: 0 0 4px;
+        }
+        .conversation-starters {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+          max-width: 420px;
+          align-items: stretch;
+        }
+        .conversation-starter {
+          background: rgba(108, 92, 231, 0.08);
+          border: 1px solid rgba(108, 92, 231, 0.25);
+          color: inherit;
+          border-radius: 22px;
+          padding: 10px 18px;
+          font-size: 13.5px;
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.15s, transform 0.15s;
+        }
+        .conversation-starter:hover {
+          background: rgba(108, 92, 231, 0.15);
+          transform: translateY(-1px);
         }
 
         /* Reply preview */
