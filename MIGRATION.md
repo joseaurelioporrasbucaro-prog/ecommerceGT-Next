@@ -1877,7 +1877,1015 @@ ALTER TABLE ecom.customer
 
 ---
 
-### Fase 10 — Sistema de pauta/sponsors por publicación (PENDIENTE, grande)
+### Fase 10 — Sistema de pauta/sponsors por publicación ✅ (estructura; pago = stub)
+
+> **Implementada la estructura.** Falta SOLO la pasarela de pago: hoy la campaña
+> se activa al crearse (`camp_status='active'`) sin cobrar. Cuando se integre el
+> proveedor (Recurrente/NeoNet/etc.), agregar el gate de pago antes de activar.
+
+**SQL para BDs existentes:**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.ad_campaigns (
+    camp_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pub_id BIGINT NOT NULL REFERENCES ecom.publications(pub_id) ON DELETE CASCADE,
+    cus_id BIGINT NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+    camp_status VARCHAR(20) NOT NULL DEFAULT 'active',
+    budget NUMERIC(10,2) NOT NULL DEFAULT 0,
+    start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    end_date DATE NULL,
+    target_cit_id INT NULL REFERENCES ecom.cat_city(cit_id),
+    target_tow_id INT NULL REFERENCES ecom.cat_town(tow_id),
+    target_age_min INT NULL, target_age_max INT NULL,
+    impressions BIGINT NOT NULL DEFAULT 0, clicks BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ad_campaigns_status ON ecom.ad_campaigns(camp_status);
+CREATE INDEX IF NOT EXISTS idx_ad_campaigns_cus ON ecom.ad_campaigns(cus_id);
+-- Objetivo + consumo de presupuesto (si ya creaste la tabla antes):
+ALTER TABLE ecom.ad_campaigns
+  ADD COLUMN IF NOT EXISTS camp_objective VARCHAR(20) NOT NULL DEFAULT 'destacar',
+  ADD COLUMN IF NOT EXISTS spent NUMERIC(10,2) NOT NULL DEFAULT 0;
+```
+
+> **Consumo de presupuesto (Fase 10.1):** `destacar` descuenta **Q0.05/impresión**;
+> `mensajes` descuenta **Q0.50/clic** en "Enviar mensaje". Al llegar `spent` al
+> `budget` la campaña pasa a `finished` sola. El serving ordena por **saldo
+> restante DESC** (más presupuesto = más prioridad y alcance). Tarifas en
+> `connPostgresDB.js` (`AD_IMPRESSION_COST` / `AD_CLICK_COST`). Las campañas
+> `mensajes` muestran un botón "Enviar mensaje" en Destacados. Métricas casi en
+> tiempo real (refetch al enfocar + cada 30s).
+
+> `camp_objective`: `destacar` (consume por impresión) | `mensajes` (consume por
+> clic en "Enviar mensaje"). Presupuesto mínimo Q10. El form de `/pauta` incluye
+> objetivo, fecha inicio/fin (duración), segmentación y un explicador estilo Meta.
+
+- **Anunciante:** `/pauta` (crear campaña: publicación propia, presupuesto, fecha
+  fin, segmentación departamento/municipio/edad) + lista con métricas
+  (impresiones/clics) y pausar/reanudar/finalizar. Endpoints `POST /campaigns`,
+  `GET /campaigns/mine`, `POST /campaigns/:id/status`.
+- **Serving segmentado:** `GET /featured-publications` (authMiddlewareAux) filtra
+  **server-side** por ubicación (`cit_id`/`tow_id`) y edad (de `cus_birthday`) del
+  viewer; sin sesión solo muestra campañas sin segmentar. Rota con `random()`, suma
+  impresiones. Clic → `POST /featured/:campId/click`.
+- **Render:** sección "Destacados" en el listado de publicaciones con badge
+  **"Patrocinado"** (PublicationCard `isFeatured`).
+- **Privacidad:** el targeting es server-side; nunca se expone la ubicación/edad
+  del viewer al anunciante.
+
+**Pendiente:** integrar pasarela de pago (gate antes de activar la campaña;
+webhook de confirmación). Esa es la única pieza faltante de la Fase 10.
+
+---
+
+### Fase 10.2 — Crédito reutilizable por campaña expirada ✅
+
+**Problema:** la query de serving deja de mostrar una campaña cuando
+`end_date < CURRENT_DATE`, pero `camp_status` seguía en `active` y el saldo no
+gastado quedaba atrapado en BD sin servir y sin reembolso. El anunciante perdía
+el remanente.
+
+**Solución:** al expirar la fecha, marcar la campaña como `finished` y devolver
+`(budget - spent)` como **crédito reutilizable** del anunciante. El crédito se
+aplica en futuras campañas (descuenta del campo `cus_ad_credit`). Cuando se
+integre la pasarela real, el crédito reemplaza 1:1 el cobro.
+
+```sql
+-- BD existente: agregar columna de crédito al cliente.
+ALTER TABLE ecom.customer
+  ADD COLUMN IF NOT EXISTS cus_ad_credit NUMERIC(10,2) NOT NULL DEFAULT 0;
+```
+
+**Reembolso automático** (`reconcileExpiredCampaignsForUser` en
+`connPostgresDB.js`): se ejecuta lazy al abrir `/pauta` (en `getMyCampaigns` y
+en `getAdCredit`) dentro de transacción con `FOR UPDATE` para evitar dobles
+abonos en concurrencia. Busca todas las campañas del usuario con
+`camp_status='active' AND end_date < CURRENT_DATE`, las pasa a `finished` y
+suma el saldo no gastado a `cus_ad_credit`.
+
+**Reembolso manual:** `setCampaignStatus` también devuelve `(budget - spent)`
+cuando el anunciante hace clic en "Finalizar" (solo en la transición
+`active|paused → finished`, para no acreditar dos veces si reintentan).
+
+**Uso del crédito en nueva campaña:** `createCampaign` acepta `useCredit` en el
+payload. Si es `true`, descuenta `min(budget, available_credit)` de
+`cus_ad_credit` atómicamente (con `FOR UPDATE` sobre la fila del cliente). El
+mensaje de respuesta indica cuánto crédito se aplicó.
+
+**UI (`/pauta`):**
+- Banner verde con saldo disponible cuando `credit > 0`.
+- Checkbox "Usar mi crédito disponible (Q X.XX)" debajo del campo de
+  presupuesto (solo se muestra si hay saldo).
+- Bloque informativo en el explicador menciona la devolución del saldo no
+  gastado.
+- **Paginación de "Mis campañas"** a 10/página (reutiliza el componente
+  `Pagination` del soporte). El form a la izquierda + el feed a la derecha; al
+  pasar de 10 campañas aparecen los controles.
+
+**Endpoints nuevos:**
+- `GET /ad-credit` (auth requerido) → `{ credit: number }`. Antes de leer
+  ejecuta el reconcile, por lo que el saldo siempre está al día.
+
+**Frontend nuevos:**
+- Hook `useAdCredit()` en `src/hooks/api/useCampaigns.ts` (staleTime 5s,
+  refetch al enfocar).
+- `useCreateCampaign` y `useSetCampaignStatus` invalidan tanto
+  `MY_CAMPAIGNS_KEY` como `AD_CREDIT_KEY` al éxito.
+
+> **Nota:** mientras el cobro siga siendo stub, las campañas se activan sin
+> cobro y el crédito solo cobra sentido como "presupuesto reutilizable
+> contable". Al conectar pasarela real, el flujo es:
+> `if useCredit: deduct credit; charge remainder via gateway`.
+
+> **POLÍTICA DE NO-REEMBOLSO-A-TARJETA (importante, decidido 2026-05-27):**
+> Esta plataforma **NO realiza reembolsos a dinero físico ni a tarjeta**. El
+> único mecanismo de devolución es **crédito reutilizable** dentro de la
+> aplicación (`cus_ad_credit`). Esto aplica a:
+>   - Saldo no gastado al expirar una campaña (Fase 10.2).
+>   - Saldo no gastado al finalizar una campaña manualmente.
+>   - Saldo restante al anular una publicación con campaña activa por motivos
+>     de moderación (Fase 10.6).
+>
+> El crédito no caduca, no es transferible entre cuentas, no se canjea por
+> dinero. Solo se puede aplicar a nuevas campañas del mismo anunciante.
+>
+> Esta política **debe quedar declarada explícitamente** en:
+>   - Términos y Condiciones de uso (sección "Pauta paga" → cláusula
+>     "Reembolsos y créditos").
+>   - El formulario de creación de campaña en `/pauta` (mostrar una nota
+>     breve junto al selector de método de pago).
+>   - La descripción de la tarjeta "Mi saldo de pauta" en `/pauta`.
+>
+> Justificación: este modelo es estándar en plataformas de pauta (Meta,
+> Google, X) y simplifica enormemente la contabilidad. Evita disputas con
+> pasarelas, reduce fraude (chargebacks repetidos), y nos protege frente a
+> DIACO porque (1) el dinero se preserva 1:1 como crédito y (2) la política
+> se declara antes del cobro con aceptación explícita.
+
+---
+
+### Fase 10.3 — UX de pauta: método de pago, prefill, badge "Pautada" ✅
+
+**Mejoras de UX** (sin schema nuevo). Tres cambios concretos surgidos del feedback de Aurelio:
+
+1. **Tarjeta de saldo siempre visible** en `/pauta` (verde si > 0, gris si vacío),
+   reemplazando el banner condicional. Es la fuente de verdad de cuánto saldo
+   tiene el anunciante para reutilizar.
+
+2. **Selector de método de pago (3 opciones)** que aparece cuando el presupuesto
+   supera el mínimo:
+   - **Solo mi saldo** — disponible si el saldo cubre todo el presupuesto.
+     Envía `useCredit: true` y descuenta del crédito.
+   - **Saldo + tarjeta** — aplica el saldo disponible y el resto se cobra a la
+     tarjeta (stub hasta pasarela). Default cuando hay saldo > 0.
+   - **Solo con tarjeta** — conserva el saldo para después. Default cuando no
+     hay saldo.
+
+   Bajo el selector hay un **resumen del pago** (Presupuesto / Desde tu saldo /
+   A cobrar con tarjeta) que se actualiza en vivo. Si el método elegido
+   requiere tarjeta y la pasarela aún no está, se muestra una nota informativa
+   y la campaña se crea sin cobro (igual que antes).
+
+3. **Botón "Pautar" en `/mis-publicaciones`** (publicaciones activas no
+   pautadas) → enlace a `/pauta?pub=<id>`. `PautaMain` lee el query param con
+   `useSearchParams` y prellena el selector de publicación. Si la publicación
+   ya tiene una campaña activa, el botón cambia a **"Ver pauta"** (color
+   naranja) y aparece un **badge dorado "Pautada"** en la imagen.
+
+**Fix de layout:** el bloque "¿Cómo funciona la pauta?" usaba
+`<p className="pa-explain-note" style="display:flex">`, lo que convertía los
+hijos del párrafo (icono, `<strong>`, paréntesis, "Q10") en flex items y
+fragmentaba el texto en columnas raras. Se reemplazó por una `<ul
+className="pa-explain-list">` con dos `<li>`; cada item tiene su ícono flex y
+el texto fluye normalmente.
+
+**Archivos:**
+- `src/components/pauta/PautaMain.tsx`: estados `paymentMethod`, derivados
+  `creditApplied`/`cardCharge`/`paymentValid`, `useSearchParams` para prefill,
+  bloque de selector + resumen, fix de layout.
+- `src/components/publications/MyPublicationsMain.tsx`: cruce con
+  `useMyCampaigns` para `pautadasIds`, botón "Pautar"/"Ver pauta", badge
+  "Pautada".
+
+> **Pendiente para Fase 10.5** (espera pasarela): wiring real del flujo de
+> cobro. El método `card` y `credit_plus_card` actualmente activan la campaña
+> sin cobrar la diferencia.
+
+---
+
+### Fase 10.4 — Una campaña activa por publicación + fix crash en cards ✅
+
+**Bug detectado** (gracias al feedback de Aurelio que creó 2 campañas de
+"mensajes" + 1 de "destacar" sobre la misma publicación): la misma publicación
+aparecía duplicada en la sección Destacados (una vez por cada campaña activa)
+y, peor, `PublicationCard` crasheaba en `publicationUtils.ts:119` con
+`Cannot read properties of undefined (reading 'forEach')` porque el endpoint
+`/featured-publications` solo devuelve `image` (string), no la galería
+completa `images: { url }[]` que sí incluye `/publications`. La función
+`getPublicationListAllImages` hacía `publication.images.forEach(...)` sin
+guard, asumiendo siempre forma de listado público.
+
+**Solución (3 capas):**
+
+1. **Frontend (defensiva):** `publication.images?.forEach(...)` —
+   `publicationUtils.ts`. Aunque el dato esté incompleto, no rompe la card.
+
+2. **Backend (regla de negocio):** `createCampaign` rechaza con **HTTP 409**
+   si ya existe una campaña en estado `active` o `paused` para esa
+   publicación. Mensaje: *"Esta publicación ya tiene una campaña activa o
+   pausada. Finaliza la actual antes de crear otra."* Esto simplifica
+   métricas, evita doble cobro al integrar pasarela y evita duplicados en
+   Destacados.
+
+3. **Backend (dedup defensivo):** `getFeaturedPublications` usa `DISTINCT ON
+   (p.pub_id)` para colapsar duplicados históricos (BD que ya tenía 2+
+   campañas por pub). Se queda con la de mayor saldo restante.
+
+**UI** (`PautaMain`): el dropdown de publicaciones oculta las que ya tienen
+campaña activa/pausada y muestra un hint:
+> 🔒 *2 publicaciones ya tienen una campaña activa y no aparecen aquí.
+> Finaliza la actual desde "Mis campañas" si quieres crear otra.*
+
+**Modelo de Meta para referencia:** Meta sí permite múltiples ad sets sobre
+el mismo "post" promocionado, pero entre ellos compiten en subasta. Como
+nosotros no tenemos subasta real, una sola campaña activa por publicación es
+el modelo correcto para esta fase.
+
+**UI polish (mismo Fase 10.4):**
+- Badge "PATROCINADO" pasa de verde a **dorado** (gradient `#fbbf24 → #d97706`)
+  para reforzar visualmente que es contenido pagado y diferenciarlo de los
+  badges verdes de status.
+- `PublicationCard` ahora acepta un prop `ctaOverride` para sobrescribir el
+  botón "Ver propiedad". Para campañas con objetivo `mensajes`, el CTA se
+  reemplaza por un botón **dorado "Enviar mensaje"** (mismo tamaño/forma que
+  el botón morado de "Ver propiedad", con ícono de avión) que enlaza a
+  `/messages?pub=<id>` y registra el clic vía `recordAdClick`. Esto sustituye
+  el link externo `featured-msg-btn` que aparecía debajo de la card y se veía
+  desbalanceado en el grid.
+
+**Bug fix "Ver pauta" no aparecía:** en `MyPublicationsMain.tsx` se filtraba
+solo por `camp_status === 'active'`, pero el lock del backend (1 campaña por
+publicación) cubre también `'paused'`. Si el anunciante pausaba la campaña, el
+botón mostraba "Pautar" en vez de "Ver pauta" y el badge dorado desaparecía.
+Se unificó al mismo criterio (`active OR paused`) que usa el dropdown de
+`/pauta`. El mapa pasa de `Set<pub_id>` a `Map<pub_id, camp_id>` para que en
+el futuro "Ver pauta" pueda profundizar al detalle de esa campaña específica.
+
+**`/messages?pub=<id>` ahora abre la conversación con el dueño:** al hacer
+clic en "Enviar mensaje" desde un anuncio patrocinado solo se pasa
+`?pub=<id>` (no se sabe el `with` desde la card). `MessagesMain` detecta el
+caso `pub presente + with ausente`, usa `usePublicationDetail` para resolver
+`cus_id` del dueño y hace `router.replace('/messages?pub=X&with=Y')`. Si el
+viewer es el propio dueño, redirige a `/messages` (no tiene sentido hablar
+consigo mismo).
+
+**Sugerencias de inicio de conversación:** cuando el chat está vacío,
+`ConversationView` ahora muestra 4 chips con prompts predefinidos
+(disponibilidad, visita, precio, qué incluye). Hacer clic en una rellena el
+textarea pero NO envía — el usuario revisa/edita antes de mandar. Esto reduce
+fricción para anuncios de "mensajes" y mejora la calidad de los primeros
+mensajes (menos "hola" sueltos).
+
+---
+
+### Fase 10.6 — Denuncias enriquecidas + reembolso automático al sancionar ✅
+
+**Pregunta de Aurelio:** ¿hay que crear flujo de denuncias separado para
+pauta? **Respuesta:** no — el contenido violatorio es el mismo, así que la
+denuncia es la misma. Lo que sí enriquecemos es el **contexto** que ve
+soporte: si la publicación está pautada, eso amplifica el daño (mayor
+alcance) y debe priorizarse.
+
+**Backend — `getSupportReports`:**
+- Cada fila ahora trae `active_camp_id`, `active_camp_objective`,
+  `active_camp_remaining` (NUMERIC, devuelto como string por pg). Se calcula
+  con `LEFT JOIN ad_campaigns` filtrando por `camp_status IN ('active','paused')`.
+- `ORDER BY (active_camp_remaining IS NULL), active_camp_remaining DESC NULLS LAST, created_at DESC`
+  → las denuncias sobre publicaciones pautadas aparecen primero, y entre
+  ellas las de mayor saldo restante (mayor alcance/daño potencial).
+
+**Backend — `resolveReport` (cuando soporte anula publicación):**
+- Se ejecuta en transacción con `FOR UPDATE` sobre las campañas afectadas.
+- Busca campañas `active|paused` para esa publicación, las marca `finished`
+  y suma `(budget - spent)` al `cus_ad_credit` del anunciante.
+- Inserta notificación `pub_sanctioned_refund` con `payload.refunded`.
+- La respuesta incluye `{ refund: { campaigns: N, totalRefunded: Q } }` para
+  que el frontend muestre el monto exacto.
+- **Justificación:** la publicación se baja por contenido violatorio, pero
+  no nos quedamos con el dinero del anunciante por dos razones: (1) es justo
+  (el incumplimiento de las reglas no implica decomiso unilateral), (2) nos
+  protege legalmente — DIACO/Código de Comercio podrían interpretar retener
+  el saldo como enriquecimiento sin causa (Fase 12).
+
+**Frontend — `SupportReportsMain`:**
+- Chip dorado **"Pautada Q123.45"** junto al tipo de la denuncia cuando hay
+  campaña activa. Tooltip con detalle.
+- Fila con `background: rgba(251,191,36,0.05)` y borde izquierdo dorado para
+  reforzar la prioridad visual.
+- `act(r, 'delete')`: si la denuncia es sobre una publicación pautada, el
+  `window.confirm` ahora muestra explícitamente:
+  > *"Esta publicación tiene una campaña activa. Al eliminarla:
+  > • Se finalizará la campaña.
+  > • Se reembolsarán Q123.45 al crédito del anunciante."*
+
+**Frontend — notificaciones:**
+- Nuevo tipo `pub_sanctioned_refund` en `NotificationType`.
+- Renderizado en `notificationUtils.ts`: ícono `fa-undo` dorado, snippet con
+  el monto reembolsado, `href: '/pauta'`.
+
+**Archivos tocados:**
+- Backend: `config/connPostgresDB.js` (getSupportReports + resolveReport).
+- Frontend: `src/types/api.ts` (SupportReportRow + NotificationType),
+  `src/components/support/SupportReportsMain.tsx` (chip + confirm),
+  `src/components/notifications/notificationUtils.ts`.
+
+> Sin schema nuevo. Compatible con BD existente — el LEFT JOIN devuelve
+> NULL si no hay campaña activa.
+
+---
+
+### Fase 10.7 — Precios de pauta dinámicos (config en BD) ✅
+
+**Problema:** los precios de pauta estaban hardcoded en backend
+(`AD_IMPRESSION_COST=0.05`, `AD_CLICK_COST=0.50`) y frontend
+(constantes en `PautaMain.tsx`). Cualquier ajuste requería redeploy de ambos
+repos. Además, Aurelio anticipó (correctamente) que con CPM Q50 una
+campaña de Q1000 necesita 20,000 impresiones que en los primeros meses son
+inalcanzables → las campañas no terminan → mal mensaje para anunciantes.
+
+**Modelo de pricing — supuestos y decisiones (para revisión legal/finanzas):**
+
+| Concepto | MVP (launch) | Cuando DAU > 5,000 | Justificación |
+|---|---|---|---|
+| CPM (Q por 1,000 imp) | **Q10** | Q20-Q50 | Meta GT cobra Q8-Q40. Empezamos abajo para incentivar prueba. |
+| Q por impresión | **0.01** | 0.02-0.05 | CPM / 1000. |
+| Q por clic (mensajes) | **0.50** | 0.50-1.00 | Click vale lo mismo en cualquier escala porque mide intención real. Meta GT cobra Q0.80-Q4.00. |
+| Min budget | **Q10** | Q10-Q50 | Permite probar sin compromiso. |
+
+**Decisión filosófica:** preferimos **subir precios** cuando hay tracción a
+**bajarlos** cuando no hay (lo segundo daña confianza y métricas). Los
+defaults seedeados están calibrados para "no llegamos a 10k usuarios en los
+primeros meses" — escenario real de Aurelio, 2026-05-28.
+
+**Schema:**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.platform_config (
+    config_key   VARCHAR(60) PRIMARY KEY,
+    config_value NUMERIC(12,4) NOT NULL,
+    description  TEXT,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by   BIGINT REFERENCES ecom.customer(cus_id)
+);
+INSERT INTO ecom.platform_config (config_key, config_value, description) VALUES
+    ('ad_impression_cost', 0.01, 'Q por impresión en campañas "destacar". Subir cuando DAU >= 5000.'),
+    ('ad_click_cost',      0.50, 'Q por clic en botón "Enviar mensaje" de campañas "mensajes".'),
+    ('ad_min_budget',     10.00, 'Presupuesto mínimo (Q) para crear una campaña.')
+ON CONFLICT (config_key) DO NOTHING;
+```
+
+**Backend (`connPostgresDB.js`):**
+- `getPlatformConfig()` con cache en memoria 60s y fallback a defaults si la
+  tabla aún no existe (compatibilidad con BDs viejas sin migrar).
+- `invalidatePlatformConfig()` se llama al actualizar.
+- `createCampaign`, `getFeaturedPublications`, `recordAdClick` ahora leen
+  del config en vez de constantes.
+
+**Endpoints nuevos (`server.js`):**
+- `GET /pricing-config` — **público** (sin auth). Devuelve
+  `{ adImpressionCost, adClickCost, adMinBudget }`. Lo consume el form de
+  `/pauta` para mostrar tarifas y estimados actualizados.
+- `POST /admin/config` — requiere `cus_role='admin'`. Body: `{ key, value }`.
+  Valida que `value >= 0`. Al éxito, invalida cache.
+
+**Frontend:**
+- Hook `usePricingConfig()` (staleTime 5 min, defaults intermedios para
+  primer render).
+- `PautaMain.tsx`: las constantes `MIN_BUDGET`, `IMPRESSION_COST`,
+  `CLICK_COST` ahora son derivadas del hook. El explicador "¿Cómo funciona?"
+  muestra los ejemplos numéricos calculados en runtime (Q10 ≈ 1,000 vistas
+  en lugar del antiguo "Q10 ≈ 200 vistas").
+
+**Cómo cambiar precios en producción (sin redeploy):**
+```sql
+UPDATE ecom.platform_config
+   SET config_value = 0.025, updated_at = now()
+ WHERE config_key = 'ad_impression_cost';
+```
+Backend invalida cache en ≤60s. Frontend en ≤5 min. Los cambios aplican a
+**campañas nuevas y a impresiones futuras de campañas existentes** (no se
+retroactiva el `spent` ya acumulado).
+
+**Pendiente para Fase 11.x (opcional):** UI admin en `/admin/config` para
+editar valores sin SQL directo. Por ahora un admin con acceso a Render/psql
+es suficiente.
+
+---
+
+### Fase 11.1 — Eliminar cuenta + anonimización (GDPR-light) ✅
+
+**Contribuye a Fase 12** (cumplimiento legal): habilita el "derecho al
+olvido" preventivo antes de tener una ley de datos personales fuerte en GT.
+
+**Backend — `POST /account/delete`** (auth requerido):
+- Requiere la contraseña actual; bcrypt-compare contra `cus_password`.
+- Transacción con `FOR UPDATE` sobre la fila del cliente.
+- Finaliza campañas `active|paused` del usuario **sin reembolso** (el saldo
+  se pierde por política T&C — Fase 10.2 / Fase 12 cláusula "Reembolsos y
+  créditos"). El usuario es advertido explícitamente en el modal.
+- Anula publicaciones del usuario (`pubsta_id = 4`), excepto vendidas (`= 3`).
+- Anonimiza columnas PII de `customer`:
+  ```
+  cus_first_name='Usuario', cus_last_name='eliminado',
+  cus_email_address=NULL, cus_phone=NULL, cus_birthday=NULL,
+  cus_address=NULL, cus_imagen=NULL, cus_cover=NULL, cus_dpi=NULL,
+  cus_handle='deleted_'||cus_id, cus_show_location=false, cus_ad_credit=0,
+  cus_account_status='deleted', cus_ban_reason='Cuenta eliminada por el usuario.'
+  ```
+- Limpia la cookie `jwt` con `response.clearCookie`.
+
+> **No hacemos hard-delete** por integridad referencial. Tenemos FKs desde
+> `publications`, `messages`, `messages_reactions`, `tickets`,
+> `customer_reviews`, etc. Borrar el row dejaría conversaciones huérfanas.
+> El nombre "Usuario eliminado" preserva trazabilidad histórica anonimizada.
+
+**Backend — enforcement en login:**
+```js
+if (user.cus_account_status === 'deleted') {
+  return response.status(403).json({
+    message: "Esta cuenta fue eliminada. Si deseas regresar, crea una cuenta nueva."
+  });
+}
+```
+Se chequea ANTES de las verificaciones de `banned`/`suspended` para dar el
+mensaje correcto.
+
+**Schema** (sin migración nueva; columna existente):
+```sql
+-- Solo se actualizó el comentario de cus_account_status para incluir 'deleted'.
+-- En BD existente NO necesitas hacer nada: el VARCHAR(20) ya acepta el valor.
+```
+
+**Frontend:**
+- Hook `useDeleteAccount` (POST /account/delete con password).
+- Componente `DangerZone` (`src/components/Creator-Profile-info/`):
+  caja con borde rojo al final de la sección Información Personal, botón
+  "Eliminar cuenta" → modal con:
+    1. Lista detallada de consecuencias (PII, pubs anuladas, campañas sin
+       reembolso, no podrá volver a entrar).
+    2. Checkbox de aceptación obligatorio.
+    3. Campo de contraseña actual.
+    4. Botón rojo "Eliminar definitivamente" (deshabilitado hasta cumplir
+       las dos condiciones).
+- Tras éxito: `logout()` del AuthContext (limpia caché de React Query) +
+  `router.push('/')`.
+
+**Archivos tocados:**
+- Backend: `database.sql` (comment), `config/connPostgresDB.js` (login +
+  `deleteAccount`), `server.js` (`POST /account/delete`).
+- Frontend: `src/hooks/api/useDeleteAccount.ts` (nuevo),
+  `src/components/Creator-Profile-info/DangerZone.tsx` (nuevo),
+  `PersonalInfoTab.tsx` (monta `<DangerZone />`).
+
+> **Importante para soporte:** un usuario que pidió eliminar su cuenta NO
+> debería poder ser "reactivado" desde `/soporte/usuarios` sin un proceso
+> formal (sería socavar su decisión de eliminación). Ver Fase 12 →
+> implementar excepción en `supportUnbanUser` para no tocar status='deleted'.
+
+---
+
+### Fase 16 (pendiente) — Home Style 3 con datos reales
+
+**Decisión (Aurelio, 2026-05-28):** la home oficial pasa a ser
+`/home-three` (`HomeThreeMain` + `HeroSectionThree` + `ExploreArtsThree`).
+Hoy muestra contenido de template NFT-themed en inglés ("Discover Digital
+Artworks & Collect Best NFTs") con imágenes y perfiles hardcoded.
+
+**Cambios necesarios:**
+
+1. **Convertir `/home-three` en la home oficial** — `src/app/page.tsx`
+   apunta a `HomeThreeMain`, redirigir `/home-three` a `/` (o dejar de
+   alias). Quitar el otro home (`home-two` si existe).
+
+2. **Hero section** (`HeroSectionThree`):
+   - Quitar copy NFT, reescribir para bienes raíces GT.
+   - **Imagen hero**: leerla del nuevo `site_assets` (Fase 15) para que se
+     pueda cambiar desde el portal sin redeploy.
+   - Sidebar con 3 cards: mostrar las 3 **propiedades destacadas activas
+     más relevantes** (mezcla de `useFeaturedPublications` Fase 10).
+
+3. **Sección "Categorías"** (nueva o reutilizar `ExploreArtsThree`):
+   - Mostrar las categorías de propiedad (`cat_publication_gender`) con
+     ícono y cantidad de publicaciones activas.
+   - Click → `/publications?category=X`.
+
+4. **Sección "Top Creators"**:
+   - Reutilizar el endpoint `getTopSellers` (Fase 9) que ya existe.
+   - Cards con avatar, nombre, badge de verificación, total de pubs.
+   - Click → `/creator-profile/[id]`.
+
+5. **Sección "Propiedades destacadas"** (debajo del hero):
+   - Grid de 6-8 publicaciones más recientes con tag de "Patrocinado" si
+     vienen del feed de pauta.
+   - "Ver todas" → `/publications`.
+
+6. **Sección "Cómo funciona"** (opcional pero recomendado):
+   - 3 pasos: Crear cuenta → Publicar/Buscar → Conectar.
+   - Construye confianza para visitantes nuevos.
+
+**Endpoints nuevos requeridos:**
+- `GET /home-stats` (público): `{ totalActivePubs, totalSellers,
+  totalCompanies }` para mostrar "1,234 propiedades activas" en el hero.
+- `GET /categories-with-counts` (público): `[{ pubgen_id,
+  pubgen_description, count }]` para la sección Categorías.
+
+**Endpoints reutilizables:**
+- `GET /top-sellers` (Fase 9).
+- `GET /featured-publications?limit=8` (Fase 10).
+- `GET /publications` (lista general).
+
+**Estimación:** 1.5 días (redactar copy + adaptar componentes + endpoints +
+estilos). Posiblemente más si el copy publicitario lo escribe un copywriter.
+
+**Trigger:** después de Fase 15 (portal de imágenes) para que la imagen
+hero sea dinámica desde día 1.
+
+---
+
+### Fase 15 — Portal de gestión de imágenes (CMS-lite) ✅
+
+**Implementado 2026-05-28.** Permite cambiar imágenes user-facing del sitio
+sin redeploy. Patrón inspirado en `ecom.platform_config` (Fase 10.7).
+
+**Schema:**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.site_assets (
+    asset_key    VARCHAR(60) PRIMARY KEY,
+    asset_url    TEXT NOT NULL,
+    asset_label  TEXT,
+    width        INT, height INT,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by   BIGINT REFERENCES ecom.customer(cus_id)
+);
+```
+Seed inicial con 8 keys: `error_404`, `hero_home_bg`, `hero_card_1..3`,
+`logo_light`, `logo_dark`, `cover_default`. URLs apuntan a los assets
+estáticos del template como fallback inicial.
+
+**Backend:**
+- `getSiteAssetsFromDb()` con cache 5 min (igual patrón que
+  `platform_config`). Fallback a `{}` si la tabla no existe.
+- `GET /site-assets` (público): mapa `{ asset_key: { url, label, width,
+  height } }`. Frontend lo consume con staleTime 10 min.
+- `GET /admin/site-assets` (admin): lista con metadata extra (updated_at,
+  updated_by_name).
+- `POST /admin/site-assets` (admin): actualiza `asset_url` de una key
+  específica. Invalida cache.
+- `POST /upload-site-asset` (admin, multipart): subida dedicada que
+  preserva aspect ratio con `sharp.resize({fit:'inside'})` — crítico para
+  logos. Devuelve `{ path, width, height }` y la guarda en
+  `uploads/site-assets/`. **Distinto del `/upload` general** que usa
+  `fit:'cover'` y rompería logos.
+
+**Frontend:**
+- Hook `useSiteAssets()` (todos) + `useSiteAsset(key)` (uno).
+- Helper `resolveAssetUrl(url)`: prefija con backend si empieza con
+  `/uploads/`, deja relativa si empieza con `/assets/` (Next public).
+- Página admin `/admin/imagenes` (`AdminImagesMain`): grid de cards con
+  preview, key, label, dimensiones, "última actualización por X". Botón
+  "Cambiar imagen" → file input → sube vía `/upload-site-asset` → updatea
+  asset_url. Bloquea con mensaje si `user.role !== 'admin'`.
+- **404 ya migrado** (`ErrorMain.tsx`) como prueba de fuego: usa
+  `useSiteAsset('error_404')` con fallback al import estático.
+
+**Migración SQL para BDs existentes:**
+```sql
+-- copy/paste del bloque ecom.site_assets de database.sql
+```
+
+**Cómo agregar una nueva imagen al portal:**
+1. `INSERT` en `ecom.site_assets` con la URL del template como fallback.
+2. En el componente que la usaba, reemplazar el `import` estático por
+   `useSiteAsset('mi_key')` + fallback al import original.
+3. Listo — aparece automáticamente en `/admin/imagenes`.
+
+**Pendiente para Fase 16 (Home Style 3):**
+- Migrar `HeroSectionThree` para que lea `hero_home_bg`, `hero_card_1..3`
+  vía `useSiteAsset` (las keys ya están seedeadas).
+
+---
+
+### ~~Fase 15 (planning original)~~ — Portal de gestión de imágenes (CMS-lite)
+
+**Recordatorio (Aurelio, 2026-05-28):** poder cambiar las imágenes de la
+página (404, hero, banners, etc.) **sin redeploy**, desde un panel admin.
+
+**Imágenes candidatas para migrar a dinámicas:**
+- `404` (`error-404.png`) — la que se muestra en `/error-404`.
+- Hero principal (`banner-3-bg.jpg`) — fondo del Home Style 3.
+- Cards laterales del hero (3 imágenes en `HeroSectionThree`).
+- Logo (`logo/logo.png`, `logo/logo-white.png`).
+- About hero, login background, register background.
+- Cover por defecto de perfiles sin portada.
+- Placeholder de publicación sin imagen.
+
+**NO migrar a dinámicas** (cambian rara vez, no vale la pena):
+- Iconos SVG, shapes decorativos del template.
+- Avatares de perfil generados por el usuario (ya son dinámicos vía R2).
+
+**Schema (Fase 15):**
+```sql
+CREATE TABLE IF NOT EXISTS ecom.site_assets (
+    asset_key    VARCHAR(60) PRIMARY KEY,        -- 'hero_home_bg', 'logo_light', etc.
+    asset_url    TEXT NOT NULL,                  -- ruta servida (R2 o local)
+    asset_label  TEXT,                           -- descripción para el admin
+    width        INT, height INT,                -- para Image fit; null si desconocido
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by   BIGINT REFERENCES ecom.customer(cus_id)
+);
+-- Seed con keys + URLs actuales como fallback.
+INSERT INTO ecom.site_assets (asset_key, asset_url, asset_label, width, height) VALUES
+    ('error_404',    '/assets/img/shape/error-404.png',     'Imagen del error 404',      602, 354),
+    ('hero_home_bg', '/assets/img/banner/banner-3-bg.jpg',  'Fondo del hero principal',  1920, 800),
+    ('hero_card_1',  '/assets/img/bids/oc-category-2-2.jpg','Card lateral 1',            500, 500),
+    ('hero_card_2',  '/assets/img/bids/oc-category-1.jpg',  'Card lateral 2',            500, 500),
+    ('hero_card_3',  '/assets/img/bids/oc-category-3.jpg',  'Card lateral 3',            500, 500),
+    ('logo_light',   '/assets/img/logo/logo.png',           'Logo (modo claro)',         null, null),
+    ('logo_dark',    '/assets/img/logo/logo-white.png',     'Logo (modo oscuro)',        null, null),
+    ('cover_default','/assets/img/profile/profile-cover/profile-cover-big-1.jpg',
+                                                            'Portada por defecto',       1200, 400)
+ON CONFLICT (asset_key) DO NOTHING;
+```
+
+**Backend:**
+- `GET /site-assets` (público): `{ [asset_key]: { url, width, height, label } }`.
+  Cacheado en memoria 5 min (igual que `platform_config`).
+- `POST /admin/site-assets/upload` (solo `cus_role='admin'`):
+  - Body multipart con `asset_key` + archivo.
+  - Sube a R2/local en `uploads/site-assets/<asset_key>-<hash>.<ext>`.
+  - Updates `asset_url` en la tabla.
+  - Invalida cache.
+- `GET /admin/site-assets` (solo `cus_role='admin'`): lista todas las keys
+  con preview, para el portal admin.
+
+**Frontend:**
+- Hook `useSiteAssets()` — fetch una vez con staleTime 10 min.
+- Helper `useSiteAsset('hero_home_bg')` → `{ url, width, height }`.
+- Reemplazar `import errorLogo from "../../../public/assets/img/shape/error-404.png"`
+  por `const { url, width, height } = useSiteAsset('error_404');` +
+  `<Image src={url} width={width} height={height} />`.
+- Página admin `/admin/imagenes`: lista de assets con preview, botón
+  "Cambiar imagen" por cada uno → modal con cropper + upload.
+- Reutilizar cropper de Fase 7 (avatar/cover).
+
+**Estimación:** 2 días (schema + endpoints + hook + reemplazo en
+componentes + página admin).
+
+**Importante:** mover SOLO las imágenes user-facing donde tiene sentido
+cambiar sin redeploy. Iconos SVG decorativos NO entran al portal — saturan
+el UI sin valor.
+
+---
+
+### Fase 14 (pendiente) — Internacionalización (i18n) completa (es / en)
+
+**Recordatorio (Aurelio, 2026-05-28):** la plataforma originalmente apuntaba
+a ser leíble en inglés también. Hay scaffold parcial pero la mayoría del
+contenido nuevo (Fases 5-11) está en español hardcoded. Esta fase termina
+el trabajo.
+
+**Estado actual:**
+- ✅ `i18next@26` + `react-i18next@17` instalados.
+- ✅ `src/i18n.js` con bundle inline (es/en) — cubre algunos forms viejos:
+  Login, Register, Forgot, HeaderTwo.
+- ❌ NO hay selector de idioma visible al usuario.
+- ❌ NO está integrado en App Router (init solo se ejecuta cuando se
+  importa el módulo; no hay locale en URL o cookie).
+- ❌ TODO el contenido nuevo de las fases 5-11 está en español hardcoded:
+  mensajes, soporte (verificaciones, usuarios, denuncias, tickets), pauta,
+  notificaciones, perfiles, configuraciones, danger zone, etc.
+- ❌ Errores del backend (toasts) están en español.
+- ❌ Fechas formateadas con `toLocaleDateString('es-GT', ...)` en muchos
+  lugares — tienen que respetar el locale activo.
+- ❌ Mensajes/textos en correos electrónicos del backend (verification
+  approved, notifications, etc.) están en español.
+
+**Decisiones técnicas confirmadas (Aurelio, 2026-05-28):**
+
+1. **Librería: `next-intl`** (migramos desde `react-i18next`).
+   - SEO bilingüe real con `app/[locale]/...`.
+   - Server Components siguen funcionando.
+   - Middleware automático para detección + redirect.
+   - Doc oficial de las mejores del ecosistema Next.
+
+2. **Locale en URL: `/es/...` y `/en/...`.**
+   - Mejor SEO (Google indexa páginas separadas en español/inglés).
+   - Links compartibles preservan el idioma.
+   - Middleware de `next-intl` lee `Accept-Language` en primera visita y
+     hace redirect al locale correcto.
+   - Override manual: selector en header persiste en cookie + URL.
+
+3. **Default: `es` (mercado principal GT).**
+
+4. **Errores y notificaciones del backend: con códigos de error.**
+   Patrón:
+   ```js
+   // Backend
+   return response.status(400).json({
+     code: 'error.budget_too_low',
+     message: 'El presupuesto mínimo es Q10.', // fallback si falla traducción
+     params: { min: 10 },
+   });
+
+   // Frontend (ApiError extendido)
+   toast.error(t(err.body.code, err.body.params) ?? err.body.message);
+   ```
+   Backwards-compatible: si el frontend no encuentra la key, muestra el
+   `message` del backend. Esto permite migrar gradualmente: empezar por
+   los toasts de pauta/soporte (más visibles) y dejar los menos críticos
+   para después.
+
+5. **Migración desde `react-i18next`:**
+   - `react-i18next` actualmente cubre: Login, Register, Forgot, HeaderTwo.
+   - Mantener el bundle inline de `src/i18n.js` durante la transición —
+     `next-intl` y `react-i18next` pueden coexistir mientras se migra
+     componente por componente.
+   - Eliminar `i18next` + `react-i18next` del package.json al terminar.
+
+**Plan de trabajo (estimación: 3-4 días concentrados):**
+
+1. **Setup** (medio día):
+   - Decidir librería + estrategia (URL/cookie).
+   - Si migramos a `next-intl`: setup `app/[locale]/...` + middleware.
+   - Separar bundle inline en archivos: `src/locales/es/common.json`,
+     `src/locales/es/auth.json`, `src/locales/en/...`, etc. Por dominio.
+
+2. **Extracción de strings** (1.5 días):
+   - Script que parsee `.tsx` y encuentre strings hardcoded (no
+     perfecto, pero acelera).
+   - Reemplazar manualmente `<button>Guardar</button>` →
+     `<button>{t('common.save')}</button>` etc.
+   - Foco en componentes nuevos: messages, support, pauta, danger zone,
+     notifications, settings.
+
+3. **Selector de idioma** (medio día):
+   - Toggle en el header (icono globo o "ES / EN") junto al botón de
+     usuario / notificaciones.
+   - Persistir en cookie (Next-intl) o localStorage (react-i18next).
+
+4. **Fechas y números** (medio día):
+   - Reemplazar `toLocaleDateString('es-GT', ...)` por uso del locale
+     activo: `toLocaleDateString(i18n.language, ...)`.
+   - Helper `formatPrice` ya respeta currency; verificar que use locale.
+
+5. **Errores backend** (medio día, opcional para launch):
+   - Mapear los toasts más comunes a traducciones del frontend.
+
+6. **QA** (medio día):
+   - Recorrer todos los flujos en ambos idiomas.
+   - Verificar que no quede texto hardcoded visible.
+
+**Prioridad de dominios a traducir (orden sugerido):**
+1. Auth + Register + Recovery (puerta de entrada — debe verse pro en EN).
+2. Header, footer, navegación, breadcrumbs.
+3. Publicaciones públicas (lo primero que ve un visitante).
+4. Settings + Mi perfil.
+5. Mensajes + Notificaciones.
+6. Soporte (verificaciones, denuncias, tickets, usuarios) — solo si
+   habrá agentes de soporte en inglés, si no es opcional.
+7. Pauta (anunciantes — probablemente bilingüe esperado).
+
+**Trigger sugerido:** **antes** del lanzamiento público o como fase
+inmediatamente post-launch si priorizas salir rápido al mercado GT. Lo
+óptimo es lanzarlo bilingüe desde el día 1 si se va a apuntar a
+extranjeros (inversionistas inmobiliarios fuera de GT, expats, etc.).
+
+**Riesgo si NO se hace:** se pierden usuarios extranjeros (turistas,
+inversionistas, expats interesados en bienes raíces GT). Es un segmento
+que paga bien por pauta y compra propiedades de alto valor.
+
+---
+
+### Fase 13 (pendiente) — Documentación técnica completa de la plataforma
+
+**Objetivo:** crear un set de documentos de referencia que sobrevivan a la
+rotación del equipo, sirvan para onboarding de nuevos colaboradores
+(actuales y futuros) y permitan a soporte/ops resolver problemas sin
+necesitar al desarrollador original.
+
+**Estado actual:** `MIGRATION.md` (este archivo) es una bitácora cronológica
+de decisiones por fase. Sirve para reconstruir "por qué" pero no para
+"cómo opero X". Hace falta documentación de referencia.
+
+**Documentos a crear (sugerencia de estructura `docs/` en cada repo):**
+
+#### Backend (`ecommerceGTBackEnd/docs/`)
+1. **`API.md`** — todos los endpoints agrupados por dominio:
+   - Path, método, auth requerido (middleware), body, query params,
+     respuestas posibles (códigos + shape), notas.
+   - Ejemplo por endpoint:
+     ```
+     POST /campaigns                Auth: requerida
+     Body: { pubId, objective, budget, ... useCredit? }
+     200: { message, campId, creditUsed? }
+     409: si ya hay campaña active/paused para pub_id
+     ```
+   - Generación: scrapear `server.js` automáticamente con un script
+     (`scripts/extract-endpoints.js`) que parse cada `app.<method>`.
+
+2. **`DATABASE.md`** — esquema completo del `ecom.*`:
+   - Tabla por tabla: columnas, tipos, FKs, índices, comentarios.
+   - Diagrama ER (mermaid o dbdiagram.io export).
+   - Convenciones: prefijo `cus_`, `pub_`, `cat_`, `pubsta_id=4` = Anulada.
+
+3. **`QUERIES.md`** — biblioteca de queries útiles para soporte/ops:
+   - "Buscar usuario por DPI", "ver campañas activas por mes", "top
+     anunciantes por gasto", "campañas con saldo no gastado próximas a
+     expirar", "publicaciones sin imágenes", etc.
+   - Cada query con descripción y ejemplo de uso.
+   - **Incluir queries de Fase 10.7** (cambiar precios sin redeploy):
+     ```sql
+     UPDATE ecom.platform_config SET config_value = X WHERE config_key = '...';
+     ```
+
+4. **`OPS.md`** — runbook operativo:
+   - Cómo desplegar (Render + Dockerfile + Ghostscript).
+   - Cómo reiniciar el backend, migrar BD, restaurar backup.
+   - Variables de entorno (lista completa con descripción).
+   - Cron jobs (si hay).
+   - Logs: cómo verlos en Render, qué buscar cuando algo falla.
+
+5. **`MIGRATIONS.md`** — separar las SQL ALTER de MIGRATION.md (que es
+   bitácora) en un archivo numerado por fase con scripts ejecutables.
+   Ejemplo: `migrations/2026-05-27-fase-10.6.sql`, `2026-05-28-fase-10.7.sql`.
+
+#### Frontend (`ecommerceGT-Next/docs/`)
+1. **`COMPONENTS.md`** — componentes principales agrupados por dominio:
+   - `PublicationCard` (props, variantes, isFeatured, ctaOverride…).
+   - `MessageBubble`, `ConversationView`, `MentionTextarea`, etc.
+   - Una sección por dominio (publications, messages, support, pauta).
+
+2. **`HOOKS.md`** — todos los `useXxx` de `src/hooks/api/`:
+   - Endpoint que consumen, queryKey, staleTime, invalidaciones, errores.
+   - Tabla resumen para encontrar rápido cuál usar.
+
+3. **`ROUTES.md`** — todas las rutas de `src/app/`:
+   - Path, componente Main, auth requerida, props/searchParams, dependencias.
+
+4. **`STYLE.md`** — convenciones:
+   - styled-jsx con `:global()` para penetrar Next.js Link wrappers.
+   - Patrón de loading/error/empty en cada query.
+   - Variables CSS (`--clr-theme-1`, etc.).
+   - Cuándo usar `react-responsive-modal`, `react-toastify`, etc.
+
+#### Compartido (`README.md` principal de cada repo)
+- Reescribir con secciones claras: "Qué es esta plataforma", "Stack",
+  "Setup local en 5 min", "Cómo correr tests/lint", "Cómo contribuir",
+  "Quién mantiene".
+
+**Herramientas sugeridas:**
+- **Mermaid** para diagramas (compatible con GitHub Markdown).
+- **dbdiagram.io** para el ER (exportable a markdown).
+- **Swagger/OpenAPI** opcional para `API.md` si el equipo crece y quieren
+  un Try-it-out interactivo. Por ahora markdown plano es suficiente.
+
+**Prioridad sugerida cuando se aborde la fase:**
+1. `QUERIES.md` + `OPS.md` (más valor para soporte/ops).
+2. `API.md` (onboarding de nuevos devs).
+3. `DATABASE.md` + `MIGRATIONS.md`.
+4. Frontend docs (menos urgentes — el código se auto-documenta más).
+
+**Estimación:** ~2 días de trabajo concentrado. Posiblemente delegable
+parcialmente a un script que parse `server.js` y `database.sql`
+automáticamente.
+
+> **Trigger sugerido:** abordar Fase 13 **antes** del lanzamiento público,
+> después de Fase 11 (pasarela) y Fase 12 (legal). Para entonces el
+> esquema ya estará casi congelado y vale la pena documentarlo.
+
+---
+
+### Fase 12 (pendiente) — Cumplimiento legal antes de producción
+
+**Objetivo:** dejar la plataforma lista legalmente para operar en Guatemala
+antes del lanzamiento público. Recopilación de los puntos discutidos con
+Aurelio el 2026-05-27.
+
+> **Disclaimer:** Claude no es abogado. Esta fase debe ser auditada por un
+> abogado mercantil/IT guatemalteco antes del launch (~Q1,500-Q3,000 por
+> 1-2h de revisión).
+
+**Documentos a redactar y publicar:**
+
+1. **Términos y Condiciones de uso** — con sección específica de "Pauta paga"
+   y sub-cláusula "Reembolsos y créditos" (texto sugerido):
+   - El anuncio compite por saldo restante; no garantizamos posición
+     específica ni resultados (impresiones/clics) determinísticos.
+   - **No se reembolsa dinero físico ni a tarjeta bajo ninguna circunstancia.**
+     El único mecanismo de devolución es **crédito interno** (`cus_ad_credit`)
+     reutilizable en futuras campañas del mismo anunciante.
+   - El crédito **no caduca**, **no es transferible** entre cuentas, **no es
+     canjeable por dinero**, y se conserva indefinidamente mientras la cuenta
+     esté activa.
+   - Si la publicación pautada se anula por incumplir las reglas de la
+     comunidad (Fase 10.6), el saldo no gastado se acredita igualmente
+     (no decomisamos saldo por incumplimientos).
+   - Al cerrar la cuenta voluntariamente, el crédito **se pierde** (cláusula
+     necesaria — abrir cuenta nueva no transfiere saldo).
+   - No nos hacemos responsables de transacciones entre usuarios fuera de
+     la plataforma.
+
+2. **Política de Privacidad** — debe declarar:
+   - Recopilamos ubicación (`cit_id`, `tow_id`) y edad (`cus_birthday`) para
+     segmentar anuncios (Fase 10).
+   - DPI/NIT/RTU se almacenan privados con acceso controlado (Fase 8.1/8.2).
+   - El equipo de soporte puede acceder al contexto de conversaciones cuando
+     se denuncia un mensaje (Fase 8.4 ya tiene checkbox de consentimiento
+     en cada denuncia, pero hay que reforzarlo en la política).
+   - Usamos cookies para sesión y preferencias (ningún tracker de terceros
+     por ahora).
+
+3. **Política de Contenido / Reglas de la comunidad** — qué se puede pautar
+   y publicar: bienes raíces legítimos, sin esquemas piramidales, sin
+   propiedades sin verificación del propietario, etc.
+
+4. **Aviso de cookies** — banner inicial con opciones (aceptar / rechazar
+   no-esenciales). Por ahora solo tenemos cookies de sesión, así que el
+   aviso es relativamente simple.
+
+5. **Correo legal/DPO** — `legal@<dominio>.gt` para recibir denuncias,
+   notificaciones de autoridades, y peticiones de eliminación de datos
+   (right-to-be-forgotten preventivo).
+
+**Implementaciones técnicas pendientes:**
+
+6. **Factura electrónica (FEL)** — al integrar pasarela (Fase 11) la pauta es
+   un servicio gravado con **IVA 12%** en GT. Cada cobro debe generar FEL
+   automática (proveedores: G4S, INFILE, etc.). Ver SAT — Decreto Gubernativo
+   FEL 5-2022.
+
+7. **SLA de denuncias de pauta** — 24h máximo para resolver una denuncia de
+   contenido pagado. Ya hay tickets (Fase 8.5); falta categoría específica
+   "denuncia de pauta" + priorización en el round-robin.
+
+8. **Botón "Eliminar mi cuenta"** — derecho al olvido preventivo. Si el
+   usuario lo pide, anonimizar (`cus_first_name = "Usuario eliminado"`,
+   `cus_email = NULL`, etc.) y anular publicaciones. No borramos en hard
+   delete por integridad referencial (FKs en publications, messages,
+   tickets).
+
+9. **Registro de consentimiento explícito** — al crear cuenta, checkbox no
+   pre-marcado para "Acepto términos y política de privacidad". Guardar
+   `cus_terms_accepted_at` con la versión vigente (`cus_terms_version`).
+   Si se actualizan los términos, forzar re-aceptación en próximo login.
+
+**Marcos legales aplicables (GT):**
+- Constitución Art. 24 (correspondencia privada) → afecta a `getMessageContext`.
+- Decreto 6-2003 (Ley de Protección al Consumidor / DIACO) → ya cumplimos
+  con PQRS vía tickets, falta T&C públicos.
+- Código de Comercio (publicidad engañosa) → SLA de denuncias.
+- Decreto 5-2022 FEL → al integrar pasarela.
+- *(GT no tiene aún Ley de Datos Personales aprobada; usar GDPR-light como
+  best practice para usuarios extranjeros.)*
+
+---
+
+### Fase 11 (pendiente) — Método de pago en el perfil del usuario
+
+**Objetivo:** habilitar el campo "Método de pago" dentro de
+`creator-profile-info-personal` (sección de Configuraciones) para que el
+usuario pueda guardar una tarjeta antes de pautar.
+
+**Por qué se difiere:** depende de la pasarela elegida (Recurrente / NeoNet /
+Visanet GT). No se almacenan datos de tarjeta en nuestra BD: solo el token /
+último-4 / brand devueltos por la pasarela. Ver bloque de seguridad de la
+sección `user_privacy` en system prompt (nunca pedir CVV/PAN completos al
+LLM/Claude — el usuario los ingresa directo en el iframe del proveedor).
+
+**Esbozo de tareas:**
+1. Decisión técnica: pasarela. Recurrente parece la opción más probable para
+   GT (acepta tarjetas locales + transferencia bancaria).
+2. Tabla `ecom.customer_payment_methods` (`paymet_id`, `cus_id`,
+   `gateway_token`, `brand`, `last_four`, `is_default`, `created_at`).
+3. Endpoints: `GET /payment-methods`, `POST /payment-methods` (recibe token
+   del front), `DELETE /payment-methods/:id`, `POST /payment-methods/:id/default`.
+4. UI: nueva sección en `PersonalInfoTab` con lista de tarjetas, botón
+   "Agregar tarjeta" que abre el iframe/SDK del proveedor, botón "Eliminar" y
+   marcar default.
+5. Integrar en Fase 10.3 (Pauta): cuando el método de pago elegido implique
+   cobro a tarjeta, requerir tarjeta default y mostrar `last_four`/`brand`
+   antes de crear. Si no hay tarjeta, deshabilitar y enlazar al perfil.
+6. Webhook del proveedor para confirmar el cobro y desbloquear la campaña
+   (transición `pending_payment → active`).
+7. Reembolsos: cuando el sistema actual genera `cus_ad_credit` (Fase 10.2) y
+   la fuente original fue tarjeta, idealmente reembolsar a la tarjeta vía API
+   del proveedor; mantener el crédito como fallback.
+
+> **Importante (AMOS):** todo el flujo de tarjetas vive en el iframe/SDK del
+> proveedor. El backend nunca ve PAN/CVV. Si la pasarela elegida no expone
+> PCI-tokenization, se descarta.
+
+---
+
+### Fase 10 (plan original) — Sistema de pauta/sponsors por publicación
 
 > Requisito de Aurelio (2026-05-22): "para sponsorear una publicación la persona
 > debe **pagar** para que se vea destacada; sistema de **pauta por publicación**

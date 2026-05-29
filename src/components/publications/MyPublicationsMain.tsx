@@ -12,6 +12,7 @@ import { useMyPublications } from '@/hooks/api/useMyPublications';
 import { useDeletePublication } from '@/hooks/api/useDeletePublication';
 import { useCloseSale } from '@/hooks/api/useCloseSale';
 import { useSearchUsers } from '@/hooks/api/useSearchUsers';
+import { useMyCampaigns } from '@/hooks/api/useCampaigns'; // Fase 10.3
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { getImageVariant } from '@/utils/imageVariants';
@@ -252,6 +253,18 @@ const MyPublicationsMain = () => {
   const publicationsQuery = useMyPublications(user?.id);
   const publications = publicationsQuery.data ?? [];
   const deleteMutation = useDeletePublication(user?.id);
+  // Fase 10.3: pub_ids con campaña activa/pausada (mismo criterio que el lock
+  // del backend) para mostrar tag "Pautada" + botón "Ver pauta".
+  const campaignsQuery = useMyCampaigns();
+  const pautadaCampaignByPub = React.useMemo(() => {
+    const map = new Map<number, number>(); // pub_id → camp_id
+    (campaignsQuery.data ?? []).forEach((c) => {
+      if (c.camp_status === 'active' || c.camp_status === 'paused') {
+        map.set(Number(c.pub_id), Number(c.camp_id));
+      }
+    });
+    return map;
+  }, [campaignsQuery.data]);
 
   const [pendingDelete, setPendingDelete] = useState<MyPublicationItem | null>(null);
   const [pendingCloseSale, setPendingCloseSale] = useState<MyPublicationItem | null>(null);
@@ -296,6 +309,7 @@ const MyPublicationsMain = () => {
             <div className="my-publications-list">
                   {publications.map((publication) => {
                     const badge = getStatusBadge(publication.pubsta_id);
+                    const isPautada = pautadaCampaignByPub.has(Number(publication.pub_id)); // Fase 10.3
 
                     return (
                       <article key={publication.pub_id} className="my-publication-row">
@@ -317,6 +331,11 @@ const MyPublicationsMain = () => {
                                 {badge.label}
                               </span>
                             )}
+                            {isPautada && !badge && (
+                              <span className="my-publication-badge pautada-badge">
+                                <i className="fas fa-bolt" /> Pautada
+                              </span>
+                            )}
                           </span>
                         </Link>
 
@@ -334,6 +353,27 @@ const MyPublicationsMain = () => {
                         </div>
 
                         <div className="my-publication-actions">
+                          {/* Fase 10.3 — botón Pautar (publicaciones activas no pautadas) */}
+                          {publication.pubsta_id === PUBSTA_ACTIVE && !isPautada && (
+                            <Link
+                              href={`/pauta?pub=${publication.pub_id}`}
+                              className="border-btn pautar-btn"
+                              title="Promociona esta publicación con pauta paga"
+                            >
+                              <i className="fas fa-bolt" style={{ marginRight: 6 }} />
+                              Pautar
+                            </Link>
+                          )}
+                          {publication.pubsta_id === PUBSTA_ACTIVE && isPautada && (
+                            <Link
+                              href="/pauta"
+                              className="border-btn pautar-btn active"
+                              title="Esta publicación tiene una campaña activa"
+                            >
+                              <i className="fas fa-bolt" style={{ marginRight: 6 }} />
+                              Ver pauta
+                            </Link>
+                          )}
                           {/* Botón "Cerrar venta" — solo publicaciones activas */}
                           {publication.pubsta_id === PUBSTA_ACTIVE && (
                             <button
@@ -550,6 +590,34 @@ const MyPublicationsMain = () => {
           background: #15803d;
           border-color: #15803d;
           color: #fff;
+        }
+        /* Fase 10.3 — botón Pautar */
+        .my-publications-list :global(.pautar-btn) {
+          background: var(--clr-theme-1, #6c5ce7);
+          border-color: var(--clr-theme-1, #6c5ce7);
+          color: #fff;
+        }
+        .my-publications-list :global(.pautar-btn:hover) {
+          background: #5a4dd1;
+          border-color: #5a4dd1;
+          color: #fff;
+        }
+        .my-publications-list :global(.pautar-btn.active) {
+          background: #f59e0b;
+          border-color: #f59e0b;
+        }
+        .my-publications-list :global(.pautar-btn.active:hover) {
+          background: #d97706;
+          border-color: #d97706;
+        }
+        .my-publications-list :global(.pautada-badge) {
+          background: linear-gradient(135deg, #f59e0b, #f97316);
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .my-publications-list :global(.pautada-badge i) {
+          font-size: 9px;
         }
         .my-publications-list :global(button.border-btn:disabled) {
           cursor: not-allowed;

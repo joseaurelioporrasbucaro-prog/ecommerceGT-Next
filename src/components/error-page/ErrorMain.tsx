@@ -1,11 +1,19 @@
+"use client";
 import React from "react";
 import ThemeChanger from "../home/ThemeChanger";
 import Breadcrumbs from "@/utils/Breadcrumbs";
 import Link from "next/link";
-import errorLogo from "../../../public/assets/img/shape/error-404.png";
+import staticErrorLogo from "../../../public/assets/img/shape/error-404.png";
 import Image from "next/image";
+import { useSiteAsset, resolveAssetUrl } from "@/hooks/api/useSiteAssets";
 
+// Fase 15: la imagen 404 ahora puede cambiarse desde /admin/imagenes sin
+// redeploy. Si la query falla o el asset no está, cae al asset estático
+// del template como fallback.
 const ErrorMain = () => {
+  const asset = useSiteAsset('error_404');
+  const dynamicUrl = asset ? resolveAssetUrl(asset.url) : null;
+
   return (
     <>
       <ThemeChanger />
@@ -18,13 +26,24 @@ const ErrorMain = () => {
                 <div className=" error-404-inner">
                   <div className="error-404-content text-center">
                     <div className="error-404-img mb-30">
-                      <Image
-                        width={500}
-                        height={500}
-                        style={{ width: "auto", height: "auto" }}
-                        src={errorLogo}
-                        alt="error-img"
-                      />
+                      {dynamicUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={dynamicUrl}
+                          alt="error-img"
+                          width={asset?.width ?? 500}
+                          height={asset?.height ?? 500}
+                          style={{ maxWidth: '100%', height: 'auto' }}
+                        />
+                      ) : (
+                        <Image
+                          width={500}
+                          height={500}
+                          style={{ width: "auto", height: "auto" }}
+                          src={staticErrorLogo}
+                          alt="error-img"
+                        />
+                      )}
                     </div>
                     <h4>Ooops! Page not Found</h4>
                     <p className="mb-30">

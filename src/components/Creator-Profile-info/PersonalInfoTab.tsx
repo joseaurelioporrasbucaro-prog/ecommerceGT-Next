@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useGenders, useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useCheckHandle, useUpdateHandle } from '@/hooks/api/useHandle';
 import { SELLER_INFO_QUERY_KEY } from '@/hooks/api/usePublications';
+import DangerZone from './DangerZone';
 
 interface UpdateInfoResponse {
     message?: string;
@@ -314,6 +315,9 @@ const PersonalInfoTab = () => {
                     </button>
                 </div>
             </form>
+
+            {/* Fase 11 — Zona de peligro: eliminar cuenta */}
+            <DangerZone />
         </>
     );
 };

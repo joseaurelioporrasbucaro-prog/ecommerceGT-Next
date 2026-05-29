@@ -174,6 +174,17 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
         iconColor: '#0984e3',
       };
     },
+    // Fase 10.6: soporte anuló una publicación con campaña activa; se devolvió saldo.
+    pub_sanctioned_refund: () => {
+      const refunded = Number(notif.payload?.refunded || 0);
+      return {
+        text: 'Una publicación tuya fue retirada por soporte',
+        snippet: refunded > 0 ? `Se devolvieron Q${refunded.toFixed(2)} a tu crédito de pauta.` : null,
+        href: '/pauta',
+        icon: 'fa-undo',
+        iconColor: '#f59e0b',
+      };
+    },
   };
 
   return cfg[notif.notif_type]();

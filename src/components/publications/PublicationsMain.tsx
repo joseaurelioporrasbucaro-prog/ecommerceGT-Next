@@ -10,6 +10,7 @@ import { usePublications } from '@/hooks/api/usePublications';
 import type { AnyPublicationListItem } from '@/types/api';
 import CategorySlider from './CategorySlider';
 import PublicationCard from './PublicationCard';
+import FeaturedPublicationsSection from './FeaturedPublicationsSection';
 import PublicationsBar, { type PublicationFilters } from './PublicationsBar';
 import { type SortOption } from './publicationUtils';
 
@@ -154,6 +155,9 @@ const PublicationsMain = () => {
             categories={categories}
             onFiltersChange={setFilters}
           />
+
+          {/* Fase 10 — destacados/patrocinados segmentados */}
+          <FeaturedPublicationsSection limit={4} />
 
           {isLoading && (
             <div className="row wow fadeInUp">

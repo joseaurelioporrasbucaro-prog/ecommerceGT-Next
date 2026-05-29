@@ -116,7 +116,9 @@ export function getPublicationListAllImages(publication: AnyPublicationListItem)
   };
 
   push(publication.image);
-  publication.images.forEach((img) => push(img.url));
+  // Fase 10.3 fix: el endpoint /featured-publications devuelve solo `image`
+  // (sin galería), por lo que `images` puede ser undefined al hacer cast.
+  publication.images?.forEach((img) => push(img.url));
   return result;
 }
 

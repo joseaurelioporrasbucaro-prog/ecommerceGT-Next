@@ -81,7 +81,17 @@ const SupportReportsMain = () => {
   const isSupport = user?.role === 'support' || user?.role === 'admin';
 
   const act = (r: SupportReportRow, action: 'dismiss' | 'delete') => {
-    if (action === 'delete' && !window.confirm('¿Eliminar el contenido denunciado? Esta acción no se puede deshacer.')) return;
+    if (action === 'delete') {
+      // Fase 10.6: si la publicación está pautada, advertir que se finaliza
+      // la campaña y se reembolsa al anunciante.
+      const remaining = r.active_camp_remaining != null ? Number(r.active_camp_remaining) : 0;
+      const isPubPautada = r.report_type === 'publication' && remaining > 0;
+      const baseMsg = '¿Eliminar el contenido denunciado? Esta acción no se puede deshacer.';
+      const extra = isPubPautada
+        ? `\n\nEsta publicación tiene una campaña activa. Al eliminarla:\n• Se finalizará la campaña.\n• Se reembolsarán Q${remaining.toFixed(2)} al crédito del anunciante.`
+        : '';
+      if (!window.confirm(baseMsg + extra)) return;
+    }
     resolve.mutate(
       { type: r.report_type, reportId: r.report_id, contentId: r.content_id, action },
       {
@@ -139,9 +149,19 @@ const SupportReportsMain = () => {
                       {paged.map((r) => {
                         const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || 'Usuario';
                         const href = contentHref(r);
+                        // Fase 10.6: la publicación asociada está pautada.
+                        const remaining = r.active_camp_remaining != null ? Number(r.active_camp_remaining) : null;
+                        const isPautada = remaining !== null && remaining > 0;
                         return (
-                          <tr key={`${r.report_type}-${r.report_id}`}>
-                            <td><span className={`sr-chip sr-chip-${r.report_type}`}>{TYPE_LABEL[r.report_type]}</span></td>
+                          <tr key={`${r.report_type}-${r.report_id}`} className={isPautada ? 'sr-row-pautada' : ''}>
+                            <td>
+                              <span className={`sr-chip sr-chip-${r.report_type}`}>{TYPE_LABEL[r.report_type]}</span>
+                              {isPautada && (
+                                <span className="sr-chip sr-chip-pautada" title={`Campaña activa con Q${remaining!.toFixed(2)} de saldo restante`}>
+                                  <i className="fas fa-bolt" /> Pautada Q{remaining!.toFixed(2)}
+                                </span>
+                              )}
+                            </td>
                             <td className="sr-content">
                               <span className="sr-excerpt">{r.content_excerpt || '(sin texto)'}</span>
                               {r.report_type === 'message' ? (
@@ -232,10 +252,16 @@ const SupportReportsMain = () => {
         .sr-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
         .sr-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: top; font-size: 14px; }
         .sr-table tbody tr:hover { background: rgba(108,92,231,0.04); }
-        .sr-chip { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+        .sr-chip { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+        .sr-chip + .sr-chip { margin-left: 6px; }
         .sr-chip-comment { background: rgba(59,130,246,0.14); color: #2563eb; }
         .sr-chip-message { background: rgba(0,184,148,0.16); color: #00b894; }
         .sr-chip-publication { background: rgba(245,158,11,0.18); color: #b8860b; }
+        /* Fase 10.6: chip dorado para denuncias sobre publicaciones pautadas */
+        .sr-chip-pautada { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; box-shadow: 0 2px 6px rgba(217,119,6,0.3); }
+        .sr-chip-pautada :global(i) { font-size: 9px; }
+        .sr-row-pautada { background: rgba(251, 191, 36, 0.05); }
+        .sr-row-pautada td:first-child { border-left: 3px solid #f59e0b; }
         .sr-content { max-width: 300px; }
         .sr-excerpt { display: block; overflow: hidden; text-overflow: ellipsis; }
         .sr-view { font-size: 12px; color: var(--clr-theme-1, #6c5ce7); background: none; border: none; padding: 0; cursor: pointer; }

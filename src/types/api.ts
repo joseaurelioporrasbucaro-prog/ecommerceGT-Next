@@ -70,6 +70,41 @@ export type AccountStatus = 'active' | 'suspended' | 'banned';
 /** Tipo de contenido denunciado (Fase 8.4). */
 export type ReportType = 'comment' | 'message' | 'publication';
 
+/** Fase 10 — campaña de pauta. */
+export type CampaignStatus = 'active' | 'paused' | 'finished';
+export type CampaignObjective = 'destacar' | 'mensajes';
+export interface Campaign {
+  camp_id: number;
+  pub_id: number;
+  title: string;
+  camp_status: CampaignStatus;
+  camp_objective: CampaignObjective;
+  budget: number | string;
+  spent: number | string;
+  start_date: string;
+  end_date: string | null;
+  target_cit_id: number | null;
+  target_tow_id: number | null;
+  target_age_min: number | null;
+  target_age_max: number | null;
+  impressions: number | string;
+  clicks: number | string;
+  created_at: string;
+}
+/** Payload para crear campaña. */
+export type CreateCampaignPayload = {
+  pubId: number;
+  objective?: CampaignObjective;
+  budget?: number;
+  startDate?: string;
+  endDate?: string;
+  targetCitId?: number | null;
+  targetTowId?: number | null;
+  targetAgeMin?: number | null;
+  targetAgeMax?: number | null;
+  useCredit?: boolean; // Fase 10.2: descontar saldo del crédito del anunciante
+};
+
 /** Mensaje en el contexto de conversación que ve soporte (Fase 8.4). */
 export interface ConversationContextMessage {
   message_id: number;
@@ -180,6 +215,10 @@ export interface SupportReportRow {
   author_last: string | null;
   author_handle: string | null;
   pub_id: number | null;
+  // Fase 10.6: info de campaña activa (si la publicación está pautada).
+  active_camp_id?: number | null;
+  active_camp_objective?: CampaignObjective | null;
+  active_camp_remaining?: number | string | null; // pg devuelve NUMERIC como string
 }
 
 /** Fila de usuario en el portal de gestión de soporte (Fase 8.3). */
@@ -1145,7 +1184,8 @@ export type NotificationType =
   | 'verification_approved'
   | 'verification_rejected'
   | 'ticket_reply'
-  | 'ticket_assigned';
+  | 'ticket_assigned'
+  | 'pub_sanctioned_refund'; // Fase 10.6: pub anulada con campaña activa → reembolso a crédito
 
 /**
  * Notificación individual del usuario logueado.

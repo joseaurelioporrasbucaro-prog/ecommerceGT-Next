@@ -5,6 +5,7 @@ import ThemeChanger from '@/components/home/ThemeChanger';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { useInbox } from '@/hooks/api/useMessages';
+import { usePublicationDetail } from '@/hooks/api/usePublications';
 import InboxList from './InboxList';
 import ConversationView from './ConversationView';
 import ConversationInfoPanel from './ConversationInfoPanel';
@@ -31,6 +32,21 @@ const MessagesMain: React.FC = () => {
   }, [searchParams]);
 
   const hasActiveConversation = activePubId !== null && activeContactId !== null;
+
+  // Fase 10.4: si solo viene ?pub=ID (ej. desde un anuncio de "mensajes"),
+  // resolvemos el dueño y autocompletamos ?with=ownerId para abrir la conversación.
+  const needsOwnerResolve = activePubId !== null && activeContactId === null;
+  const pubDetailQuery = usePublicationDetail(needsOwnerResolve ? activePubId : null);
+  useEffect(() => {
+    if (!needsOwnerResolve) return;
+    const ownerId = pubDetailQuery.data?.cus_id;
+    if (ownerId && user?.id && ownerId !== user.id) {
+      router.replace(`/messages?pub=${activePubId}&with=${ownerId}`);
+    } else if (ownerId && user?.id && ownerId === user.id) {
+      // Si el viewer es el propio dueño, no tiene sentido abrir chat consigo mismo.
+      router.replace('/messages');
+    }
+  }, [needsOwnerResolve, pubDetailQuery.data?.cus_id, user?.id, activePubId, router]);
 
   // Cuando se activa una conversación en móvil → mostrar el chat automáticamente.
   useEffect(() => {
