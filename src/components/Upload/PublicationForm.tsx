@@ -157,7 +157,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   hideCancel = false,
 }) => {
   const [images, setImages] = useState<UploadedImage[]>(initialImages);
-  const [imagesGlb, setImagesGlb] = useState<UploadedImage[]>(initialImages);
+  // Fix post-merge: antes era initialImages (typo) — al editar arrancaba con las
+  // imágenes JPG como si fueran GLB, lo que ensuciaba el upload.
+  const [imagesGlb, setImagesGlb] = useState<UploadedImage[]>(initialImagesGlb);
   const [imagesError, setImagesError] = useState<string | null>(null);
   // No sync con initialImages — el componente se monta UNA vez con los datos
   // del backend (gracias al key={publicationId} del padre). El usuario gestiona

@@ -54,8 +54,9 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
   }, [editQuery.data]);
 
   const initialImages: UploadedImage[] = editQuery.data?.images ?? [];
+  const initialImagesGlb: UploadedImage[] = editQuery.data?.imagesglb ?? [];
 
-  const handleSubmit = async (values: PublicationFormValues, images: UploadedImage[]) => {
+  const handleSubmit = async (values: PublicationFormValues, images: UploadedImage[], imagesglb: UploadedImage[]) => {
     const propertieNum = Number(values.propertie);
     const isCasa = propertieNum === PUBGEN_CASA;
     const isApto = propertieNum === PUBGEN_APTO;
@@ -79,6 +80,7 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
         nlevel: isApto ? Number(values.nlevel) : null,
         size: isTerreno ? Number(values.size) : null,
         images,
+        imagesglb,
       });
       toast.success('Publicación actualizada correctamente.');
       router.push(`/publications/${publicationId}`);
@@ -114,6 +116,7 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
               key={publicationId}
               initialValues={initialValues}
               initialImages={initialImages}
+              initialImagesGlb={initialImagesGlb}
               submitLabel="Guardar cambios"
               submittingLabel="Guardando…"
               cancelHref="/my-publications"
