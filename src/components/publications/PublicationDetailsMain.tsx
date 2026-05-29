@@ -37,7 +37,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
   }, [publication]);
 
   const galleryImagesGlb = useMemo(() => {
-    if (!publication) return [];
+    if (!publication?.imagesglb) return [];
     return publication.imagesglb
       .map((img) => getPublicationImagePathGlb(img))
       .filter((path) => path !== '')

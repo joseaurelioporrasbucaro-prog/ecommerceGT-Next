@@ -462,7 +462,7 @@ export interface PublicationListItem {
   category: string;
   image: string;
   images: PublicationImage[];
-  imagesglb: PublicationImageGlb[];
+  imagesglb?: PublicationImageGlb[];
 }
 
 /** Mismo shape que `PublicationListItem` pero con sesión: añade `id_cus` y `isFavorite`. */
@@ -509,7 +509,7 @@ export interface PublicationDetail {
   isFavorite: boolean;
   images: PublicationImage[];
   data: string,
-  imagesglb: PublicationImageGlb[];
+  imagesglb?: PublicationImageGlb[];
 }
 
 /**
@@ -672,7 +672,7 @@ export interface CreatePublicationPayload extends Record<string, unknown> {
   /** ISO 4217 — 'GTQ' (default) o 'USD'. */
   currency: 'GTQ' | 'USD';
   images: UploadedImage[];
-  imagesglb: UploadedImage[];
+  imagesglb?: UploadedImage[];
 }
 
 /** Respuesta de `POST /savepubl`. */
@@ -712,7 +712,7 @@ export interface PublicationEditData {
   city: number | null;
   municipality: number | null;
   images: UploadedImage[];
-  imagesglb: UploadedImage[];
+  imagesglb?: UploadedImage[];
 }
 
 /** Body de `PUT /publications/:id`. Mismos campos que crear. */
