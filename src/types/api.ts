@@ -508,6 +508,7 @@ export interface PublicationDetail {
   /** Si el usuario autenticado ya guardó esta publicación. False sin sesión. */
   isFavorite: boolean;
   images: PublicationImage[];
+  data: string,
   imagesglb: PublicationImageGlb[];
 }
 

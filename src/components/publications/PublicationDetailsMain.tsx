@@ -100,7 +100,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
               {hasGlb && (
                 <>
                   <div className="action-row">
-                    <Link href={`/creator-profile/${publication.cus_id}`} className="action-btn action-btn-primary">
+                    <Link href={`http://localhost:5000/?token=${publication.data}`} className="action-btn action-btn-primary">
                       <i className="fas fa-cube"></i>
                       <span>Explorar 3D</span>
                     </Link>

@@ -135,7 +135,7 @@ export function getPublicationListAllImagesGlb(publication: AnyPublicationListIt
     }
   };
   //push(publication.image);
-  publication.imagesglb.forEach((img) => push(img.url));
+  publication.imagesglb?.forEach((img) => push(img.url));
   return result;
 }
 
