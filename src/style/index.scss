@@ -10,9 +10,16 @@
 @import '../../public/assets/scss/main';
 
 // Paleta de marca KIOSQUI — debe ir AL FINAL para sobreescribir los tokens
-// del template (mismo selector :root → gana el último). Para revertir
-// borrar este import y el archivo brand-kiosqui.css.
-@import './brand-kiosqui.css';
+// del template (mismo selector :root → gana el último).
+//
+// IMPORTANTE: el archivo es .scss (no .css). Si fuera .css, SCSS lo
+// convierte en un `@import url(...)` nativo de CSS, que por spec se
+// mueve AL INICIO del archivo compilado — entonces el template
+// terminaría sobreescribiendo nuestros tokens en vez de al revés.
+// Con .scss se inlinea aquí, donde lo escribimos, y gana por orden.
+//
+// Para revertir: borrar este import + el archivo brand-kiosqui.scss.
+@import './brand-kiosqui.scss';
 
 
 

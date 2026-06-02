@@ -20,8 +20,16 @@
      template usa colores hardcoded difíciles de capturar.
 
    REVERT
-   - Borrar este archivo + la línea `@import './brand-kiosqui.css';` en
+   - Borrar este archivo + la línea `@import './brand-kiosqui.scss';` en
      `src/style/index.scss`. Vuelve al theme del template (#2785ff).
+
+   NOTA — por qué es .scss y no .css
+   Cuando importas un archivo .css en SCSS, el compilador lo convierte
+   en `@import url(...)` nativo de CSS, que por spec se mueve al INICIO
+   del archivo compilado. Resultado: el template terminaba ganando
+   sobre nuestras vars (los botones se salvaban solo por !important).
+   Con extensión .scss se inlinea aquí, donde lo escribimos, y gana
+   por orden de cascada como debe ser.
    ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
