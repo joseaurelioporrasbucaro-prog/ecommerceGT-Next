@@ -113,3 +113,32 @@ a {
 a:hover {
   color: var(--brand-primary-hover);
 }
+
+/* ───── PRECIOS — verde lima (#caf492) de la marca ─────
+   Aplica a todos los lugares donde se renderiza el precio de una propiedad
+   o de un plan. En dark theme contrasta excelente con #1f2933; en light
+   (crema) el contraste es bajo, así que damos un sombreado verde oscuro
+   tenue para que el texto siga siendo legible sin perder el carácter de
+   color de marca. */
+.publication-price-row .art-price,    /* PublicationCard */
+.publication-price-block .art-price,
+.meta-price,                          /* PublicationContent (detalle) */
+.pv-price,                            /* PublicationViewerMain (3D fullscreen) */
+.my-publication-meta > span:first-child, /* MyPublicationsMain — primer span = precio */
+.pp-price .pp-amount {                /* PricingPlanMain */
+  color: var(--brand-highlight) !important;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 0 rgba(15, 76, 76, 0.45),
+               0 0 6px rgba(15, 76, 76, 0.25);
+}
+
+[data-theme='dark'] .publication-price-row .art-price,
+[data-theme='dark'] .publication-price-block .art-price,
+[data-theme='dark'] .meta-price,
+[data-theme='dark'] .pv-price,
+[data-theme='dark'] .my-publication-meta > span:first-child,
+[data-theme='dark'] .pp-price .pp-amount {
+  /* En dark la sombra ya no es necesaria — el lima brilla sobre el ink. */
+  text-shadow: none;
+}
