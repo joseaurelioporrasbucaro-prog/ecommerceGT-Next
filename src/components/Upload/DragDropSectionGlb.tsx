@@ -171,6 +171,150 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
         </div>
       </FileUploader>
 
+      {/* Guía de conversión: model-viewer (visor 3D) solo soporta GLB/glTF.
+         Si el usuario tiene FBX/OBJ/DAE/SketchUp, le mostramos opciones
+         gratuitas para convertir antes de subir. Sin esto, recibíamos
+         consultas de usuarios sin saber qué hacer con archivos de Revit
+         o ZBrush. */}
+      <div className="glb-format-guide">
+        <div className="glb-guide-head">
+          <i className="fas fa-info-circle" />
+          <strong>¿Tu modelo no está en formato GLB?</strong>
+        </div>
+        <p className="glb-guide-body">
+          Aceptamos solo <code>.glb</code> (formato optimizado para web).
+          Si tienes otro formato, conviértelo gratis antes de subir:
+        </p>
+        <div className="glb-guide-tools">
+          <a
+            href="https://gltf.report"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="glb-guide-tool"
+          >
+            <i className="fas fa-external-link-alt" />
+            <div>
+              <strong>gltf.report</strong>
+              <span>Convertidor online — FBX, OBJ, DAE, GLTF</span>
+            </div>
+          </a>
+          <a
+            href="https://www.blender.org/download/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="glb-guide-tool"
+          >
+            <i className="fas fa-external-link-alt" />
+            <div>
+              <strong>Blender</strong>
+              <span>Importa cualquier formato → Archivo &gt; Exportar &gt; glTF 2.0 (.glb)</span>
+            </div>
+          </a>
+        </div>
+        <details className="glb-guide-details">
+          <summary>Ver compatibilidad por formato</summary>
+          <ul className="glb-guide-list">
+            <li><strong>FBX</strong> (3ds Max, Lumion, Revit): convertir en gltf.report o Blender.</li>
+            <li><strong>OBJ</strong> (SketchUp, ZBrush): convertir en Blender. Asegúrate de incluir el archivo .mtl y texturas.</li>
+            <li><strong>DAE</strong> (Collada): convertir en Blender.</li>
+            <li><strong>STL</strong> (impresión 3D): convertir en Blender. Nota: no tiene texturas.</li>
+            <li><strong>DWG / DXF</strong>: son planos 2D de AutoCAD — no aplican aquí. Exporta primero a 3D (Revit, SketchUp) y de ahí a GLB.</li>
+            <li><strong>USDZ</strong> (AR iOS), <strong>VRML</strong>: no soportados por ahora.</li>
+          </ul>
+        </details>
+      </div>
+
+      <style jsx>{`
+        .glb-format-guide {
+          margin-top: 14px;
+          border: 1px solid rgba(108, 92, 231, 0.25);
+          background: rgba(108, 92, 231, 0.05);
+          border-radius: 12px;
+          padding: 14px 16px;
+        }
+        .glb-guide-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: var(--clr-theme-1, #6c5ce7);
+          margin-bottom: 6px;
+        }
+        .glb-guide-head :global(i) { font-size: 16px; }
+        .glb-guide-body {
+          margin: 0 0 10px;
+          font-size: 13px;
+          opacity: 0.85;
+        }
+        .glb-guide-body code {
+          background: rgba(108, 92, 231, 0.12);
+          padding: 1px 6px;
+          border-radius: 4px;
+          font-size: 12px;
+        }
+        .glb-guide-tools {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 8px;
+        }
+        @media (max-width: 575px) {
+          .glb-guide-tools { grid-template-columns: 1fr; }
+        }
+        .glb-guide-tool {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 8px;
+          color: inherit !important;
+          text-decoration: none !important;
+          transition: background 0.15s, transform 0.15s;
+        }
+        .glb-guide-tool:hover {
+          background: rgba(108, 92, 231, 0.1);
+          transform: translateY(-1px);
+        }
+        .glb-guide-tool :global(i) {
+          color: var(--clr-theme-1, #6c5ce7);
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+        .glb-guide-tool > div {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          min-width: 0;
+        }
+        .glb-guide-tool strong { font-size: 13px; }
+        .glb-guide-tool span {
+          font-size: 11.5px;
+          opacity: 0.7;
+          line-height: 1.3;
+        }
+        .glb-guide-details {
+          margin-top: 6px;
+          font-size: 12.5px;
+        }
+        .glb-guide-details summary {
+          cursor: pointer;
+          opacity: 0.65;
+          padding: 6px 0;
+          user-select: none;
+        }
+        .glb-guide-details summary:hover { opacity: 0.85; }
+        .glb-guide-list {
+          margin: 6px 0 0;
+          padding-left: 22px;
+          opacity: 0.8;
+          line-height: 1.55;
+        }
+        .glb-guide-list li { margin-bottom: 3px; }
+        .glb-guide-list strong { color: var(--clr-theme-1, #6c5ce7); }
+      `}</style>
+
       {(uploadedGlb.length > 0 || pending.length > 0) && (
         <div className="upload-thumbs">
           {uploadedGlb.map((image) => (
