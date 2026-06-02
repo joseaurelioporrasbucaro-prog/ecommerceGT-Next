@@ -31,12 +31,23 @@ const AUTH_PAGES = ['/login', '/register', '/forgot', '/verify'];
  */
 const TOP_NAV_PAGES = ['/messages'];
 
+/**
+ * Rutas inmersivas que toman 100vw/100vh sin headers, sidebars ni footers.
+ * El visor 3D (Fase 15.x) lo necesita porque los modelos requieren todo
+ * el ancho para ser interactivos (rotate/zoom) y los sidebars tapaban los
+ * controles. Patrón: `/publications/<id>/viewer`.
+ */
+const FULLSCREEN_PATTERNS = [
+  /^\/publications\/[^/]+\/viewer/,
+];
+
 const Wrapper: React.FC<WrapperProps> = ({ children }) => {
   const pathName = usePathname();
 
   const isAuthPage = AUTH_PAGES.some((p) => pathName?.startsWith(p));
   const usesTopNav = TOP_NAV_PAGES.some((p) => pathName?.startsWith(p));
-  const showRightSidebar = !isAuthPage;
+  const isFullscreenPage = FULLSCREEN_PATTERNS.some((re) => re.test(pathName ?? ''));
+  const showRightSidebar = !isAuthPage && !isFullscreenPage;
 
   const isLoading = useLoading(true, 100);
 
@@ -52,6 +63,16 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
 
   // Auth pages: sin header/footer/sidebars — flujo limpio.
   if (isAuthPage) {
+    return (
+      <ThemeProvider defaultTheme="dark">
+        {children}
+      </ThemeProvider>
+    );
+  }
+
+  // Fullscreen pages (visor 3D): toman todo el viewport, sin chrome.
+  // Comparten el mismo tratamiento que auth pages — solo ThemeProvider.
+  if (isFullscreenPage) {
     return (
       <ThemeProvider defaultTheme="dark">
         {children}
