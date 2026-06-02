@@ -53,20 +53,24 @@
 }
 
 [data-theme='dark'] {
-  /* Mantenemos los tokens semánticos accesibles también en dark. */
+  /* Dark theme (2026-06-02): cambiamos el body a verde de marca
+     (#0f4c4c) con texto crema (#f6f0e6) — antes era ink (#1f2933).
+     - Para que los cards/headers se distingan del body verde, definimos
+       surfaces "raised" (un verde un toque más claro #146565) y "sunken"
+       (un verde un toque más oscuro #0a3e3e para inputs). */
   --brand-on-primary: #f6f0e6;
-  --brand-on-cream: #f6f0e6;             /* en dark el texto principal es claro */
+  --brand-on-cream: #f6f0e6;             /* texto principal en dark = crema */
 
   --clr-theme-1: var(--brand-primary);
-  --clr-common-heading: #f6f0e6;
-  --clr-common-body-text: #9aa5b1;
-  --clr-common-border: #2a3340;
-  --clr-bg-bodylight: var(--brand-ink);  /* el body en dark = ink */
-  --clr-bg-bodydark: var(--brand-ink);
-  --clr-bg-dark: var(--brand-ink);
-  --clr-bg-gray: #18222d;
-  --clr-bg-footer: #18222d;
-  --clr-bg-white: #243140;               /* cards en dark: un escalón sobre body */
+  --clr-common-heading: var(--brand-cream);  /* títulos en crema */
+  --clr-common-body-text: #d4cdbf;            /* texto secundario = crema apagada */
+  --clr-common-border: #1d6363;               /* borde verde más claro */
+  --clr-bg-bodylight: var(--brand-primary);  /* BODY = verde KIOSQUI */
+  --clr-bg-bodydark: var(--brand-primary);
+  --clr-bg-dark: var(--brand-primary);
+  --clr-bg-gray: #0a3e3e;                     /* surface sunken */
+  --clr-bg-footer: #0a3e3e;
+  --clr-bg-white: #146565;                    /* surface raised (cards) */
 }
 
 /* ───── Body background — FIX del bug "no veo cambio de fondo" ─────
@@ -179,23 +183,15 @@ a:hover {
   color: var(--brand-accent) !important; /* "Home" en naranja de marca */
 }
 
-/* ───── Página de login/register — quitar bg image placeholder ─────
-   LoginContent.tsx aplica un inline style con
-   `background: url(assets/img/bg/sign-up-bg.jpg)`. Esa imagen del
-   template es un placeholder con "1920 x 1928" escrito dentro, lo que
-   genera el bloque gris feo. Aquí lo neutralizamos para que la sección
-   use el body bg (crema/ink) y se vea limpio. Inline styles tienen alta
-   especificidad → necesita !important. */
-.login-area,
-.sign-up-area,
-.register-area {
-  background-image: none !important;
-  background-color: var(--clr-bg-bodylight) !important;
-}
+/* ───── Página de login/register ─────
+   La imagen sign-up-bg.jpg vuelve a verse (decisión 2026-06-02: el bloque
+   gris es un placeholder intencional que el equipo reemplazará después
+   con una imagen real de marca). No tocamos .login-area / .sign-up-area
+   — la imagen del inline style del componente se respeta.
 
-/* La card del formulario (.login-wrapper / .sign-up-wrapper) tiene
-   `background: #eff1f5` hardcoded en light. La pintamos con el surface
-   del template (que ya respeta dark). */
+   La card del formulario (.login-wrapper / .sign-up-wrapper) sí la
+   pintamos con el surface del template para que sea coherente con el
+   resto del sitio: blanco en light, raised verde en dark. */
 .login-wrapper,
 .sign-up-wrapper {
   background: var(--clr-bg-white) !important;
@@ -207,28 +203,29 @@ a:hover {
 }
 
 /* ───── Overrides puntuales del dark — colores azulados hardcoded
-   del template que NO usan vars y rompen la coherencia con ink ─────
+   del template que NO usan vars y rompen la coherencia con verde ─────
    El template tiene en _body-color.scss un montón de #0c1423 / #1c2434 /
    #181f2d / #111826 / #262e3e que estaban pensados para el azul-noche
-   original. Los redirigimos al ink KIOSQUI (#1f2933) o un escalón más
-   claro para superficies "raised" (cards, headers). */
+   original. Ahora que el body en dark es verde KIOSQUI, los redirigimos
+   al "raised" verde (#146565) para que se distingan del body sin perder
+   coherencia de marca. */
 [data-theme='dark'] .sticky,
 [data-theme='dark'] .header-main2,
 [data-theme='dark'] .header-main2-content,
 [data-theme='dark'] .menu2-side-bar,
 [data-theme='dark'] .menu2-mobile-menu.mean-container .mean-nav ul li a.mean-expand {
-  background: var(--brand-ink) !important;
+  background: var(--clr-bg-white) !important;   /* = #146565 en dark */
 }
 
 [data-theme='dark'] .menu2-sidebar-widget .work-process-single,
 [data-theme='dark'] .subscribe-form input,
 [data-theme='dark'] .header-main2-content .filter-search-input.header-search input,
 [data-theme='dark'] .common-select-arrow.common-select-arrow-40.white-bg {
-  /* surfaces "raised" sobre ink — 1 escalón más claro */
-  background: #28323d !important;
+  /* inputs/sunken sobre body verde — un escalón más oscuro */
+  background: var(--clr-bg-gray) !important;    /* = #0a3e3e en dark */
 }
 
 [data-theme='dark'] .social__links ul li a {
-  background: var(--brand-ink) !important;
-  border-color: #2a3340 !important;
+  background: var(--clr-bg-bodylight) !important; /* = verde primary */
+  border-color: var(--clr-common-border) !important;
 }
