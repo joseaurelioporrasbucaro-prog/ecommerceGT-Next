@@ -144,8 +144,8 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
           {selectedBuyer ? (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 14px', border: '2px solid var(--tp-theme-1,#6c5ce7)',
-              borderRadius: 8, background: 'rgba(108,92,231,0.06)',
+              padding: '10px 14px', border: '2px solid var(--tp-theme-1,#0f4c4c)',
+              borderRadius: 8, background: 'rgba(15,76,76,0.06)',
             }}>
               <span style={{ flex: 1, fontWeight: 600 }}>
                 {selectedBuyer.firstName} {selectedBuyer.lastName}
@@ -565,7 +565,7 @@ const MyPublicationsMain = () => {
           gap: 14px;
           font-size: 13px;
           font-weight: 600;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #0f4c4c);
         }
         .my-publications-list :global(.my-publication-actions) {
           display: flex;
@@ -593,8 +593,8 @@ const MyPublicationsMain = () => {
         }
         /* Fase 10.3 — botón Pautar */
         .my-publications-list :global(.pautar-btn) {
-          background: var(--clr-theme-1, #6c5ce7);
-          border-color: var(--clr-theme-1, #6c5ce7);
+          background: var(--clr-theme-1, #0f4c4c);
+          border-color: var(--clr-theme-1, #0f4c4c);
           color: #fff;
         }
         .my-publications-list :global(.pautar-btn:hover) {

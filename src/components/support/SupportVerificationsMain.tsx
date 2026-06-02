@@ -182,12 +182,12 @@ const SupportVerificationsMain = () => {
       <style jsx>{`
         .sv-filter { display: flex; gap: 10px; margin-bottom: 26px; }
         .sv-tab { padding: 8px 20px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; }
-        .sv-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
+        .sv-tab.active { background: var(--clr-theme-1, #0f4c4c); color: #fff; border-color: transparent; }
         .sv-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
         .sv-table { width: 100%; border-collapse: collapse; min-width: 720px; background: var(--clr-bg-white, #fff); }
         .sv-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
         .sv-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: middle; font-size: 14px; }
-        .sv-table tbody tr:hover { background: rgba(108,92,231,0.04); }
+        .sv-table tbody tr:hover { background: rgba(15,76,76,0.04); }
         .sv-table tbody tr:last-child td { border-bottom: none; }
         .sv-chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
         .sv-chip-personal { background: rgba(59,130,246,0.14); color: #2563eb; }
@@ -196,7 +196,7 @@ const SupportVerificationsMain = () => {
         .sv-handle { font-size: 13px; color: #3b82f6; }
         .sv-mono { font-variant-numeric: tabular-nums; }
         .sv-files { display: flex; gap: 12px; }
-        .sv-files a { color: var(--clr-theme-1, #6c5ce7); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .sv-files a { color: var(--clr-theme-1, #0f4c4c); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
         .sv-files a:hover { text-decoration: underline; }
         .sv-date { white-space: nowrap; opacity: 0.7; }
         .sv-reason { max-width: 280px; opacity: 0.8; }

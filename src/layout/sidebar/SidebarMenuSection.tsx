@@ -130,8 +130,8 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                     .support-nav { list-style: none; padding: 0; margin: 0; }
                     .support-nav li { margin-bottom: 6px; }
                     .support-nav li :global(a) { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: inherit; text-decoration: none; font-weight: 600; transition: 0.2s; }
-                    .support-nav li :global(a:hover) { background: rgba(108,92,231,0.08); }
-                    .support-nav li.active :global(a) { background: var(--clr-theme-1, #6c5ce7); color: #fff; }
+                    .support-nav li :global(a:hover) { background: rgba(15,76,76,0.08); }
+                    .support-nav li.active :global(a) { background: var(--clr-theme-1, #0f4c4c); color: #fff; }
                   `}</style>
                 </div>
               )}

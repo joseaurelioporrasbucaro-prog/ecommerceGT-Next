@@ -9,5 +9,10 @@
 // las fuentes al bundle, así que los íconos salen como cuadrado.
 @import '../../public/assets/scss/main';
 
+// Paleta de marca KIOSQUI — debe ir AL FINAL para sobreescribir los tokens
+// del template (mismo selector :root → gana el último). Para revertir
+// borrar este import y el archivo brand-kiosqui.css.
+@import './brand-kiosqui.css';
+
 
 

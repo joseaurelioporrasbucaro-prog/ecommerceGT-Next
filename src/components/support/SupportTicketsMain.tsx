@@ -88,13 +88,13 @@ const SupportTicketsMain = () => {
         .st-filters { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
         .st-sep { width: 1px; height: 22px; background: rgba(128,128,128,0.3); margin: 0 6px; }
         .st-tab { padding: 7px 16px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
-        .st-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
+        .st-tab.active { background: var(--clr-theme-1, #0f4c4c); color: #fff; border-color: transparent; }
         .st-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
         .st-table { width: 100%; border-collapse: collapse; min-width: 760px; background: var(--clr-bg-white, #fff); }
         .st-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
         .st-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); font-size: 14px; }
         .st-row { cursor: pointer; }
-        .st-row:hover { background: rgba(108,92,231,0.04); }
+        .st-row:hover { background: rgba(15,76,76,0.04); }
         .st-subject :global(a) { color: var(--clr-common-heading, #181818); font-weight: 600; text-decoration: none; }
         .st-handle { color: #3b82f6; }
         .st-cat { text-transform: capitalize; }

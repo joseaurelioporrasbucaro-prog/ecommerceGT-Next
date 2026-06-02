@@ -1,0 +1,115 @@
+/* ────────────────────────────────────────────────────────────────────────────
+   BRAND KIOSQUI — paleta centralizada (prueba 2026-06-02)
+   ----------------------------------------------------------------------------
+   PROPÓSITO
+   - Único archivo donde viven los colores de marca + mapeo a los tokens
+     que ya usa la página. Editar acá cambia todo el sitio.
+
+   PALETA (referencia)
+   - #0f4c4c  brand-primary    verde oscuro KIOSQUI (logo bg, botones primarios)
+   - #f6f0e6  brand-cream      crema (texto sobre primario, fondo body light)
+   - #d97941  brand-accent     naranja (acentos, CTA secundarios)
+   - #caf492  brand-highlight  verde lima (highlight de letra "Q", success suave)
+   - #1f2933  brand-ink        azul-negro (texto sobre crema, fondo body dark)
+
+   CÓMO FUNCIONA
+   - Definimos primero los tokens semánticos (--brand-*) — la "fuente de verdad".
+   - Luego mapeamos los --clr-* del template a esos tokens. Como esta hoja se
+     importa DESPUÉS de _common.scss en src/style/index.scss, gana por orden
+     en CSS (misma especificidad → último). No hay !important salvo donde el
+     template usa colores hardcoded difíciles de capturar.
+
+   REVERT
+   - Borrar este archivo + la línea `@import './brand-kiosqui.css';` en
+     `src/style/index.scss`. Vuelve al theme del template (#2785ff).
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ===== Tokens semánticos de marca ===== */
+  --brand-primary: #0f4c4c;
+  --brand-primary-hover: #0c3e3e;       /* -3% lightness para hover de botones */
+  --brand-primary-soft: rgba(15, 76, 76, 0.08);  /* fondos sutiles, badges */
+  --brand-cream: #f6f0e6;
+  --brand-accent: #d97941;
+  --brand-accent-hover: #c46630;
+  --brand-highlight: #caf492;
+  --brand-ink: #1f2933;
+
+  /* On-color tokens — color del TEXTO sobre fondos de marca. Pensados con
+     contraste WCAG AA. */
+  --brand-on-primary: #f6f0e6;          /* crema sobre verde oscuro */
+  --brand-on-accent: #ffffff;
+  --brand-on-cream: #1f2933;
+
+  /* ===== Mapeo a tokens del template (light) ===== */
+  --clr-theme-1: var(--brand-primary);
+  --clr-common-heading: var(--brand-ink);
+  --clr-common-body-text: #4a5560;       /* gris-azulado que liga con el ink */
+  --clr-common-border: #e3dccf;          /* borde tonalmente afín al crema */
+  --clr-bg-bodylight: var(--brand-cream);
+  --clr-bg-gray: #efe9dd;                /* "gray" sobre cream → un toque más oscuro */
+  --clr-bg-footer: #efe9dd;
+  /* --clr-bg-white queda en #ffffff: muchos cards/inputs lo usan como base. */
+}
+
+[data-theme='dark'] {
+  /* Mantenemos los tokens semánticos accesibles también en dark. */
+  --brand-on-primary: #f6f0e6;
+  --brand-on-cream: #f6f0e6;             /* en dark el texto principal es claro */
+
+  --clr-theme-1: var(--brand-primary);
+  --clr-common-heading: #f6f0e6;
+  --clr-common-body-text: #9aa5b1;
+  --clr-common-border: #2a3340;
+  --clr-bg-bodylight: var(--brand-ink);  /* el body en dark = ink */
+  --clr-bg-bodydark: var(--brand-ink);
+  --clr-bg-dark: var(--brand-ink);
+  --clr-bg-gray: #18222d;
+  --clr-bg-footer: #18222d;
+  --clr-bg-white: #243140;               /* cards en dark: un escalón sobre body */
+}
+
+/* ───── Refinamientos puntuales del template ─────
+   El template usa la "fill-btn" como botón primario en muchos sitios. Cuando
+   --clr-theme-1 = verde oscuro KIOSQUI, el texto debería ser crema para
+   contraste cálido (no blanco puro). */
+.fill-btn,
+button.fill-btn,
+a.fill-btn {
+  background-color: var(--brand-primary);
+  color: var(--brand-on-primary);
+  border-color: var(--brand-primary);
+}
+.fill-btn:hover,
+button.fill-btn:hover,
+a.fill-btn:hover {
+  background-color: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+  color: var(--brand-on-primary);
+}
+
+/* Botón secundario / CTA cálido — el template los pinta naranja con
+   .fill-btn-orange; le damos el naranja de marca. */
+.fill-btn-orange,
+button.fill-btn-orange,
+a.fill-btn-orange {
+  background-color: var(--brand-accent);
+  color: var(--brand-on-accent);
+  border-color: var(--brand-accent);
+}
+.fill-btn-orange:hover,
+button.fill-btn-orange:hover,
+a.fill-btn-orange:hover {
+  background-color: var(--brand-accent-hover);
+  border-color: var(--brand-accent-hover);
+  color: var(--brand-on-accent);
+}
+
+/* Links del cuerpo que apuntan a theme-1 — aseguramos que el verde oscuro
+   tenga subrayado/hover con el highlight de marca. */
+a {
+  color: var(--clr-theme-1);
+}
+a:hover {
+  color: var(--brand-primary-hover);
+}

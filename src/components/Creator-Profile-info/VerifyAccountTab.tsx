@@ -322,8 +322,8 @@ const VerifyAccountTab = () => {
         .vt-doc-empty { color: #999; }
         .vt-doc-btn {
           padding: 7px 16px; border-radius: 24px; margin-left: auto;
-          border: 1px solid var(--clr-theme-1, #6c5ce7);
-          background: transparent; color: var(--clr-theme-1, #6c5ce7);
+          border: 1px solid var(--clr-theme-1, #0f4c4c);
+          background: transparent; color: var(--clr-theme-1, #0f4c4c);
           font-weight: 600; cursor: pointer;
         }
         .vt-doc-btn:disabled { opacity: 0.6; cursor: default; }

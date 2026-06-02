@@ -317,8 +317,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           width: 64px;
           height: 64px;
           border-radius: 50%;
-          background: rgba(108, 92, 231, 0.12);
-          color: var(--clr-theme-1, #6c5ce7);
+          background: rgba(15, 76, 76, 0.12);
+          color: var(--clr-theme-1, #0f4c4c);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -344,8 +344,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           align-items: stretch;
         }
         .conversation-starter {
-          background: rgba(108, 92, 231, 0.08);
-          border: 1px solid rgba(108, 92, 231, 0.25);
+          background: rgba(15, 76, 76, 0.08);
+          border: 1px solid rgba(15, 76, 76, 0.25);
           color: inherit;
           border-radius: 22px;
           padding: 10px 18px;
@@ -355,7 +355,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           transition: background 0.15s, transform 0.15s;
         }
         .conversation-starter:hover {
-          background: rgba(108, 92, 231, 0.15);
+          background: rgba(15, 76, 76, 0.15);
           transform: translateY(-1px);
         }
 
@@ -365,9 +365,9 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           align-items: flex-start;
           gap: 10px;
           padding: 10px 16px;
-          background: rgba(108, 92, 231, 0.08);
+          background: rgba(15, 76, 76, 0.08);
           border-top: 1px solid rgba(128, 128, 128, 0.18);
-          border-left: 3px solid var(--clr-theme-1, #6c5ce7);
+          border-left: 3px solid var(--clr-theme-1, #0f4c4c);
         }
         .reply-preview-content {
           flex: 1;
@@ -379,7 +379,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         .reply-preview-label {
           font-size: 12px;
           font-weight: 700;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
         }
         .reply-preview-text {
           font-size: 13px;
@@ -426,7 +426,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           outline: none;
         }
         .conversation-composer textarea:focus {
-          border-color: var(--clr-theme-1, #6c5ce7);
+          border-color: var(--clr-theme-1, #0f4c4c);
         }
         :global(.conversation-send) {
           height: 44px;
@@ -621,7 +621,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           cursor: default;
         }
         .bubble-row.is-mine .bubble {
-          background: var(--clr-theme-1, #6c5ce7);
+          background: var(--clr-theme-1, #0f4c4c);
           color: #fff;
         }
         .bubble p,
@@ -637,7 +637,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           flex-direction: column;
           padding: 6px 12px;
           background: rgba(128, 128, 128, 0.08);
-          border-left: 3px solid var(--clr-theme-1, #6c5ce7);
+          border-left: 3px solid var(--clr-theme-1, #0f4c4c);
           border-radius: 8px;
           max-width: 100%;
           margin-bottom: 2px;
@@ -645,7 +645,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         .reply-snippet-author {
           font-size: 11px;
           font-weight: 700;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
         }
         .reply-snippet-text {
           font-size: 12px;
@@ -699,8 +699,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           transition: background 0.15s;
         }
         :global(.bubble-action:hover) {
-          background: rgba(108, 92, 231, 0.2);
-          color: var(--clr-theme-1, #6c5ce7);
+          background: rgba(15, 76, 76, 0.2);
+          color: var(--clr-theme-1, #0f4c4c);
         }
 
         /* Picker de reacciones */
@@ -757,12 +757,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           transition: background 0.15s, border-color 0.15s;
         }
         :global(.reaction-chip:hover) {
-          background: rgba(108, 92, 231, 0.08);
+          background: rgba(15, 76, 76, 0.08);
         }
         :global(.reaction-chip.is-mine-reaction) {
-          background: rgba(108, 92, 231, 0.15);
-          border-color: var(--clr-theme-1, #6c5ce7);
-          color: var(--clr-theme-1, #6c5ce7);
+          background: rgba(15, 76, 76, 0.15);
+          border-color: var(--clr-theme-1, #0f4c4c);
+          color: var(--clr-theme-1, #0f4c4c);
           font-weight: 700;
         }
         :global(.reaction-chip-emoji) {
@@ -935,7 +935,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
           background: rgba(128, 128, 128, 0.08);
         }
         .report-option input {
-          accent-color: var(--clr-theme-1, #6c5ce7);
+          accent-color: var(--clr-theme-1, #0f4c4c);
         }
         .report-body textarea {
           width: 100%;
@@ -950,7 +950,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
           outline: none;
         }
         .report-body textarea:focus {
-          border-color: var(--clr-theme-1, #6c5ce7);
+          border-color: var(--clr-theme-1, #0f4c4c);
         }
         .report-consent {
           display: flex;

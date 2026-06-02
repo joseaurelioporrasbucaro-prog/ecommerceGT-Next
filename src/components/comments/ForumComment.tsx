@@ -73,7 +73,7 @@ const ForumComment = ({
           type="button"
           className="q-meta-item comment-like-btn"
           onClick={onLike}
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: isLiked ? 'var(--tp-theme-1, #6c5ce7)' : 'inherit' }}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: isLiked ? 'var(--tp-theme-1, #0f4c4c)' : 'inherit' }}
         >
           <div className="q-meta-icon">
             <i className={isLiked ? 'fas fa-heart' : 'flaticon-heart'} />

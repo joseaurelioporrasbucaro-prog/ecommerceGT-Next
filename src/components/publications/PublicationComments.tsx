@@ -143,8 +143,8 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
         .inline-reply-form {
           margin-top: 14px;
           padding: 16px;
-          background: rgba(108, 92, 231, 0.06);
-          border: 1.5px solid rgba(108, 92, 231, 0.25);
+          background: rgba(15, 76, 76, 0.06);
+          border: 1.5px solid rgba(15, 76, 76, 0.25);
           border-radius: 10px;
         }
         .inline-reply-target {
@@ -153,7 +153,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           gap: 6px;
           margin-bottom: 10px;
           font-size: 13px;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #0f4c4c);
         }
         .inline-reply-form :global(textarea) {
           width: 100%;
@@ -165,7 +165,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           font-size: 14px;
         }
         .inline-reply-form :global(textarea:focus) {
-          border-color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--tp-theme-1, #0f4c4c);
           outline: 0;
         }
         .inline-reply-error {
@@ -199,19 +199,19 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           align-items: center;
           gap: 8px;
           padding: 8px 18px;
-          background: var(--tp-theme-1, #6c5ce7);
+          background: var(--tp-theme-1, #0f4c4c);
           color: #fff;
-          border: 1.5px solid var(--tp-theme-1, #6c5ce7);
+          border: 1.5px solid var(--tp-theme-1, #0f4c4c);
           border-radius: 8px;
           cursor: pointer;
           font-weight: 700;
           font-size: 13px;
           transition: all 0.18s ease;
-          box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
+          box-shadow: 0 4px 12px rgba(15, 76, 76, 0.25);
         }
         .btn-submit-reply:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4);
+          box-shadow: 0 6px 16px rgba(15, 76, 76, 0.4);
         }
         .btn-submit-reply:disabled,
         .btn-cancel-reply:disabled {
@@ -523,7 +523,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
         :global(.cascade-tree .cascade-children) {
           margin-top: 20px;
           padding-left: 24px;
-          border-left: 2px solid rgba(108, 92, 231, 0.2);
+          border-left: 2px solid rgba(15, 76, 76, 0.2);
         }
         :global(.cascade-tree .q-single-answer + .q-single-answer) {
           margin-top: 20px;
@@ -552,14 +552,14 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           padding: 0;
         }
         :global(.cascade-tree .ans-meta-content .q-meta-item button:hover) {
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #0f4c4c);
         }
 
         /* ---------- Form de nuevo comentario root ---------- */
         .publication-comment-form {
           padding: 20px;
           background: rgba(128, 128, 128, 0.04);
-          border: 1.5px solid rgba(108, 92, 231, 0.2);
+          border: 1.5px solid rgba(15, 76, 76, 0.2);
           border-radius: 12px;
         }
         .form-label-bold {
@@ -569,7 +569,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           font-weight: 700;
           font-size: 15px;
           margin-bottom: 12px;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #0f4c4c);
         }
         .publication-comment-form :global(textarea) {
           width: 100%;
@@ -581,7 +581,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           font-size: 14px;
         }
         .publication-comment-form :global(textarea:focus) {
-          border-color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--tp-theme-1, #0f4c4c);
           outline: 0;
         }
         .form-actions {
@@ -596,20 +596,20 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           align-items: center;
           gap: 8px;
           padding: 12px 28px;
-          background: var(--tp-theme-1, #6c5ce7);
+          background: var(--tp-theme-1, #0f4c4c);
           color: #fff !important;
-          border: 2px solid var(--tp-theme-1, #6c5ce7);
+          border: 2px solid var(--tp-theme-1, #0f4c4c);
           border-radius: 10px;
           cursor: pointer;
           font-weight: 700;
           font-size: 14px;
           text-decoration: none !important;
           transition: all 0.2s ease;
-          box-shadow: 0 6px 16px rgba(108, 92, 231, 0.3);
+          box-shadow: 0 6px 16px rgba(15, 76, 76, 0.3);
         }
         :global(.btn-submit-comment:hover:not(:disabled)) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 22px rgba(108, 92, 231, 0.45);
+          box-shadow: 0 8px 22px rgba(15, 76, 76, 0.45);
         }
         :global(.btn-submit-comment:disabled) {
           opacity: 0.65;
@@ -623,7 +623,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
 
         /* Menciones @handle linkificadas dentro de los comentarios (Fase 6.3.3) */
         :global(.comment-mention) {
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #0f4c4c);
           font-weight: 600;
           text-decoration: none;
         }

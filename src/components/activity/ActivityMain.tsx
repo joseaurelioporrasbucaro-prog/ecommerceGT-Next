@@ -208,8 +208,8 @@ const ActivityMain = () => {
         }
         .activity-tab.is-active {
           opacity: 1;
-          color: var(--clr-theme-1, #6c5ce7);
-          border-bottom-color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
+          border-bottom-color: var(--clr-theme-1, #0f4c4c);
         }
         .activity-tab :global(i) {
           font-size: 14px;
@@ -244,7 +244,7 @@ const ActivityMain = () => {
         .activity-subtitle {
           margin: 4px 0 0;
           font-size: 13px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
           font-weight: 600;
         }
         .activity-mark-all {
@@ -253,16 +253,16 @@ const ActivityMain = () => {
           gap: 6px;
           padding: 8px 14px;
           border-radius: 8px;
-          border: 1px solid rgba(108, 92, 231, 0.25);
-          background: rgba(108, 92, 231, 0.08);
-          color: var(--clr-theme-1, #6c5ce7);
+          border: 1px solid rgba(15, 76, 76, 0.25);
+          background: rgba(15, 76, 76, 0.08);
+          color: var(--clr-theme-1, #0f4c4c);
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
           transition: background 0.15s;
         }
         .activity-mark-all:hover {
-          background: rgba(108, 92, 231, 0.18);
+          background: rgba(15, 76, 76, 0.18);
         }
         .activity-mark-all:disabled {
           opacity: 0.5;
@@ -290,7 +290,7 @@ const ActivityMain = () => {
           opacity: 0.4;
           display: block;
           margin-bottom: 14px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
         }
         .activity-empty h4 {
           margin: 0 0 8px;

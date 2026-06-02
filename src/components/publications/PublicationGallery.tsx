@@ -237,7 +237,7 @@ const ThumbnailButton = ({ image, isActive, alt, onClick }: ThumbnailButtonProps
         }
         .gallery-thumb.is-active {
           opacity: 1;
-          border-color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--tp-theme-1, #0f4c4c);
         }
       `}</style>
     </button>

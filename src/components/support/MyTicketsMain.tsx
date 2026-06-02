@@ -94,10 +94,10 @@ const MyTicketsMain = () => {
 
       <style jsx>{`
         .mt-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 12px; }
-        .mt-new { background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+        .mt-new { background: var(--clr-theme-1, #0f4c4c); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 600; cursor: pointer; }
         .mt-list { display: flex; flex-direction: column; gap: 12px; }
         .mt-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; text-decoration: none; color: inherit; background: var(--clr-bg-white, #fff); transition: 0.2s; }
-        .mt-card:hover { border-color: var(--clr-theme-1, #6c5ce7); }
+        .mt-card:hover { border-color: var(--clr-theme-1, #0f4c4c); }
         .mt-card-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .mt-subject { font-weight: 600; }
         .mt-card-meta { display: flex; align-items: center; gap: 14px; font-size: 13px; opacity: 0.7; white-space: nowrap; }
@@ -114,7 +114,7 @@ const MyTicketsMain = () => {
         .mt-modal input, .mt-modal select, .mt-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; }
         .mt-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
         .mt-ghost { background: transparent; border: 1px solid rgba(128,128,128,0.4); padding: 9px 18px; border-radius: 24px; cursor: pointer; }
-        .mt-send { background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 9px 18px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+        .mt-send { background: var(--clr-theme-1, #0f4c4c); color: #fff; border: none; padding: 9px 18px; border-radius: 24px; font-weight: 600; cursor: pointer; }
         .mt-send:disabled { opacity: 0.6; }
       `}</style>
     </main>

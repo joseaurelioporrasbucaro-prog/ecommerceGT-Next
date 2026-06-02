@@ -246,12 +246,12 @@ const SupportReportsMain = () => {
       <style jsx>{`
         .sr-filter { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
         .sr-tab { padding: 8px 18px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; }
-        .sr-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
+        .sr-tab.active { background: var(--clr-theme-1, #0f4c4c); color: #fff; border-color: transparent; }
         .sr-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
         .sr-table { width: 100%; border-collapse: collapse; min-width: 860px; background: var(--clr-bg-white, #fff); }
         .sr-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
         .sr-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: top; font-size: 14px; }
-        .sr-table tbody tr:hover { background: rgba(108,92,231,0.04); }
+        .sr-table tbody tr:hover { background: rgba(15,76,76,0.04); }
         .sr-chip { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
         .sr-chip + .sr-chip { margin-left: 6px; }
         .sr-chip-comment { background: rgba(59,130,246,0.14); color: #2563eb; }
@@ -264,7 +264,7 @@ const SupportReportsMain = () => {
         .sr-row-pautada td:first-child { border-left: 3px solid #f59e0b; }
         .sr-content { max-width: 300px; }
         .sr-excerpt { display: block; overflow: hidden; text-overflow: ellipsis; }
-        .sr-view { font-size: 12px; color: var(--clr-theme-1, #6c5ce7); background: none; border: none; padding: 0; cursor: pointer; }
+        .sr-view { font-size: 12px; color: var(--clr-theme-1, #0f4c4c); background: none; border: none; padding: 0; cursor: pointer; }
         .sr-author { color: #3b82f6; text-decoration: none; }
         .sr-reason { text-transform: capitalize; font-weight: 600; }
         .sr-detail { font-size: 12px; opacity: 0.65; }
@@ -281,11 +281,11 @@ const SupportReportsMain = () => {
         .sr-modal-sub { opacity: 0.7; font-size: 14px; margin: 0 0 14px; }
         .sr-radio-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
         .sr-radio-row label { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .sr-radio-row label.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .sr-radio-row label.active { border-color: var(--clr-theme-1, #0f4c4c); background: rgba(15,76,76,0.06); }
         .sr-days { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
         .sr-days label { font-size: 14px; font-weight: 600; }
         .sr-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
-        .sr-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
+        .sr-day.active { background: var(--clr-theme-1, #0f4c4c); color: #fff; border-color: transparent; }
         .sr-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
         .sr-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
         .sr-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }

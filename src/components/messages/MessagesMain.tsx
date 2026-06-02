@@ -201,7 +201,7 @@ const MessagesMain: React.FC = () => {
         }
         .msg-empty :global(i) {
           font-size: 56px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
         }
         .msg-empty h4 {
           margin: 0;
@@ -222,7 +222,7 @@ const MessagesMain: React.FC = () => {
           background: transparent;
           font-size: 14px;
           font-weight: 700;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
           cursor: pointer;
           border-bottom: 1px solid rgba(128, 128, 128, 0.18);
           width: 100%;

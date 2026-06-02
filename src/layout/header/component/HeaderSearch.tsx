@@ -198,7 +198,7 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
           text-decoration: none;
         }
         .hsd-item:hover {
-          background: rgba(108, 92, 231, 0.08);
+          background: rgba(15, 76, 76, 0.08);
         }
         .hsd-text {
           display: flex;

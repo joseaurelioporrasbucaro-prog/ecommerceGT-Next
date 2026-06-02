@@ -250,9 +250,9 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           display: block;
           width: 100%;
           margin-bottom: 20px;
-          border: 2px dashed var(--clr-theme-1, #6c5ce7);
+          border: 2px dashed var(--clr-theme-1, #0f4c4c);
           border-radius: 12px;
-          background: rgba(108, 92, 231, 0.04);
+          background: rgba(15, 76, 76, 0.04);
           padding: 28px 20px;
           text-align: center;
           cursor: pointer;
@@ -260,7 +260,7 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           /* La librería pone svg + label internos; los ocultamos para usar nuestro children. */
         }
         .upload-images-panel :global(.upload-dropzone:hover) {
-          background: rgba(108, 92, 231, 0.08);
+          background: rgba(15, 76, 76, 0.08);
         }
         .upload-images-panel :global(.upload-dropzone.is-disabled) {
           opacity: 0.5;
@@ -280,7 +280,7 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
         }
         .upload-images-panel :global(.upload-dropzone .browse-file-icon) {
           font-size: 42px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--clr-theme-1, #0f4c4c);
           margin-bottom: 4px;
         }
         .upload-images-panel :global(.upload-dropzone-title) {
@@ -295,7 +295,7 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           gap: 8px;
           padding: 10px 22px;
           border-radius: 6px;
-          background: var(--clr-theme-1, #6c5ce7);
+          background: var(--clr-theme-1, #0f4c4c);
           color: #fff;
           font-size: 14px;
           font-weight: 600;

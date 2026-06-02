@@ -115,8 +115,8 @@ const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSi
         }
         .public-categories-sidebar :global(.public-auth-card) {
           padding: 18px 14px;
-          background: rgba(108, 92, 231, 0.08);
-          border: 1px solid rgba(108, 92, 231, 0.2);
+          background: rgba(15, 76, 76, 0.08);
+          border: 1px solid rgba(15, 76, 76, 0.2);
           border-radius: 12px;
           text-align: center;
         }
@@ -124,8 +124,8 @@ const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSi
           width: 56px;
           height: 56px;
           border-radius: 50%;
-          background: rgba(108, 92, 231, 0.18);
-          color: var(--tp-theme-1, #6c5ce7);
+          background: rgba(15, 76, 76, 0.18);
+          color: var(--tp-theme-1, #0f4c4c);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -154,13 +154,13 @@ const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSi
           transition: all 0.18s ease;
         }
         .public-categories-sidebar :global(.btn-public-primary) {
-          background: var(--tp-theme-1, #6c5ce7);
+          background: var(--tp-theme-1, #0f4c4c);
           color: #fff !important;
-          border: 1px solid var(--tp-theme-1, #6c5ce7);
+          border: 1px solid var(--tp-theme-1, #0f4c4c);
         }
         .public-categories-sidebar :global(.btn-public-primary:hover) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+          box-shadow: 0 4px 12px rgba(15, 76, 76, 0.3);
         }
         .public-categories-sidebar :global(.btn-public-secondary) {
           background: transparent;
@@ -168,8 +168,8 @@ const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSi
           border: 1px solid rgba(128, 128, 128, 0.35);
         }
         .public-categories-sidebar :global(.btn-public-secondary:hover) {
-          border-color: var(--tp-theme-1, #6c5ce7);
-          color: var(--tp-theme-1, #6c5ce7) !important;
+          border-color: var(--tp-theme-1, #0f4c4c);
+          color: var(--tp-theme-1, #0f4c4c) !important;
         }
 
         .public-categories-sidebar :global(.public-categories-list) {
@@ -199,11 +199,11 @@ const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSi
           flex-shrink: 0;
         }
         .public-categories-sidebar :global(.public-category-link:hover:not(.is-loading)) {
-          background: rgba(108, 92, 231, 0.1);
-          color: var(--tp-theme-1, #6c5ce7);
+          background: rgba(15, 76, 76, 0.1);
+          color: var(--tp-theme-1, #0f4c4c);
         }
         .public-categories-sidebar :global(.public-category-link.is-active) {
-          background: var(--tp-theme-1, #6c5ce7);
+          background: var(--tp-theme-1, #0f4c4c);
           color: #fff !important;
         }
         .public-categories-sidebar :global(.public-category-link.is-loading) {

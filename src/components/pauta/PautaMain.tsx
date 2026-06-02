@@ -376,7 +376,7 @@ const PautaMain = () => {
       </section>
 
       <style jsx>{`
-        .pa-explain { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; background: rgba(108,92,231,0.04); }
+        .pa-explain { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; background: rgba(15,76,76,0.04); }
         .pa-explain h5 { display: flex; align-items: center; gap: 9px; margin: 0 0 8px; }
         .pa-explain p { margin: 0 0 12px; font-size: 14px; opacity: 0.85; }
         .pa-obj-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
@@ -386,7 +386,7 @@ const PautaMain = () => {
         .pa-obj-card span { font-size: 13px; opacity: 0.75; }
         .pa-explain-list { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-direction: column; gap: 10px; }
         .pa-explain-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.55; opacity: 0.85; }
-        .pa-explain-list li :global(i) { color: var(--clr-theme-1, #6c5ce7); margin-top: 3px; flex-shrink: 0; width: 16px; text-align: center; }
+        .pa-explain-list li :global(i) { color: var(--clr-theme-1, #0f4c4c); margin-top: 3px; flex-shrink: 0; width: 16px; text-align: center; }
         .pa-explain-list li span { flex: 1; }
         .pa-card { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 22px; background: var(--clr-bg-white, #fff); }
         .pa-card h5 { margin: 0 0 6px; }
@@ -408,26 +408,26 @@ const PautaMain = () => {
         /* Fase 10.3 — método de pago */
         .pa-pay-methods { display: flex; flex-direction: column; gap: 8px; }
         .pa-pay-opt { display: flex; gap: 10px; align-items: flex-start; border: 1px solid rgba(128,128,128,0.25); border-radius: 10px; padding: 11px 13px; cursor: pointer; transition: all 0.15s; }
-        .pa-pay-opt.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .pa-pay-opt.active { border-color: var(--clr-theme-1, #0f4c4c); background: rgba(15,76,76,0.06); }
         .pa-pay-opt.disabled { opacity: 0.5; cursor: not-allowed; }
         .pa-pay-opt input[type="radio"] { width: 18px !important; height: 18px; margin-top: 2px; cursor: inherit; flex-shrink: 0; }
         .pa-pay-opt > div { display: flex; flex-direction: column; gap: 2px; }
         .pa-pay-opt strong { display: flex; align-items: center; gap: 7px; font-size: 13.5px; }
-        .pa-pay-opt strong :global(i) { color: var(--clr-theme-1, #6c5ce7); }
+        .pa-pay-opt strong :global(i) { color: var(--clr-theme-1, #0f4c4c); }
         .pa-pay-opt span { font-size: 12px; opacity: 0.7; }
         .pa-pay-summary { margin-top: 12px; background: rgba(128,128,128,0.06); border-radius: 10px; padding: 11px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
         .pa-pay-summary > div { display: flex; justify-content: space-between; }
         .pa-pay-summary .pos { color: #16a34a; }
         .pa-pay-summary .total { padding-top: 6px; border-top: 1px solid rgba(128,128,128,0.18); margin-top: 2px; font-weight: 600; }
         .pa-pay-stub { font-size: 12px; opacity: 0.7; margin-top: 8px; display: flex; gap: 6px; align-items: flex-start; }
-        .pa-pay-stub :global(i) { color: var(--clr-theme-1, #6c5ce7); margin-top: 2px; }
+        .pa-pay-stub :global(i) { color: var(--clr-theme-1, #0f4c4c); margin-top: 2px; }
         .pa-objective { display: flex; gap: 10px; }
         .pa-objective button { flex: 1; border: 1px solid rgba(128,128,128,0.3); background: transparent; border-radius: 10px; padding: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-        .pa-objective button.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.08); color: var(--clr-theme-1, #6c5ce7); }
+        .pa-objective button.active { border-color: var(--clr-theme-1, #0f4c4c); background: rgba(15,76,76,0.08); color: var(--clr-theme-1, #0f4c4c); }
         .pa-section-title { font-weight: 700; margin: 18px 0 4px; font-size: 14px; }
         .pa-age { display: flex; gap: 12px; }
         .pa-age > div { flex: 1; }
-        .pa-create { margin-top: 18px; width: 100%; background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 11px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+        .pa-create { margin-top: 18px; width: 100%; background: var(--clr-theme-1, #0f4c4c); color: #fff; border: none; padding: 11px; border-radius: 24px; font-weight: 600; cursor: pointer; }
         .pa-create:disabled { opacity: 0.6; }
         .pa-list { display: flex; flex-direction: column; gap: 12px; }
         .pa-camp { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; padding: 14px 16px; background: var(--clr-bg-white, #fff); }
@@ -437,10 +437,10 @@ const PautaMain = () => {
         .pa-status-active { background: rgba(34,197,94,0.16); color: #16a34a; }
         .pa-status-paused { background: rgba(245,158,11,0.18); color: #b8860b; }
         .pa-status-finished { background: rgba(128,128,128,0.18); color: #777; }
-        .pa-obj-tag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(108,92,231,0.12); color: #6c5ce7; }
+        .pa-obj-tag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(15,76,76,0.12); color: #0f4c4c; }
         .pa-metrics { display: flex; gap: 16px; font-size: 13px; opacity: 0.75; margin-bottom: 8px; flex-wrap: wrap; }
         .pa-progress { height: 6px; border-radius: 4px; background: rgba(128,128,128,0.18); overflow: hidden; margin-bottom: 10px; }
-        .pa-progress-bar { height: 100%; background: var(--clr-theme-1, #6c5ce7); }
+        .pa-progress-bar { height: 100%; background: var(--clr-theme-1, #0f4c4c); }
         .pa-camp-actions { display: flex; gap: 8px; }
         .pa-camp-actions button { border: 1px solid rgba(128,128,128,0.3); background: transparent; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .pa-camp-actions .pa-finish { color: #dc2626; border-color: rgba(239,68,68,0.4); }
