@@ -100,7 +100,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
               {hasGlb && (
                 <>
                   <div className="action-row">
-                    <Link href={getBackendUrl(`/viewer?token=${encodeURIComponent(publication.data ?? '')}`)} target="_blank" rel="noopener noreferrer" className="action-btn action-btn-primary">
+                    <Link href={`/publications/${publication.pub_id}/viewer`} className="action-btn action-btn-primary">
                       <i className="fas fa-cube"></i>
                       <span>Explorar 3D</span>
                     </Link>
