@@ -69,39 +69,54 @@
   --clr-bg-white: #243140;               /* cards en dark: un escalón sobre body */
 }
 
-/* ───── Refinamientos puntuales del template ─────
-   El template usa la "fill-btn" como botón primario en muchos sitios. Cuando
-   --clr-theme-1 = verde oscuro KIOSQUI, el texto debería ser crema para
-   contraste cálido (no blanco puro). */
+/* ───── Body background — FIX del bug "no veo cambio de fondo" ─────
+   El template (_common.scss) define `body { font-family; color; ... }` pero
+   NUNCA `background-color`, por lo que el body queda con el default del
+   browser (blanco/transparente) y --clr-bg-bodylight/bodydark se quedaban
+   sin efecto. Aquí los cableamos. La transición evita un flash duro al
+   togglear tema. */
+body {
+  background-color: var(--clr-bg-bodylight);
+  color: var(--clr-common-body-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ───── Botones — cambio 2026-06-02 ─────
+   Botón primario .fill-btn = NARANJA KIOSQUI (era verde). El verde queda
+   reservado para identidad (logo, headings, navegación). El naranja como
+   color de acción funciona en ambos themes y rinde mejor en contraste.
+
+   .fill-btn-orange (cancel/secundario) pasa a "outline" del mismo naranja
+   — así .fill-btn y .fill-btn-orange siguen siendo VISUALMENTE distintos
+   (solido vs contorno) en pantallas donde ambos aparecen lado a lado
+   (PublicationForm: Publicar / Cancelar). */
 .fill-btn,
 button.fill-btn,
 a.fill-btn {
-  background-color: var(--brand-primary);
-  color: var(--brand-on-primary);
-  border-color: var(--brand-primary);
-}
-.fill-btn:hover,
-button.fill-btn:hover,
-a.fill-btn:hover {
-  background-color: var(--brand-primary-hover);
-  border-color: var(--brand-primary-hover);
-  color: var(--brand-on-primary);
-}
-
-/* Botón secundario / CTA cálido — el template los pinta naranja con
-   .fill-btn-orange; le damos el naranja de marca. */
-.fill-btn-orange,
-button.fill-btn-orange,
-a.fill-btn-orange {
   background-color: var(--brand-accent);
   color: var(--brand-on-accent);
   border-color: var(--brand-accent);
 }
+.fill-btn:hover,
+button.fill-btn:hover,
+a.fill-btn:hover {
+  background-color: var(--brand-accent-hover);
+  border-color: var(--brand-accent-hover);
+  color: var(--brand-on-accent);
+}
+
+.fill-btn-orange,
+button.fill-btn-orange,
+a.fill-btn-orange {
+  background-color: transparent;
+  color: var(--brand-accent);
+  border: 1.5px solid var(--brand-accent);
+}
 .fill-btn-orange:hover,
 button.fill-btn-orange:hover,
 a.fill-btn-orange:hover {
-  background-color: var(--brand-accent-hover);
-  border-color: var(--brand-accent-hover);
+  background-color: var(--brand-accent);
+  border-color: var(--brand-accent);
   color: var(--brand-on-accent);
 }
 
@@ -114,23 +129,23 @@ a:hover {
   color: var(--brand-primary-hover);
 }
 
-/* ───── PRECIOS — verde lima (#caf492) de la marca ─────
-   Aplica a todos los lugares donde se renderiza el precio de una propiedad
-   o de un plan. En dark theme contrasta excelente con #1f2933; en light
-   (crema) el contraste es bajo, así que damos un sombreado verde oscuro
-   tenue para que el texto siga siendo legible sin perder el carácter de
-   color de marca. */
+/* ───── PRECIOS — verde oscuro de marca (light) + lima (dark) ─────
+   Primera prueba con lima en ambos temas no quedó bien (contraste pobre
+   sobre crema). Cambio a un esquema que respeta cada modo:
+   - Light theme: brand-primary #0f4c4c sobre cream → ~9:1, on-brand.
+   - Dark theme: brand-highlight #caf492 sobre ink → ~9:1, el lima brilla
+     y rescata el color que igual queríamos en alguna parte.
+   En ambos casos el peso 800 y el letter-spacing leve sostienen la
+   jerarquía visual de "esto es el dato importante". */
 .publication-price-row .art-price,    /* PublicationCard */
 .publication-price-block .art-price,
 .meta-price,                          /* PublicationContent (detalle) */
 .pv-price,                            /* PublicationViewerMain (3D fullscreen) */
 .my-publication-meta > span:first-child, /* MyPublicationsMain — primer span = precio */
 .pp-price .pp-amount {                /* PricingPlanMain */
-  color: var(--brand-highlight) !important;
+  color: var(--brand-primary) !important;
   font-weight: 800;
   letter-spacing: 0.2px;
-  text-shadow: 0 1px 0 rgba(15, 76, 76, 0.45),
-               0 0 6px rgba(15, 76, 76, 0.25);
 }
 
 [data-theme='dark'] .publication-price-row .art-price,
@@ -139,6 +154,5 @@ a:hover {
 [data-theme='dark'] .pv-price,
 [data-theme='dark'] .my-publication-meta > span:first-child,
 [data-theme='dark'] .pp-price .pp-amount {
-  /* En dark la sombra ya no es necesaria — el lima brilla sobre el ink. */
-  text-shadow: none;
+  color: var(--brand-highlight) !important;
 }
