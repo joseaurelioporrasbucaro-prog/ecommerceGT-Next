@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePublicationDetail } from '@/hooks/api/usePublications';
 import { ApiError } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
-import { formatPrice } from './publicationUtils';
+import { formatPrice, getPublicationImagePathGlb } from './publicationUtils';
 
 /**
  * Visor 3D dedicado para los archivos GLB de una publicación.
@@ -68,15 +68,20 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
   const publicationQuery = usePublicationDetail(id);
   const publication = publicationQuery.data;
 
-  // Lista de URLs absolutas de los GLB.
+  // Lista de URLs absolutas de los GLB. Usamos `getPublicationImagePathGlb`
+  // que ya tiene fallback de `pubimaglb_url → url` por si el backend
+  // devuelve el shape raw (sin alias) en alguna ruta.
   const models = useMemo(() => {
     if (!publication?.imagesglb) return [] as { url: string; name: string }[];
     return publication.imagesglb
-      .filter((g) => g.url)
-      .map((g) => ({
-        url: getBackendUrl(g.url),
-        name: g.id || 'Modelo 3D',
-      }));
+      .map((g) => {
+        const path = getPublicationImagePathGlb(g);
+        return path ? {
+          url: getBackendUrl(path),
+          name: g.id || g.pubimaglb_id ? `Modelo ${g.id || g.pubimaglb_id}` : 'Modelo 3D',
+        } : null;
+      })
+      .filter((m): m is { url: string; name: string } => m !== null);
   }, [publication]);
 
   const [activeIdx, setActiveIdx] = useState(0);
