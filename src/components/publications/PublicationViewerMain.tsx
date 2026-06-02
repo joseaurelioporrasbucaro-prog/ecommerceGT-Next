@@ -90,23 +90,45 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
   const viewerWrapRef = useRef<HTMLDivElement | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // Carga <model-viewer> on-demand. Lo dejamos en window para no duplicar
-  // si el usuario navega a otro detalle 3D después.
+  // Carga <model-viewer> on-demand y espera a que el Custom Element esté
+  // registrado antes de renderearlo. Sin esto, React puede renderear el
+  // <model-viewer> como un div vacío (porque el browser aún no procesó el
+  // custom element) y luego, cuando carga, queda mal dimensionado hasta un
+  // resize — síntoma típico: "solo se ve en fullscreen".
   useEffect(() => {
+    const SRC = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
     const w = window as unknown as { __modelViewerLoaded?: boolean };
+
+    const waitForDefined = () => {
+      if (window.customElements && window.customElements.whenDefined) {
+        window.customElements.whenDefined('model-viewer').then(() => {
+          w.__modelViewerLoaded = true;
+          setScriptLoaded(true);
+        });
+      } else {
+        // Browser muy viejo sin customElements — degradación grácil.
+        w.__modelViewerLoaded = true;
+        setScriptLoaded(true);
+      }
+    };
+
     if (w.__modelViewerLoaded) {
       setScriptLoaded(true);
       return;
     }
+
+    // ¿El script ya está en el DOM de un mount anterior pero aún no resolvió?
+    const existing = document.querySelector(`script[src="${SRC}"]`);
+    if (existing) {
+      waitForDefined();
+      return;
+    }
+
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
-    script.onload = () => {
-      w.__modelViewerLoaded = true;
-      setScriptLoaded(true);
-    };
+    script.src = SRC;
+    script.onload = waitForDefined;
     script.onerror = () => {
-      // Fallback: log y dejamos el placeholder visible.
       // eslint-disable-next-line no-console
       console.error('No se pudo cargar model-viewer');
     };
@@ -178,7 +200,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
       </header>
 
       {/* Viewer + controles */}
-      <div className="pv-body">
+      <div className={`pv-body ${models.length <= 1 ? 'no-thumbs' : ''}`}>
         <div ref={viewerWrapRef} className="pv-canvas">
           {scriptLoaded ? (
             <model-viewer
@@ -214,10 +236,10 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
               type="button"
               className={`pv-tool ${autoRotate ? 'active' : ''}`}
               onClick={() => setAutoRotate((v) => !v)}
-              title={autoRotate ? 'Detener rotación' : 'Rotar automáticamente'}
+              title={autoRotate ? 'Detener rotación automática del modelo' : 'Activar rotación automática del modelo'}
             >
               <i className={`fas ${autoRotate ? 'fa-pause' : 'fa-sync'}`} />
-              <span>{autoRotate ? 'Pausar' : 'Rotar'}</span>
+              <span>{autoRotate ? 'Pausar rotación' : 'Rotación auto'}</span>
             </button>
 
             <button
@@ -344,22 +366,34 @@ const viewerStyles = `
   }
 
   .pv-body {
-    flex: 1;
     display: flex;
     flex-direction: column;
     padding: 18px 28px 24px;
     gap: 14px;
-    min-height: 0;
   }
 
+  /* model-viewer NECESITA altura explícita en px/vh, no flex:1 — con flex
+     se inicializa a 0 y no se reflowa al cargar el modelo (por eso solo
+     se veía en fullscreen del navegador, que fuerza un resize). Calcula
+     el alto restando header (~70px) + toolbar (~64px) + thumbs (~80px) +
+     hint (~30px) + paddings (~50px) ≈ 290px del viewport. */
   .pv-canvas {
-    flex: 1;
-    min-height: 50vh;
+    height: calc(100vh - 290px);
+    min-height: 380px;
     border-radius: 18px;
     overflow: hidden;
     background: rgba(0,0,0,0.2);
     border: 1px solid rgba(255,255,255,0.06);
     position: relative;
+  }
+  .pv-canvas :global(model-viewer) {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  /* Sin thumbnails (un solo modelo), recupera el alto del slot que no se usa. */
+  .pv-body.no-thumbs .pv-canvas {
+    height: calc(100vh - 210px);
   }
   .pv-canvas-loading {
     width: 100%;
