@@ -86,38 +86,47 @@ body {
    reservado para identidad (logo, headings, navegación). El naranja como
    color de acción funciona en ambos themes y rinde mejor en contraste.
 
+   IMPORTANTE: el template original define
+     .fill-btn { background-image: linear-gradient(azul → morado) }
+   y `background-image` pinta ENCIMA de `background-color`, por lo que
+   sin `background-image: none` el botón seguiría viéndose azul/morado.
+   Por eso usamos `!important` aquí — es la única forma limpia de matar
+   el gradiente sin reescribir el SCSS del template.
+
    .fill-btn-orange (cancel/secundario) pasa a "outline" del mismo naranja
    — así .fill-btn y .fill-btn-orange siguen siendo VISUALMENTE distintos
-   (solido vs contorno) en pantallas donde ambos aparecen lado a lado
+   (sólido vs contorno) en pantallas donde ambos aparecen lado a lado
    (PublicationForm: Publicar / Cancelar). */
 .fill-btn,
 button.fill-btn,
 a.fill-btn {
-  background-color: var(--brand-accent);
-  color: var(--brand-on-accent);
+  background-image: none !important;
+  background-color: var(--brand-accent) !important;
+  color: var(--brand-on-accent) !important;
   border-color: var(--brand-accent);
 }
 .fill-btn:hover,
 button.fill-btn:hover,
 a.fill-btn:hover {
-  background-color: var(--brand-accent-hover);
+  background-color: var(--brand-accent-hover) !important;
   border-color: var(--brand-accent-hover);
-  color: var(--brand-on-accent);
+  color: var(--brand-on-accent) !important;
 }
 
 .fill-btn-orange,
 button.fill-btn-orange,
 a.fill-btn-orange {
-  background-color: transparent;
-  color: var(--brand-accent);
+  background-image: none !important;
+  background-color: transparent !important;
+  color: var(--brand-accent) !important;
   border: 1.5px solid var(--brand-accent);
 }
 .fill-btn-orange:hover,
 button.fill-btn-orange:hover,
 a.fill-btn-orange:hover {
-  background-color: var(--brand-accent);
+  background-color: var(--brand-accent) !important;
   border-color: var(--brand-accent);
-  color: var(--brand-on-accent);
+  color: var(--brand-on-accent) !important;
 }
 
 /* Links del cuerpo que apuntan a theme-1 — aseguramos que el verde oscuro
@@ -155,4 +164,71 @@ a:hover {
 [data-theme='dark'] .my-publication-meta > span:first-child,
 [data-theme='dark'] .pp-price .pp-amount {
   color: var(--brand-highlight) !important;
+}
+
+/* ───── Page-title-area (breadcrumb arriba) ─────
+   El template no le da bg-color a esta franja — toma el body bg. En
+   light queda crema (bien), en dark queda ink (bien). Solo aseguramos
+   que el título principal y los links usen tokens KIOSQUI. */
+.breadcrumb-title,
+.page-title .trail-items .trail-item a,
+.page-title .trail-items .trail-item span {
+  color: var(--clr-common-heading) !important;
+}
+.page-title .trail-items .trail-item a {
+  color: var(--brand-accent) !important; /* "Home" en naranja de marca */
+}
+
+/* ───── Página de login/register — quitar bg image placeholder ─────
+   LoginContent.tsx aplica un inline style con
+   `background: url(assets/img/bg/sign-up-bg.jpg)`. Esa imagen del
+   template es un placeholder con "1920 x 1928" escrito dentro, lo que
+   genera el bloque gris feo. Aquí lo neutralizamos para que la sección
+   use el body bg (crema/ink) y se vea limpio. Inline styles tienen alta
+   especificidad → necesita !important. */
+.login-area,
+.sign-up-area,
+.register-area {
+  background-image: none !important;
+  background-color: var(--clr-bg-bodylight) !important;
+}
+
+/* La card del formulario (.login-wrapper / .sign-up-wrapper) tiene
+   `background: #eff1f5` hardcoded en light. La pintamos con el surface
+   del template (que ya respeta dark). */
+.login-wrapper,
+.sign-up-wrapper {
+  background: var(--clr-bg-white) !important;
+}
+[data-theme='dark'] .login-wrapper,
+[data-theme='dark'] .sign-up-wrapper {
+  /* El template ya tiene `var(--clr-bg-footer)` en dark — respetamos. */
+  background: var(--clr-bg-footer) !important;
+}
+
+/* ───── Overrides puntuales del dark — colores azulados hardcoded
+   del template que NO usan vars y rompen la coherencia con ink ─────
+   El template tiene en _body-color.scss un montón de #0c1423 / #1c2434 /
+   #181f2d / #111826 / #262e3e que estaban pensados para el azul-noche
+   original. Los redirigimos al ink KIOSQUI (#1f2933) o un escalón más
+   claro para superficies "raised" (cards, headers). */
+[data-theme='dark'] .sticky,
+[data-theme='dark'] .header-main2,
+[data-theme='dark'] .header-main2-content,
+[data-theme='dark'] .menu2-side-bar,
+[data-theme='dark'] .menu2-mobile-menu.mean-container .mean-nav ul li a.mean-expand {
+  background: var(--brand-ink) !important;
+}
+
+[data-theme='dark'] .menu2-sidebar-widget .work-process-single,
+[data-theme='dark'] .subscribe-form input,
+[data-theme='dark'] .header-main2-content .filter-search-input.header-search input,
+[data-theme='dark'] .common-select-arrow.common-select-arrow-40.white-bg {
+  /* surfaces "raised" sobre ink — 1 escalón más claro */
+  background: #28323d !important;
+}
+
+[data-theme='dark'] .social__links ul li a {
+  background: var(--brand-ink) !important;
+  border-color: #2a3340 !important;
 }
