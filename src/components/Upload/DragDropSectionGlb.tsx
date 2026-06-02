@@ -173,34 +173,56 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
 
       {/* Guía de conversión (compacta): solo soportamos GLB nativamente.
           Si el usuario tiene FBX/OBJ/DAE/SketchUp, le mostramos cómo convertir.
-          Toda la guía vive dentro de <details> colapsado por defecto para no
-          inflar el alto de la columna del form de publicación. */}
+          Actualización 2026-06-02: gltf.report solo edita/optimiza GLB ya
+          existentes (no convierte desde otros formatos), por lo que ya no lo
+          recomendamos para conversión. Las opciones reales que aceptan FBX/
+          OBJ/DAE como entrada son AnyConv (online, gratis) y Blender (offline,
+          mejor calidad). */}
       <details className="glb-format-guide">
         <summary>
           <i className="fas fa-info-circle" /> ¿Tienes el modelo en otro formato (FBX, OBJ, DAE, .blend)?
         </summary>
         <div className="glb-guide-content">
           <p>
-            Aceptamos solo <code>.glb</code>. Conviértelo gratis con:
+            Aceptamos solo <code>.glb</code>. Para convertir desde otros formatos:
           </p>
           <ul className="glb-guide-tools">
             <li>
-              <a href="https://gltf.report" target="_blank" rel="noopener noreferrer">
-                gltf.report
+              <a
+                href="https://anyconv.com/fbx-to-glb-converter/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                AnyConv
               </a>{' '}
-              — convertidor online (FBX, OBJ, DAE, GLTF)
+              — convertidor online, gratis (FBX, OBJ, DAE → GLB, hasta 50&nbsp;MB)
             </li>
             <li>
-              <a href="https://www.blender.org/download/" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://products.aspose.app/3d/conversion"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Aspose 3D
+              </a>{' '}
+              — alternativa online (más formatos de entrada)
+            </li>
+            <li>
+              <a
+                href="https://www.blender.org/download/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Blender
               </a>{' '}
-              — abre cualquier formato → Archivo &gt; Exportar &gt; glTF 2.0 (.glb)
+              — gratis, offline: abre el modelo → Archivo &gt; Exportar &gt; glTF 2.0 (.glb).
+              Es la opción más confiable cuando el modelo tiene materiales/texturas complejas.
             </li>
           </ul>
           <p className="glb-guide-note">
-            <strong>Notas:</strong> DWG/DXF son planos 2D, no 3D — exporta primero
-            a OBJ o GLB desde Revit/SketchUp. STL no tiene texturas.
-            USDZ y VRML no soportados aún.
+            <strong>Notas:</strong> DWG/DXF son planos 2D, no 3D — primero
+            exporta a OBJ o GLB desde Revit/AutoCAD/SketchUp. STL no lleva
+            texturas. USDZ y VRML aún no se admiten.
           </p>
         </div>
       </details>
@@ -250,77 +272,110 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
 
       {(uploadedGlb.length > 0 || pending.length > 0) && (
         <div className="upload-thumbs">
-          {uploadedGlb.map((image) => (
-            <div key={image.id} className="upload-thumb">
-              <div key={image.id}>
-                <div
-                  className="position-relative d-flex flex-column align-items-center border rounded p-1"
+          {uploadedGlb.map((image) => {
+            // El id tiene formato "<timestamp>-<filename>.glb" — partimos por
+            // el primer guión (no split('-')[1] que rompe con nombres con más
+            // guiones, ej. "Vista-Casa-3.glb").
+            const dashIdx = image.id.indexOf('-');
+            const fileName = dashIdx >= 0 ? image.id.slice(dashIdx + 1) : image.id;
+            return (
+              <div
+                key={image.id}
+                className="upload-thumb"
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  aspectRatio: '1 / 1',
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  background: 'rgba(108, 92, 231, 0.08)',
+                  border: '1px solid var(--clr-common-border, #e0e2e5)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 6,
+                  gap: 4,
+                }}
+                title={fileName}
+              >
+                <i
+                  className="fas fa-cube"
                   style={{
-                    gap: "8px",
-                    minHeight: "160px",
-                    borderWidth: "0.5px"
+                    color: 'var(--clr-theme-1, #6c5ce7)',
+                    fontSize: 22,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                    color: 'var(--clr-theme-1, #6c5ce7)',
                   }}
                 >
-                  {/* Botón eliminar */}
-                  <button
-                    type="button"
-                    className="upload-thumb-remove"
-                    onClick={() => removeUploadedGlb(image)}
-                    disabled={disabled}
-                    title="Eliminar imagen"
-                    aria-label={`Eliminar ${image.id}`}
-                  >
-                    <i className="fas fa-times" />
-                  </button>
-
-                  {/* Icono */}
-                  <div
-                    className="d-flex align-items-center justify-content-center rounded"
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      backgroundColor: "#E6F1FB"
-                    }}
-                  >
-                    <i className="fas fa-cube"
-                      style={{
-                        color: "#185FA5",
-                        fontSize: "24px"
-                      }}
-                    />
-                  </div>
-
-                  {/* Tipo archivo */}
-                  <span
-                    className="badge text-bg-secondary"
-                    style={{
-                      fontSize: "10px"
-                    }}
-                  >
-                    GLB
-                  </span>
-
-                  {/* Nombre archivo */}
-                  <small
-                    className="text-center"
-                    style={{
-                      wordBreak: "break-all"
-                    }}
-                  >
-                    {image.id.split("-")[1]}
-                  </small>
-                </div>
+                  GLB
+                </span>
+                <span
+                  style={{
+                    fontSize: 9,
+                    lineHeight: 1.15,
+                    textAlign: 'center',
+                    width: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    opacity: 0.7,
+                  }}
+                >
+                  {fileName}
+                </span>
+                <button
+                  type="button"
+                  className="upload-thumb-remove"
+                  onClick={() => removeUploadedGlb(image)}
+                  disabled={disabled}
+                  title="Eliminar archivo"
+                  aria-label={`Eliminar ${image.id}`}
+                >
+                  <i className="fas fa-times" />
+                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {pending.map((p) => (
             <div
               key={p.localId}
               className={`upload-thumb upload-thumb-pending ${p.status === 'error' ? 'is-error' : ''}`}
+              style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: '1 / 1',
+                borderRadius: 8,
+                overflow: 'hidden',
+                background: 'rgba(108, 92, 231, 0.08)',
+                border: '1px solid var(--clr-common-border, #e0e2e5)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 6,
+                gap: 4,
+              }}
+              title={p.name}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.objectUrl} alt={p.name} />
+              <i
+                className="fas fa-cube"
+                style={{
+                  color: 'var(--clr-theme-1, #6c5ce7)',
+                  fontSize: 22,
+                  opacity: 0.5,
+                }}
+              />
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.5px', opacity: 0.6 }}>
+                GLB
+              </span>
               <div className="upload-thumb-overlay">
                 {p.status === 'uploading' ? (
                   <span className="upload-thumb-spinner">
@@ -337,7 +392,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
                 className="upload-thumb-remove"
                 onClick={() => removePending(p.localId)}
                 title={p.status === 'error' ? 'Descartar' : 'Cancelar'}
-                aria-label="Descartar imagen"
+                aria-label="Descartar archivo"
               >
                 <i className="fas fa-times" />
               </button>
@@ -407,9 +462,11 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           margin-top: 4px;
         }
         .upload-thumbs {
+          /* Mismo grid que DragDropSection — consistencia visual:
+             78px → 3 thumbs por fila en col-lg-4. */
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-          gap: 12px;
+          grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+          gap: 8px;
         }
         .upload-thumbs :global(.upload-thumb) {
           position: relative;
@@ -446,20 +503,21 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
         }
         .upload-thumbs :global(.upload-thumb-remove) {
           position: absolute;
-          top: 6px;
-          right: 6px;
-          width: 26px;
-          height: 26px;
+          top: 3px;
+          right: 3px;
+          width: 20px;
+          height: 20px;
           border-radius: 50%;
           border: none;
-          background: rgba(0, 0, 0, 0.6);
+          background: rgba(0, 0, 0, 0.65);
           color: #fff;
-          font-size: 12px;
+          font-size: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: background 0.15s;
+          z-index: 2;
         }
         .upload-thumbs :global(.upload-thumb-remove:hover) {
           background: #ef4444;

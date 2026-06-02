@@ -12,6 +12,7 @@ import {
   usePublicationCategories,
   usePublicationTransactions,
 } from '@/hooks/api/useCatalogs';
+import { useMySubscription } from '@/hooks/api/useSubscription';
 import type { UploadedImage } from '@/types/api';
 
 export const PUBGEN_CASA = 1;
@@ -320,6 +321,15 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   const showSizeField = propertieNum === PUBGEN_TERRENO;
 
   const submitting = formik.isSubmitting;
+
+  // Gate del visor 3D (GLB) por plan: solo planes pagos pueden subir GLB.
+  // - Mientras carga la suscripción → asumimos free (no mostramos el dropzone)
+  //   para evitar que el usuario suba y luego le falle el submit.
+  // - Si el usuario YA tiene GLB cargados (modo editar, lo subió cuando estaba
+  //   en plan pago y luego degradó), igual le dejamos verlos/quitarlos.
+  const mySubQuery = useMySubscription();
+  const isPaidPlan = (mySubQuery.data?.price ?? 0) > 0;
+  const glbEnabled = isPaidPlan || imagesGlb.length > 0;
 
   return (
     <div className="upload-wrapper mb-10">
@@ -634,16 +644,10 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
 
 
           <div className="col-lg-4">
+            {/* Orden (2026-06-02): imágenes ARRIBA, GLB ABAJO — son la materia
+                principal de la publicación; el GLB es opcional y solo lo usan
+                cuentas pagas. */}
             <div>
-              <DragDropSectionGlb
-                uploadedGlb={imagesGlb}
-                onAdd={handleAddImageGlb}
-                onRemove={handleRemoveImageGlb}
-                disabled={submitting}
-              />
-            </div>
-
-            <div className='pt-3'>
               <DragDropSection
                 uploaded={images}
                 onAdd={handleAddImage}
@@ -651,6 +655,32 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 disabled={submitting}
               />
               {imagesError && <p className="field-error">{imagesError}</p>}
+            </div>
+
+            <div className='pt-3'>
+              {glbEnabled ? (
+                <DragDropSectionGlb
+                  uploadedGlb={imagesGlb}
+                  onAdd={handleAddImageGlb}
+                  onRemove={handleRemoveImageGlb}
+                  disabled={submitting}
+                />
+              ) : (
+                <div className="glb-upgrade-card">
+                  <div className="glb-upgrade-icon">
+                    <i className="fas fa-cube" />
+                  </div>
+                  <h4 className="glb-upgrade-title">Archivos 3D (GLB)</h4>
+                  <p className="glb-upgrade-text">
+                    Subir modelos 3D para el visor interactivo está disponible
+                    en los planes pagos. Mejora tu plan para destacar tu
+                    publicación con un recorrido 3D.
+                  </p>
+                  <Link href="/pricing-plan" className="fill-btn glb-upgrade-cta">
+                    Ver planes
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -733,6 +763,37 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         }
         :global(.upload-form .currency-toggle-btn:hover:not(.is-active)) {
           background: rgba(108, 92, 231, 0.08);
+        }
+        /* Upgrade card cuando el usuario está en plan free — sustituye al
+           dropzone GLB y explica la limitación con un CTA a /pricing-plan. */
+        :global(.upload-form .glb-upgrade-card) {
+          border: 1.5px dashed rgba(108, 92, 231, 0.45);
+          background: rgba(108, 92, 231, 0.06);
+          border-radius: 12px;
+          padding: 22px 18px;
+          text-align: center;
+        }
+        :global(.upload-form .glb-upgrade-icon) {
+          font-size: 32px;
+          color: var(--clr-theme-1, #6c5ce7);
+          margin-bottom: 6px;
+        }
+        :global(.upload-form .glb-upgrade-title) {
+          margin: 0 0 6px;
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--clr-common-heading, #181818);
+        }
+        :global(.upload-form .glb-upgrade-text) {
+          margin: 0 0 14px;
+          font-size: 12.5px;
+          line-height: 1.5;
+          opacity: 0.8;
+        }
+        :global(.upload-form .glb-upgrade-cta) {
+          display: inline-block;
+          padding: 8px 22px;
+          font-size: 13px;
         }
       `}</style>
     </div>

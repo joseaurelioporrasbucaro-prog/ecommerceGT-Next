@@ -306,9 +306,12 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           margin-top: 4px;
         }
         .upload-thumbs {
+          /* Más chico (2026-06-02): antes 110px → entraban 2 por fila en col-lg-4
+             y se sentían enormes. Con 78px caben 3 por fila + margen, y al
+             editar (donde puede haber 5-10 imágenes) ocupan menos columna. */
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-          gap: 12px;
+          grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+          gap: 8px;
         }
         .upload-thumbs :global(.upload-thumb) {
           position: relative;
@@ -345,15 +348,15 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
         }
         .upload-thumbs :global(.upload-thumb-remove) {
           position: absolute;
-          top: 6px;
-          right: 6px;
-          width: 26px;
-          height: 26px;
+          top: 3px;
+          right: 3px;
+          width: 20px;
+          height: 20px;
           border-radius: 50%;
           border: none;
-          background: rgba(0, 0, 0, 0.6);
+          background: rgba(0, 0, 0, 0.65);
           color: #fff;
-          font-size: 12px;
+          font-size: 10px;
           display: flex;
           align-items: center;
           justify-content: center;

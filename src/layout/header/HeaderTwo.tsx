@@ -39,21 +39,20 @@ const HeaderTwo = () => {
               <div className="row align-items-center">
                 <div className="col-xl-7 col-lg-7 col-md-7 col-7">
                   <div className="header-main-left">
-                    <div className="menu-bar mr-20 d-xxl-none">
-                      <a
-                        className="side-toggle"
-                        href="#!"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setMenuOpen1(!menuOpen1);
-                        }}
-                      >
-                        <div className="bar-icon left-bar-icon">
-                          <span></span>
-                          <span></span>
-                          <span></span>
-                        </div>
-                      </a>
+                    {/* Swap (2026-06-02): el botón "Mi cuenta / Categorías"
+                        vive ahora a la izquierda — abre el sidebar derecho
+                        del template que tras el swap experimental quedó
+                        del lado izquierdo. La hamburguesa de nav se mueve
+                        al borde derecho (ver header-main-right). */}
+                    <div
+                      className="product-filter-btn mr-20 d-xxl-none"
+                      onClick={() => {
+                        setMenuOpen2(!menuOpen2);
+                      }}
+                      title={user ? 'Mi cuenta' : 'Categorías'}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <i className={user ? 'fal fa-user-circle' : 'flaticon-filter'}></i>
                     </div>
                     <HeaderSearch className="d-none d-md-inline-block" />
                   </div>
@@ -98,19 +97,6 @@ const HeaderTwo = () => {
                       </div>
                     )}
 
-                    {/* Hamburguesa derecho — abre el sidebar derecho
-                        (Mi cuenta o Categorías según haya sesión). */}
-                    <div
-                      className="product-filter-btn ml-20 d-xxl-none"
-                      onClick={() => {
-                        setMenuOpen2(!menuOpen2);
-                      }}
-                      title={user ? 'Mi cuenta' : 'Categorías'}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <i className={user ? 'fal fa-user-circle' : 'flaticon-filter'}></i>
-                    </div>
-
                     {/* Bell de notificaciones (Fase 6.3) — solo para usuarios logueados */}
                     {user && (
                       <div className="ml-20">
@@ -131,6 +117,26 @@ const HeaderTwo = () => {
                         ></i>
                         <span className="ball"></span>
                       </label>
+                    </div>
+
+                    {/* Swap (2026-06-02): la hamburguesa de nav vive ahora
+                        en el borde derecho del header — donde está el sidebar
+                        de nav después del swap experimental. */}
+                    <div className="menu-bar ml-20 d-xxl-none">
+                      <a
+                        className="side-toggle"
+                        href="#!"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setMenuOpen1(!menuOpen1);
+                        }}
+                      >
+                        <div className="bar-icon left-bar-icon">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      </a>
                     </div>
                   </div>
                 </div>
