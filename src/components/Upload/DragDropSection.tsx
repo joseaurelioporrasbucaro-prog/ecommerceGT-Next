@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { FileUploader } from 'react-drag-drop-files';
 import { toast } from 'react-toastify';
 import { ApiError, ApiFetch } from '@/utils/Api';
@@ -170,17 +169,36 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
       {(uploaded.length > 0 || pending.length > 0) && (
         <div className="upload-thumbs">
           {uploaded.map((image) => (
-            <div key={image.id} className="upload-thumb">
+            // Fix robusto: inline styles para garantizar que el thumb sea un
+            // contenedor 1:1 con position:relative aunque el styled-jsx no
+            // hidrate a tiempo. Sin esto, <Image fill> escapa a body y se
+            // renderea a 800x800 (la variante 'card' completa) arriba de todo.
+            <div
+              key={image.id}
+              className="upload-thumb"
+              style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: '1 / 1',
+                borderRadius: 8,
+                overflow: 'hidden',
+                background: 'rgba(128,128,128,0.12)',
+              }}
+            >
               {/* El backend borra el original tras generar variantes WebP, así
                   que la preview debe apuntar a la variante (card), no al path
                   original (que ya no existe → imagen rota). */}
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={getBackendUrl(getImageVariant(image.url, 'card'))}
                 alt={image.id}
-                fill
-                sizes="120px"
-                style={{ objectFit: 'cover' }}
-                unoptimized
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
               />
               <button
                 type="button"

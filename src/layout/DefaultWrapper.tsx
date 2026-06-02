@@ -205,6 +205,42 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
             display: inline-block !important;
           }
         }
+        /* ────────── Swap experimental de sidebars (Aurelio, 2026-05-28) ──────────
+           Pasa el sidebar izquierdo (nav HOME/PROPIEDADES) a la derecha y el
+           derecho (Mi cuenta) a la izquierda. Solo para evaluar visualmente —
+           si no convence, basta con borrar este bloque para volver. Aplicamos
+           !important porque sobrescribimos las reglas del template. */
+        @media (min-width: 1600px) {
+          .menu2-side-bar-wrapper {
+            left: auto !important;
+            right: 0 !important;
+          }
+          .sidebar-category-filter-wrapper {
+            right: auto !important;
+            left: 0 !important;
+          }
+        }
+        @media (min-width: 1400px) and (max-width: 1599px) {
+          /* También en el rango off-canvas: el nav (izquierdo) se esconde por
+             la derecha; Mi cuenta (derecho) se esconde por la izquierda. */
+          .menu2-side-bar-wrapper {
+            left: auto !important;
+            right: -300px !important;
+          }
+          .menu2-side-bar-wrapper.open {
+            left: auto !important;
+            right: 0 !important;
+          }
+          .sidebar-category-filter-wrapper {
+            right: auto !important;
+            left: -300px !important;
+          }
+          .sidebar-category-filter-wrapper.open {
+            right: auto !important;
+            left: 0 !important;
+          }
+        }
+
         @media (min-width: 1600px) {
           /* Mecanismo EXACTO del template: en vez de padear el .app-layout
              (que dejaba el borde del contenido pegado al sidebar y el ícono
