@@ -10,6 +10,20 @@ import {
   type PaymentMethodType,
   type AddPaymentMethodPayload,
 } from '@/hooks/api/usePaymentMethods';
+import CardPreview, { type CardFocus } from './CardPreview';
+
+/**
+ * Fase 11 — feature flags por tipo de método.
+ *
+ * Hoy solo habilitamos tarjeta. Los chips de transfer/wallet se ocultan
+ * pero el backend ya los soporta — cambiar a `true` aquí los reactiva
+ * sin necesidad de redeploy del backend.
+ */
+const ENABLED_PM_TYPES: Record<PaymentMethodType, boolean> = {
+  card: true,
+  transfer: false,
+  wallet: false,
+};
 
 /**
  * Fase 11 — UI de métodos de pago en el perfil.
@@ -53,10 +67,12 @@ const PaymentMethodsTab: React.FC = () => {
   const [label, setLabel] = useState('');
   // Card
   const [brand, setBrand] = useState('visa');
-  const [cardNumber, setCardNumber] = useState(''); // NO se envía
+  const [cardNumber, setCardNumber] = useState(''); // NO se envía completo
   const [expMonth, setExpMonth] = useState('');
   const [expYear, setExpYear] = useState('');
   const [holderName, setHolderName] = useState('');
+  // Foco para el preview dinámico de la tarjeta.
+  const [cardFocus, setCardFocus] = useState<CardFocus>(null);
   // Transfer
   const [bankName, setBankName] = useState('');
   const [accountType, setAccountType] = useState<'ahorro' | 'monetario'>('ahorro');
@@ -246,18 +262,39 @@ const PaymentMethodsTab: React.FC = () => {
         <div className="pm-modal">
           <h4>Agregar método de pago</h4>
 
-          <div className="pm-type-selector">
-            {(Object.keys(TYPE_META) as PaymentMethodType[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                className={`pm-type-chip ${type === t ? 'is-active' : ''}`}
-                onClick={() => setType(t)}
-              >
-                <i className={`fas ${TYPE_META[t].icon}`} /> {TYPE_META[t].label}
-              </button>
-            ))}
-          </div>
+          {/* Selector de tipo: hoy solo mostramos los habilitados. Si solo
+              hay uno habilitado, ocultamos el selector entero — no aporta. */}
+          {(() => {
+            const enabledTypes = (Object.keys(TYPE_META) as PaymentMethodType[])
+              .filter((t) => ENABLED_PM_TYPES[t]);
+            if (enabledTypes.length <= 1) return null;
+            return (
+              <div className="pm-type-selector">
+                {enabledTypes.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`pm-type-chip ${type === t ? 'is-active' : ''}`}
+                    onClick={() => setType(t)}
+                  >
+                    <i className={`fas ${TYPE_META[t].icon}`} /> {TYPE_META[t].label}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Preview animado de la tarjeta — solo cuando el tipo es card. */}
+          {type === 'card' && (
+            <CardPreview
+              brand={brand}
+              cardNumber={cardNumber}
+              holderName={holderName}
+              expMonth={expMonth}
+              expYear={expYear}
+              focus={cardFocus}
+            />
+          )}
 
           <label className="pm-field">
             <span>Etiqueta (opcional)</span>
@@ -289,6 +326,8 @@ const PaymentMethodsTab: React.FC = () => {
                   placeholder="0000 0000 0000 0000"
                   value={cardNumber}
                   onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, '').slice(0, 19))}
+                  onFocus={() => setCardFocus('number')}
+                  onBlur={() => setCardFocus(null)}
                 />
                 <small className="pm-note">
                   Solo guardaremos los últimos 4 dígitos. El número completo
@@ -305,6 +344,8 @@ const PaymentMethodsTab: React.FC = () => {
                     placeholder="MM"
                     value={expMonth}
                     onChange={(e) => setExpMonth(e.target.value)}
+                    onFocus={() => setCardFocus('exp')}
+                    onBlur={() => setCardFocus(null)}
                   />
                 </label>
                 <label className="pm-field">
@@ -316,6 +357,8 @@ const PaymentMethodsTab: React.FC = () => {
                     placeholder="YYYY"
                     value={expYear}
                     onChange={(e) => setExpYear(e.target.value)}
+                    onFocus={() => setCardFocus('exp')}
+                    onBlur={() => setCardFocus(null)}
                   />
                 </label>
               </div>
@@ -327,6 +370,8 @@ const PaymentMethodsTab: React.FC = () => {
                   placeholder="Tal como aparece en la tarjeta"
                   value={holderName}
                   onChange={(e) => setHolderName(e.target.value.slice(0, 100))}
+                  onFocus={() => setCardFocus('holder')}
+                  onBlur={() => setCardFocus(null)}
                 />
               </label>
             </>
