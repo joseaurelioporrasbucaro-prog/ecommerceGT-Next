@@ -93,9 +93,11 @@ const HomeCTA: React.FC = () => {
           color: #fff !important;
         }
         /* Fix 2026-06-02: el texto del párrafo se veía oscuro porque el
-           template define `body { color: var(--clr-common-body-text) }` (gris
+           template define color del body con --clr-common-body-text (gris
            oscuro) y eso ganaba sobre la herencia del card. Forzamos crema/
-           blanco con !important para que destaque sobre el gradiente azul. */
+           blanco con !important para que destaque sobre el gradiente azul.
+           Nota: no usar backticks adentro del comentario — cierran el
+           template literal de styled-jsx. */
         .hcta-card :global(p) {
           margin: 0 0 24px;
           font-size: 16px;
@@ -111,8 +113,8 @@ const HomeCTA: React.FC = () => {
         }
         /* Botón ya NO usa .fill-btn — lo construimos desde cero acá para que
            el gradiente azul→morado del template no se cuele. Selector con
-           :global porque .hcta-primary lo aplica un componente <Link> de
-           Next.js, y styled-jsx no scope-a elementos hijos directamente. */
+           :global porque .hcta-primary lo aplica un componente Link de
+           Next.js (rendea como anchor), y styled-jsx no scope-a hijos así. */
         .hcta-card :global(.hcta-primary) {
           display: inline-flex;
           align-items: center;
