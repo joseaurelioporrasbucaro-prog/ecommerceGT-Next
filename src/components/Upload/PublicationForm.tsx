@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import DragDropSection from './DragDropSection';
 import DragDropSectionGlb from './DragDropSectionGlb';
+import AmenitiesPicker from './AmenitiesPicker';
 import {
   useCities,
   useCountries,
@@ -34,8 +35,14 @@ export interface PublicationFormValues {
   noRooms: string;
   noBathrooms: string;
   noParking: string;
+  /** Apto: nivel del edificio. Casa: niveles totales (Fase 19.5). */
   nlevel: string;
   size: string;
+  /** Solo terreno (Fase 19.5) — metros de frente y fondo. */
+  frente: string;
+  fondo: string;
+  /** Fase 19.5 — IDs de amenidades seleccionadas. */
+  amenities: number[];
 }
 
 export const EMPTY_FORM_VALUES: PublicationFormValues = {
@@ -54,6 +61,9 @@ export const EMPTY_FORM_VALUES: PublicationFormValues = {
   noParking: '',
   nlevel: '',
   size: '',
+  frente: '',
+  fondo: '',
+  amenities: [],
 };
 
 /**
@@ -317,7 +327,9 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
   }, [municipalitiesQuery.data]);
 
   const showHouseFields = propertieNum === PUBGEN_CASA || propertieNum === PUBGEN_APTO;
-  const showLevelField = propertieNum === PUBGEN_APTO;
+  // Nivel/niveles: Apto = nivel del edificio. Casa = niveles totales
+  // (Fase 19.5). Misma columna en BD (pubdet_level), diferente etiqueta UX.
+  const showLevelField = propertieNum === PUBGEN_APTO || propertieNum === PUBGEN_CASA;
   const showSizeField = propertieNum === PUBGEN_TERRENO;
 
   const submitting = formik.isSubmitting;
@@ -577,7 +589,11 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   {showLevelField && (
                     <div className="col-md-3">
                       <div className="single-input-unit">
-                        <label htmlFor="nlevel">Nivel</label>
+                        {/* Fase 19.5: la etiqueta cambia según el tipo.
+                            Apto = nivel del edificio. Casa = niveles totales. */}
+                        <label htmlFor="nlevel">
+                          {propertieNum === PUBGEN_APTO ? 'Nivel del edificio' : 'Niveles'}
+                        </label>
                         <input
                           id="nlevel"
                           type="number"
@@ -594,20 +610,49 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
               )}
 
               {showSizeField && (
-                <div className="col-md-6">
-                  <div className="single-input-unit">
-                    <label htmlFor="size">Tamaño del terreno (m²)</label>
-                    <input
-                      id="size"
-                      type="number"
-                      min={0}
-                      {...formik.getFieldProps('size')}
-                    />
-                    {formik.touched.size && formik.errors.size && (
-                      <p className="field-error">{formik.errors.size}</p>
-                    )}
+                <>
+                  <div className="col-md-4">
+                    <div className="single-input-unit">
+                      <label htmlFor="size">Tamaño total (m²)</label>
+                      <input
+                        id="size"
+                        type="number"
+                        min={0}
+                        {...formik.getFieldProps('size')}
+                      />
+                      {formik.touched.size && formik.errors.size && (
+                        <p className="field-error">{formik.errors.size}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                  {/* Fase 19.5 — frente y fondo del terreno. Opcionales. */}
+                  <div className="col-md-4">
+                    <div className="single-input-unit">
+                      <label htmlFor="frente">Frente (m)</label>
+                      <input
+                        id="frente"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="Opcional"
+                        {...formik.getFieldProps('frente')}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="single-input-unit">
+                      <label htmlFor="fondo">Fondo (m)</label>
+                      <input
+                        id="fondo"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="Opcional"
+                        {...formik.getFieldProps('fondo')}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="col-md-12">
@@ -622,6 +667,18 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                   {formik.touched.description && formik.errors.description && (
                     <p className="field-error">{formik.errors.description}</p>
                   )}
+                </div>
+              </div>
+
+              {/* Fase 19.5 — Sección "Otros": amenidades del inmueble. */}
+              <div className="col-md-12">
+                <div className="single-input-unit">
+                  <label>Otros — comodidades de la propiedad</label>
+                  <AmenitiesPicker
+                    value={formik.values.amenities}
+                    onChange={(next) => formik.setFieldValue('amenities', next)}
+                    disabled={submitting}
+                  />
                 </div>
               </div>
             </div>

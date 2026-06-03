@@ -2397,6 +2397,62 @@ completo. Sin brief, no empezar.
 
 ---
 
+### Fase 19.5 — Amenidades + dimensiones de terreno + niveles de casa ✅
+
+**Entregado 2026-06-03.** Sección "Otros" en el form con amenidades en
+chips por categoría + frente/fondo (terreno) + niveles (casa).
+
+**SQL (correr en prod):**
+```sql
+CREATE TABLE ecom.cat_amenities (
+    amen_id SERIAL PRIMARY KEY, amen_name VARCHAR(60) NOT NULL,
+    amen_icon VARCHAR(40), amen_category VARCHAR(30) DEFAULT 'otros',
+    amen_active BOOLEAN DEFAULT true, amen_order INT DEFAULT 100
+);
+-- + seed con 26 amenidades en 5 categorías
+CREATE TABLE ecom.publications_amenities (
+    pub_id BIGINT REFERENCES publications(pub_id) ON DELETE CASCADE,
+    amen_id INT REFERENCES cat_amenities(amen_id),
+    PRIMARY KEY (pub_id, amen_id)
+);
+CREATE INDEX idx_pub_amen_amen_id ON publications_amenities(amen_id);
+ALTER TABLE ecom.publications_detail
+    ADD COLUMN pubdet_frente NUMERIC(8,2),
+    ADD COLUMN pubdet_fondo  NUMERIC(8,2);
+```
+
+**Seed (26 amenidades, 5 categorías):**
+- **Condominio** (7): Piscina, Gimnasio, Salón de eventos, BBQ,
+  Juegos, Cancha deportiva, Ascensor
+- **Interior** (6): Cocina equipada, Aire, Calefacción, Closets,
+  Lavandería, Amueblada
+- **Exterior** (5): Jardín, Terraza, Patio, Parqueo visitas, Mascotas
+- **Seguridad** (4): Garita 24h, Cámaras, Acceso controlado, Alarma
+- **Servicios** (4): Agua, Luz, Internet, Gas
+
+**Backend:**
+- `GET /amenities` público con catálogo activo ordenado.
+- `savePublication` / `updatePublication` aceptan `amenities: number[]`,
+  `frente`, `fondo`. Casa ahora persiste `nlevel` (niveles totales).
+- `updatePublication` con delete-all + insert-new para amenidades.
+  Si el body no manda `amenities`, preserva (update parcial).
+- `getPublicationById` devuelve amenities con JOIN al catálogo.
+- `getPublicationEditById` devuelve `amenities` como `number[]`
+  para precargar chips.
+
+**Frontend:**
+- `useAmenities()` + `useAmenitiesGrouped()` con cache 10 min.
+- `AmenitiesPicker` — chips por categoría con toggle.
+- `PublicationForm` — sección "Otros" después de descripción.
+  Inputs frente/fondo en bloque terreno. Casa muestra "Niveles".
+- `PublicationContent` (detalle) — sección "Comodidades" con grid de
+  chips. Frente/fondo en tab de detalles para terreno.
+
+**Decisión M:N vs columnas booleanas:** agregar amenidad futura = un
+INSERT en `cat_amenities`, sin schema change ni redeploy backend.
+
+---
+
 ### Fase 19 — Búsqueda avanzada + mapa interactivo ✅
 
 **Entregado 2026-06-03.** Filtros avanzados client-side + mapa Leaflet

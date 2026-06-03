@@ -50,6 +50,10 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
       noParking: asString(d.parking),
       nlevel: asString(d.nlevel),
       size: asString(d.size),
+      // Fase 19.5 — frente, fondo y amenidades precargados al editar.
+      frente: asString(d.frente),
+      fondo: asString(d.fondo),
+      amenities: Array.isArray(d.amenities) ? d.amenities : [],
     };
   }, [editQuery.data]);
 
@@ -77,10 +81,14 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
         noRooms: isCasa || isApto ? Number(values.noRooms) : null,
         noBathrooms: isCasa || isApto ? Number(values.noBathrooms) : null,
         noParking: isCasa || isApto ? Number(values.noParking) : null,
-        nlevel: isApto ? Number(values.nlevel) : null,
+        // Fase 19.5
+        nlevel: (isApto || isCasa) && values.nlevel ? Number(values.nlevel) : null,
         size: isTerreno ? Number(values.size) : null,
+        frente: isTerreno && values.frente ? Number(values.frente) : null,
+        fondo: isTerreno && values.fondo ? Number(values.fondo) : null,
         images,
         imagesglb,
+        amenities: values.amenities ?? [],
       });
       toast.success('Publicación actualizada correctamente.');
       router.push(`/publications/${publicationId}`);

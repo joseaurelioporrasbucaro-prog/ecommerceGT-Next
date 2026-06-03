@@ -510,6 +510,11 @@ export interface PublicationDetail {
   images: PublicationImage[];
   data: string,
   imagesglb?: PublicationImageGlb[];
+  /** Fase 19.5 — amenidades con JOIN al catálogo. */
+  amenities?: PublicationAmenity[];
+  /** Fase 19.5 — solo terreno. */
+  pubdet_frente?: number | string | null;
+  pubdet_fondo?: number | string | null;
 }
 
 /**
@@ -665,14 +670,37 @@ export interface CreatePublicationPayload extends Record<string, unknown> {
   noRooms: number | null;
   noBathrooms: number | null;
   noParking: number | null;
-  /** Solo Apto(2). */
+  /** Apto(2) = nivel del edificio. Casa(1) = niveles totales (Fase 19.5). */
   nlevel: number | null;
   /** Solo Terreno(3). */
   size: number | null;
+  /** Solo Terreno(3) — metros de frente (Fase 19.5). */
+  frente?: number | null;
+  /** Solo Terreno(3) — metros de fondo (Fase 19.5). */
+  fondo?: number | null;
   /** ISO 4217 — 'GTQ' (default) o 'USD'. */
   currency: 'GTQ' | 'USD';
   images: UploadedImage[];
   imagesglb?: UploadedImage[];
+  /** Fase 19.5 — IDs de amenidades seleccionadas (M:N con cat_amenities). */
+  amenities?: number[];
+}
+
+/** Fase 19.5 — fila del catálogo `cat_amenities`. */
+export interface Amenity {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
+  order: number;
+}
+
+/** Fase 19.5 — amenidad en una publicación con join al catálogo. */
+export interface PublicationAmenity {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
 }
 
 /** Respuesta de `POST /savepubl`. */
@@ -708,11 +736,16 @@ export interface PublicationEditData {
   parking: string | number | null;
   nlevel: string | number | null;
   size: string | number | null;
+  /** Fase 19.5 — solo terreno. */
+  frente?: string | number | null;
+  fondo?: string | number | null;
   country: number | null;
   city: number | null;
   municipality: number | null;
   images: UploadedImage[];
   imagesglb?: UploadedImage[];
+  /** Fase 19.5 — solo IDs (el form los precarga marcados). */
+  amenities?: number[];
 }
 
 /** Body de `PUT /publications/:id`. Mismos campos que crear. */

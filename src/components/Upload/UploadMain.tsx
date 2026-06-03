@@ -42,10 +42,15 @@ const UploadMain: React.FC = () => {
         noRooms: isCasa || isApto ? Number(values.noRooms) : null,
         noBathrooms: isCasa || isApto ? Number(values.noBathrooms) : null,
         noParking: isCasa || isApto ? Number(values.noParking) : null,
-        nlevel: isApto ? Number(values.nlevel) : null,
+        // Fase 19.5: nlevel ahora también aplica a casa (niveles totales).
+        nlevel: (isApto || isCasa) && values.nlevel ? Number(values.nlevel) : null,
         size: isTerreno ? Number(values.size) : null,
+        // Fase 19.5: frente y fondo solo para terreno; opcionales.
+        frente: isTerreno && values.frente ? Number(values.frente) : null,
+        fondo: isTerreno && values.fondo ? Number(values.fondo) : null,
         images,
         imagesglb,
+        amenities: values.amenities ?? [],
       });
       toast.success('Publicación creada correctamente.');
       router.push(`/publications/${response.id}`);

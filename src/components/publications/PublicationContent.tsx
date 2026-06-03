@@ -194,15 +194,54 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
                     <InfoRow icon="rooms" label="Habitaciones" value={formatNumberValue(publication.pubdet_rooms)} />
                     <InfoRow icon="bathrooms" label="Baños" value={formatNumberValue(publication.pubdet_bathrooms)} />
                     <InfoRow icon="parking" label="Parqueos" value={formatNumberValue(publication.pubdet_parking)} />
-                    <InfoRow icon="level" label="Nivel" value={formatNumberValue(publication.pubdet_level)} />
+                    {/* Fase 19.5: la etiqueta de "Nivel" cambia según el tipo.
+                        Apto = nivel del edificio. Casa = niveles totales. */}
+                    <InfoRow
+                      icon="level"
+                      label={Number(publication.pubgen_id) === 1 ? 'Niveles' : 'Nivel'}
+                      value={formatNumberValue(publication.pubdet_level)}
+                    />
                     <InfoRow
                       icon="size"
                       label="Tamaño"
                       value={publication.pubdet_size ? `${publication.pubdet_size} m²` : 'No especificado'}
                     />
+                    {/* Fase 19.5 — frente y fondo, solo si son terreno y los tienen. */}
+                    {publication.pubdet_frente != null && (
+                      <InfoRow
+                        icon="size"
+                        label="Frente"
+                        value={`${publication.pubdet_frente} m`}
+                      />
+                    )}
+                    {publication.pubdet_fondo != null && (
+                      <InfoRow
+                        icon="size"
+                        label="Fondo"
+                        value={`${publication.pubdet_fondo} m`}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Fase 19.5 — sección de amenidades. Solo se muestra si la
+                  publicación tiene alguna marcada. */}
+              {publication.amenities && publication.amenities.length > 0 && (
+                <div className="amenities-section">
+                  <h4 className="amenities-title">
+                    <i className="fas fa-star" /> Comodidades
+                  </h4>
+                  <div className="amenities-grid">
+                    {publication.amenities.map((a) => (
+                      <div key={a.id} className="amenity-chip">
+                        {a.icon && <i className={`fas ${a.icon}`} />}
+                        <span>{a.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -310,6 +349,47 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           font-weight: 700;
         }
         .meta-price { color: var(--tp-theme-1, #6c5ce7); }
+
+        /* ──────────────── Fase 19.5 — Amenidades ──────────────── */
+        .amenities-section {
+          margin-top: 26px;
+          padding-top: 22px;
+          border-top: 1px solid var(--clr-common-border, #e0e2e5);
+        }
+        .amenities-title {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          font-size: 17px;
+          font-weight: 700;
+          margin: 0 0 14px;
+          color: var(--clr-common-heading);
+        }
+        .amenities-title :global(i) {
+          color: #f59e0b;
+          font-size: 15px;
+        }
+        .amenities-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .amenity-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 8px 14px;
+          background: var(--clr-bg-gray, #f9f9f9);
+          border: 1px solid var(--clr-common-border, #e0e2e5);
+          border-radius: 22px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--clr-common-heading);
+        }
+        .amenity-chip :global(i) {
+          color: var(--clr-theme-1, #2785ff);
+          font-size: 13px;
+        }
         .meta-state { color: #2ed573; }
         .meta-sublabel {
           font-size: 12px;
