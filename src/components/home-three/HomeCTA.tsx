@@ -1,0 +1,149 @@
+"use client";
+import React from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/utils/AuthContext';
+
+/**
+ * Fase 16 — banner CTA al final de la home.
+ *
+ * Mensaje cambia según si hay sesión:
+ * - Sin sesión → "Registrate gratis y publicá tu primera propiedad".
+ * - Con sesión → "Publicá una propiedad" + secundario "Ver mis publicaciones".
+ *
+ * El CTA secundario lleva a /pricing-plan para conocer planes pagos.
+ */
+const HomeCTA: React.FC = () => {
+  const { user } = useAuth();
+  const isLoggedIn = Boolean(user);
+
+  return (
+    <section className="kh-section hcta-section">
+      <div className="container">
+        <div className="hcta-card">
+          <div className="hcta-content">
+            <h2>
+              {isLoggedIn
+                ? '¿Listo para sumar otra publicación?'
+                : '¿Tenés una propiedad para vender o rentar?'}
+            </h2>
+            <p>
+              {isLoggedIn
+                ? 'Publicá rápido desde tu panel y empezá a recibir mensajes hoy mismo.'
+                : 'Registrate gratis, verificá tu identidad y publicá tu primera propiedad en menos de 5 minutos.'}
+            </p>
+            <div className="hcta-actions">
+              {isLoggedIn ? (
+                <>
+                  <Link href="/upload" className="fill-btn hcta-primary">
+                    <i className="fas fa-plus" /> Publicar propiedad
+                  </Link>
+                  <Link href="/my-publications" className="hcta-secondary">
+                    Ver mis publicaciones
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/register" className="fill-btn hcta-primary">
+                    Crear cuenta gratis
+                  </Link>
+                  <Link href="/pricing-plan" className="hcta-secondary">
+                    Ver planes
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="hcta-decor" aria-hidden="true">
+            <i className="fas fa-home" />
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .hcta-section {
+          padding: 70px 0 90px;
+        }
+        .hcta-card {
+          position: relative;
+          overflow: hidden;
+          padding: 48px 44px;
+          border-radius: 20px;
+          background: linear-gradient(
+            135deg,
+            var(--clr-theme-1, #2785ff) 0%,
+            #1d6fe8 100%
+          );
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 30px;
+        }
+        .hcta-content {
+          position: relative;
+          z-index: 1;
+          flex: 1;
+          min-width: 0;
+        }
+        .hcta-card h2 {
+          margin: 0 0 12px;
+          font-size: clamp(24px, 3.5vw, 34px);
+          font-weight: 800;
+          line-height: 1.2;
+          color: #fff;
+        }
+        .hcta-card p {
+          margin: 0 0 24px;
+          font-size: 16px;
+          opacity: 0.92;
+          max-width: 580px;
+        }
+        .hcta-actions {
+          display: flex;
+          gap: 14px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+        .hcta-primary {
+          height: 50px !important;
+          line-height: 50px !important;
+          padding: 0 28px !important;
+          font-size: 15px !important;
+          background: #fff !important;
+          color: var(--clr-theme-1, #2785ff) !important;
+          font-weight: 700;
+          background-image: none !important;
+        }
+        .hcta-primary :global(i) {
+          margin-right: 7px;
+        }
+        .hcta-secondary {
+          font-size: 14px;
+          font-weight: 600;
+          color: #fff;
+          text-decoration: underline;
+          padding: 12px 4px;
+        }
+        .hcta-secondary:hover {
+          opacity: 0.85;
+        }
+        .hcta-decor {
+          flex-shrink: 0;
+          font-size: 180px;
+          opacity: 0.12;
+          line-height: 1;
+        }
+        @media (max-width: 768px) {
+          .hcta-card {
+            padding: 36px 26px;
+          }
+          .hcta-decor {
+            display: none;
+          }
+        }
+      `}</style>
+    </section>
+  );
+};
+
+export default HomeCTA;

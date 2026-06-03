@@ -2397,7 +2397,60 @@ completo. Sin brief, no empezar.
 
 ---
 
-### Fase 16 (pendiente) — Home Style 3 con datos reales
+### Fase 16 — Home Style 3 con datos reales ✅
+
+**Entregado 2026-06-02.** `/home-three` ahora monta 6 secciones de marketplace
+real en vez del contenido NFT-themed del template ("Discover Digital
+Artworks & Collect Best NFTs").
+
+**Secciones nuevas en `src/components/home-three/`:**
+
+1. **`KiosquiHero`** — titular "Encontrá tu próximo hogar en Guatemala" +
+   barra de búsqueda funcional (submit → `/publications?q=`) + chips
+   rápidos (Casas / Apartamentos / Terrenos) + trust badges (DPI
+   verificado, visor 3D, mensajería directa).
+2. **`FeaturedShowcase`** — wrapper sobre `FeaturedPublicationsSection`
+   (Fase 10). Si no hay campañas activas, retorna `null` (no muestra
+   header vacío).
+3. **`CategoriesShowcase`** — 3 cards (Casa, Apto, Terreno) con icono y
+   gradient distinto por categoría. Consume `usePublicationCategories()`,
+   no hardcodea IDs.
+4. **`TopSellersShowcase`** — 8 vendedores del endpoint `/top-sellers`
+   (Fase 9): avatar, badge de verificado, nombre, handle, total de
+   publicaciones + rating. Skeleton shimmer mientras carga.
+5. **`HowItWorks`** — 4 pasos estáticos (Buscás → Contactás → Visitás
+   → Cerrás).
+6. **`HomeCTA`** — banner final que cambia según `useAuth()`:
+   - Sin sesión: "Crear cuenta gratis" + "Ver planes".
+   - Con sesión: "Publicar propiedad" + "Ver mis publicaciones".
+
+**Orquestación (`HomeThreeMain.tsx`):**
+- Reescrito completamente. Antes solo montaba `<HeroSectionThree/>` +
+  `<ExploreArtsThree/>` (del template). Ahora monta las 6 secciones
+  nuevas + estilos globales compartidos para `.kh-section-head`.
+- Archivos viejos `HeroSectionThree.tsx`, `ExploreArtsThree.tsx`,
+  `ExploreArtsCommon.tsx` se mantienen en disco por si alguien quiere
+  reciclar alguno. No están referenciados → tree-shake los saca del
+  bundle.
+
+**Hooks consumidos (ninguno nuevo):**
+- `useTopSellers(8)` — Fase 9.
+- `useFeaturedPublications(6)` — Fase 10.
+- `usePublicationCategories()` — Fase 7.
+- `useAuth()` — Fase 1.
+
+**Sin cambios backend.** Todos los endpoints ya existían.
+
+**Pendientes opcionales (no bloquean):**
+- 🟡 La home oficial (`/`) sigue apuntando al `HomeMain` legacy del
+  template. Para hacer `/` también KIOSQUI, basta cambiar
+  `src/app/page.tsx` para que renderice `HomeThreeMain`.
+- 🟡 El hero podría tener una mini-demo del visor 3D cuando la pauta
+  empiece a generar tráfico.
+
+---
+
+### Fase 16 (plan original) — Home Style 3 con datos reales
 
 **Decisión (Aurelio, 2026-05-28):** la home oficial pasa a ser
 `/home-three` (`HomeThreeMain` + `HeroSectionThree` + `ExploreArtsThree`).
