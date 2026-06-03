@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import KiosquiHero from './KiosquiHero';
 import FeaturedShowcase from './FeaturedShowcase';
