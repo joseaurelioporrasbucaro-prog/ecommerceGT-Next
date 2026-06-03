@@ -2445,13 +2445,70 @@ de marca antes del lanzamiento.
 **Pendientes (no bloquean launch):**
 - 🟡 Imagen `/assets/img/og-default.jpg` 1200x630 con branding KIOSQUI
   hay que crearla. Referenciada en metadata pero el archivo no existe
-  → al compartir en redes la preview saldrá vacía.
+  → al compartir RUTAS GENERALES (home, /faq, etc.) la preview saldrá
+  vacía. Las publicaciones individuales ya usan su primera foto como
+  og:image (ver F18.1).
 - 🟡 Endpoint público `/sitemap-data` en backend para incluir
   publicaciones individuales en sitemap.
-- 🟡 Metadata específico en `/publications/[id]` con título y descripción
-  del anuncio (alto valor SEO cuando lleguen shares orgánicos).
-- 🟡 Schema.org JSON-LD para Listing en publicaciones (rich results en
-  Google).
+- ✅ ~~Metadata específico en `/publications/[id]`~~ — entregado en Fase 18.1.
+- ✅ ~~Schema.org JSON-LD para Listing en publicaciones~~ — entregado en Fase 18.1.
+
+---
+
+### Fase 18.1 — SEO de publicaciones individuales (metadata + JSON-LD) ✅
+
+**Entregado 2026-06-02.** Cada `/publications/[id]` ahora emite metadata
+único (título del anuncio, descripción, OG image real) y JSON-LD
+Schema.org para rich results en Google.
+
+**Archivos nuevos:**
+
+1. **`src/utils/publicationSeo.ts`** — helpers de SEO:
+   - `fetchPublicationForSEO(id)`: fetch SSR al endpoint público
+     `/publication/:id` con `next: { revalidate: 300 }` (Next dedupa con
+     el llamado de `generateMetadata` → no doble request).
+   - `absoluteImageUrl(src)`: resuelve relativas con `getBackendUrl` y
+     aplica `getImageVariant(src, 'card')` para usar la variante
+     optimizada en lugar del original.
+   - `PublicationSeoData`: shape acotado y seguro (solo lo que SEO
+     necesita).
+
+2. **`src/components/publications/PublicationJsonLd.tsx`** — server
+   component que emite `<script type="application/ld+json">` con
+   Schema.org Product:
+   - @type Product (mejor cobertura en Google rich results que
+     RealEstateListing a 2026).
+   - name, description, image[], address.
+   - offers: price, priceCurrency, availability (InStock si
+     `price > 0`).
+   - additionalProperty[]: habitaciones, baños, parqueos, m² del
+     terreno.
+   - category: "Casa" / "Apartamento" / "Terreno".
+
+3. **`src/app/publications/[id]/page.tsx`** — modificado:
+   - `generateMetadata({params})` exporta title, description, openGraph
+     (article + images), twitter card y canonical.
+   - El page es ahora `async` y vuelve a llamar `fetchPublicationForSEO`
+     (cache dedupa) para renderizar `<PublicationJsonLd>` server-side.
+   - Fallback: si `fetchPublicationForSEO` devuelve null, metadata
+     genérica + skip del JSON-LD. La página seguirá funcionando.
+
+**Beneficios concretos:**
+- Compartir un anuncio en WhatsApp/Twitter/Facebook → preview con
+  foto del inmueble + título + precio en descripción.
+- Google indexa el título real ("Casa 3 habitaciones en zona 15")
+  en lugar del default "KIOSQUI".
+- Rich results: precio y características aparecen en SERPs si Google
+  los considera relevantes.
+- Cache 5 min en el fetch → bajo costo en backend, frescura suficiente
+  para SEO.
+
+**Pendientes opcionales:**
+- 🟡 Exponer `pubsta_id` en `PublicationSeoData` para que
+  `availability` sea más estricto: 2='InStock', 3='SoldOut',
+  4='Discontinued'. Hoy InStock si tiene precio > 0.
+- 🟡 Si en el futuro tenemos coordenadas en BD, agregar `geo:{...}` al
+  JSON-LD para mejorar local SEO.
 
 ---
 
