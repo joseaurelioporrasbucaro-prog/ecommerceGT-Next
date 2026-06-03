@@ -37,3 +37,13 @@ export function useUnbanUser() {
     onSuccess: () => qc.invalidateQueries({ queryKey: SUPPORT_USERS_KEY }),
   });
 }
+
+/** Fase 8.3.3 — levantar bloqueo por intentos fallidos de contraseña. */
+export function useUnlockPassword() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cusId: number) =>
+      ApiFetch.post<{ message: string }>(`/support/users/${cusId}/unlock-password`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: SUPPORT_USERS_KEY }),
+  });
+}

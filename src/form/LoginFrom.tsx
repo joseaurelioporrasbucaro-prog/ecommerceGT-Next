@@ -22,6 +22,16 @@ const LoginFrom = () => {
   const [appealText, setAppealText] = useState("");
   const [appealEmail, setAppealEmail] = useState("");
   const [appealing, setAppealing] = useState(false);
+  // Fase 8.3.3 — bloqueo por intentos fallidos (passta_id=2): la salida NO
+  // es apelación sino restablecer contraseña. Cuando este flag está en true,
+  // el bloque de bannedMsg muestra un botón "Restablecer contraseña" en
+  // lugar del flujo de apelación.
+  const [forceResetMode, setForceResetMode] = useState(false);
+
+  const goReset = () => {
+    if (setUserForgot && appealEmail) setUserForgot({ email: appealEmail });
+    router.push("/forgot");
+  };
 
   const submitAppeal = async () => {
     if (appealText.trim().length < 10) { toast.error("Explica tu apelación (mín. 10 caracteres)."); return; }
@@ -51,6 +61,7 @@ const LoginFrom = () => {
       onSubmit: async (values, { resetForm }) => {
         setLoading(true);
         setBannedMsg(null);
+        setForceResetMode(false);
         try {
           // 1. Llamada a tu backend en Node.js (Puerto 4000)
           const res = await ApiFetch.post<LoginResponse>("/login", {
@@ -61,26 +72,47 @@ const LoginFrom = () => {
           // 2. Manejo de la respuesta de tu base de datos
           if (res.idpwd === 1) {
             toast.success(res.message || "¡Inicio de sesión exitoso!");
-            await checkAuth(); 
+            await checkAuth();
             resetForm();
-            router.push("/"); 
+            router.push("/");
           } else if (res.idpwd === 5) {
             toast.warning("Debes cambiar tu contraseña temporal");
             // ¡MAGIA! Guardamos tu email en memoria antes de mandarte a /forgot
             if(setUserForgot) setUserForgot({ email: values.email });
-            router.push("/forgot"); 
+            router.push("/forgot");
           }
         } catch (error: any) {
-          // Cuenta sancionada (403 con banned): mostramos motivo + apelación.
-          if (error instanceof ApiError && error.status === 403 && (error.body as any)?.banned) {
-            setBannedMsg(error.message);
-            setAppealEmail(values.email);
-            setAppealText("");
-            setAppealOpen(false);
-          } else {
-            toast.error("Credenciales incorrectas o error de servidor");
-            console.error("Error en login:", error);
+          if (error instanceof ApiError) {
+            const body = (error.body as any) || {};
+            // Fase 8.3.3 — bloqueo por intentos fallidos: o aún dentro de la
+            // ventana de 30 min (passwordLocked) o vencida pero solo se sale
+            // por reset (mustResetPassword). En ambos casos la salida UI es
+            // restablecer contraseña, no apelar.
+            if (error.status === 403 && (body.passwordLocked || body.mustResetPassword)) {
+              setBannedMsg(error.message);
+              setAppealEmail(values.email);
+              setForceResetMode(true);
+              return;
+            }
+            // Fase 8.3.3 — warning en el 4º intento: toast persistente con CTA.
+            if (error.status === 400 && body.nearLockout) {
+              toast.warning(error.message, { autoClose: 8000 });
+              return;
+            }
+            // Cuenta sancionada por soporte (403 con banned): apelación.
+            if (error.status === 403 && body.banned) {
+              setBannedMsg(error.message);
+              setAppealEmail(values.email);
+              setAppealText("");
+              setAppealOpen(false);
+              return;
+            }
+            // Resto de errores de negocio del backend (incl. password incorrecto).
+            toast.error(error.message || "Credenciales incorrectas");
+            return;
           }
+          toast.error("Error inesperado al iniciar sesión");
+          console.error("Error en login:", error);
         } finally {
           setLoading(false);
         }
@@ -91,8 +123,14 @@ const LoginFrom = () => {
     <>
       {bannedMsg && (
         <div className="appeal-box">
-          <p className="appeal-msg"><i className="fas fa-ban" /> {bannedMsg}</p>
-          {!appealOpen ? (
+          <p className="appeal-msg">
+            <i className={forceResetMode ? "fas fa-lock" : "fas fa-ban"} /> {bannedMsg}
+          </p>
+          {forceResetMode ? (
+            <button type="button" className="fill-btn" onClick={goReset}>
+              Restablecer contraseña
+            </button>
+          ) : !appealOpen ? (
             <button type="button" className="appeal-link" onClick={() => setAppealOpen(true)}>
               Apelar esta decisión
             </button>

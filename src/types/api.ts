@@ -235,6 +235,14 @@ export interface SupportUserRow {
   bannedat: string | null;
   banneduntil: string | null;
   imagenu: string | null;
+  // Fase 8.3.3 — bloqueo por intentos fallidos de contraseña (passta_id=2).
+  // Ortogonal a `status`: una cuenta puede estar 'active' Y bloqueada por
+  // contraseña al mismo tiempo. `passwordbanneduntil` es timestamp futuro
+  // mientras dura la ventana de 30 min; pasada esa fecha el bloqueo persiste
+  // pero la única salida es restablecer la contraseña.
+  passtaid: number;
+  failcount: number;
+  passwordbanneduntil: string | null;
 }
 
 /** Fila de solicitud de verificación para el portal de soporte (Fase 8.2). */
