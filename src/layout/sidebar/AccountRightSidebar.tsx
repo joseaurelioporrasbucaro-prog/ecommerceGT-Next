@@ -22,6 +22,28 @@ interface AccountNavItem {
 }
 
 /**
+ * Fase 19.7 — secciones condicionales por rol en el panel de cuenta.
+ *
+ * - `support`/`admin` → ven el grupo "Soporte" (tickets, verificaciones,
+ *   denuncias, usuarios). Es el equivalente sidebar a lo que aparece dentro
+ *   de las rutas /soporte/* en SidebarMenuSection.
+ * - solo `admin` → además ven "Administración" (imágenes del sitio y
+ *   configuración de tarifas). Esto reemplaza tener que tipear /admin/config
+ *   o /admin/imagenes a mano.
+ */
+const SUPPORT_ITEMS: AccountNavItem[] = [
+  { href: '/soporte/tickets-admin', label: 'Tickets de soporte', icon: 'fal fa-headset' },
+  { href: '/soporte/verificaciones', label: 'Verificaciones', icon: 'fal fa-shield-check' },
+  { href: '/soporte/denuncias', label: 'Denuncias', icon: 'fal fa-flag' },
+  { href: '/soporte/usuarios', label: 'Usuarios', icon: 'fal fa-users-cog' },
+];
+
+const ADMIN_ITEMS: AccountNavItem[] = [
+  { href: '/admin/imagenes', label: 'Imágenes del sitio', icon: 'fal fa-images' },
+  { href: '/admin/config', label: 'Configuración', icon: 'fal fa-cogs' },
+];
+
+/**
  * Sidebar derecho fijo para las páginas de cuenta (/favorites, /my-publications, etc.)
  * Reusa las clases `.sidebar-category-filter-wrapper` del scaffold:
  * en pantallas ≥1400px se queda visible permanentemente (right: 0).
@@ -58,13 +80,54 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           { href: '/company/equipo', label: 'Equipo', icon: 'fal fa-users' },
         ]
       : []),
-    { onClick: handleLogout, label: 'Cerrar sesión', icon: 'fal fa-sign-out' },
   ];
+
+  // "Cerrar sesión" va aparte al final para que las secciones de Soporte y
+  // Administración no lo entierren entre opciones de navegación.
+  const logoutItem: AccountNavItem = {
+    onClick: handleLogout,
+    label: 'Cerrar sesión',
+    icon: 'fal fa-sign-out',
+  };
+
+  // Fase 19.7 — flags de visibilidad por rol.
+  const isAdmin = user?.role === 'admin';
+  const isSupport = user?.role === 'support' || isAdmin;
 
   // Foto real del usuario (si está almacenada en backend) o null para fallback con icono.
   const userImageSrc = user?.imagenu && !avatarErrored
     ? (user.imagenu.startsWith('http') ? user.imagenu : getBackendUrl(user.imagenu))
     : null;
+
+  // Renderer compartido para un item de navegación (link o botón).
+  const renderItem = (item: AccountNavItem) => {
+    const isActive = item.href ? pathname?.startsWith(item.href) : false;
+    if (item.onClick) {
+      return (
+        <li key={item.label}>
+          <button
+            type="button"
+            className="account-nav-link is-action"
+            onClick={() => { void item.onClick?.(); }}
+          >
+            <i className={item.icon}></i>
+            <span>{item.label}</span>
+          </button>
+        </li>
+      );
+    }
+    return (
+      <li key={item.label}>
+        <Link
+          href={item.href ?? '#'}
+          className={`account-nav-link ${isActive ? 'is-active' : ''}`}
+        >
+          <i className={item.icon}></i>
+          <span>{item.label}</span>
+        </Link>
+      </li>
+    );
+  };
 
   return (
     <div className="fix">
@@ -120,8 +183,6 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
               <h3 className="filter-widget-title">Mi cuenta</h3>
               <ul className="account-nav-list">
                 {items.map((item) => {
-                  const isActive = item.href ? pathname?.startsWith(item.href) : false;
-
                   if (item.comingSoon) {
                     return (
                       <li key={item.label}>
@@ -133,36 +194,47 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
                       </li>
                     );
                   }
-
-                  if (item.onClick) {
-                    return (
-                      <li key={item.label}>
-                        <button
-                          type="button"
-                          className="account-nav-link is-action"
-                          onClick={() => {
-                            void item.onClick?.();
-                          }}
-                        >
-                          <i className={item.icon}></i>
-                          <span>{item.label}</span>
-                        </button>
-                      </li>
-                    );
-                  }
-
-                  return (
-                    <li key={item.label}>
-                      <Link
-                        href={item.href ?? '#'}
-                        className={`account-nav-link ${isActive ? 'is-active' : ''}`}
-                      >
-                        <i className={item.icon}></i>
-                        <span>{item.label}</span>
-                      </Link>
-                    </li>
-                  );
+                  return renderItem(item);
                 })}
+              </ul>
+            </div>
+          </div>
+
+          {/* Fase 19.7 — sección Soporte (solo support + admin). */}
+          {isSupport && (
+            <div className="filter-widget mb-20">
+              <div className="filter-widget-content">
+                <h3 className="filter-widget-title">
+                  <i className="fal fa-life-ring" style={{ marginRight: 6 }} />
+                  Soporte
+                </h3>
+                <ul className="account-nav-list">
+                  {SUPPORT_ITEMS.map(renderItem)}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Fase 19.7 — sección Administración (solo admin). */}
+          {isAdmin && (
+            <div className="filter-widget mb-20">
+              <div className="filter-widget-content">
+                <h3 className="filter-widget-title">
+                  <i className="fal fa-tools" style={{ marginRight: 6 }} />
+                  Administración
+                </h3>
+                <ul className="account-nav-list">
+                  {ADMIN_ITEMS.map(renderItem)}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Cerrar sesión — siempre al final, separado visualmente. */}
+          <div className="filter-widget">
+            <div className="filter-widget-content">
+              <ul className="account-nav-list">
+                {renderItem(logoutItem)}
               </ul>
             </div>
           </div>
