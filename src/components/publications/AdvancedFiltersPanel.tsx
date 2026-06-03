@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import type { PublicationFilters } from './PublicationsBar';
+import AmenitiesPicker from '@/components/Upload/AmenitiesPicker';
 
 /**
  * Fase 19 — panel colapsable de filtros avanzados.
@@ -26,6 +27,7 @@ const countActive = (f: PublicationFilters): number => {
   if (f.bathsMin && f.bathsMin !== '') n++;
   if (f.sizeMin && f.sizeMin !== '') n++;
   if (f.location && f.location.trim() !== '') n++;
+  if (f.amenityIds && f.amenityIds.length > 0) n += f.amenityIds.length;
   return n;
 };
 
@@ -46,6 +48,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
       bathsMin: '',
       sizeMin: '',
       location: '',
+      amenityIds: [],
     });
   };
 
@@ -128,6 +131,17 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
                 onChange={(e) => update({ location: e.target.value })}
               />
             </div>
+          </div>
+
+          {/* Fase 19.5 — filtro por amenidades. Reusa AmenitiesPicker con
+              estilo de chips. La publicación debe tener TODAS las marcadas
+              (AND), no cualquiera (OR) — es lo intuitivo para el comprador. */}
+          <div className="afp-amenities">
+            <label className="afp-label">Comodidades requeridas (todas):</label>
+            <AmenitiesPicker
+              value={filters.amenityIds || []}
+              onChange={(next) => update({ amenityIds: next })}
+            />
           </div>
 
           {activeCount > 0 && (
@@ -213,6 +227,20 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
         .afp-group input:focus {
           outline: none;
           border-color: var(--clr-theme-1, #2785ff);
+        }
+        .afp-amenities {
+          margin-top: 22px;
+          padding-top: 18px;
+          border-top: 1px dashed var(--clr-common-border, #e0e2e5);
+        }
+        .afp-amenities :global(.amenities-picker) {
+          margin-top: 8px;
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
+        }
+        .afp-amenities :global(.amp-intro) {
+          display: none !important;
         }
         .afp-actions {
           margin-top: 14px;

@@ -18,6 +18,8 @@ export interface PublicationFilters {
   sizeMin?: string;
   /** Texto libre de ubicación (busca en country/city/town concatenados). */
   location?: string;
+  /** Fase 19.5 — IDs de amenidades que la publicación DEBE tener (AND). */
+  amenityIds?: number[];
 }
 
 interface PublicationsBarProps {

@@ -463,6 +463,8 @@ export interface PublicationListItem {
   image: string;
   images: PublicationImage[];
   imagesglb?: PublicationImageGlb[];
+  /** Fase 19.5 — IDs de amenidades para filtrar client-side. */
+  amenities?: number[];
 }
 
 /** Mismo shape que `PublicationListItem` pero con sesión: añade `id_cus` y `isFavorite`. */

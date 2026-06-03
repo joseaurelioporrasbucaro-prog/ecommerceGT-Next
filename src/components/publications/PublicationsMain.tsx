@@ -112,6 +112,7 @@ const PublicationsMain = () => {
     const bathsMin = Number(filters.bathsMin) || 0;
     const sizeMin = Number(filters.sizeMin) || 0;
     const locationQuery = (filters.location || '').trim().toLowerCase();
+    const requiredAmenities = filters.amenityIds || [];
 
     const filtered = publications.filter((publication: AnyPublicationListItem) => {
       // Categoría + búsqueda de texto (existente).
@@ -144,6 +145,19 @@ const PublicationsMain = () => {
         if (!loc.includes(locationQuery)) return false;
       }
 
+      // Fase 19.5 — amenidades: la publicación debe tener TODAS las
+      // amenidades marcadas (AND). Si la publi no expone amenities,
+      // tratamos como [] y solo pasa si requiredAmenities también es vacío.
+      if (requiredAmenities.length > 0) {
+        const pubAmen = Array.isArray(publication.amenities)
+          ? publication.amenities
+          : [];
+        const pubAmenSet = new Set(pubAmen);
+        for (const required of requiredAmenities) {
+          if (!pubAmenSet.has(required)) return false;
+        }
+      }
+
       return true;
     });
     return applySort(filtered, filters.sort);
@@ -157,6 +171,7 @@ const PublicationsMain = () => {
     filters.bathsMin,
     filters.sizeMin,
     filters.location,
+    filters.amenityIds,
     publications,
   ]);
 
