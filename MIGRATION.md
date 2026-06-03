@@ -2808,6 +2808,61 @@ automáticamente.
 
 ---
 
+### Fase 12.1 — Política dual de cierre de cuenta (desactivar + eliminar 30d) ✅
+
+**Objetivo:** dar a los usuarios DOS opciones diferenciadas en lugar del
+borrado lógico instantáneo de Fase 11. Ambas opciones son recuperables
+(la primera siempre, la segunda durante 30 días).
+
+**SQL migration:**
+```sql
+ALTER TABLE ecom.customer
+  ADD COLUMN IF NOT EXISTS cus_deletion_scheduled_at TIMESTAMP NULL;
+```
+
+**Estados nuevos en `cus_account_status`:**
+- `inactive` — desactivación voluntaria, login normal la reactiva.
+- `pending_deletion` — countdown de 30 días, login normal CANCELA y restaura.
+
+**Backend (`connPostgresDB.js`):**
+- `POST /account/deactivate` (auth) — status='inactive'. NO anonimiza
+  nada, NO toca publicaciones ni campañas. Limpia cookie.
+- `POST /account/delete` (auth) — status='pending_deletion' +
+  `cus_deletion_scheduled_at = now() + 30 days`. PAUSA publicaciones
+  (`pubsta_id=5`) y campañas activas. NO anonimiza todavía.
+- **Login modificado** para soportar nuevos estados:
+  - `inactive` → reactiva automáticamente, sigue al flujo normal.
+  - `pending_deletion` + scheduled aún futuro → cancela countdown,
+    restaura `pubsta_id=5` → 2 (publicaciones vuelven a activas).
+  - `pending_deletion` + scheduled vencido → rechaza login (la siguiente
+    request del cleanup la anonimiza).
+- **Cleanup lazy `cleanupExpiredDeletions()`** — corre fire-and-forget en
+  cada login (cualquier usuario), anonimiza cuentas vencidas en batch.
+  Guard `cleanupInFlight` previene ejecuciones paralelas. **No requiere
+  cron job**: se autoejecuta con el tráfico normal.
+
+**Frontend (`DangerZone.tsx`):**
+- Dos cards:
+  - "Desactivar mi cuenta (recuperable)" — botón ámbar `#d97706`.
+  - "Eliminar mi cuenta (30 días de gracia)" — botón rojo `#ef4444`.
+- Cada uno abre su propio modal con consecuencias específicas, checkbox
+  de aceptación y campo de contraseña para confirmar.
+- Hook nuevo `useDeactivateAccount.ts`. `useDeleteAccount.ts` actualizado.
+
+**Política legal en `/privacidad`:**
+- Sección "Derechos sobre tus datos" → Eliminación: ahora describe AMBAS
+  opciones con el período de gracia explícito.
+
+**Motivo del cambio:**
+GT no tiene ley de protección de datos vigente, pero:
+- GDPR aplica extraterritorialmente a usuarios europeos (multa hasta €20M).
+- CCPA / LGPD / LFPDPPP (California / Brasil / México) exigen borrado real.
+- Nuestros propios Términos ya prometen anonimización → obligados.
+- El esquema dual (desactivar vs eliminar) es lo que hace Twitter/X y
+  Facebook → familiar para el usuario.
+
+---
+
 ### Fase 12 — Cumplimiento legal antes de producción ✅ (entregable principal)
 
 **Estado:** Páginas legales + cookie banner + checkbox de consentimiento

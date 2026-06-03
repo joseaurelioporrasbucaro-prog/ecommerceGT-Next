@@ -206,10 +206,24 @@ const sections: LegalSection[] = [
             perfil o pidiéndolo a soporte.
           </li>
           <li>
-            <strong>Eliminación:</strong> borrar tu cuenta desde{' '}
-            <Link href="/creator-profile-info-personal">tu perfil</Link>{' '}
-            (sección "Eliminar cuenta"). Anonimizamos tus datos personales
-            en 30 días salvo lo que la ley nos obligue a retener.
+            <strong>Desactivar cuenta (recuperable):</strong> desde{' '}
+            <Link href="/creator-profile-info-personal">tu perfil</Link>,
+            sección "Zona sensible" → "Desactivar". Tu cuenta queda pausada
+            pero conservamos tus datos intactos. Cuando iniciás sesión
+            nuevamente la cuenta se reactiva automáticamente. Sin límite
+            de tiempo para regresar.
+          </li>
+          <li>
+            <strong>Eliminar cuenta (definitivo):</strong> desde{' '}
+            <Link href="/creator-profile-info-personal">tu perfil</Link>,
+            sección "Zona sensible" → "Eliminar". Inicia un{' '}
+            <strong>período de gracia de 30 días</strong>. Durante ese
+            plazo podés cancelar la eliminación iniciando sesión. Pasados
+            los 30 días anonimizamos tus datos personales (nombre, correo,
+            teléfono, DPI, fotos) de forma definitiva; el registro mínimo
+            necesario para integridad referencial (FKs en mensajes,
+            tickets, transacciones) se conserva pero queda imposible de
+            asociar a vos.
           </li>
           <li>
             <strong>Oposición:</strong> rechazar comunicaciones de marketing
