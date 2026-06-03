@@ -2808,7 +2808,82 @@ automáticamente.
 
 ---
 
-### Fase 12 (pendiente) — Cumplimiento legal antes de producción
+### Fase 12 — Cumplimiento legal antes de producción ✅ (entregable principal)
+
+**Estado:** Páginas legales + cookie banner + checkbox de consentimiento
+**entregados el 2026-06-02** (commit pendiente al final de esta ventana).
+La auditoría legal con abogado guatemalteco **sigue pendiente** antes del
+launch — ver disclaimer abajo.
+
+**Lo entregado:**
+
+1. **`/terminos` — Términos y Condiciones** (`src/app/terminos/page.tsx`)
+   12 secciones cubriendo: aceptación, identidad de KIOSQUI como
+   intermediario tecnológico, cuenta y autenticación, verificación
+   (DPI/NIT/RTU), publicaciones de propiedades, planes y suscripciones,
+   pauta, sanciones (con apelación), propiedad intelectual, limitación
+   de responsabilidad, modificaciones, jurisdicción guatemalteca.
+
+2. **`/privacidad` — Política de Privacidad** (`src/app/privacidad/page.tsx`)
+   11 secciones cubriendo: datos recolectados (cuenta, perfil, sensibles
+   de verificación con AES-256-GCM, publicaciones, pago, técnicos,
+   comunicaciones), usos, compartición (no vendemos), cookies, derechos
+   del usuario (acceso, rectificación, eliminación via Danger Zone del
+   perfil, oposición, portabilidad), retención (4 años por fiscalía),
+   seguridad, menores, cambios, contacto (`privacidad@kiosqui.gt`,
+   `seguridad@kiosqui.gt`).
+
+3. **`/contenido` — Política de Contenido** (`src/app/contenido/page.tsx`)
+   11 secciones cubriendo: contenido permitido vs prohibido (estafas,
+   discriminación, contenido ilegal), requisitos de fotos (sin marcas
+   de agua, sin rostros sin consentimiento), reglas de contacto,
+   manipulación de precio/disponibilidad, suplantación, spam, cómo
+   reportar (link al sistema de denuncias Fase 10.6), sanciones (links
+   cruzados a Fase 8.3), apelaciones (Fase 8.3.1).
+
+4. **Cookie consent banner** (`src/components/legal/CookieConsentBanner.tsx`)
+   Fixed bottom, mounted en el RootLayout (`src/app/layout.tsx`). Guarda
+   aceptación en `localStorage.kiosqui_cookie_consent_v1` (subir sufijo
+   a `_v2` reaparece el banner si cambia la política). Detecta el visor
+   3D fullscreen por URL y se oculta ahí. SSR-safe (no renderiza hasta
+   useEffect).
+
+5. **Checkbox de aceptación en registro** (`src/form/RegisterForm.tsx`)
+   Campo nuevo `acceptTerms: boolean` en el form, validado con Yup
+   (`Yup.boolean().oneOf([true], ...)`). El botón submit queda disabled
+   hasta marcarlo. Los links abren `/terminos` y `/privacidad` en pestaña
+   nueva (`target="_blank"`).
+
+6. **Links en footer** (`src/layout/footer/Footer.tsx`)
+   El widget "Marketplace" del template (placeholders en inglés como
+   "Compare Us", "Career") se reemplazó con widget "Legal" apuntando a
+   las 3 páginas + soporte + FAQ.
+
+7. **Componente compartido** (`src/components/legal/LegalPageMain.tsx`)
+   Wrapper con breadcrumb + fecha última actualización + TOC sticky
+   (≥lg) + estilos consistentes. Las 3 páginas legales lo consumen,
+   evitando duplicar markup y CSS.
+
+**Pendiente (no bloquea launch técnico, pero sí legal):**
+- 🟡 **Auditoría con abogado mercantil/IT guatemalteco** antes del
+  launch. Texto borrador escrito por Claude; un profesional debe
+  validar jurisdicción, cláusulas de limitación de responsabilidad,
+  retención de datos sensibles (DPI/NIT/RTU) y FEL. Costo estimado
+  Q1,500-Q3,000.
+- 🟡 **Registrar `cus_terms_accepted_at` y `cus_terms_version` en BD**
+  cuando el usuario acepta los términos en el registro. Hoy se valida
+  en cliente pero no se persiste con timestamp+versión. Necesario para
+  forzar re-aceptación si cambian los términos. Backend pendiente.
+- 🟡 **Implementar registro de consentimiento de cookies en BD** para
+  usuarios autenticados (hoy solo localStorage del browser).
+- 🟡 **FEL (factura electrónica)** — al integrar pasarela (Fase 11.2).
+- 🟡 **Email legal/DPO real** — `privacidad@kiosqui.gt`, `soporte@kiosqui.gt`,
+  `seguridad@kiosqui.gt` ya están referenciados en las páginas pero los
+  buzones reales hay que crearlos cuando esté el dominio en producción.
+
+---
+
+### Fase 12 (plan original) — Cumplimiento legal antes de producción
 
 **Objetivo:** dejar la plataforma lista legalmente para operar en Guatemala
 antes del lanzamiento público. Recopilación de los puntos discutidos con

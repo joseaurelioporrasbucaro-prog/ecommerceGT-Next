@@ -53,36 +53,29 @@ const Footer = () => {
                 </div>
               </div>
             </div>
+            {/* Fase 12 — widget "Legal" reemplaza al placeholder "Marketplace"
+                del template (que tenía links inventados a /terms, /faq, etc.).
+                Apunta a las páginas de cumplimiento + soporte. */}
             <div className="col-lg-3 col-md-6 col-sm-6">
               <div className="footer-widget footer1-widget footer1-widget2 mb-40">
                 <div className="footer-widget-title">
-                  <h4>Marketplace</h4>
+                  <h4>Legal</h4>
                 </div>
                 <ul>
                   <li>
-                    <Link href="/terms">
-                      Proper Guidelines
-                    </Link>
+                    <Link href="/terminos">Términos y Condiciones</Link>
                   </li>
                   <li>
-                    <Link href="/explore-arts">
-                      Buy Products
-                    </Link>
+                    <Link href="/privacidad">Política de Privacidad</Link>
                   </li>
                   <li>
-                    <Link href="/faq">
-                      Compare Us
-                    </Link>
+                    <Link href="/contenido">Política de Contenido</Link>
                   </li>
                   <li>
-                    <Link href="/faq">
-                      Career
-                    </Link>
+                    <Link href="/soporte/tickets">Soporte</Link>
                   </li>
                   <li>
-                    <Link href="/explore-arts">
-                      Build Ecommerce
-                    </Link>
+                    <Link href="/faq">Preguntas frecuentes</Link>
                   </li>
                 </ul>
               </div>

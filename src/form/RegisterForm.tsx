@@ -21,6 +21,8 @@ interface RegisterFormValues {
   email: string;
   password: string;
   confirmPassword: string;
+  /** Fase 12 — debe ser true para poder enviar el form. */
+  acceptTerms: boolean;
 }
 
 function getSuggestionsFromError(error: unknown): string[] {
@@ -88,6 +90,11 @@ const RegisterForm = () => {
         excludeEmptyString: true,
       })
       .notRequired(),
+    // Fase 12 — gate legal: sin aceptar términos, no se puede registrar.
+    acceptTerms: Yup.boolean().oneOf(
+      [true],
+      "Debes aceptar los Términos y la Política de Privacidad para registrarte.",
+    ),
   });
 
   // 2. Configuración de Formik
@@ -103,6 +110,7 @@ const RegisterForm = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      acceptTerms: false,
     },
     validationSchema: registerSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
@@ -382,14 +390,79 @@ const RegisterForm = () => {
         }
       `}</style>
 
+      {/* Fase 12 — checkbox de aceptación legal (obligatorio). Sin esto
+          no se puede enviar el form: Yup valida acceptTerms === true. */}
+      <div className="legal-accept-row">
+        <label className="legal-accept-label">
+          <input
+            type="checkbox"
+            name="acceptTerms"
+            checked={formik.values.acceptTerms}
+            onChange={(e) =>
+              formik.setFieldValue("acceptTerms", e.target.checked)
+            }
+            onBlur={formik.handleBlur}
+          />
+          <span>
+            He leído y acepto los{" "}
+            <Link href="/terminos" target="_blank" rel="noopener noreferrer">
+              Términos y Condiciones
+            </Link>{" "}
+            y la{" "}
+            <Link href="/privacidad" target="_blank" rel="noopener noreferrer">
+              Política de Privacidad
+            </Link>
+            .
+          </span>
+        </label>
+        {formik.touched.acceptTerms && formik.errors.acceptTerms && (
+          <p className="legal-accept-error">{formik.errors.acceptTerms}</p>
+        )}
+      </div>
+
       <div className="sign-up-btn mt-10">
-        <button className="fill-btn" type="submit" disabled={formik.isSubmitting}>
+        <button
+          className="fill-btn"
+          type="submit"
+          disabled={formik.isSubmitting || !formik.values.acceptTerms}
+        >
           {formik.isSubmitting ? "..." : t("auth.register.submit")}
         </button>
         <div className="note">
           {t("auth.register.haveAccountLink")}
         </div>
       </div>
+
+      <style jsx>{`
+        .legal-accept-row {
+          margin: 18px 0 4px;
+        }
+        .legal-accept-label {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          cursor: pointer;
+          font-size: 13.5px;
+          line-height: 1.5;
+        }
+        .legal-accept-label input[type="checkbox"] {
+          margin-top: 3px;
+          width: 16px;
+          height: 16px;
+          flex-shrink: 0;
+          cursor: pointer;
+        }
+        .legal-accept-label a {
+          color: var(--clr-theme-1, #6c5ce7);
+          font-weight: 600;
+          text-decoration: underline;
+        }
+        .legal-accept-error {
+          margin: 6px 0 0 26px;
+          color: #ef4444;
+          font-size: 12.5px;
+        }
+      `}</style>
     </form>
   );
 };

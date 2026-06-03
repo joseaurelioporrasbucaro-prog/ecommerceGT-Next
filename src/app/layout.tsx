@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 // Importamos tu nuevo AuthProvider
 import { AuthProvider } from "@/utils/AuthContext";
 import QueryProvider from "@/utils/QueryProvider";
+import CookieConsentBanner from "@/components/legal/CookieConsentBanner";
 import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata = {
@@ -46,11 +47,15 @@ export default function RootLayout({
             </AuthProvider>
           </QueryProvider>
         </AppProvider>
-        <ToastContainer 
-          position="bottom-right" 
-          autoClose={3000} 
-          theme="dark" 
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          theme="dark"
         />
+        {/* Fase 12 — banner de cookies. Aparece UNA vez por navegador
+            hasta que el usuario acepte. Se oculta automáticamente en el
+            visor 3D fullscreen (componente lo detecta por URL). */}
+        <CookieConsentBanner />
       </body>
     </html>
   );
