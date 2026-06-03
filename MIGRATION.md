@@ -2397,6 +2397,77 @@ completo. Sin brief, no empezar.
 
 ---
 
+### Fase 19 — Búsqueda avanzada + mapa interactivo ✅
+
+**Entregado 2026-06-03.** Filtros avanzados client-side + mapa Leaflet
+con clustering por municipio. **Sin cambios backend.**
+
+**Componentes nuevos:**
+
+1. **`src/utils/gtMunicipalityCoords.ts`** — diccionario de coordenadas
+   centroides de ~30 municipios principales de Guatemala (capital, Mixco,
+   Villa Nueva, Antigua, Xela, Cobán, Flores, etc.) + 22 departamentos.
+   - `getCoordsFromLocation(country, city, town)` busca por prioridad:
+     municipio → ciudad → fallback al centro de GT (15.5, -90.25).
+   - Normalización: minúsculas, sin tildes, sin prefijos
+     ("ciudad de"/"departamento de") → matches robustos.
+   - `clusterByCoords()` agrupa publicaciones con coords idénticas
+     (mismo municipio) para mostrar un solo pin con badge "N".
+
+2. **`src/components/publications/AdvancedFiltersPanel.tsx`** — panel
+   colapsable con 6 filtros: precio min/max, habitaciones min, baños
+   min, m² min, ubicación texto libre. Badge con contador de filtros
+   activos en el header. Botón "Limpiar N filtros" cuando hay alguno.
+
+3. **`src/components/publications/PropertiesMap.tsx`** — mapa Leaflet
+   con OpenStreetMap tiles (sin API key). Componentes cargados con
+   `dynamic(..., {ssr: false})` para evitar errores de `window` en SSR.
+   Iconos default parcheados con CDN (`unpkg.com/leaflet`). Popup por
+   cluster con: foto de la primera propiedad (variante 'card'), precio
+   con currency, ubicación, botón "Ver propiedad". Si el cluster tiene
+   más de 1, agrega "+ N propiedades más en esta zona".
+
+**Modificaciones:**
+
+- `src/components/publications/PublicationsBar.tsx`: extiendo
+  `PublicationFilters` con `priceMin`, `priceMax`, `roomsMin`,
+  `bathsMin`, `sizeMin`, `location`. Strings vacíos = sin filtro.
+- `src/components/publications/PublicationsMain.tsx`:
+  - Aplica los 6 filtros nuevos en el `useMemo` existente, antes del
+    sort. NaN se ignora (cero / infinity como neutro).
+  - Toggle de vista: Lista / Lista + Mapa (split) / Mapa.
+  - Modo split: grid 1.2fr + 1fr con mapa sticky a la derecha.
+    En ≤991px colapsa a una columna (mapa arriba, lista abajo).
+  - Modo lista: grid 4 columnas (existente).
+  - Modo mapa: solo el mapa, sin destacados ni listado.
+  - `<FeaturedPublicationsSection>` solo se muestra en modo lista.
+
+**Dependencias nuevas (frontend):**
+- `leaflet` ^1.9.4 — librería de mapas (open source, sin API key).
+- `react-leaflet` ^5.0.0 — wrappers React de Leaflet.
+- `@types/leaflet` — types.
+- Instalados con `--legacy-peer-deps` por conflicto menor con la
+  versión de React del template.
+
+**Limitación documentada (entrará en Fase 19.1):**
+- 🟡 Las coordenadas son por centroide de municipio, no exactas por
+  publicación. Precisión ±2-5 km. Funciona para descubrimiento pero
+  no para "buscar la propiedad exacta en el mapa". Solución:
+  - Agregar `pubdet_lat NUMERIC(9,6)` y `pubdet_lng NUMERIC(9,6)` a
+    `publications_detail`.
+  - Al subir/editar publicación, geocoding con Nominatim (free) o
+    input manual de lat/lng por el propietario.
+  - `getCoordsFromLocation()` queda como fallback cuando no hay coords
+    exactas.
+- 🟡 No hay filtro por viewport del mapa (panear el mapa NO refiltra
+  el listado). Hacerlo requeriría `useMap()` de react-leaflet +
+  `onMoveEnd`. Mejora UX significativa para Fase 19.2.
+- 🟡 Filtros aplican sobre el array completo en cliente. Con 1000+
+  publicaciones podría ralentizar; cuando llegue a esa escala mover
+  filtros a server-side (`/publications?priceMin=...&priceMax=...`).
+
+---
+
 ### Fase 18 — Launch polish (SEO + FAQ + 404 + sitemap) ✅
 
 **Entregado 2026-06-02.** Mejoras pequeñas-medianas para SEO y experiencia

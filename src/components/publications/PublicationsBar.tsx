@@ -9,6 +9,15 @@ export interface PublicationFilters {
   search: string;
   category: string;
   sort: SortOption;
+  // Fase 19 — filtros avanzados client-side. Strings vacíos = sin filtro;
+  // al parsear se convierten a Number (NaN = ignorar).
+  priceMin?: string;
+  priceMax?: string;
+  roomsMin?: string;
+  bathsMin?: string;
+  sizeMin?: string;
+  /** Texto libre de ubicación (busca en country/city/town concatenados). */
+  location?: string;
 }
 
 interface PublicationsBarProps {
