@@ -61,24 +61,25 @@
 }
 
 [data-theme='dark'] {
-  /* Dark theme (2026-06-02): cambiamos el body a verde de marca
-     (#0f4c4c) con texto crema (#f6f0e6) — antes era ink (#1f2933).
-     - Para que los cards/headers se distingan del body verde, definimos
-       surfaces "raised" (un verde un toque más claro #146565) y "sunken"
-       (un verde un toque más oscuro #0a3e3e para inputs). */
+  /* Dark theme (2026-06-02 v2): probamos azul-negro KIOSQUI como body
+     (#1f2933 ink) con texto crema (#f6f0e6). El verde de marca queda
+     reservado para identidad (logo, links, brand bar) — el ink hace
+     mejor contraste con la crema y se siente más "noche" sin perder
+     paleta. Si tampoco convence, basta cambiar las 3 líneas de
+     --clr-bg-* aquí abajo para volver al verde, sin tocar nada más. */
   --brand-on-primary: #f6f0e6;
-  --brand-on-cream: #f6f0e6;             /* texto principal en dark = crema */
+  --brand-on-cream: #f6f0e6;                  /* texto principal en dark = crema */
 
-  --clr-theme-1: var(--brand-primary);
-  --clr-common-heading: var(--brand-cream);  /* títulos en crema */
-  --clr-common-body-text: #d4cdbf;            /* texto secundario = crema apagada */
-  --clr-common-border: #1d6363;               /* borde verde más claro */
-  --clr-bg-bodylight: var(--brand-primary);  /* BODY = verde KIOSQUI */
-  --clr-bg-bodydark: var(--brand-primary);
-  --clr-bg-dark: var(--brand-primary);
-  --clr-bg-gray: #0a3e3e;                     /* surface sunken */
-  --clr-bg-footer: #0a3e3e;
-  --clr-bg-white: #146565;                    /* surface raised (cards) */
+  --clr-theme-1: var(--brand-primary);        /* verde queda para links/identidad */
+  --clr-common-heading: var(--brand-cream);   /* títulos en crema */
+  --clr-common-body-text: #c5cdd5;            /* texto secundario = gris-azul claro */
+  --clr-common-border: #2a3340;               /* borde gris-azul más claro que el body */
+  --clr-bg-bodylight: var(--brand-ink);       /* BODY = ink (#1f2933) */
+  --clr-bg-bodydark: var(--brand-ink);
+  --clr-bg-dark: var(--brand-ink);
+  --clr-bg-gray: #161e26;                     /* surface "sunken" (inputs) */
+  --clr-bg-footer: #161e26;
+  --clr-bg-white: #28323d;                    /* surface "raised" (cards, headers) */
 }
 
 /* ───── Body background — FIX del bug "no veo cambio de fondo" ─────
@@ -211,29 +212,33 @@ a:hover {
 }
 
 /* ───── Overrides puntuales del dark — colores azulados hardcoded
-   del template que NO usan vars y rompen la coherencia con verde ─────
+   del template que NO usan vars y rompen la coherencia con ink ─────
    El template tiene en _body-color.scss un montón de #0c1423 / #1c2434 /
    #181f2d / #111826 / #262e3e que estaban pensados para el azul-noche
-   original. Ahora que el body en dark es verde KIOSQUI, los redirigimos
-   al "raised" verde (#146565) para que se distingan del body sin perder
-   coherencia de marca. */
+   original — muy similares al ink KIOSQUI pero ligeramente distintos en
+   tono. Los redirigimos a las vars de superficie (raised/sunken) para
+   que TODO el dark use exactamente la misma familia de grises-azules.
+
+   Como los overrides apuntan a --clr-bg-white y --clr-bg-gray, basta
+   con cambiar esas vars en el bloque [data-theme='dark'] de arriba
+   para repalntear todo el esquema (verde, otro tono, etc.). */
 [data-theme='dark'] .sticky,
 [data-theme='dark'] .header-main2,
 [data-theme='dark'] .header-main2-content,
 [data-theme='dark'] .menu2-side-bar,
 [data-theme='dark'] .menu2-mobile-menu.mean-container .mean-nav ul li a.mean-expand {
-  background: var(--clr-bg-white) !important;   /* = #146565 en dark */
+  background: var(--clr-bg-white) !important;   /* raised — #28323d en dark */
 }
 
 [data-theme='dark'] .menu2-sidebar-widget .work-process-single,
 [data-theme='dark'] .subscribe-form input,
 [data-theme='dark'] .header-main2-content .filter-search-input.header-search input,
 [data-theme='dark'] .common-select-arrow.common-select-arrow-40.white-bg {
-  /* inputs/sunken sobre body verde — un escalón más oscuro */
-  background: var(--clr-bg-gray) !important;    /* = #0a3e3e en dark */
+  /* inputs/sunken — un escalón más oscuro que el body */
+  background: var(--clr-bg-gray) !important;    /* sunken — #161e26 en dark */
 }
 
 [data-theme='dark'] .social__links ul li a {
-  background: var(--clr-bg-bodylight) !important; /* = verde primary */
+  background: var(--clr-bg-bodylight) !important; /* = body bg */
   border-color: var(--clr-common-border) !important;
 }
