@@ -272,23 +272,28 @@ const PublicationsMain = () => {
                 <PropertiesMap publications={filteredAndSorted} />
               )}
 
-              {/* Modo SPLIT: 60/40 lista a la izquierda, mapa sticky a la
-                  derecha. En móvil el split se colapsa a una columna y el
-                  mapa queda arriba más bajo para que se pueda hacer scroll
-                  de la lista debajo. */}
+              {/* Modo SPLIT: lista a la izquierda, mapa sticky a la derecha.
+                  En móvil el split se colapsa a una columna (mapa arriba,
+                  lista abajo).
+
+                  Nota: PublicationCard ya envuelve internamente con
+                  col-xl-4 col-lg-6 col-md-6. Para que NO se aniden las
+                  columnas y las cards ocupen el ancho completo de la
+                  columna izquierda, NO los envolvemos en otro col-*; el
+                  CSS del split-view-list anula los col-* internos vía
+                  :global y los fuerza a width:100%. */}
               {viewMode === 'split' && (
                 <div className="split-view">
                   <div className="split-view-list">
-                    <div className="row wow fadeInUp">
+                    <div className="row wow fadeInUp split-view-cards">
                       {visiblePublications.length > 0 ? (
                         visiblePublications.map((publication, index) => (
-                          <div key={publication.id} className="col-md-6 col-12">
-                            <PublicationCard
-                              publication={publication}
-                              isNew={filters.sort === 'recent' && index === 0}
-                              isFeatured={false}
-                            />
-                          </div>
+                          <PublicationCard
+                            key={publication.id}
+                            publication={publication}
+                            isNew={filters.sort === 'recent' && index === 0}
+                            isFeatured={false}
+                          />
                         ))
                       ) : (
                         <div className="col-12">
@@ -406,11 +411,24 @@ const PublicationsMain = () => {
           gap: 18px;
           margin-bottom: 30px;
         }
+        .split-view-list {
+          min-width: 0;
+        }
         .split-view-map {
           position: sticky;
           top: 100px;
           align-self: start;
         }
+        /* Anulamos las col-xl-4/col-lg-6/col-md-6 que PublicationCard
+           pone internamente — en el split, cada card debe ocupar el
+           100% de la columna izquierda (no se aniden cols). Selector
+           :global porque las clases las pinta el componente hijo. */
+        .split-view-cards :global(> [class*="col-"]) {
+          flex: 0 0 100%;
+          max-width: 100%;
+        }
+        /* El template usa .art-item-single con margin-bottom 30px;
+           lo dejamos para separar cards verticalmente. */
         @media (max-width: 991px) {
           /* En tablet/móvil colapsamos a una columna: mapa arriba,
              listado abajo. Aquí el mapa NO es sticky porque ocupa demasiado. */
