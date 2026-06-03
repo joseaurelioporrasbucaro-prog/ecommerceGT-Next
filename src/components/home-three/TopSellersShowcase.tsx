@@ -87,10 +87,16 @@ const TopSellersShowcase: React.FC = () => {
 
       <style jsx>{`
         .kts-section { padding: 70px 0; }
+        /* Fix 2026-06-02: mismo tratamiento que CategoriesShowcase — limitamos
+           el ancho del grid y lo centramos para que las cards no se estiren
+           desproporcionadamente cuando hay pocos sellers. */
         .kts-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
           gap: 18px;
+          justify-content: center;
+          max-width: 1100px;
+          margin: 0 auto;
         }
         .kts-card {
           display: flex;

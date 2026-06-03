@@ -89,10 +89,16 @@ const CategoriesShowcase: React.FC = () => {
           padding: 70px 0;
           background: var(--clr-bg-gray, #f9f9f9);
         }
+        /* Fix 2026-06-02: con auto-fit el grid se estiraba a ancho completo
+           y cada card podía verse desproporcionadamente larga. Constrain el
+           ancho máximo y centramos el bloque, manteniendo el responsive. */
         .kcs-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
           gap: 22px;
+          justify-content: center;
+          max-width: 1100px;
+          margin: 0 auto;
         }
         .kcs-card {
           display: block;

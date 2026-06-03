@@ -34,7 +34,7 @@ const HomeCTA: React.FC = () => {
             <div className="hcta-actions">
               {isLoggedIn ? (
                 <>
-                  <Link href="/upload" className="fill-btn hcta-primary">
+                  <Link href="/upload" className="hcta-primary">
                     <i className="fas fa-plus" /> Publicar propiedad
                   </Link>
                   <Link href="/my-publications" className="hcta-secondary">
@@ -43,7 +43,7 @@ const HomeCTA: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Link href="/register" className="fill-btn hcta-primary">
+                  <Link href="/register" className="hcta-primary">
                     Crear cuenta gratis
                   </Link>
                   <Link href="/pricing-plan" className="hcta-secondary">
@@ -85,18 +85,23 @@ const HomeCTA: React.FC = () => {
           flex: 1;
           min-width: 0;
         }
-        .hcta-card h2 {
+        .hcta-card :global(h2) {
           margin: 0 0 12px;
           font-size: clamp(24px, 3.5vw, 34px);
           font-weight: 800;
           line-height: 1.2;
-          color: #fff;
+          color: #fff !important;
         }
-        .hcta-card p {
+        /* Fix 2026-06-02: el texto del párrafo se veía oscuro porque el
+           template define `body { color: var(--clr-common-body-text) }` (gris
+           oscuro) y eso ganaba sobre la herencia del card. Forzamos crema/
+           blanco con !important para que destaque sobre el gradiente azul. */
+        .hcta-card :global(p) {
           margin: 0 0 24px;
           font-size: 16px;
-          opacity: 0.92;
+          color: rgba(255, 255, 255, 0.95) !important;
           max-width: 580px;
+          line-height: 1.55;
         }
         .hcta-actions {
           display: flex;
@@ -104,28 +109,42 @@ const HomeCTA: React.FC = () => {
           flex-wrap: wrap;
           align-items: center;
         }
-        .hcta-primary {
-          height: 50px !important;
-          line-height: 50px !important;
-          padding: 0 28px !important;
-          font-size: 15px !important;
-          background: #fff !important;
-          color: var(--clr-theme-1, #2785ff) !important;
+        /* Botón ya NO usa .fill-btn — lo construimos desde cero acá para que
+           el gradiente azul→morado del template no se cuele. Selector con
+           :global porque .hcta-primary lo aplica un componente <Link> de
+           Next.js, y styled-jsx no scope-a elementos hijos directamente. */
+        .hcta-card :global(.hcta-primary) {
+          display: inline-flex;
+          align-items: center;
+          height: 50px;
+          padding: 0 28px;
+          border-radius: 5px;
+          background: #fff;
+          color: var(--clr-theme-1, #2785ff);
+          font-size: 15px;
           font-weight: 700;
-          background-image: none !important;
+          text-decoration: none;
+          transition: transform 0.15s, box-shadow 0.15s;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
         }
-        .hcta-primary :global(i) {
+        .hcta-card :global(.hcta-primary):hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+          color: var(--clr-theme-1, #2785ff);
+        }
+        .hcta-card :global(.hcta-primary i) {
           margin-right: 7px;
         }
-        .hcta-secondary {
+        .hcta-card :global(.hcta-secondary) {
           font-size: 14px;
           font-weight: 600;
-          color: #fff;
+          color: #fff !important;
           text-decoration: underline;
           padding: 12px 4px;
         }
-        .hcta-secondary:hover {
+        .hcta-card :global(.hcta-secondary):hover {
           opacity: 0.85;
+          color: #fff !important;
         }
         .hcta-decor {
           flex-shrink: 0;
