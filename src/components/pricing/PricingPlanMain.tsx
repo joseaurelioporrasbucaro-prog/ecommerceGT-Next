@@ -34,6 +34,7 @@ const PricingPlanMain = () => {
   );
 
   const currentSubId = mySubQuery.data?.subId;
+  const busId = user?.busId;
 
   const handleChoose = (plan: Plan) => {
     if (!user) return;
@@ -89,56 +90,114 @@ const PricingPlanMain = () => {
           <div className="row pp-grid">
             {visiblePlans.map((plan) => {
               const isCurrent = plan.id === currentSubId;
+              const isPersonalized = plan.personalized;
+              const isBusId = plan.busid === busId;
+
+              if (isPersonalized && !isBusId) {
+                return null;
+              }
+
               const isBusiness = plan.userLimit > 1;
               return (
                 <div className="col-xl-3 col-lg-4 col-md-6" key={plan.id}>
-                  <div className={`pp-card ${isCurrent ? 'is-current' : ''}`}>
-                    {isCurrent && <span className="pp-badge">Tu plan</span>}
-                    <h3 className="pp-name">{plan.description}</h3>
-                    <div className="pp-price">
-                      <span className="pp-amount">{fmtPrice(plan.price)}</span>
-                      {plan.price > 0 && (
-                        <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
+                  {isPersonalized && isBusId ? (
+                    <div className={`pp-card border border-warning border-4 ${isCurrent ? 'is-current' : ''}`}>
+                      {isCurrent && <span className="pp-badge">Tu plan</span>}
+                      <h3 className="pp-name">{plan.description}</h3>
+                      <div className="pp-price">
+                        <span className="pp-amount">{fmtPrice(plan.price)}</span>
+                        {plan.price > 0 && (
+                          <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
+                        )}
+                      </div>
+                      {plan.msg && <p className="pp-msg">{plan.msg}</p>}
+
+                      <ul className="pp-features">
+                        <li>
+                          <i className="fal fa-check" />{' '}
+                          {plan.userLimit} {plan.userLimit === 1 ? 'usuario' : 'usuarios'}
+                        </li>
+                        <li>
+                          <i className="fal fa-check" />{' '}
+                          {plan.pubPerUser} publicaciones por usuario
+                        </li>
+                        <li>
+                          <i className="fal fa-check" />{' '}
+                          {isBusiness ? 'Cuenta de empresa' : 'Cuenta individual'}
+                        </li>
+                      </ul>
+
+                      {!user ? (
+                        <Link href="/login?from=/pricing-plan" className="pp-btn">
+                          Inicia sesión para elegir
+                        </Link>
+                      ) : isCurrent ? (
+                        <button type="button" className="pp-btn pp-btn-current" disabled>
+                          Plan actual
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="pp-btn"
+                          onClick={() => handleChoose(plan)}
+                          disabled={changeSub.isPending}
+                        >
+                          {changeSub.isPending && changeSub.variables === plan.id
+                            ? 'Cambiando…'
+                            : 'Elegir plan'}
+                        </button>
                       )}
                     </div>
-                    {plan.msg && <p className="pp-msg">{plan.msg}</p>}
+                  ) : (
+                    <div className={`pp-card ${isCurrent ? 'is-current' : ''}`}>
+                      {isCurrent && <span className="pp-badge">Tu plan</span>}
+                      <h3 className="pp-name">{plan.description}</h3>
+                      <div className="pp-price">
+                        <span className="pp-amount">{fmtPrice(plan.price)}</span>
+                        {plan.price > 0 && (
+                          <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
+                        )}
+                      </div>
+                      {plan.msg && <p className="pp-msg">{plan.msg}</p>}
 
-                    <ul className="pp-features">
-                      <li>
-                        <i className="fal fa-check" />{' '}
-                        {plan.userLimit} {plan.userLimit === 1 ? 'usuario' : 'usuarios'}
-                      </li>
-                      <li>
-                        <i className="fal fa-check" />{' '}
-                        {plan.pubPerUser} publicaciones por usuario
-                      </li>
-                      <li>
-                        <i className="fal fa-check" />{' '}
-                        {isBusiness ? 'Cuenta de empresa' : 'Cuenta individual'}
-                      </li>
-                    </ul>
+                      <ul className="pp-features">
+                        <li>
+                          <i className="fal fa-check" />{' '}
+                          {plan.userLimit} {plan.userLimit === 1 ? 'usuario' : 'usuarios'}
+                        </li>
+                        <li>
+                          <i className="fal fa-check" />{' '}
+                          {plan.pubPerUser} publicaciones por usuario
+                        </li>
+                        <li>
+                          <i className="fal fa-check" />{' '}
+                          {isBusiness ? 'Cuenta de empresa' : 'Cuenta individual'}
+                        </li>
+                      </ul>
 
-                    {!user ? (
-                      <Link href="/login?from=/pricing-plan" className="pp-btn">
-                        Inicia sesión para elegir
-                      </Link>
-                    ) : isCurrent ? (
-                      <button type="button" className="pp-btn pp-btn-current" disabled>
-                        Plan actual
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="pp-btn"
-                        onClick={() => handleChoose(plan)}
-                        disabled={changeSub.isPending}
-                      >
-                        {changeSub.isPending && changeSub.variables === plan.id
-                          ? 'Cambiando…'
-                          : 'Elegir plan'}
-                      </button>
-                    )}
-                  </div>
+                      {!user ? (
+                        <Link href="/login?from=/pricing-plan" className="pp-btn">
+                          Inicia sesión para elegir
+                        </Link>
+                      ) : isCurrent ? (
+                        <button type="button" className="pp-btn pp-btn-current" disabled>
+                          Plan actual
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="pp-btn"
+                          onClick={() => handleChoose(plan)}
+                          disabled={changeSub.isPending}
+                        >
+                          {changeSub.isPending && changeSub.variables === plan.id
+                            ? 'Cambiando…'
+                            : 'Elegir plan'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                 </div>
               );
             })}

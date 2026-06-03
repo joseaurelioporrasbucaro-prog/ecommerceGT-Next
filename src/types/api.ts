@@ -57,6 +57,7 @@ export interface AuthUser {
   // Fase 8.1 — verificación de identidad
   verified: boolean;
   verificationStatus: VerificationStatus;
+  busId: string;
   // Fase 8.2 — rol de plataforma (user | support | admin)
   role: PlatformRole;
 }
@@ -1042,6 +1043,8 @@ export interface Plan {
   price: number;
   userLimit: number;
   pubPerUser: number;
+  personalized: boolean,
+  busid: string
 }
 
 /** Fila cruda de `POST /getplans` (alias del backend). */
@@ -1053,6 +1056,8 @@ export interface PlanRow {
   price: number | string;
   users: number;
   pubperuser: number;
+  personalized: boolean;
+  busid: string;
 }
 
 /** Suscripción actual del usuario — `POST /my-subscription`. */

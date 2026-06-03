@@ -27,6 +27,8 @@ function normalizePlan(row: PlanRow): Plan {
     price: toNum(row.price),
     userLimit: toNum(row.users),
     pubPerUser: toNum(row.pubperuser),
+    personalized: row.personalized,
+    busid: row.busid
   };
 }
 
