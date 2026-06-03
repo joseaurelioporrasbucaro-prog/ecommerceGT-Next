@@ -2397,6 +2397,64 @@ completo. Sin brief, no empezar.
 
 ---
 
+### Fase 18 — Launch polish (SEO + FAQ + 404 + sitemap) ✅
+
+**Entregado 2026-06-02.** Mejoras pequeñas-medianas para SEO y experiencia
+de marca antes del lanzamiento.
+
+**1. Home oficial reapuntada (cierre Fase 16):**
+- `src/app/page.tsx` ahora renderiza `HomeThreeMain` (la versión KIOSQUI
+  con 6 secciones dinámicas). El `HomeMain` legacy del template sigue
+  accesible en `/home-two` para QA o comparativa.
+
+**2. `/faq` con contenido real:**
+- `src/components/faq/FAQMain.tsx` reescrito completamente.
+- 6 categorías: Cuenta, Verificación, Publicar propiedades, Planes y
+  pauta, Eliminar/desactivar cuenta, Soporte y denuncias.
+- ~22 Q&A en acordeón (una abierta a la vez) con respuestas que
+  cross-linkean a /terminos, /privacidad, /soporte/tickets, etc.
+
+**3. `/404` mejorado:**
+- `src/components/error-page/ErrorMain.tsx` traducido + copy reescrito.
+- 2 CTAs primarios: "Volver al inicio" + "Buscar propiedades".
+- Chips de rescate SEO: Casas / Apartamentos / Terrenos. Reduce bounce
+  cuando el usuario llega por link viejo.
+
+**4. Metadata + OpenGraph en RootLayout:**
+- `src/app/layout.tsx` exporta `metadata: Metadata` con:
+  - `metadataBase: new URL(NEXT_PUBLIC_SITE_URL || 'https://kiosqui.gt')`
+  - Title template `%s | KIOSQUI`.
+  - Description, keywords (bienes raíces GT).
+  - OpenGraph: type, locale es_GT, og:image 1200x630.
+  - Twitter Card summary_large_image.
+- `lang="en"` → `lang="es"` en `<html>`.
+
+**5. `/sitemap.xml` dinámico:**
+- Nuevo `src/app/sitemap.ts` que Next sirve automáticamente.
+- Por ahora estático con rutas públicas. Las publicaciones individuales
+  pendientes (requiere endpoint backend `/sitemap-data` público con
+  `[{id, updatedAt}]`).
+
+**6. `/robots.txt`:**
+- Nuevo `src/app/robots.ts` que Next sirve automáticamente.
+- Allow: rutas públicas. Disallow: `/soporte/*`, `/admin/*`, `/messages`,
+  `/favorites`, `/my-publications`, `/creator-profile-info*`, `/verify`,
+  `/forgot`, `/invite`, `/api/`.
+- Apunta al sitemap.
+
+**Pendientes (no bloquean launch):**
+- 🟡 Imagen `/assets/img/og-default.jpg` 1200x630 con branding KIOSQUI
+  hay que crearla. Referenciada en metadata pero el archivo no existe
+  → al compartir en redes la preview saldrá vacía.
+- 🟡 Endpoint público `/sitemap-data` en backend para incluir
+  publicaciones individuales en sitemap.
+- 🟡 Metadata específico en `/publications/[id]` con título y descripción
+  del anuncio (alto valor SEO cuando lleguen shares orgánicos).
+- 🟡 Schema.org JSON-LD para Listing en publicaciones (rich results en
+  Google).
+
+---
+
 ### Fase 16 — Home Style 3 con datos reales ✅
 
 **Entregado 2026-06-02.** `/home-three` ahora monta 6 secciones de marketplace
