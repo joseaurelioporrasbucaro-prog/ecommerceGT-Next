@@ -2352,6 +2352,51 @@ mensaje correcto.
 
 ---
 
+### Fase 17 (pendiente) — Aplicar paleta de marca KIOSQUI
+
+**Estado:** Diferida tras un experimento que no convenció (commit `0748da4`
+revierte todo).
+
+**Decisión (Aurelio, 2026-06-02):** la prueba aplicó la paleta KIOSQUI
+(`#0f4c4c` verde, `#f6f0e6` crema, `#d97941` naranja, `#caf492` lima,
+`#1f2933` ink) directamente sobre el theme del template. Ninguna de las
+dos variantes de dark probadas (verde como body y ink+crema) terminó de
+verse bien — el sitio quedó "limpio pero plano", sin la identidad que
+debería tener una marca cálida y artesanal como KIOSQUI.
+
+**Por qué se diferió y no se siguió iterando:**
+- La paleta sola no basta. Falta tipografía, ilustración, ornamentos,
+  jerarquía de elevation — todo lo que hace que una marca se "sienta".
+- Necesitamos un brief de diseño con mockups por pantalla antes de
+  volver a tocar CSS.
+
+**Brief mínimo recomendado para retomar:**
+1. Mockups de 3 pantallas clave en dark Y light (home, listing, detalle).
+2. Decisión sobre el dark: ink azul-negro o algo más diferenciado.
+3. Sistema de elevation (cuántos escalones, qué colores en cada theme).
+4. Inventario de componentes donde entra la paleta más allá de body+botones
+   (cards, badges, banners, dividers).
+5. Decisión sobre tipografía propia o seguir con Urbanist del template.
+
+**Aprendizaje completo del experimento:**
+[`docs/PENDING_PHASE_BRAND_KIOSQUI.md`](docs/PENDING_PHASE_BRAND_KIOSQUI.md)
+documenta TODO lo descubierto durante la prueba (5 días de trabajo):
+- Arquitectura del archivo `brand-kiosqui.scss` (single source of truth).
+- **3 gotchas críticos del template** que la próxima iteración debe evitar:
+  - SCSS reordena `@import 'foo.css'` al inicio del bundle → usar `.scss`.
+  - El template no setea `background-color` en `<body>` directamente.
+  - El template usa `background-image: linear-gradient(...)` en `.fill-btn`
+    que se pinta encima del `background-color`.
+- Lista exhaustiva de selectores hardcoded con colores azul-noche en dark
+  que el template definió sin usar vars (17 selectores en `_body-color.scss`).
+- Mapeo de selectores donde se renderizan precios, botones, cards de auth.
+- Inventario de los 38 archivos con fallbacks heredados de etapas previas.
+
+**Tamaño estimado al retomar:** 2-3 ventanas si el brief de diseño llega
+completo. Sin brief, no empezar.
+
+---
+
 ### Fase 16 (pendiente) — Home Style 3 con datos reales
 
 **Decisión (Aurelio, 2026-05-28):** la home oficial pasa a ser
