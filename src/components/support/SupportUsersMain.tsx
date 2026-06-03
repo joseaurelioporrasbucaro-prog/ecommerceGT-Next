@@ -5,7 +5,7 @@ import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
-import { useSupportUsers, useBanUser, useUnbanUser } from '@/hooks/api/useSupportUsers';
+import { useSupportUsers, useBanUser, useUnbanUser, useUnlockPassword } from '@/hooks/api/useSupportUsers';
 import Pagination from './Pagination';
 import type { SupportUserRow, AccountStatus } from '@/types/api';
 
@@ -26,6 +26,7 @@ const SupportUsersMain = () => {
   const { data, isLoading } = useSupportUsers(search, statusFilter);
   const banUser = useBanUser();
   const unbanUser = useUnbanUser();
+  const unlockPassword = useUnlockPassword();
 
   // Modal de sanción.
   const [banTarget, setBanTarget] = useState<SupportUserRow | null>(null);
@@ -63,6 +64,12 @@ const SupportUsersMain = () => {
     unbanUser.mutate(u.cus_id, {
       onSuccess: (r) => toast.success(r.message || 'Reactivado.'),
       onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo reactivar'),
+    });
+
+  const unlockPwd = (u: SupportUserRow) =>
+    unlockPassword.mutate(u.cus_id, {
+      onSuccess: (r) => toast.success(r.message || 'Contraseña desbloqueada.'),
+      onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo desbloquear'),
     });
 
   const rows = data ?? [];
@@ -114,6 +121,11 @@ const SupportUsersMain = () => {
                       {paged.map((u) => {
                         const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || 'Usuario';
                         const isStaff = u.role === 'support' || u.role === 'admin';
+                        // Fase 8.3.3 — bloqueo por intentos fallidos (passta_id=2).
+                        // Ortogonal a `status`: puede coexistir con 'active'.
+                        const pwLocked = u.passtaid === 2;
+                        const pwBannedUntil = u.passwordbanneduntil ? new Date(u.passwordbanneduntil) : null;
+                        const pwInWindow = pwBannedUntil && pwBannedUntil > new Date();
                         return (
                           <tr key={u.cus_id}>
                             <td>
@@ -131,19 +143,38 @@ const SupportUsersMain = () => {
                               {u.status === 'suspended' && u.banneduntil && (
                                 <div className="su-until">hasta {new Date(u.banneduntil).toLocaleDateString('es-GT')}</div>
                               )}
+                              {pwLocked && (
+                                <>
+                                  <span className="su-chip su-chip-pwlocked" title={`Intentos fallidos: ${u.failcount}`}>
+                                    <i className="fas fa-lock" /> Bloqueo por contraseña
+                                  </span>
+                                  <div className="su-until">
+                                    {pwInWindow
+                                      ? `Espera hasta ${pwBannedUntil!.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })}`
+                                      : 'Requiere restablecer contraseña'}
+                                  </div>
+                                </>
+                              )}
                             </td>
                             <td>
-                              {isStaff ? (
-                                <span className="su-muted">—</span>
-                              ) : u.status === 'active' ? (
-                                <button className="su-btn su-ban" onClick={() => openBan(u)} disabled={banUser.isPending}>
-                                  <i className="fas fa-ban" /> Sancionar
-                                </button>
-                              ) : (
-                                <button className="su-btn su-unban" onClick={() => reactivate(u)} disabled={unbanUser.isPending}>
-                                  <i className="fas fa-undo" /> Reactivar
-                                </button>
-                              )}
+                              <div className="su-actions">
+                                {isStaff ? (
+                                  <span className="su-muted">—</span>
+                                ) : u.status === 'active' ? (
+                                  <button className="su-btn su-ban" onClick={() => openBan(u)} disabled={banUser.isPending}>
+                                    <i className="fas fa-ban" /> Sancionar
+                                  </button>
+                                ) : (
+                                  <button className="su-btn su-unban" onClick={() => reactivate(u)} disabled={unbanUser.isPending}>
+                                    <i className="fas fa-undo" /> Reactivar
+                                  </button>
+                                )}
+                                {pwLocked && !isStaff && (
+                                  <button className="su-btn su-unlock" onClick={() => unlockPwd(u)} disabled={unlockPassword.isPending}>
+                                    <i className="fas fa-key" /> Desbloquear contraseña
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -224,10 +255,13 @@ const SupportUsersMain = () => {
         .su-chip-active { background: rgba(34,197,94,0.15); color: #16a34a; }
         .su-chip-suspended { background: rgba(245,158,11,0.18); color: #b8860b; }
         .su-chip-banned { background: rgba(239,68,68,0.16); color: #dc2626; }
+        .su-chip-pwlocked { background: rgba(245,158,11,0.18); color: #b8860b; margin-left: 6px; display: inline-flex; align-items: center; gap: 5px; }
+        .su-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .su-btn { border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
         .su-btn:disabled { opacity: 0.6; cursor: default; }
         .su-ban { background: rgba(239,68,68,0.12); color: #dc2626; }
         .su-unban { background: rgba(34,197,94,0.12); color: #16a34a; }
+        .su-unlock { background: rgba(245,158,11,0.15); color: #b8860b; }
         .su-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
         .su-modal { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 24px; width: 100%; max-width: 460px; }
         .su-modal h5 { margin: 0 0 4px; }
