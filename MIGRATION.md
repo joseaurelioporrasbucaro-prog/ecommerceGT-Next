@@ -2808,6 +2808,81 @@ automáticamente.
 
 ---
 
+### Fase 12.2 — Audit log con hashes para detección de reincidentes ✅
+
+**Objetivo:** que cuentas eliminadas (Fase 12.1) o baneadas (Fase 8.3)
+dejen un rastro irreversible útil para detectar fraude cuando el mismo
+usuario intente volver con datos distintos. **Sin guardar PII en claro.**
+
+**SQL — tabla nueva `ecom.customer_audit_log`:**
+```sql
+CREATE TABLE ecom.customer_audit_log (
+    audit_id      BIGSERIAL PRIMARY KEY,
+    cus_id        BIGINT NOT NULL REFERENCES ecom.customer(cus_id),
+    email_hash    VARCHAR(64),  -- SHA-256 hex
+    dpi_hash      VARCHAR(64),
+    phone_hash    VARCHAR(64),
+    audit_reason  VARCHAR(40) NOT NULL, -- user_deletion | sanction_ban |
+                                        -- sanction_suspend | fraud_detected
+    reason_detail TEXT,
+    fraud_flag    BOOLEAN NOT NULL DEFAULT false,
+    created_at    TIMESTAMP NOT NULL DEFAULT now()
+);
+-- Índices parciales solo para filas con valor (sparse).
+CREATE INDEX idx_audit_email_hash ON ecom.customer_audit_log(email_hash) WHERE email_hash IS NOT NULL;
+CREATE INDEX idx_audit_dpi_hash   ON ecom.customer_audit_log(dpi_hash)   WHERE dpi_hash IS NOT NULL;
+CREATE INDEX idx_audit_phone_hash ON ecom.customer_audit_log(phone_hash) WHERE phone_hash IS NOT NULL;
+CREATE INDEX idx_audit_fraud_flag ON ecom.customer_audit_log(fraud_flag) WHERE fraud_flag = true;
+```
+
+**Backend (`connPostgresDB.js`):**
+- `sha256Hex(value)` helper — normaliza con `String(v).trim().toLowerCase()`
+  y devuelve SHA-256 hex (64 chars). Determinístico sin sal — esa es la
+  intención: que el mismo DPI siempre dé el mismo hash.
+- `writeAuditLog(client, cusId, reason, opts)` helper — INSERT con hashes
+  computados. Acepta pg.Pool o client de transacción. Fire-and-forget: si
+  el insert falla, loguea pero no propaga.
+- **Cableo en `cleanupExpiredDeletions`** — lee email/phone + desencripta
+  DPI ANTES de anonimizar, escribe audit log con `reason='user_deletion'`
+  (sin fraud_flag).
+- **Cableo en `supportBanUser`** — escribe audit log con
+  `reason='sanction_ban'` y `fraud_flag=true` cuando es baneo permanente.
+  Suspensión temporal escribe `reason='sanction_suspend'` SIN fraud_flag
+  (no es razón para vetar registro futuro).
+- **Check de reincidencia en `register`** — antes de crear el customer,
+  hashea el email y consulta el audit log. Si hay match con
+  `fraud_flag=true`, devuelve **403** con mensaje genérico ("No es
+  posible crear una cuenta con estos datos") — NO revelamos que estaba
+  baneado (eso ayudaría al atacante a aprender qué tenemos). El check
+  falla-silencioso si la query rompe: preferimos permitir registro a
+  romper la página.
+
+**Política legal (`/privacidad`):**
+- Sección 7 "Retención" → nueva subsección 7.1 "Registro de auditoría
+  (prevención de fraude)" declara la base legal de "interés legítimo",
+  qué se conserva (hashes irreversibles), por cuánto tiempo
+  (indefinido) y para qué (bloquear reingreso de baneados).
+
+**Por qué hashes y no encriptación:**
+- Determinístico sin clave secreta → comparable contra nuevos registros.
+- Irreversible → si nos hackean la tabla, no obtienen emails/DPIs.
+- Base legal sólida en GDPR Art. 6(1)(f) "interés legítimo" y mejor que
+  retener PII en claro indefinidamente.
+
+**Limitaciones conocidas:**
+- 🟡 El check en `register` solo verifica email — DPI y phone se piden
+  DESPUÉS (en verificación de identidad). Si el atacante usa email nuevo
+  + DPI viejo, lo detectamos hasta que envíe verificación. Documentar en
+  `submitVerificationRequest` que también puede consultar audit log.
+- 🟡 No hay panel de soporte para ver/manipular audit log entries
+  (e.g., marcar manualmente `fraud_flag` a una cuenta sospechosa antes
+  de que se elimine, o whitelist un email falso positivo). Fase futura.
+- 🟡 Si `CRYPTO_SECRET` rota en el futuro, los DPI encriptados de
+  cuentas pending_deletion fallarán al desencriptar — el cleanup
+  guarda el audit log SIN dpi_hash en ese caso (deja el campo en null).
+
+---
+
 ### Fase 12.1 — Política dual de cierre de cuenta (desactivar + eliminar 30d) ✅
 
 **Objetivo:** dar a los usuarios DOS opciones diferenciadas en lugar del

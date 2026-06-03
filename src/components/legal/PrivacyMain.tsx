@@ -264,6 +264,29 @@ const sections: LegalSection[] = [
           (nombre, correo, foto) mientras se preservan datos agregados
           necesarios para la integridad del sistema.
         </p>
+
+        <h4>7.1 Registro de auditoría (prevención de fraude)</h4>
+        <p>
+          Como base legal de <strong>interés legítimo en la prevención
+          de fraude</strong>, mantenemos un registro de auditoría que
+          conserva, de manera <strong>indefinida</strong>, hashes
+          criptográficos irreversibles (SHA-256) de los siguientes
+          identificadores de cuentas eliminadas o sancionadas:
+        </p>
+        <ul>
+          <li>Hash del correo electrónico utilizado.</li>
+          <li>Hash del DPI / documento de identidad (si fue verificado).</li>
+          <li>Hash del número de teléfono (si lo proporcionaste).</li>
+          <li>Motivo de la baja y fecha en que ocurrió.</li>
+        </ul>
+        <p>
+          Estos hashes <strong>no son datos personales legibles</strong> —
+          no se pueden revertir al valor original. Sirven exclusivamente
+          para detectar cuando un usuario previamente baneado por fraude
+          intenta volver con datos distintos, en cuyo caso bloqueamos el
+          nuevo registro. No los compartimos con terceros y no los
+          utilizamos para perfilado ni marketing.
+        </p>
       </>
     ),
   },
