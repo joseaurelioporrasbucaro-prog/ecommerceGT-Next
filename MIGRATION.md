@@ -3266,7 +3266,95 @@ Aurelio el 2026-05-27.
 
 ---
 
-### Fase 11 (pendiente) — Método de pago en el perfil del usuario
+### Fase 11 — Método de pago en el perfil del usuario ✅ (stub)
+
+**Entregado 2026-06-03.** UI completa + endpoints backend + tabla SQL para
+guardar métodos de pago del usuario. Es un **STUB de pasarela** — no
+procesa cobros reales. Cuando llegue Fase 11.2 (Recurrente / NeoNet /
+Stripe) el form del frontend cambia para usar el SDK del proveedor, y
+el backend NO requiere cambios (sigue recibiendo el mismo payload con
+token + last4).
+
+**SQL — tabla nueva `ecom.customer_payment_methods`:**
+```sql
+CREATE TABLE ecom.customer_payment_methods (
+    pm_id              BIGSERIAL PRIMARY KEY,
+    cus_id             BIGINT REFERENCES customer,
+    pm_type            VARCHAR(20),  -- 'card' | 'transfer' | 'wallet'
+    pm_label           VARCHAR(80),
+    -- card
+    pm_brand           VARCHAR(30),
+    pm_last4           VARCHAR(4),
+    pm_exp_month       INT,
+    pm_exp_year        INT,
+    pm_holder_name     VARCHAR(100),
+    -- transfer
+    pm_bank_name       VARCHAR(80),
+    pm_account_type    VARCHAR(20),  -- 'ahorro' | 'monetario'
+    -- wallet
+    pm_wallet_handle   VARCHAR(100),
+    -- común
+    pm_provider_token  TEXT,         -- opaco; Stripe/Recurrente lo emiten
+    pm_provider        VARCHAR(20),  -- 'stripe' | 'recurrente' | 'manual'
+    pm_is_default      BOOLEAN DEFAULT false,
+    pm_active          BOOLEAN DEFAULT true,
+    pm_created_at      TIMESTAMP,
+    pm_updated_at      TIMESTAMP
+);
+CREATE UNIQUE INDEX idx_pm_one_default_per_user
+  ON ecom.customer_payment_methods(cus_id)
+  WHERE pm_is_default = true AND pm_active = true;
+```
+
+**Backend (`connPostgresDB.js`):**
+- `GET /payment-methods` — lista métodos activos, default primero.
+- `POST /payment-methods` — agrega; valida por tipo (card → marca + last4
+  numérico + exp válido + holder; transfer → banco + accountType en
+  whitelist; wallet → walletHandle). Si `makeDefault=true`, baja el
+  default actual antes de subir el nuevo (transacción).
+- `DELETE /payment-methods/:id` — soft delete (`pm_active=false`). Si era
+  default, NO promueve otro automáticamente (decisión: evitar cambiar a
+  cuál método se cobrará por sorpresa).
+- `POST /payment-methods/:id/default` — transacción 2 pasos para respetar
+  el UNIQUE parcial: baja el default actual + sube el nuevo.
+
+**Frontend:**
+- `src/hooks/api/usePaymentMethods.ts` — 4 hooks (list, add, remove,
+  setDefault) con invalidación correcta.
+- `src/components/Creator-Profile-info/PaymentMethodsTab.tsx` — UI con:
+  - Listado de métodos activos: card con icono de marca (Visa/Mastercard
+    con colores oficiales), label, detalle (•••• 1234 vence MM/YY), badge
+    de "Predeterminado", botones para marcar default + eliminar.
+  - Modal de agregar: selector de tipo (3 chips) + form dinámico según
+    tipo. Para card pide número completo + CVV (placeholder) pero solo
+    envía últimos 4 dígitos + token mock — NUNCA viaja el número completo
+    al backend.
+- `CreatorProfileInfoMain.tsx` — nuevo tab 3 "Métodos de pago" en el
+  sidebar.
+
+**Seguridad PCI (importante):**
+- Hoy el form pide número completo y CVV solo en cliente para mockear el
+  flow. **El backend NUNCA recibe estos datos.** Solo last4 + token mock.
+- En producción, este form se reemplaza por el iframe/widget del proveedor
+  de pagos. Eso es PCI-compliant porque el dato sensible nunca toca tu
+  servidor.
+- `pm_provider_token` está dimensionado TEXT para aceptar tokens largos
+  de cualquier proveedor.
+
+**Pendientes (entrarán en Fase 11.2):**
+- 🟡 Integrar SDK real de pasarela (Recurrente, NeoNet, Stripe — depende
+  de qué procesador adoptemos).
+- 🟡 Validar tarjeta contra el proveedor antes de guardar (3DS,
+  pre-autorización, etc.).
+- 🟡 Webhook del proveedor para casos como tarjeta vencida, dispute,
+  refund, etc.
+- 🟡 Endpoint `/payment-methods/:id/charge` para que createCampaign,
+  changeSubscription, etc. cobren contra el método elegido.
+- 🟡 Email/notificación al usuario al agregar/eliminar método.
+
+---
+
+### Fase 11 (plan original) — Método de pago en el perfil del usuario
 
 **Objetivo:** habilitar el campo "Método de pago" dentro de
 `creator-profile-info-personal` (sección de Configuraciones) para que el

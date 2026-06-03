@@ -17,6 +17,7 @@ import ImageCropperModal from '@/components/common/ImageCropperModal';
 import PersonalInfoTab from './PersonalInfoTab';
 import AccountSettingsTab from './AccountSettingsTab';
 import VerifyAccountTab from './VerifyAccountTab';
+import PaymentMethodsTab from './PaymentMethodsTab';
 
 type CropTarget = 'avatar' | 'cover';
 
@@ -169,6 +170,12 @@ const CreatorProfileInfoMain = () => {
                                             </Link>
                                         </li>
                                         <li><Link href="#"><i className="flaticon-notification"></i>Notification Settings</Link></li>
+                                        {/* Fase 11 — Métodos de pago */}
+                                        <li className={activeTab === 3 ? "active" : ""}>
+                                            <Link href="#" onClick={(e) => { e.preventDefault(); setActiveTab(3); }}>
+                                                <i className="flaticon-photo-camera"></i>Métodos de pago
+                                            </Link>
+                                        </li>
                                         <li><Link href="/soporte/tickets"><i className="flaticon-account"></i>Mis tickets</Link></li>
                                         <li><Link href="/pauta"><i className="flaticon-photo-camera"></i>Promocionar (Pauta)</Link></li>
                                         <li className={activeTab === 2 ? "active" : ""}>
@@ -211,6 +218,7 @@ const CreatorProfileInfoMain = () => {
                                 {activeTab === 0 && <PersonalInfoTab />}
                                 {activeTab === 1 && <AccountSettingsTab />}
                                 {activeTab === 2 && <VerifyAccountTab />}
+                                {activeTab === 3 && <PaymentMethodsTab />}
                             </div>
                         </div>
                     </div>
