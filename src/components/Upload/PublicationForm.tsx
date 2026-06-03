@@ -758,24 +758,24 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           border-left: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
         }
         :global(.upload-form .currency-toggle-btn.is-active) {
-          background: var(--clr-theme-1, #0f4c4c);
+          background: var(--clr-theme-1, #6c5ce7);
           color: #fff;
         }
         :global(.upload-form .currency-toggle-btn:hover:not(.is-active)) {
-          background: rgba(15, 76, 76, 0.08);
+          background: rgba(108, 92, 231, 0.08);
         }
         /* Upgrade card cuando el usuario está en plan free — sustituye al
            dropzone GLB y explica la limitación con un CTA a /pricing-plan. */
         :global(.upload-form .glb-upgrade-card) {
-          border: 1.5px dashed rgba(15, 76, 76, 0.45);
-          background: rgba(15, 76, 76, 0.06);
+          border: 1.5px dashed rgba(108, 92, 231, 0.45);
+          background: rgba(108, 92, 231, 0.06);
           border-radius: 12px;
           padding: 22px 18px;
           text-align: center;
         }
         :global(.upload-form .glb-upgrade-icon) {
           font-size: 32px;
-          color: var(--clr-theme-1, #0f4c4c);
+          color: var(--clr-theme-1, #6c5ce7);
           margin-bottom: 6px;
         }
         :global(.upload-form .glb-upgrade-title) {

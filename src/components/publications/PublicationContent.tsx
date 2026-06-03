@@ -225,7 +225,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           height: 64px !important;
           border-radius: 50%;
           object-fit: cover;
-          border: 3px solid rgba(15, 76, 76, 0.3);
+          border: 3px solid rgba(108, 92, 231, 0.3);
         }
         .seller-verified {
           position: absolute;
@@ -250,7 +250,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         }
         .seller-handle {
           font-size: 14px;
-          color: var(--tp-theme-1, #0f4c4c);
+          color: var(--tp-theme-1, #6c5ce7);
         }
 
         /* Separador neutral: visible en light y dark mode */
@@ -309,7 +309,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           font-size: 26px;
           font-weight: 700;
         }
-        .meta-price { color: var(--tp-theme-1, #0f4c4c); }
+        .meta-price { color: var(--tp-theme-1, #6c5ce7); }
         .meta-state { color: #2ed573; }
         .meta-sublabel {
           font-size: 12px;
@@ -356,18 +356,18 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         }
         /* Primary: filled con color tema, border del mismo color */
         .action-row :global(.action-btn-primary) {
-          background: var(--tp-theme-1, #0f4c4c) !important;
-          border-color: var(--tp-theme-1, #0f4c4c) !important;
+          background: var(--tp-theme-1, #6c5ce7) !important;
+          border-color: var(--tp-theme-1, #6c5ce7) !important;
           color: #fff !important;
         }
         .action-row :global(.action-btn-primary:hover) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 18px rgba(15, 76, 76, 0.35);
+          box-shadow: 0 8px 18px rgba(108, 92, 231, 0.35);
         }
         /* Secondary: solo border gris neutro */
         .action-row :global(.action-btn-secondary:hover) {
-          border-color: var(--tp-theme-1, #0f4c4c);
-          color: var(--tp-theme-1, #0f4c4c);
+          border-color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .action-row :global(.action-btn-secondary.is-favorite) {
           border-color: #ff4757;

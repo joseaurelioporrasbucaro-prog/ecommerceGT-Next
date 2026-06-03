@@ -207,19 +207,19 @@ const SupportUsersMain = () => {
         .su-search { flex: 1; min-width: 240px; padding: 11px 16px; border: 1px solid rgba(128,128,128,0.3); border-radius: 24px; }
         .su-filter { display: flex; gap: 8px; flex-wrap: wrap; }
         .su-tab { padding: 8px 16px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; font-size: 13px; }
-        .su-tab.active { background: var(--clr-theme-1, #0f4c4c); color: #fff; border-color: transparent; }
+        .su-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
         .su-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
         .su-table { width: 100%; border-collapse: collapse; min-width: 720px; background: var(--clr-bg-white, #fff); }
         .su-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
         .su-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: middle; font-size: 14px; }
-        .su-table tbody tr:hover { background: rgba(15,76,76,0.04); }
+        .su-table tbody tr:hover { background: rgba(108,92,231,0.04); }
         .su-table tbody tr:last-child td { border-bottom: none; }
         .su-name { font-weight: 600; }
         .su-handle { font-size: 13px; color: #3b82f6; }
         .su-email { opacity: 0.8; }
         .su-muted { opacity: 0.4; }
         .su-role { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 14px; text-transform: capitalize; background: rgba(128,128,128,0.15); }
-        .su-role-support, .su-role-admin { background: rgba(15,76,76,0.16); color: #0f4c4c; }
+        .su-role-support, .su-role-admin { background: rgba(108,92,231,0.16); color: #6c5ce7; }
         .su-chip { font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 20px; }
         .su-chip-active { background: rgba(34,197,94,0.15); color: #16a34a; }
         .su-chip-suspended { background: rgba(245,158,11,0.18); color: #b8860b; }
@@ -234,11 +234,11 @@ const SupportUsersMain = () => {
         .su-modal-sub { opacity: 0.7; font-size: 14px; margin: 0 0 14px; }
         .su-radio-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
         .su-radio-row label { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .su-radio-row label.active { border-color: var(--clr-theme-1, #0f4c4c); background: rgba(15,76,76,0.06); }
+        .su-radio-row label.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
         .su-days { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
         .su-days label { font-size: 14px; font-weight: 600; }
         .su-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
-        .su-day.active { background: var(--clr-theme-1, #0f4c4c); color: #fff; border-color: transparent; }
+        .su-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
         .su-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
         .su-until { font-size: 11px; opacity: 0.6; margin-top: 4px; }
         .su-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }

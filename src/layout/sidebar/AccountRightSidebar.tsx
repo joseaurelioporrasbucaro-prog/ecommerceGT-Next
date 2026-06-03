@@ -179,8 +179,8 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
         }
         .account-right-sidebar :global(.account-user-card) {
           padding: 18px 14px;
-          background: rgba(15, 76, 76, 0.08);
-          border: 1px solid rgba(15, 76, 76, 0.2);
+          background: rgba(108, 92, 231, 0.08);
+          border: 1px solid rgba(108, 92, 231, 0.2);
           border-radius: 12px;
           text-align: center;
         }
@@ -188,8 +188,8 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           width: 64px;
           height: 64px;
           border-radius: 50%;
-          background: rgba(15, 76, 76, 0.18);
-          color: var(--tp-theme-1, #0f4c4c);
+          background: rgba(108, 92, 231, 0.18);
+          color: var(--tp-theme-1, #6c5ce7);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -209,7 +209,7 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
         }
         .account-right-sidebar :global(.account-user-handle) {
           font-size: 13px;
-          color: var(--tp-theme-1, #0f4c4c);
+          color: var(--tp-theme-1, #6c5ce7);
           margin-top: 2px;
         }
         .account-right-sidebar :global(.account-nav-list) {
@@ -246,11 +246,11 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           flex: 1;
         }
         .account-right-sidebar :global(.account-nav-link:hover:not(.is-coming-soon)) {
-          background: rgba(15, 76, 76, 0.1);
-          color: var(--tp-theme-1, #0f4c4c);
+          background: rgba(108, 92, 231, 0.1);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .account-right-sidebar :global(.account-nav-link.is-active) {
-          background: var(--tp-theme-1, #0f4c4c);
+          background: var(--tp-theme-1, #6c5ce7);
           color: #fff !important;
         }
         .account-right-sidebar :global(.account-nav-link.is-coming-soon) {

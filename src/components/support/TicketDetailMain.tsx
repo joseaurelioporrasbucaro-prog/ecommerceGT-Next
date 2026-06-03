@@ -116,7 +116,7 @@ const TicketDetailMain = ({ id }: { id: string }) => {
       </section>
 
       <style jsx>{`
-        .td-back { display: inline-block; margin-bottom: 16px; color: var(--clr-theme-1, #0f4c4c); text-decoration: none; }
+        .td-back { display: inline-block; margin-bottom: 16px; color: var(--clr-theme-1, #6c5ce7); text-decoration: none; }
         .td-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 22px; flex-wrap: wrap; }
         .td-subject { margin: 0 0 8px; }
         .td-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
@@ -131,17 +131,17 @@ const TicketDetailMain = ({ id }: { id: string }) => {
         .td-controls select { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.3); }
         .td-thread { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
         .td-msg { border: 1px solid rgba(128,128,128,0.2); border-radius: 12px; padding: 14px 16px; background: var(--clr-bg-white, #fff); }
-        .td-msg.is-staff { border-color: rgba(15,76,76,0.3); background: rgba(15,76,76,0.04); }
+        .td-msg.is-staff { border-color: rgba(108,92,231,0.3); background: rgba(108,92,231,0.04); }
         .td-msg.is-internal { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
         .td-msg-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; }
-        .td-badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 12px; background: rgba(15,76,76,0.16); color: #0f4c4c; }
+        .td-badge { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 12px; background: rgba(108,92,231,0.16); color: #6c5ce7; }
         .td-internal { background: rgba(245,158,11,0.2); color: #b8860b; }
         .td-time { margin-left: auto; opacity: 0.5; }
         .td-body { margin: 0; white-space: pre-wrap; }
         .td-reply textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 10px; padding: 12px; resize: vertical; }
         .td-reply-actions { display: flex; align-items: center; gap: 16px; margin-top: 10px; justify-content: flex-end; }
         .td-internal-toggle { font-size: 13px; display: flex; align-items: center; gap: 7px; margin-right: auto; }
-        .td-send { background: var(--clr-theme-1, #0f4c4c); color: #fff; border: none; padding: 10px 24px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+        .td-send { background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 10px 24px; border-radius: 24px; font-weight: 600; cursor: pointer; }
         .td-send:disabled { opacity: 0.6; cursor: default; }
         .td-closed { opacity: 0.6; }
       `}</style>

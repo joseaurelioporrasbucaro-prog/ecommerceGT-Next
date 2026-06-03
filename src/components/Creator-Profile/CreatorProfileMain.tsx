@@ -379,7 +379,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           margin: -100px 0 20px;
           border-radius: 50%;
           overflow: hidden;
-          background: linear-gradient(135deg, #0f4c4c, #4f8cff);
+          background: linear-gradient(135deg, #6c5ce7, #4f8cff);
         }
         .creator-about :global(.profile-img img) {
           width: 100%;
@@ -397,7 +397,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           font-size: 80px;
           font-weight: 700;
           color: #fff;
-          background: linear-gradient(135deg, #0f4c4c, #a29bfe);
+          background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           border-radius: 50%;
         }
         /* ── Nombre centrado + check-circle azul inline ── */
@@ -492,8 +492,8 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         }
         .creator-info-bar :global(.follow-artist.is-following) {
           background-image: none;
-          background-color: rgba(15, 76, 76, 0.12);
-          color: var(--tp-theme-1, #0f4c4c);
+          background-color: rgba(108, 92, 231, 0.12);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         /* Al seguir, el "+" de la plantilla pasa a un check. Usamos el carácter
            Unicode literal '✓' (no un escape \\fXXX de FontAwesome): cualquier
@@ -503,7 +503,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         .creator-info-bar :global(.follow-artist.is-following::before) {
           content: '✓';
           font-family: inherit;
-          color: var(--tp-theme-1, #0f4c4c);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .creator-info-bar :global(.follow-artist:disabled) {
           opacity: 0.6;
@@ -524,8 +524,8 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           transition: all 0.2s;
         }
         .creator-info-bar :global(.creator-share-btn:hover) {
-          border-color: var(--tp-theme-1, #0f4c4c);
-          color: var(--tp-theme-1, #0f4c4c);
+          border-color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .profile-empty {
           padding: 50px 20px;
@@ -536,7 +536,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           font-size: 36px;
           display: block;
           margin-bottom: 14px;
-          color: var(--tp-theme-1, #0f4c4c);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         .reviews-summary {
           display: flex;
@@ -580,7 +580,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
           width: 38px;
           height: 38px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #0f4c4c, #a29bfe);
+          background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           color: #fff;
           display: flex;
           align-items: center;

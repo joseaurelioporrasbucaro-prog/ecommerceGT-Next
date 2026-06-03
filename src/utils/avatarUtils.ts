@@ -10,7 +10,7 @@
  */
 
 const PALETTE = [
-  '#0f4c4c', // theme-1 morado
+  '#6c5ce7', // theme-1 morado
   '#0984e3', // azul
   '#00b894', // verde
   '#fdcb6e', // amarillo

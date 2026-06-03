@@ -165,7 +165,7 @@ const MentionTextarea = ({
           max-height: 260px;
           overflow-y: auto;
           background: var(--clr-bg-white, #fff);
-          border: 1px solid rgba(15, 76, 76, 0.3);
+          border: 1px solid rgba(108, 92, 231, 0.3);
           border-radius: 10px;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
         }
@@ -189,7 +189,7 @@ const MentionTextarea = ({
         }
         .mention-option.active,
         .mention-option:hover {
-          background: rgba(15, 76, 76, 0.12);
+          background: rgba(108, 92, 231, 0.12);
         }
         .mention-name {
           font-weight: 600;
@@ -197,7 +197,7 @@ const MentionTextarea = ({
         }
         .mention-handle {
           font-size: 13px;
-          color: var(--tp-theme-1, #0f4c4c);
+          color: var(--tp-theme-1, #6c5ce7);
         }
       `}</style>
     </div>

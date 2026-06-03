@@ -161,8 +161,8 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           transition: background 0.15s;
         }
         :global(.info-action-btn:hover) {
-          background: rgba(15, 76, 76, 0.15);
-          color: var(--clr-theme-1, #0f4c4c);
+          background: rgba(108, 92, 231, 0.15);
+          color: var(--clr-theme-1, #6c5ce7);
         }
         :global(.info-action-btn span) {
           font-size: 9px;
@@ -213,8 +213,8 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           transition: background 0.15s;
         }
         :global(.info-link:hover) {
-          background: rgba(15, 76, 76, 0.08);
-          color: var(--clr-theme-1, #0f4c4c);
+          background: rgba(108, 92, 231, 0.08);
+          color: var(--clr-theme-1, #6c5ce7);
         }
         :global(.info-link i) {
           width: 28px;

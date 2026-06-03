@@ -189,12 +189,12 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
 
         .action-row :global(.action-btn-primary:hover) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 18px rgba(15, 76, 76, 0.35);
+          box-shadow: 0 8px 18px rgba(108, 92, 231, 0.35);
         }
         /* Secondary: solo border gris neutro */
         .action-row :global(.action-btn-secondary:hover) {
-          border-color: var(--tp-theme-1, #0f4c4c);
-          color: var(--tp-theme-1, #0f4c4c);
+          border-color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #6c5ce7);
         }
         /* Acciones en mobile: ocupan todo el ancho */
         @media (max-width: 480px) {

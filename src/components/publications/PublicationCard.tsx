@@ -399,14 +399,14 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
           .publication-card :global(.publication-price-block .art-price) {
             font-size: 18px;
             font-weight: 700;
-            color: var(--tp-theme-1, #0f4c4c);
+            color: var(--tp-theme-1, #6c5ce7);
           }
           .publication-card :global(.publication-view-btn) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 9px 18px;
-            background: var(--tp-theme-1, #0f4c4c);
+            background: var(--tp-theme-1, #6c5ce7);
             color: #fff !important;
             border-radius: 8px;
             font-size: 13px;
@@ -417,7 +417,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
           }
           .publication-card :global(.publication-view-btn:hover) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(15, 76, 76, 0.3);
+            box-shadow: 0 6px 16px rgba(108, 92, 231, 0.3);
           }
           /* Fase 10.4: variante dorada para CTAs de campañas de mensajes. */
           .publication-card :global(.publication-view-btn-gold) {
@@ -457,8 +457,8 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            background: rgba(15, 76, 76, 0.15);
-            color: var(--tp-theme-1, #0f4c4c);
+            background: rgba(108, 92, 231, 0.15);
+            color: var(--tp-theme-1, #6c5ce7);
             font-size: 16px;
             flex-shrink: 0;
           }

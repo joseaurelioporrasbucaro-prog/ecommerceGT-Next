@@ -167,7 +167,7 @@ const AdminImagesMain: React.FC = () => {
       </section>
 
       <style jsx>{`
-        .ai-intro { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; background: rgba(15,76,76,0.04); }
+        .ai-intro { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; background: rgba(108,92,231,0.04); }
         .ai-intro h5 { display: flex; align-items: center; gap: 9px; margin: 0 0 6px; }
         .ai-intro p { margin: 0; font-size: 14px; opacity: 0.85; }
         .ai-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
@@ -181,7 +181,7 @@ const AdminImagesMain: React.FC = () => {
         .ai-dims { font-size: 12px; opacity: 0.65; }
         .ai-meta { font-size: 11px; opacity: 0.55; margin-top: 2px; }
         .ai-actions { display: flex; }
-        .ai-btn { flex: 1; background: var(--clr-theme-1, #0f4c4c); color: #fff; border: none; padding: 9px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+        .ai-btn { flex: 1; background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 9px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
         .ai-btn:hover:not(:disabled) { opacity: 0.92; }
         .ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>

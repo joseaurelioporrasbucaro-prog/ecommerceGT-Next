@@ -127,8 +127,8 @@ const NotificationBell: React.FC = () => {
           transition: background 0.15s, color 0.15s;
         }
         .notif-bell-btn:hover {
-          background: rgba(15, 76, 76, 0.15);
-          color: var(--clr-theme-1, #0f4c4c);
+          background: rgba(108, 92, 231, 0.15);
+          color: var(--clr-theme-1, #6c5ce7);
         }
         .notif-bell-badge {
           position: absolute;
@@ -173,7 +173,7 @@ const NotificationBell: React.FC = () => {
         .notif-mark-all {
           border: none;
           background: transparent;
-          color: var(--clr-theme-1, #0f4c4c);
+          color: var(--clr-theme-1, #6c5ce7);
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
@@ -181,7 +181,7 @@ const NotificationBell: React.FC = () => {
           border-radius: 6px;
         }
         .notif-mark-all:hover {
-          background: rgba(15, 76, 76, 0.1);
+          background: rgba(108, 92, 231, 0.1);
         }
         .notif-mark-all:disabled {
           opacity: 0.5;
@@ -216,13 +216,13 @@ const NotificationBell: React.FC = () => {
         .notif-dropdown-foot :global(a) {
           display: block;
           padding: 12px;
-          color: var(--clr-theme-1, #0f4c4c);
+          color: var(--clr-theme-1, #6c5ce7);
           font-size: 13px;
           font-weight: 700;
           text-decoration: none;
         }
         .notif-dropdown-foot :global(a:hover) {
-          background: rgba(15, 76, 76, 0.06);
+          background: rgba(108, 92, 231, 0.06);
         }
       `}</style>
     </div>

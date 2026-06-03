@@ -39,7 +39,7 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
       snippet,
       href: notif.pub_id ? `/publications/${notif.pub_id}` : '/activity',
       icon: 'fa-at',
-      iconColor: '#0f4c4c',
+      iconColor: '#6c5ce7',
     }),
     reply: () => ({
       text: `${name} respondió a tu comentario`,
@@ -160,7 +160,7 @@ export function getNotificationContent(notif: AppNotification): NotificationCont
         snippet: null,
         href: typeof ticketId === 'number' ? `/soporte/tickets/${ticketId}` : '/soporte/tickets',
         icon: 'fa-comment-dots',
-        iconColor: '#0f4c4c',
+        iconColor: '#6c5ce7',
       };
     },
     ticket_assigned: () => {

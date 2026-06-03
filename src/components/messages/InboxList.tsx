@@ -154,7 +154,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           opacity: 0.5;
         }
         .inbox-search:focus {
-          background: rgba(15, 76, 76, 0.08);
+          background: rgba(108, 92, 231, 0.08);
         }
 
         /* Tabs */
@@ -179,7 +179,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           transition: background 0.15s, color 0.15s;
         }
         .inbox-tab.is-active {
-          background: var(--clr-theme-1, #0f4c4c);
+          background: var(--clr-theme-1, #6c5ce7);
           color: #fff;
         }
         .tab-badge {
@@ -283,10 +283,10 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           transition: background 0.15s;
         }
         :global(.inbox-row:hover) {
-          background: rgba(15, 76, 76, 0.05);
+          background: rgba(108, 92, 231, 0.05);
         }
         :global(.inbox-row.is-active) {
-          background: rgba(15, 76, 76, 0.1);
+          background: rgba(108, 92, 231, 0.1);
         }
         :global(.inbox-avatar) {
           position: relative;
@@ -300,7 +300,7 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           right: 1px;
           width: 11px;
           height: 11px;
-          background: var(--clr-theme-1, #0f4c4c);
+          background: var(--clr-theme-1, #6c5ce7);
           border: 2px solid var(--clr-bg-white, #fff);
           border-radius: 50%;
         }
@@ -333,7 +333,7 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           flex-shrink: 0;
         }
         :global(.inbox-row.has-unread .inbox-time) {
-          color: var(--clr-theme-1, #0f4c4c);
+          color: var(--clr-theme-1, #6c5ce7);
           opacity: 1;
           font-weight: 700;
         }
@@ -352,7 +352,7 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           flex: 1;
         }
         :global(.inbox-count) {
-          background: var(--clr-theme-1, #0f4c4c);
+          background: var(--clr-theme-1, #6c5ce7);
           color: #fff;
           font-size: 10px;
           font-weight: 700;

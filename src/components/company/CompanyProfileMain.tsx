@@ -337,7 +337,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           font-size: 36px;
           display: block;
           margin-bottom: 14px;
-          color: var(--clr-theme-1, #0f4c4c);
+          color: var(--clr-theme-1, #6c5ce7);
         }
         .cp-employees {
           background: var(--clr-bg-white);
@@ -380,7 +380,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #0f4c4c, #a29bfe);
+          background: linear-gradient(135deg, #6c5ce7, #a29bfe);
           color: #fff;
           font-weight: 700;
           font-size: 22px;

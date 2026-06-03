@@ -78,10 +78,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           position: relative;
         }
         :global(.notif-item:hover) {
-          background: rgba(15, 76, 76, 0.06);
+          background: rgba(108, 92, 231, 0.06);
         }
         :global(.notif-item.is-unread) {
-          background: rgba(15, 76, 76, 0.05);
+          background: rgba(108, 92, 231, 0.05);
         }
         :global(.notif-item.is-compact) {
           padding: 10px 14px;
@@ -136,7 +136,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           flex-shrink: 0;
           width: 10px;
           height: 10px;
-          background: var(--clr-theme-1, #0f4c4c);
+          background: var(--clr-theme-1, #6c5ce7);
           border-radius: 50%;
           margin-top: 6px;
         }

@@ -377,8 +377,8 @@ const RegisterForm = () => {
           font-weight: 600;
         }
         .handle-suggestions button:hover {
-          border-color: var(--tp-theme-1, #0f4c4c);
-          color: var(--tp-theme-1, #0f4c4c);
+          border-color: var(--tp-theme-1, #6c5ce7);
+          color: var(--tp-theme-1, #6c5ce7);
         }
       `}</style>
 

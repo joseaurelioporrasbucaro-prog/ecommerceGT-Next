@@ -131,14 +131,14 @@ const CategorySlider = ({
           font-size: 16px;
         }
         :global(.property-category-btn:hover) {
-          background: var(--tp-theme-1, #0f4c4c);
-          border-color: var(--tp-theme-1, #0f4c4c);
+          background: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--tp-theme-1, #6c5ce7);
           color: #fff;
           transform: translateY(-2px);
         }
         :global(.property-category-btn.is-active) {
-          background: var(--tp-theme-1, #0f4c4c);
-          border-color: var(--tp-theme-1, #0f4c4c);
+          background: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--tp-theme-1, #6c5ce7);
           color: #fff;
         }
       `}</style>
