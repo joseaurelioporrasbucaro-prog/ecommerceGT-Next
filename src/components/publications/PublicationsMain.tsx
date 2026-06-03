@@ -419,16 +419,27 @@ const PublicationsMain = () => {
           top: 100px;
           align-self: start;
         }
-        /* Anulamos las col-xl-4/col-lg-6/col-md-6 que PublicationCard
-           pone internamente — en el split, cada card debe ocupar el
-           100% de la columna izquierda (no se aniden cols). Selector
-           :global porque las clases las pinta el componente hijo. */
-        .split-view-cards :global(> [class*="col-"]) {
-          flex: 0 0 100%;
-          max-width: 100%;
+        /* En el split, NO usamos el row/col de Bootstrap (cuyas cols
+           internas se aniden y se rompan). Convertimos el contenedor
+           en un CSS Grid responsive y forzamos a cada card-wrapper
+           (col-xl-4 etc del PublicationCard) a comportarse como una
+           celda neutra del grid: width 100%, max-width none, flex
+           none. Resultado: 2 cards por fila cuando hay ~580+px de
+           ancho de columna izquierda, 1 cuando es estrecha. */
+        .split-view-cards {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 14px;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
         }
-        /* El template usa .art-item-single con margin-bottom 30px;
-           lo dejamos para separar cards verticalmente. */
+        .split-view-cards :global(> [class*="col-"]) {
+          flex: none !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
         @media (max-width: 991px) {
           /* En tablet/móvil colapsamos a una columna: mapa arriba,
              listado abajo. Aquí el mapa NO es sticky porque ocupa demasiado. */
