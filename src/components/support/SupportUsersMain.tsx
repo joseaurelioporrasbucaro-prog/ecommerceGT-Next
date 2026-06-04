@@ -142,26 +142,28 @@ const SupportUsersMain = () => {
                                   realmente activa (no puede entrar). Si está suspended/
                                   banned, el chip del estado de soporte sigue mostrándose
                                   porque ese es el estado dominante.  */}
-                              {!(pwLocked && u.status === 'active') && (
-                                <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
-                                  {STATUS_LABEL[u.status]}
-                                </span>
-                              )}
-                              {u.status === 'suspended' && u.banneduntil && (
-                                <div className="su-until">hasta {new Date(u.banneduntil).toLocaleDateString('es-GT')}</div>
-                              )}
-                              {pwLocked && (
-                                <>
-                                  <span className="su-chip su-chip-pwlocked" title={`Intentos fallidos: ${u.failcount}`}>
-                                    <i className="fas fa-lock" /> Bloqueo por contraseña
+                              <div className="su-status-stack">
+                                {!(pwLocked && u.status === 'active') && (
+                                  <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
+                                    {STATUS_LABEL[u.status]}
                                   </span>
-                                  <div className="su-until">
-                                    {pwInWindow
-                                      ? `Espera hasta ${pwBannedUntil!.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })}`
-                                      : 'Requiere restablecer contraseña'}
-                                  </div>
-                                </>
-                              )}
+                                )}
+                                {u.status === 'suspended' && u.banneduntil && (
+                                  <span className="su-until">hasta {new Date(u.banneduntil).toLocaleDateString('es-GT')}</span>
+                                )}
+                                {pwLocked && (
+                                  <>
+                                    <span className="su-chip su-chip-pwlocked" title={`Intentos fallidos: ${u.failcount}`}>
+                                      <i className="fas fa-lock" /> Bloqueo por contraseña
+                                    </span>
+                                    <span className="su-until">
+                                      {pwInWindow
+                                        ? `Espera hasta ${pwBannedUntil!.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })}`
+                                        : 'Requiere restablecer contraseña'}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
                             </td>
                             <td>
                               <div className="su-actions">
@@ -265,13 +267,44 @@ const SupportUsersMain = () => {
         .su-muted { opacity: 0.4; }
         .su-role { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 14px; text-transform: capitalize; background: rgba(128,128,128,0.15); }
         .su-role-support, .su-role-admin { background: rgba(108,92,231,0.16); color: #6c5ce7; }
-        .su-chip { font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 20px; }
+        /* Fase 8.3.3 polish: stack vertical de chips + subtexto en la celda
+           de estado. align-items: flex-start mantiene chips pegados a la
+           izquierda sin estirarlos al ancho de la columna. */
+        .su-status-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+        .su-until { font-size: 12px; opacity: 0.7; }
+        /* Chips ahora con padding vertical mayor para igualar altura visual
+           de los botones de acción y verse balanceados en la misma fila. */
+        .su-chip {
+          font-size: 12px;
+          font-weight: 700;
+          padding: 6px 12px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          white-space: nowrap;
+          line-height: 1;
+        }
         .su-chip-active { background: rgba(34,197,94,0.15); color: #16a34a; }
         .su-chip-suspended { background: rgba(245,158,11,0.18); color: #b8860b; }
         .su-chip-banned { background: rgba(239,68,68,0.16); color: #dc2626; }
-        .su-chip-pwlocked { background: rgba(245,158,11,0.18); color: #b8860b; margin-left: 6px; display: inline-flex; align-items: center; gap: 5px; }
-        .su-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .su-btn { border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+        .su-chip-pwlocked { background: rgba(245,158,11,0.18); color: #b8860b; }
+        /* Acciones: alineadas verticalmente con flex; align-items: center
+           para que un único botón quede centrado respecto a la fila. */
+        .su-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .su-btn {
+          border: none;
+          cursor: pointer;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          border-radius: 999px;
+          font-size: 13px;
+          white-space: nowrap;
+          line-height: 1;
+        }
         .su-btn:disabled { opacity: 0.6; cursor: default; }
         .su-ban { background: rgba(239,68,68,0.12); color: #dc2626; }
         .su-unban { background: rgba(34,197,94,0.12); color: #16a34a; }
@@ -288,7 +321,6 @@ const SupportUsersMain = () => {
         .su-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
         .su-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
         .su-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
-        .su-until { font-size: 11px; opacity: 0.6; margin-top: 4px; }
         .su-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
         .su-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
         .su-ghost { background: transparent; border: 1px solid rgba(128,128,128,0.4); padding: 9px 18px; border-radius: 24px; }
