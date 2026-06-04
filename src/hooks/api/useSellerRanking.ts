@@ -2,6 +2,19 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiFetch } from '@/utils/Api';
 import type { SellerRankingItem, SellerRankingResponse } from '@/types/api';
 
+/**
+ * Fase 9.1 — ranking público estricto por rating promedio.
+ * GET /sellers/ranking (pública, limit fijo 50).
+ *
+ * Solo vendedores con al menos una review COMPLETED.
+ * Orden: AVG(rating) DESC, COUNT(reviews) DESC.
+ * Usado SOLO por la página dedicada `/art-ranking`.
+ *
+ * ⚠️ NO confundir con `useTopSellers()` (Fase 9) que va contra
+ * `/top-sellers` y rankea por score compuesto incluyendo vendedores sin
+ * reviews. Ese se usa en home/sidebar/`/creators`.
+ * Ver tabla comparativa en el backend (connPostgresDB.js, getTopSellers).
+ */
 export const SELLER_RANKING_QUERY_KEY = ['sellerRanking'] as const;
 
 function normalizeSellerRankingItem(item: SellerRankingItem): SellerRankingItem {

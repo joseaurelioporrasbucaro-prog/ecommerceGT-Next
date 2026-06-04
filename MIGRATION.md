@@ -3731,6 +3731,13 @@ round-robin), luego frontend usuario, luego panel de soporte.
 
 **Pendiente de Fase 9 mayor:** sponsors/publicaciones destacadas siguen pendientes; el follow ya estaba adelantado en fases anteriores.
 
+**Nota de arquitectura — relación con Fase 9 original (Aurelio, 2026-06-04):**
+La Fase 9 original creó `GET /top-sellers` + `useTopSellers` que ya rankea vendedores y se usa en home, sidebar y `/creators`. Cuando se revisó esta subfase 9.1, se detectó solapamiento con el endpoint original. **Decisión: mantener ambos endpoints porque cubren casos distintos** (no son intercambiables):
+- `/top-sellers` — showcase widget, score compuesto, todos los vendedores con publicaciones, parametrizado con `?limit`. Field naming `snake_case`. Array directo.
+- `/sellers/ranking` — página dedicada `/art-ranking`, rating puro, solo vendedores con reviews completados, limit fijo 50. Field naming `camelCase`. `{ sellers: [...] }`.
+
+La diferencia está cross-referenciada en código (`connPostgresDB.js getTopSellers/getSellerRanking`, `useTopSellers.ts`, `useSellerRanking.ts`). Si en el futuro se quiere consolidar en un solo endpoint con `?sortBy=`, eso es scope de una fase de cleanup posterior.
+
 ---
 
 ### Fase 8.3.1 — Suspensión con duración + apelación ✅

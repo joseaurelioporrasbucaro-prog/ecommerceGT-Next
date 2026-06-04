@@ -403,6 +403,41 @@ Click "Configuración" → llega a `/admin/config`.
 
 ---
 
+## Ranking de Vendedores (Fase 9 + 9.1)
+
+### T-70 — `/top-sellers` devuelve score compuesto — ⚪ PENDING
+**Setup:** Vendedor A con 10 followers, 5 reviews (avg 4.5), 100 views, 3 pubs.
+Vendedor B con 0 reviews pero 50 followers, 200 views, 5 pubs.
+
+**Pasos:** `GET /top-sellers?limit=10`.
+
+**Esperado:**
+- Response es array directo (NO `{ sellers: [...] }`).
+- Field naming `snake_case`: `avgrating`, `numreviews`, `totalviews`, `totalpubs`.
+- Vendedor B aparece en el ranking (tiene publicaciones pero 0 reviews).
+- `score` calculado correctamente.
+
+### T-71 — `/sellers/ranking` filtra solo con reviews — ⚪ PENDING
+**Setup:** Igual a T-70.
+
+**Pasos:** `GET /sellers/ranking`.
+
+**Esperado:**
+- Response con wrapper `{ sellers: [...] }`.
+- Field naming `camelCase`: `cusId`, `averageRating`, `totalReviews`.
+- **Vendedor B NO aparece** (no tiene reviews completadas).
+- Vendedor A sí aparece, ordenado por `AVG(rating) DESC`.
+- Límite fijo: máximo 50 filas aunque haya más vendedores.
+
+### T-72 — Ambos endpoints coexisten sin colisión — ⚪ PENDING
+**Setup:** Datos seed con 20 vendedores variados.
+
+**Pasos:** Llamar ambos endpoints en paralelo.
+
+**Esperado:** Cada uno responde su shape correcto, sin errores cruzados, sin que un cambio de schema en uno afecte al otro. Sirve como guard contra regresiones futuras si alguien intenta consolidarlos sin actualizar todos los consumidores.
+
+---
+
 ## Roadmap de automatización
 
 Orden sugerido para empezar:
