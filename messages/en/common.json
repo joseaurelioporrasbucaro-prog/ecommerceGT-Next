@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "servicesRealState": "Real estate",
+    "servicesProducts": "Products",
+    "publications": "Publications",
+    "myPublications": "My publications",
+    "myFavorites": "My favorites"
+  },
+  "actions": {
+    "next": "Next",
+    "back": "Back",
+    "goBack": "Go back",
+    "backToHomePage": "Back to homepage",
+    "goHomePage": "Go homepage"
+  },
+  "search": {
+    "products": "Search product"
+  },
+  "currency": {
+    "code": "USD",
+    "symbol": "$"
+  },
+  "landing": {
+    "buyNow": "Buy now"
+  }
+}
