@@ -60,7 +60,9 @@ FROM ecom.customer WHERE cus_user_name = '<EMAIL>';
 
 ## Auth & Account Lifecycle
 
-### T-01 — Login exitoso con credenciales válidas — 🟢 PASS
+### T-01 — Login exitoso con credenciales válidas — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/login.spec.js`
+
 **Setup:** Cuenta `tester@test.com` con password `Test123!`, status `active`, `passta_id=1`.
 **Pasos:**
 1. Ir a `/login`
@@ -73,13 +75,17 @@ FROM ecom.customer WHERE cus_user_name = '<EMAIL>';
 - Cookie `token` httpOnly presente
 - `cus_password_fail_count` queda en `0` aunque venga >0 (bugfix de la Fase 8.3.3)
 
-### T-02 — Login con password incorrecto, intentos 1-3 — 🟢 PASS
+### T-02 — Login con password incorrecto, intentos 1-3 — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/login.spec.js`
+
 **Setup:** Cuenta resetada (RESET-A).
 **Pasos:** Ingresar 3 veces con password mal.
 
 **Esperado:** Cada intento devuelve `400 { message: "Contraseña incorrecta" }`. Frontend muestra toast rojo. `cus_password_fail_count` incrementa a 1, 2, 3.
 
-### T-03 — Login con password incorrecto, intento 4 (warning) — 🟢 PASS
+### T-03 — Login con password incorrecto, intento 4 (warning) — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/lockout.spec.js`
+
 **Setup:** Cuenta con `cus_password_fail_count = 3`.
 **Pasos:** Intentar login con password mal.
 
@@ -88,7 +94,9 @@ FROM ecom.customer WHERE cus_user_name = '<EMAIL>';
 - Frontend muestra **toast warning amarillo durante 8 segundos** con ese mensaje
 - `cus_password_fail_count = 4`
 
-### T-04 — Login con password incorrecto, intento 5 (bloqueo) — 🟢 PASS
+### T-04 — Login con password incorrecto, intento 5 (bloqueo) — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/lockout.spec.js`
+
 **Setup:** Cuenta con `cus_password_fail_count = 4`.
 **Pasos:** Intentar login con password mal.
 
@@ -183,7 +191,9 @@ Cubierto en T-01 — ver Esperado.
 - Subtexto: **"Espera hasta HH:MM"** con hora real
 - **NO debe aparecer el chip "Activo"** (sería confuso porque la cuenta NO está realmente activa)
 
-### T-22 — Botón "Desbloquear contraseña" para usuario `user` — ⚪ PENDING
+### T-22 — Botón "Desbloquear contraseña" para usuario `user` — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/support/unlock-password.spec.js`
+
 **Setup:** Igual a T-21.
 **Pasos:**
 1. Ver botón "🔑 Desbloquear contraseña" en la columna de acciones
@@ -473,4 +483,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-06-03 (Fase 20 — primera versión)
+**Última actualización:** 2026-06-04 (Fase 20 — T-01/T-02/T-03/T-04/T-22 automatizados)

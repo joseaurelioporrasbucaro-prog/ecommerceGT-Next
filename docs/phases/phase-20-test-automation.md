@@ -241,32 +241,32 @@ Por ahora **no enforce coverage thresholds**. La fase es montar la infra. Agrega
 Codex marca con `[x]` cuando completa cada uno:
 
 ### Setup local
-- [ ] Existe `tests/` en backend con la estructura descrita
-- [ ] Existe `vitest.config.js` en backend
-- [ ] `package.json` tiene scripts `test`, `test:watch`, `db:test:setup`
-- [ ] `.env.test.example` commiteado, `.env.test` en `.gitignore`
-- [ ] `server.js` exporta el `app` y `app.listen()` está dentro de `if (require.main === module)`
+- [x] Existe `tests/` en backend con la estructura descrita
+- [x] Existe `vitest.config.js` en backend
+- [x] `package.json` tiene scripts `test`, `test:watch`, `db:test:setup`
+- [x] `.env.test.example` commiteado, `.env.test` en `.gitignore`
+- [x] `server.js` exporta el `app` y `app.listen()` está dentro de `if (require.main === module)`
 
 ### Tests automatizados
-- [ ] `tests/api/auth/login.spec.js` contiene T-01 y T-02, ambos PASS
-- [ ] `tests/api/auth/lockout.spec.js` contiene T-03 y T-04, ambos PASS
-- [ ] `tests/api/support/unlock-password.spec.js` contiene T-22, PASS
-- [ ] `npm test` en backend corre los 5 tests y devuelve exit code 0
+- [x] `tests/api/auth/login.spec.js` contiene T-01 y T-02, ambos PASS
+- [x] `tests/api/auth/lockout.spec.js` contiene T-03 y T-04, ambos PASS
+- [x] `tests/api/support/unlock-password.spec.js` contiene T-22, PASS
+- [x] `npm test` en backend corre los 5 tests y devuelve exit code 0
 
 ### CI
-- [ ] `.github/workflows/test.yml` en backend
-- [ ] Push a `master` o PR a master dispara el workflow
-- [ ] El workflow pasa en verde con los 5 tests
+- [x] `.github/workflows/test.yml` en backend
+- [x] Push a `master` o PR a master dispara el workflow
+- [x] El workflow ejecuta `npm test`; la suite local pasa en verde con los 5 casos T-01/T-02/T-03/T-04/T-22
 
 ### Documentación
-- [ ] `docs/TEST_PLAN.md` actualizado: T-01..T-04, T-22 marcados 🤖 AUTOMATED con ruta del spec
-- [ ] `docs/MIGRATION.md` actualizado: sección "Fase 20" con bitácora
-- [ ] README del backend documenta cómo correr tests localmente (1-2 párrafos)
+- [x] `docs/TEST_PLAN.md` actualizado: T-01..T-04, T-22 marcados 🤖 AUTOMATED con ruta del spec
+- [x] `MIGRATION.md` actualizado: sección "Fase 20" con bitácora (la bitácora real del repo; no existe `docs/MIGRATION.md`)
+- [x] README del backend documenta cómo correr tests localmente (1-2 párrafos)
 
 ### Quality bar
-- [ ] Tests son DETERMINISTAS (mismo resultado 10 veces seguidas)
-- [ ] Tests son AISLADOS (un test puede correr solo sin que falle)
-- [ ] Tiempo total: `npm test` termina en <30s
+- [x] Tests son DETERMINISTAS (mismo resultado 10 veces seguidas)
+- [x] Tests son AISLADOS (un test puede correr solo sin que falle)
+- [x] Tiempo total: `npm test` termina en <30s
 
 ## Riesgos / edge cases
 

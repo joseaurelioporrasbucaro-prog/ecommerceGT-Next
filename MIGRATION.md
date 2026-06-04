@@ -142,6 +142,7 @@ El backend está estable y se comparte. La regla:
 | **11** | Logging estructurado + alertas (Pino/Winston, log rotation, integración con Sentry/BetterStack, tabla `system_alerts`) | ⬜ Pendiente | 1–2 días |
 | **12** | Panel de administración / soporte (rol admin, dashboard de alertas, métricas, gestión usuarios) | ⬜ Pendiente | 2–3 días |
 | **13** | Soporte al cliente (usuario "Soporte" especial vía mensajería de Fase 6, replies por email vía nodemailer, tickets) | ⬜ Pendiente | 1–2 días |
+| **20** | Automatización de tests backend con Vitest/Supertest + CI | ✅ Completada | 0.5–1 día |
 
 **Total estimado:** 23–31 días de trabajo enfocado.
 
@@ -3760,3 +3761,43 @@ ALTER TABLE ecom.customer
   cuenta esté suspendida/baneada, no duplica apelaciones abiertas, y crea un
   **ticket categoría `apelacion`** (prioridad alta) asignado por round-robin → cae
   en el panel de tickets de soporte. Al resolver, soporte reactiva desde /soporte/usuarios.
+
+---
+
+### Fase 20 — Infraestructura de tests automatizados backend ✅
+
+**Objetivo:** dejar una primera base automatizada y determinista para los flujos críticos de auth/soporte antes de seguir ampliando cobertura.
+
+**Backend (`ecommerceGTBackEnd`):**
+- Se agregó Vitest + Supertest con `vitest.config.js`, estructura `tests/`, helpers de BD y fixtures mínimos.
+- `server.js` ahora exporta `app` y solo levanta `app.listen()` cuando se ejecuta directamente.
+- `package.json` agrega `test`, `test:watch`, `test:coverage` y `db:test:setup`; `package-lock.json` queda versionado para que `npm ci` funcione en CI.
+- `.env.test.example` documenta la configuración local; `.env.test` queda ignorado.
+- `BCRYPT_ROUNDS` se lee desde env con fallback 10 para producción; tests usan cost 4.
+- `.github/workflows/test.yml` ejecuta `npm ci` + `npm test` con PostgreSQL 15 en push a `master` y PR a `main`/`master`/`develop`.
+
+**Tests automatizados:**
+- `tests/api/auth/login.spec.js`: T-01 y T-02.
+- `tests/api/auth/lockout.spec.js`: T-03 y T-04.
+- `tests/api/support/unlock-password.spec.js`: T-22.
+- `tests/unit/bcrypt-rounds.spec.js`: guard de fallback seguro para bcrypt.
+
+**Decisiones aplicadas:**
+- D-1=B: BD local con sufijo `_test`; helper aborta si `DB_DATABASE` no termina en `_test`.
+- D-2=A: schema desde `database.sql` una vez y reset con `TRUNCATE ... CASCADE` + fixtures entre tests.
+- D-3=A: `BCRYPT_ROUNDS=4` solo en tests; fallback 10 fuera de test.
+- D-4=A: specs agrupados por endpoint.
+- D-5=skip: sin thresholds de coverage por ahora; script opcional `test:coverage`.
+
+**Documentación:**
+- `docs/TEST_PLAN.md` marca T-01, T-02, T-03, T-04 y T-22 como 🤖 AUTOMATED con ruta de spec.
+- `docs/phases/phase-20-test-automation.md` queda con checklist completo.
+- README del backend documenta cómo correr `npm run db:test:setup`, `npm test` y `npm run test:watch`.
+
+**Verificación:**
+- `npm test` pasa con 4 archivos y 8 tests, incluyendo los 5 smoke tests pedidos.
+- Determinismo validado con 10 corridas seguidas de `npm test`.
+- Aislamiento validado ejecutando cada spec API por separado.
+- Tiempo total observado: ~1.2s en la corrida local final, por debajo del límite de 30s.
+
+**Nota:** el plan original pedía `docs/MIGRATION.md`, pero la bitácora real del repo es `MIGRATION.md` en la raíz. Se actualiza este archivo para mantener una sola fuente de verdad.
