@@ -47,7 +47,12 @@ const ForgotForm = () => {
   });
 
   // --- PASO 2: Formulario para Nueva Contraseña ---
+  // Fase 8.3.4 (security fix CWE-640): además de la nueva contraseña, ahora
+  // pedimos la contraseña TEMPORAL que recibió el usuario por correo. Sin
+  // ella, cualquiera con el email podía tomar la cuenta.
   const passwordSchema = Yup.object().shape({
+    tempPassword: Yup.string()
+      .required("Ingresá la contraseña temporal que recibiste por correo."),
     password: Yup.string()
       .min(8, t("auth.validation.passwordLength"))
       .matches(/[A-Z]/, t("auth.validation.passwordUppercase"))
@@ -59,13 +64,14 @@ const ForgotForm = () => {
   });
 
   const formikPassword = useFormik({
-    initialValues: { password: "", confirmPassword: "" },
+    initialValues: { tempPassword: "", password: "", confirmPassword: "" },
     validationSchema: passwordSchema,
     onSubmit: async (values, { setSubmitting }) => {
       setSubmitting(true);
       try {
         const res = await ApiFetch.post<{ message?: string }>("/recoverypassnew", {
-          email: userForgot?.email, // Sacamos el email del contexto temporal
+          email: userForgot?.email,         // Email del contexto temporal
+          lastPwd: values.tempPassword,     // Fase 8.3.4: temporal del correo
           npassword: values.password,
         });
         toast.success(res.message || "Contraseña actualizada exitosamente");
@@ -118,12 +124,28 @@ const ForgotForm = () => {
       </form>
     );
   } else {
-    // VISTA 2: Ingresar Nueva Contraseña
+    // VISTA 2: Ingresar contraseña temporal + nueva contraseña
     return (
       <form onSubmit={formikPassword.handleSubmit} className="login-form">
         <p className="mb-4 text-gray text-center">
-          Escribe tu nueva contraseña para la cuenta <strong>{userForgot.email}</strong>.
+          Te enviamos una <strong>contraseña temporal</strong> a <strong>{userForgot.email}</strong>.
+          Revisá tu correo, copiala abajo y escribí tu nueva contraseña.
         </p>
+        {/* Fase 8.3.4: validación de posesión del correo. Sin este campo
+            cualquier persona con tu email podía cambiarte la contraseña. */}
+        <div className="single-input-unit mb-4">
+          <label htmlFor="tempPassword">Contraseña temporal del correo</label>
+          <input
+            type="password"
+            name="tempPassword"
+            placeholder="La que te enviamos por email"
+            onChange={formikPassword.handleChange}
+            onBlur={formikPassword.handleBlur}
+            value={formikPassword.values.tempPassword}
+            autoComplete="one-time-code"
+          />
+          {renderError(formikPassword, "tempPassword")}
+        </div>
         <div className="single-input-unit mb-4">
           <label htmlFor="password">{t("auth.register.newpassword")}</label>
           <input
@@ -133,6 +155,7 @@ const ForgotForm = () => {
             onChange={formikPassword.handleChange}
             onBlur={formikPassword.handleBlur}
             value={formikPassword.values.password}
+            autoComplete="new-password"
           />
           {renderError(formikPassword, "password")}
         </div>
@@ -145,12 +168,23 @@ const ForgotForm = () => {
             onChange={formikPassword.handleChange}
             onBlur={formikPassword.handleBlur}
             value={formikPassword.values.confirmPassword}
+            autoComplete="new-password"
           />
           {renderError(formikPassword, "confirmPassword")}
         </div>
         <div className="login-btn mt-30">
           <button className="fill-btn" type="submit" disabled={formikPassword.isSubmitting}>
             {formikPassword.isSubmitting ? "Guardando..." : t("auth.register.saveChanges")}
+          </button>
+        </div>
+        <div className="note mt-3 text-center">
+          <button
+            type="button"
+            className="text-btn"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
+            onClick={() => setUserForgot(null)}
+          >
+            ¿No recibiste el correo? Volver a empezar
           </button>
         </div>
       </form>

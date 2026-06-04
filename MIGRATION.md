@@ -3794,6 +3794,46 @@ La diferencia está cross-referenciada en código (`connPostgresDB.js getTopSell
 
 ---
 
+### Fase 8.3.4 — Fix de seguridad CWE-640 en password recovery ✅
+
+**Bug crítico detectado durante QA manual:** el endpoint `POST /recoverypassnew` aceptaba `{email, npassword}` y cambiaba la contraseña sin verificar nada. Cualquier persona con el email de la víctima podía:
+
+1. Ir a `/forgot`
+2. Poner el email
+3. (El frontend pasaba inmediatamente al form de nueva contraseña, **sin esperar nada del correo**)
+4. Setear una contraseña nueva
+5. Tomar control de la cuenta
+
+Esto es CWE-640 ("Weak Password Recovery Mechanism") clásico — toma de cuenta solo conociendo el email.
+
+**Fix aplicado:**
+
+Backend (`config/connPostgresDB.js`, función `recoveryPwdGenNew`):
+- Ahora exige `lastPwd` en el body (la contraseña temporal enviada en `/recoverypass`).
+- Valida con `bcrypt.compare(lastPwd, user.cus_password)`. Si no coincide → 401 `{ invalidTempPassword: true }`.
+- Falta `lastPwd` → 400 `{ missingTempPassword: true }`.
+- Exige `user.passta_id === 5` (solicitud de reset activa). Si la cuenta está en estado normal → 403 `{ noResetPending: true }`. Esto cierra otra puerta: aunque alguien tenga la contraseña actual de un usuario, no puede usar este endpoint sin pasar primero por `/recoverypass`.
+- Valida largo mínimo de `npassword` (8 chars).
+
+Frontend (`src/form/ForgotForm.tsx`):
+- Vista 2 ahora pide 3 campos: **Contraseña temporal del correo** + Nueva contraseña + Confirmar.
+- El campo de temporal tiene `autocomplete="one-time-code"` para que el navegador no lo guarde.
+- Botón "¿No recibiste el correo? Volver a empezar" para reset del flujo.
+- Envía `lastPwd: values.tempPassword` al backend.
+
+Tests automatizados (`tests/api/auth/recovery.spec.js`):
+- T-90 — Reset exitoso con temporal correcta
+- T-91 — Rechazo con temporal incorrecta (401)
+- T-92 — Rechazo si falta lastPwd (400)
+- T-93 — Rechazo si no hay reset pendiente (403)
+- T-94 — Rechazo si npassword < 8 chars (400)
+
+Tests totales: 8 → **13 pasando** en `npm test`.
+
+**Considerar a futuro:** migrar a sistema de tokens cripto-seguros con link directo (industry standard). El sistema actual sigue dependiendo de una contraseña temporal que viaja por email — un atacante con acceso al correo puede actuar. Lo correcto sería tokens single-use con expiración corta. Documentado como follow-up en `docs/phases/`.
+
+---
+
 ### Fase 8.3.1 — Suspensión con duración + apelación ✅
 
 Mejoras a la sanción de usuarios (Fase 8.3):

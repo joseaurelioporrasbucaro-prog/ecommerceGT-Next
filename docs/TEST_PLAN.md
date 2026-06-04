@@ -413,6 +413,52 @@ Click "Configuración" → llega a `/admin/config`.
 
 ---
 
+## Password Recovery — Security (Fase 8.3.4)
+
+> Fix de CWE-640 (Weak Password Recovery Mechanism). Antes de esta fase, cualquier persona que conociera un email podía cambiarle la contraseña a la víctima — el endpoint `/recoverypassnew` no validaba nada. Ahora exige `lastPwd` (la temporal enviada por email) y verifica con `bcrypt.compare`.
+
+### T-90 — Reset exitoso con temporal correcta — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Cuenta con `passta_id=5` y `cus_password = hash(TEMP_PASSWORD)`.
+**Pasos:** `POST /recoverypassnew { email, lastPwd: TEMP_PASSWORD, npassword: NEW_PASSWORD }`.
+
+**Esperado:** Status 200. BD: `passta_id=1`, `cus_password = hash(NEW_PASSWORD)`. La nueva contraseña funciona para login posterior.
+
+### T-91 — Rechazo con temporal incorrecta — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Igual a T-90.
+**Pasos:** Llamar con `lastPwd` que NO coincide con el hash.
+
+**Esperado:** Status 401 con `{ invalidTempPassword: true }`. BD sin cambios. `passta_id` sigue en 5.
+
+### T-92 — Rechazo si falta lastPwd — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Igual a T-90.
+**Pasos:** `POST /recoverypassnew { email, npassword }` sin `lastPwd`.
+
+**Esperado:** Status 400 con `{ missingTempPassword: true }`. BD sin cambios.
+
+### T-93 — Rechazo si NO hay solicitud de reset activa — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Cuenta con `passta_id=1` (sin haber pasado por `/recoverypass`).
+**Pasos:** Llamar `/recoverypassnew` con la contraseña actual real como `lastPwd`.
+
+**Esperado:** Status 403 con `{ noResetPending: true }`. Esto cierra otra puerta de ataque: aunque alguien tenga la contraseña actual de un usuario, no puede cambiarla vía este endpoint sin pasar por `/recoverypass` primero.
+
+### T-94 — Rechazo si npassword es muy corta — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Igual a T-90.
+**Pasos:** Llamar con `npassword: "short"` (5 chars).
+
+**Esperado:** Status 400. BD sin cambios.
+
+---
+
 ## Ranking de Vendedores (Fase 9 + 9.1)
 
 ### T-70 — `/top-sellers` devuelve score compuesto — ⚪ PENDING
