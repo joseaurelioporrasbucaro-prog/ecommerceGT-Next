@@ -14,7 +14,7 @@ flowchart LR
   browser["Browser\nUsuario final"]
   next["Next.js 13\nReact Query\nlocalhost:3000"]
   express["Express + pg\nJWT httpOnly\nlocalhost:4000"]
-  pg["PostgreSQL\nschema: ecom\n41 tablas"]
+  pg["PostgreSQL\nschema: ecom\n42 tablas"]
   storage["Filesystem uploads\nimages, verification, site-assets"]
   smtp["SMTP/Nodemailer\nemails transaccionales"]
 
@@ -84,7 +84,7 @@ Schema lógico: `ecom`.
 
 Tablas principales:
 
-- Cuenta y auth: `customer`, `customer_audit_log`, `cat_password_status`.
+- Cuenta y auth: `customer`, `password_reset_tokens`, `customer_audit_log`, `cat_password_status`.
 - Marketplace: `publications`, `publications_detail`, `publications_images`, `publications_favorites`.
 - Social: `publications_comments`, `comment_likes`, `customer_follows`, `seller_ratings`.
 - Mensajería/notificaciones: `messages`, `message_reactions`, `notifications`.
