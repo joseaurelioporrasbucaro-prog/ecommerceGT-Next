@@ -144,6 +144,7 @@ El backend está estable y se comparte. La regla:
 | **12** | Panel de administración / soporte (rol admin, dashboard de alertas, métricas, gestión usuarios) | ⬜ Pendiente | 2–3 días |
 | **13** | Soporte al cliente (usuario "Soporte" especial vía mensajería de Fase 6, replies por email vía nodemailer, tickets) | ⬜ Pendiente | 1–2 días |
 | **13.docs** | Documentación técnica completa de la plataforma | ✅ Completada | 1 día |
+| **14** | i18n bilingüe es/en con `next-intl` + sub-paths `/es` `/en` + emails bilingües + SEO bilingüe — plan ejecutable [`docs/phases/phase-14-i18n-next-intl.md`](docs/phases/phase-14-i18n-next-intl.md) | 🟡 En plan, lista para ejecutar | 3–4 días |
 | **20** | Automatización de tests backend con Vitest/Supertest + CI | ✅ Completada | 0.5–1 día |
 
 **Total estimado:** 23–31 días de trabajo enfocado.
@@ -2927,122 +2928,177 @@ el UI sin valor.
 
 ---
 
-### Fase 14 (pendiente) — Internacionalización (i18n) completa (es / en)
+### Fase 14 (en plan, lista para ejecutar) — Internacionalización (i18n) con `next-intl` y sub-paths `/es` `/en`
 
-**Recordatorio (Aurelio, 2026-05-28):** la plataforma originalmente apuntaba
-a ser leíble en inglés también. Hay scaffold parcial pero la mayoría del
-contenido nuevo (Fases 5-11) está en español hardcoded. Esta fase termina
-el trabajo.
+> **Plan ejecutable:** [`docs/phases/phase-14-i18n-next-intl.md`](docs/phases/phase-14-i18n-next-intl.md)
+> **Checklist de review:** [`docs/phases/phase-14-review-checklist.md`](docs/phases/phase-14-review-checklist.md)
+>
+> Plan armado para Codex como ejecutor + Claude como revisor. 4 hitos
+> secuenciales (14.1 → 14.4). Cada hito termina con tests verdes y commit
+> granular antes de pasar al siguiente.
 
-**Estado actual:**
-- ✅ `i18next@26` + `react-i18next@17` instalados.
-- ✅ `src/i18n.js` con bundle inline (es/en) — cubre algunos forms viejos:
-  Login, Register, Forgot, HeaderTwo.
-- ❌ NO hay selector de idioma visible al usuario.
-- ❌ NO está integrado en App Router (init solo se ejecuta cuando se
-  importa el módulo; no hay locale en URL o cookie).
-- ❌ TODO el contenido nuevo de las fases 5-11 está en español hardcoded:
-  mensajes, soporte (verificaciones, usuarios, denuncias, tickets), pauta,
-  notificaciones, perfiles, configuraciones, danger zone, etc.
-- ❌ Errores del backend (toasts) están en español.
-- ❌ Fechas formateadas con `toLocaleDateString('es-GT', ...)` en muchos
-  lugares — tienen que respetar el locale activo.
-- ❌ Mensajes/textos en correos electrónicos del backend (verification
-  approved, notifications, etc.) están en español.
+**Por qué `next-intl` y sub-paths `/es` `/en` (no `react-i18next`):**
 
-**Decisiones técnicas confirmadas (Aurelio, 2026-05-28):**
+| Aspecto | `react-i18next` (estado actual) | `next-intl` + sub-paths |
+|---|---|---|
+| SEO | Una URL para ambos idiomas — Google indexa la default | `/es/publicaciones/123` y `/en/listings/123` indexables como páginas distintas |
+| hreflang | Manual y frágil | Emitido por el middleware + `alternates.languages` en metadata |
+| Server Components | Solo cliente | First-class — traducciones en servidor, sin JS extra |
+| Detección Accept-Language | A mano | Middleware lo hace |
+| Links compartibles | Pierden el idioma | Preservan `/en/...` al pegarse en redes |
 
-1. **Librería: `next-intl`** (migramos desde `react-i18next`).
-   - SEO bilingüe real con `app/[locale]/...`.
-   - Server Components siguen funcionando.
-   - Middleware automático para detección + redirect.
-   - Doc oficial de las mejores del ecosistema Next.
+**Decisiones cerradas (ver §Decisiones en el plan):**
 
-2. **Locale en URL: `/es/...` y `/en/...`.**
-   - Mejor SEO (Google indexa páginas separadas en español/inglés).
-   - Links compartibles preservan el idioma.
-   - Middleware de `next-intl` lee `Accept-Language` en primera visita y
-     hace redirect al locale correcto.
-   - Override manual: selector en header persiste en cookie + URL.
+| ID | Decisión |
+|---|---|
+| D-1 | Librería = `next-intl` |
+| D-2 | Routing = sub-paths `/es` `/en` (no subdominios, no query param) |
+| D-3 | Default = `es` |
+| D-4 | Detección 1ª visita = `Accept-Language` vía middleware |
+| D-5 | Persistencia = cookie `NEXT_LOCALE` (no columna `cus_locale` aún) |
+| D-6 | Convivencia react-i18next ↔ next-intl en 14.1+14.2; cleanup al final de 14.2 |
+| D-7 | Mensajes split por namespace en disco (`messages/es/common.json`, etc.) |
+| D-8 | Errores backend = `{ code, message, params }` (frontend traduce, fallback al `message` ES) |
+| D-9 | Emails bilingües — `locale` viene en el body del request |
+| D-10 | Fechas vía `useFormatter`/`getFormatter`; cero `toLocaleDateString('es-GT', ...)` hardcoded |
+| D-11 | Hitos secuenciales (NO paralelo) |
 
-3. **Default: `es` (mercado principal GT).**
+**Hitos:**
 
-4. **Errores y notificaciones del backend: con códigos de error.**
-   Patrón:
-   ```js
-   // Backend
-   return response.status(400).json({
-     code: 'error.budget_too_low',
-     message: 'El presupuesto mínimo es Q10.', // fallback si falla traducción
-     params: { min: 10 },
-   });
+| Hito | Entrega | Estim. |
+|---|---|---|
+| 14.1 Setup | `next-intl` instalado, `src/app/[locale]/`, middleware combinado (auth+intl), home piloto traducida, selector de idioma visible, T-104..T-108 | ~6h |
+| 14.2 Migración base | Login/Register/Forgot/HeaderOne/HeaderTwo → `useTranslations`; cleanup de `react-i18next`+`i18next`+`src/i18n.js`; T-109..T-111 | ~3h |
+| 14.3 Contenido nuevo | 10 namespaces (messages, support, pauta, profile, notifications, admin, home, publications, legal, danger). Helper `useDateFmt`. 0 `toLocaleDateString` con literal. T-112..T-114 | ~12–16h |
+| 14.4 Backend + emails + SEO | Helper `emailTemplates.js` bilingüe, 20 endpoints con `{code, message, params}`, `sitemap.ts` con `/es+/en` + hreflang, `robots.ts` con disallow por locale, T-115..T-117 | ~5h |
+| **Total** | | **~26–30h Codex** |
 
-   // Frontend (ApiError extendido)
-   toast.error(t(err.body.code, err.body.params) ?? err.body.message);
-   ```
-   Backwards-compatible: si el frontend no encuentra la key, muestra el
-   `message` del backend. Esto permite migrar gradualmente: empezar por
-   los toasts de pauta/soporte (más visibles) y dejar los menos críticos
-   para después.
+**Out of scope (NO se hace en esta fase):**
 
-5. **Migración desde `react-i18next`:**
-   - `react-i18next` actualmente cubre: Login, Register, Forgot, HeaderTwo.
-   - Mantener el bundle inline de `src/i18n.js` durante la transición —
-     `next-intl` y `react-i18next` pueden coexistir mientras se migra
-     componente por componente.
-   - Eliminar `i18next` + `react-i18next` del package.json al terminar.
+- ❌ Columna `cus_locale` en BD (difiere; pasa por body).
+- ❌ Tercer idioma (k'iche', portugués, etc.).
+- ❌ A/B testing de copy traducido.
+- ❌ Traducciones IA en runtime (estáticas en JSON).
+- ❌ RTL languages.
 
-**Plan de trabajo (estimación: 3-4 días concentrados):**
+**Cambio aplicado al `database.sql`:**
 
-1. **Setup** (medio día):
-   - Decidir librería + estrategia (URL/cookie).
-   - Si migramos a `next-intl`: setup `app/[locale]/...` + middleware.
-   - Separar bundle inline en archivos: `src/locales/es/common.json`,
-     `src/locales/es/auth.json`, `src/locales/en/...`, etc. Por dominio.
+Ninguno — esta fase no agrega tablas ni columnas. La persistencia del
+locale vive en cookie `NEXT_LOCALE` (per D-5).
 
-2. **Extracción de strings** (1.5 días):
-   - Script que parsee `.tsx` y encuentre strings hardcoded (no
-     perfecto, pero acelera).
-   - Reemplazar manualmente `<button>Guardar</button>` →
-     `<button>{t('common.save')}</button>` etc.
-   - Foco en componentes nuevos: messages, support, pauta, danger zone,
-     notifications, settings.
+**SQL de migración para entornos ya poblados:**
 
-3. **Selector de idioma** (medio día):
-   - Toggle en el header (icono globo o "ES / EN") junto al botón de
-     usuario / notificaciones.
-   - Persistir en cookie (Next-intl) o localStorage (react-i18next).
+```sql
+-- Fase 14 NO requiere migración SQL.
+-- La persistencia de locale es por cookie (D-5).
+-- La eventual columna `cus_locale` queda como follow-up para una fase futura
+-- (D-5 explícita).
+```
 
-4. **Fechas y números** (medio día):
-   - Reemplazar `toLocaleDateString('es-GT', ...)` por uso del locale
-     activo: `toLocaleDateString(i18n.language, ...)`.
-   - Helper `formatPrice` ya respeta currency; verificar que use locale.
+**Riesgos conocidos (ver detalle en el plan):**
 
-5. **Errores backend** (medio día, opcional para launch):
-   - Mapear los toasts más comunes a traducciones del frontend.
+| Riesgo | Mitigación |
+|---|---|
+| Next 13.4.6 no admite layouts sin `<html>` en root | Codex valida en 14.1; si falla, escala a upgrade Next 13.5+ |
+| Codex toca todo en un commit gigante | Plan exige granularidad por hito |
+| Cookie `NEXT_LOCALE` colisiona con cookie-consent | Nombres distintos; verificar en 14.1 |
+| URLs viejas sin locale rompen backlinks externos | Middleware redirige `/publications/123` → `/es/publications/123` |
+| Fase 11.2 (pasarela) corre en paralelo | Fase 14 cierra **antes** de abrir 11.2 |
 
-6. **QA** (medio día):
-   - Recorrer todos los flujos en ambos idiomas.
-   - Verificar que no quede texto hardcoded visible.
+**Trigger:** ya está habilitada — el plan está cerrado y Codex puede
+arrancar por el Hito 14.1 cuando Aurelio dé el visto. Lo óptimo es
+ejecutarla **antes** del lanzamiento público (D-1 atrae inversionistas
+extranjeros y expats con poder de compra alto).
 
-**Prioridad de dominios a traducir (orden sugerido):**
-1. Auth + Register + Recovery (puerta de entrada — debe verse pro en EN).
-2. Header, footer, navegación, breadcrumbs.
-3. Publicaciones públicas (lo primero que ve un visitante).
-4. Settings + Mi perfil.
-5. Mensajes + Notificaciones.
-6. Soporte (verificaciones, denuncias, tickets, usuarios) — solo si
-   habrá agentes de soporte en inglés, si no es opcional.
-7. Pauta (anunciantes — probablemente bilingüe esperado).
+---
 
-**Trigger sugerido:** **antes** del lanzamiento público o como fase
-inmediatamente post-launch si priorizas salir rápido al mercado GT. Lo
-óptimo es lanzarlo bilingüe desde el día 1 si se va a apuntar a
-extranjeros (inversionistas inmobiliarios fuera de GT, expats, etc.).
+#### Bitácora por hito
 
-**Riesgo si NO se hace:** se pierden usuarios extranjeros (turistas,
-inversionistas, expats interesados en bienes raíces GT). Es un segmento
-que paga bien por pauta y compra propiedades de alto valor.
+> Sub-secciones que Codex llena al cerrar cada hito (commit + SHA + notas).
+> El revisor (Claude) confirma cada una antes de pasar a la siguiente.
+
+##### Hito 14.1 — Setup `next-intl` + estructura `[locale]` — ⬜ Pendiente
+
+- **SHA Codex:** _por completar_
+- **Tests añadidos:** T-104..T-108 (definidos en `docs/TEST_PLAN.md`)
+- **Decisiones aplicadas:** D-1, D-2, D-3, D-4, D-5, D-11
+- **Archivos creados:**
+  - `src/i18n/routing.ts`
+  - `src/i18n/request.ts`
+  - `src/i18n/navigation.ts`
+  - `src/app/[locale]/layout.tsx`
+  - `messages/es/common.json`, `messages/en/common.json`
+  - `messages/es/auth.json`, `messages/en/auth.json` (sembrado desde `src/i18n.js`)
+- **Archivos movidos:** todas las carpetas de `src/app/` → `src/app/[locale]/`,
+  excepto `layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.ts`, `robots.ts`,
+  `[...not_found]/`.
+- **Archivos modificados:** `src/middleware.ts` (combina auth + intl),
+  `src/app/layout.tsx` (root sin `<html>`), `next.config.js` (plugin
+  `next-intl`), `package.json` (add `next-intl`).
+- **Bloqueos resueltos:** _por completar_
+- **Notas del revisor:** _por completar_
+
+##### Hito 14.2 — Migración base (5 archivos) — ⬜ Pendiente
+
+- **SHA Codex:** _por completar_
+- **Tests añadidos:** T-109..T-111
+- **Decisiones aplicadas:** D-6, D-7
+- **Archivos migrados** (`react-i18next` → `next-intl`):
+  - `src/form/ForgotForm.tsx`
+  - `src/form/RegisterForm.tsx`
+  - `src/layout/header/HeaderOne.tsx`
+  - `src/layout/header/HeaderTwo.tsx`
+  - `src/form/LoginForm.tsx` (si aplica — Codex confirma en el PR)
+- **Archivos eliminados:** `src/i18n.js`
+- **Deps eliminadas:** `react-i18next`, `i18next` (de `package.json`)
+- **Validación grep:** `grep -rn "react-i18next\|from.*i18next" src/` → 0 hits
+- **Bloqueos resueltos:** _por completar_
+- **Notas del revisor:** _por completar_
+
+##### Hito 14.3 — Contenido nuevo (Fases 5–11) + fechas con `useFormatter` — ⬜ Pendiente
+
+- **SHA Codex:** _por completar_
+- **Tests añadidos:** T-112..T-114
+- **Decisiones aplicadas:** D-7, D-10
+- **Namespaces creados** (en `messages/es/` y `messages/en/`):
+  `messages`, `support`, `pauta`, `profile`, `notifications`, `admin`,
+  `home`, `publications`, `legal`, `danger`
+- **Helper creado:** `src/utils/datetime.ts` con `useDateFmt()` (client) y
+  re-exports de `getFormatter()` para server components.
+- **Sweep `toLocaleDateString`:** ~50 hits reemplazados. Codex documenta
+  excepciones aceptables (si las hay) en el PR.
+- **Bloqueos resueltos:** _por completar_
+- **Notas del revisor:** _por completar_
+
+##### Hito 14.4 — Backend (errores + emails) + SEO bilingüe — ⬜ Pendiente
+
+- **SHA Codex (backend):** _por completar_
+- **SHA Codex (frontend):** _por completar_
+- **Tests añadidos (backend):** T-115..T-117
+- **Decisiones aplicadas:** D-8, D-9
+- **Archivos backend creados:** `utils/emailTemplates.js` (6 plantillas
+  bilingües: recovery, verificationConfirm, verificationConfirmWithTemp,
+  reviewSeller, addedToCompany, invitedToCompany).
+- **Archivos backend modificados:** `config/connPostgresDB.js`
+  - Las 6 llamadas a `transp.sendMail` pasan por `renderEmail()`.
+  - ≥20 respuestas de error con shape `{ code, message, params }`.
+- **Archivos frontend modificados:**
+  - `src/utils/Api.ts` o equivalente — `locale` en body de endpoints con email.
+  - `src/app/sitemap.ts` — emite `/es/...` y `/en/...` con `hreflang`.
+  - `src/app/robots.ts` — `disallow` por locale.
+- **Docs §13 actualizadas:**
+  - Backend: `docs/API_REFERENCE.md`, `docs/GLOSSARY.md`
+  - Frontend: `docs/FRONTEND_STRUCTURE.md`, `docs/ARCHITECTURE.md`,
+    `docs/ONBOARDING.md`, `docs/TEST_PLAN.md`
+- **Bloqueos resueltos:** _por completar_
+- **Notas del revisor:** _por completar_
+
+##### Cierre Fase 14 — ⬜ Pendiente
+
+- **Verdict global:** _por completar_ (✅ APROBADA / ⚠️ APROBADA CON OBSERVACIONES / ❌ RECHAZADA)
+- **Follow-ups que quedaron fuera de scope** (lista vacía hasta que cierre):
+  - _por completar_
+- **Fecha de cierre:** _por completar_
 
 ---
 
