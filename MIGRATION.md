@@ -142,6 +142,7 @@ El backend está estable y se comparte. La regla:
 | **11** | Logging estructurado + alertas (Pino/Winston, log rotation, integración con Sentry/BetterStack, tabla `system_alerts`) | ⬜ Pendiente | 1–2 días |
 | **12** | Panel de administración / soporte (rol admin, dashboard de alertas, métricas, gestión usuarios) | ⬜ Pendiente | 2–3 días |
 | **13** | Soporte al cliente (usuario "Soporte" especial vía mensajería de Fase 6, replies por email vía nodemailer, tickets) | ⬜ Pendiente | 1–2 días |
+| **13.docs** | Documentación técnica completa de la plataforma | ✅ Completada | 1 día |
 | **20** | Automatización de tests backend con Vitest/Supertest + CI | ✅ Completada | 0.5–1 día |
 
 **Total estimado:** 23–31 días de trabajo enfocado.
@@ -3006,18 +3007,70 @@ que paga bien por pauta y compra propiedades de alto valor.
 
 ---
 
-### Fase 13 (pendiente) — Documentación técnica completa de la plataforma
+### Fase 13 — Documentación técnica completa de la plataforma ✅
 
 **Objetivo:** crear un set de documentos de referencia que sobrevivan a la
 rotación del equipo, sirvan para onboarding de nuevos colaboradores
 (actuales y futuros) y permitan a soporte/ops resolver problemas sin
 necesitar al desarrollador original.
 
-**Estado actual:** `MIGRATION.md` (este archivo) es una bitácora cronológica
-de decisiones por fase. Sirve para reconstruir "por qué" pero no para
-"cómo opero X". Hace falta documentación de referencia.
+**Estado:** cerrada el 2026-06-04 como fase docs-only. La ejecución final vive
+en `docs/phases/phase-13-technical-docs.md`; este bloque conserva la bitácora
+de lo entregado.
 
-**Documentos a crear (sugerencia de estructura `docs/` en cada repo):**
+**Decisiones aplicadas:**
+- D-1=B: `docs/API_REFERENCE.md` manual, generado por inspección real de
+  `server.js` y `connPostgresDB.js`, sin agregar script de autogeneración.
+- D-2=A: diagramas Mermaid en Markdown.
+- D-3=lista del plan: se expandieron las tablas core `customer`, `business`,
+  `publications`, `publications_detail`, `cat_amenities`,
+  `publications_amenities`, `subscriptions`, `customer_follows`,
+  `seller_ratings`, `publications_comments`, `tickets`, `ticket_messages`,
+  `verification_requests`, `ad_campaigns` y `customer_payment_methods`.
+- D-4=A: README expandido en cada repo.
+- D-5=A: `docs/ARCHITECTURE.md` centralizado en frontend con links al backend.
+
+**Backend (`ecommerceGTBackEnd`):**
+- `README.md`: quick start, variables de entorno, estructura, tests, deploy y
+  links a docs.
+- `docs/API_REFERENCE.md`: 128 endpoints agrupados por feature, con método,
+  ruta, auth, handler, línea de `server.js`, descripción y shapes expandidos
+  para auth, handle, `/me`, soporte, verificaciones, tickets, pauta, admin,
+  métodos de pago y uploads.
+- `docs/SCHEMA.md`: referencia del schema `ecom`, resumen de 41 tablas, ER
+  Mermaid por subsistema y detalle de 15 tablas core.
+- `docs/ONBOARDING.md`: guía Día 0 / Día 0.5 / Día 1 para dev nuevo.
+- `docs/GLOSSARY.md`: términos de dominio, técnicos, roles y estados.
+
+**Frontend / compartido (`ecommerceGT-Next`):**
+- `README.md`: quick start, stack, scripts, env vars, estructura, convenciones
+  y cross-links al backend.
+- `docs/FRONTEND_STRUCTURE.md`: tour de `src/`, rutas App Router,
+  componentes, hooks, tipos, utils, estilos y patrones recurrentes.
+- `docs/ARCHITECTURE.md`: vista cross-repo, capas, flujos de sesión,
+  publicación y soporte, uploads, ambientes y riesgos conocidos.
+- `docs/phases/phase-13-technical-docs.md`: checklist de aceptación actualizado
+  durante la ejecución.
+
+**TODOs dejados intencionalmente (no inventar shapes):**
+- `POST /changestatus`, `POST /deleteimg`, `POST /getemployees` y
+  `GET /my-publications/:cus_id` quedan marcados con TODO en
+  `docs/API_REFERENCE.md` porque el shape/auth no se puede asegurar sin
+  ambigüedad solo desde el código actual.
+
+**Verificación local:**
+- Backend: `npm test` pasa con 4 archivos y 8 tests.
+- Linkrot: chequeo de los 9 Markdown relevantes de Fase 13 sin links internos
+  rotos.
+- Mermaid: 7 diagramas renderizados localmente con `@mermaid-js/mermaid-cli`
+  11.15.0.
+- Cero código nuevo y cero cambios funcionales: solo archivos Markdown.
+
+**Nota de numeración:** la tabla histórica ya tenía `13` reservado para
+soporte al cliente. Para no borrar ese roadmap pendiente, esta fase queda
+marcada en la tabla como `13.docs`.
+
+**Plan original de referencia (bosquejo previo, no checklist vigente):**
 
 #### Backend (`ecommerceGTBackEnd/docs/`)
 1. **`API.md`** — todos los endpoints agrupados por dominio:
