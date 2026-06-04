@@ -1,8 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import React from 'react';
+import { usePathname } from '@/i18n/navigation';
 import { usePublicationCategories } from '@/hooks/api/useCatalogs';
 import {
   getCategoryFallbackIcon,

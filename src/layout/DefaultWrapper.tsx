@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 if (typeof window !== "undefined") {
   require("bootstrap/dist/js/bootstrap");
 }
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import Footer from "./footer/Footer";
 import FooterTwo from "../layout/footer/footerTwo";
 import HeaderOne from "./header/HeaderOne";

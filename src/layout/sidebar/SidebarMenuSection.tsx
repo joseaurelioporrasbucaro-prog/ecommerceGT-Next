@@ -13,7 +13,7 @@ import { menuItems } from "@/data/menu-data";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
 import type { TopSellerRow } from "@/types/api";
 import { getBackendUrl } from "@/utils/backendUrl";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { useAuth } from "@/utils/AuthContext";
 
 // Imágenes de respaldo cuando el vendedor no tiene avatar.

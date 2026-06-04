@@ -27,7 +27,8 @@ const CookieConsentBanner: React.FC = () => {
     try {
       // Ocultar en el visor 3D — la ruta tiene patrón /publications/:id/viewer.
       if (typeof window !== 'undefined') {
-        const path = window.location.pathname;
+        const path =
+          window.location.pathname.replace(/^\/(es|en)(?=\/|$)/, '') || '/';
         if (/^\/publications\/[^/]+\/viewer/.test(path)) return;
       }
       const accepted = localStorage.getItem(STORAGE_KEY);
