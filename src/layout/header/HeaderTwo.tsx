@@ -1,21 +1,18 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useTranslation } from "react-i18next";
 import SidebarMenuSection from "../sidebar/SidebarMenuSection";
 import AccountRightSidebar from "../sidebar/AccountRightSidebar";
 import PublicCategoriesSidebar from "../sidebar/PublicCategoriesSidebar";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import HeaderSearch from "./component/HeaderSearch";
 import { useAuth } from "@/utils/AuthContext";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { Link } from "@/i18n/navigation";
 
 const HeaderTwo = () => {
   const { setTheme } = useTheme();
   const { user } = useAuth();
-  // useTranslation suscribe el componente a cambios de idioma — sin esto,
-  // el botón ES/EN cambia el lenguaje pero no se re-renderiza el resaltado.
-  const { i18n } = useTranslation();
 
   const [menuOpen1, setMenuOpen1] = useState(false);
   const [menuOpen2, setMenuOpen2] = useState(false);
@@ -24,11 +21,6 @@ const HeaderTwo = () => {
   // - Si hay sesión → AccountRightSidebar (Mi cuenta).
   // - Si NO hay sesión → PublicCategoriesSidebar (categorías + CTA login/registro).
   const RightSidebar = user ? AccountRightSidebar : PublicCategoriesSidebar;
-
-  // Cambio de idioma (ES / EN)
-  const changeLanguage = (lng: 'es' | 'en') => {
-    i18n.changeLanguage(lng);
-  };
 
   return (
     <>
@@ -59,33 +51,7 @@ const HeaderTwo = () => {
                 </div>
                 <div className="col-xl-5 col-lg-5 col-md-5 col-5">
                   <div className="header-main-right">
-                    {/* SELECTOR DE IDIOMAS (ES | EN) — reemplaza el avatar
-                        dropdown. El avatar y el logout viven ahora en el
-                        sidebar derecho de "Mi cuenta". */}
-                    <div
-                      className="header-lang ml-20 d-none d-md-inline-block"
-                      style={{ fontWeight: 600, cursor: 'pointer', fontSize: '15px' }}
-                    >
-                      <span
-                        onClick={() => changeLanguage('es')}
-                        style={{
-                          color: i18n.language === 'es' ? 'var(--tp-theme-1, #5a5af2)' : 'inherit',
-                          transition: '0.3s',
-                        }}
-                      >
-                        ES
-                      </span>
-                      <span className="mx-2" style={{ color: '#ccc' }}>|</span>
-                      <span
-                        onClick={() => changeLanguage('en')}
-                        style={{
-                          color: i18n.language === 'en' ? 'var(--tp-theme-1, #5a5af2)' : 'inherit',
-                          transition: '0.3s',
-                        }}
-                      >
-                        EN
-                      </span>
-                    </div>
+                    <LanguageSwitcher className="header-lang ml-20 d-none d-md-inline-flex" />
 
                     {/* Si NO hay sesión, mostrar botón "Iniciar sesión"
                         en el header (en lugar del avatar logueado). */}

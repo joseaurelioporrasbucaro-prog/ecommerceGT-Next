@@ -1,8 +1,17 @@
+"use client";
+
 import { MenuData } from "@/data/menu-data";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import React from "react";
 
 const HeaderOneMenu = () => {
+  const t = useTranslations("common.nav");
+  const translatedTitles: Record<number, string> = {
+    1: t("home"),
+    2: t("publications"),
+  };
+
   return (
     <>
       <ul>
@@ -11,7 +20,9 @@ const HeaderOneMenu = () => {
             key={menuItem.id}
             className={menuItem.hasDropdown ? "menu-item-has-children" : ""}
           >
-            <Link href={menuItem.link}>{menuItem.title}</Link>
+            <Link href={menuItem.link}>
+              {translatedTitles[menuItem.id] ?? menuItem.title}
+            </Link>
             {menuItem.submenus && (
               <ul className="sub-menu">
                 {menuItem.submenus.map((submenuItem) => (

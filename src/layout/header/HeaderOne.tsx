@@ -12,15 +12,16 @@ import MobileMenu from '@/utils/MobileMenu';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
-const HeaderOne = ({ HeaderStatic }:any) => {
+interface HeaderOneProps {
+   HeaderStatic?: string;
+}
+
+const HeaderOne = ({ HeaderStatic }: HeaderOneProps) => {
  const {toggleSideMenu,sideMenuOpen} = useGlobalContext()
  const { setTheme } = useTheme();
- const { i18n, t } = useTranslation();
-
- const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
- };
+ const { t } = useTranslation();
 
    // sticky nav
    const { sticky } = useSticky();
@@ -53,22 +54,7 @@ const HeaderOne = ({ HeaderStatic }:any) => {
                               placeholder={t('serchproducts') || 'Buscar usuarios o propiedades...'}
                            />
 
-                           {/* --- SELECTOR DE IDIOMAS (ES | EN) --- */}
-                           <div className="header-lang ml-20 d-none d-md-inline-block" style={{ fontWeight: '600', cursor: 'pointer', fontSize: '15px' }}>
-                             <span 
-                                onClick={() => changeLanguage('es')} 
-                                style={{ color: i18n.language === 'es' ? '#5a5af2' : 'inherit', transition: '0.3s' }}
-                             >
-                                ES
-                             </span>
-                             <span className="mx-2" style={{ color: '#ccc' }}>|</span>
-                             <span 
-                                onClick={() => changeLanguage('en')}
-                                style={{ color: i18n.language === 'en' ? '#5a5af2' : 'inherit', transition: '0.3s' }}
-                             >
-                                EN
-                             </span>
-                           </div>
+                           <LanguageSwitcher className="header-lang ml-20 d-none d-md-inline-flex" />
 
                            {/* --- BELL DE NOTIFICACIONES (Fase 6.3) --- */}
                            <div className="ml-20 d-none d-md-inline-block">
