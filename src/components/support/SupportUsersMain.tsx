@@ -137,9 +137,16 @@ const SupportUsersMain = () => {
                               <span className={`su-role su-role-${u.role}`}>{u.role}</span>
                             </td>
                             <td>
-                              <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
-                                {STATUS_LABEL[u.status]}
-                              </span>
+                              {/* Fase 8.3.3 fix: cuando hay pwLocked en cuenta 'active',
+                                  ocultamos el chip "Activo" porque la cuenta NO está
+                                  realmente activa (no puede entrar). Si está suspended/
+                                  banned, el chip del estado de soporte sigue mostrándose
+                                  porque ese es el estado dominante.  */}
+                              {!(pwLocked && u.status === 'active') && (
+                                <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
+                                  {STATUS_LABEL[u.status]}
+                                </span>
+                              )}
                               {u.status === 'suspended' && u.banneduntil && (
                                 <div className="su-until">hasta {new Date(u.banneduntil).toLocaleDateString('es-GT')}</div>
                               )}
@@ -158,21 +165,28 @@ const SupportUsersMain = () => {
                             </td>
                             <td>
                               <div className="su-actions">
-                                {isStaff ? (
-                                  <span className="su-muted">—</span>
-                                ) : u.status === 'active' ? (
+                                {/* Sanciones de soporte solo aplican a usuarios no-staff. */}
+                                {!isStaff && u.status === 'active' && (
                                   <button className="su-btn su-ban" onClick={() => openBan(u)} disabled={banUser.isPending}>
                                     <i className="fas fa-ban" /> Sancionar
                                   </button>
-                                ) : (
+                                )}
+                                {!isStaff && u.status !== 'active' && (
                                   <button className="su-btn su-unban" onClick={() => reactivate(u)} disabled={unbanUser.isPending}>
                                     <i className="fas fa-undo" /> Reactivar
                                   </button>
                                 )}
-                                {pwLocked && !isStaff && (
+                                {/* Fase 8.3.3 fix: bloqueo por contraseña aplica también
+                                    a staff. Si pwLocked, mostramos el botón sin importar
+                                    el rol. */}
+                                {pwLocked && (
                                   <button className="su-btn su-unlock" onClick={() => unlockPwd(u)} disabled={unlockPassword.isPending}>
                                     <i className="fas fa-key" /> Desbloquear contraseña
                                   </button>
+                                )}
+                                {/* Placeholder "—" solo si no hay ninguna acción disponible. */}
+                                {isStaff && !pwLocked && (
+                                  <span className="su-muted">—</span>
                                 )}
                               </div>
                             </td>
