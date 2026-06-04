@@ -34,6 +34,14 @@ export const metadata: Metadata = {
     'KIOSQUI',
   ],
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: '/es',
+    languages: {
+      es: '/es',
+      en: '/en',
+      'x-default': '/es',
+    },
+  },
   openGraph: {
     type: 'website',
     locale: 'es_GT',
