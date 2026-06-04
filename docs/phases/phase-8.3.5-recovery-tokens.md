@@ -519,35 +519,35 @@ El estado `passta_id = 5` ("debe cambiar contraseña temporal") era parte del es
 ## Criterios de aceptación
 
 ### Database
-- [ ] Tabla `ecom.password_reset_tokens` creada en `database.sql`
-- [ ] 2 índices: `idx_prt_token_hash`, `idx_prt_cus_id_expires`
+- [x] Tabla `ecom.password_reset_tokens` creada en `database.sql`
+- [x] 2 índices: `idx_prt_token_hash`, `idx_prt_cus_id_expires`
 
 ### Backend
-- [ ] `recoveryPwd` rewriteado: genera token, hashea SHA-256, inserta en tabla, envía email con link
-- [ ] `recoveryPwdGenNew` rewriteado: valida token (existe + no usado + no expirado), cambia password en transacción
-- [ ] Rate-limit de 3 solicitudes/hora por usuario
-- [ ] Anti-enumeración: 200 si email no existe
-- [ ] Transacción atómica: cambiar password + marcar token usado + invalidar otros tokens
-- [ ] Variable `FRONTEND_URL` agregada a `.env.example` con default `http://localhost:3000`
+- [x] `recoveryPwd` rewriteado: genera token, hashea SHA-256, inserta en tabla, envía email con link
+- [x] `recoveryPwdGenNew` rewriteado: valida token (existe + no usado + no expirado), cambia password en transacción
+- [x] Rate-limit de 3 solicitudes/hora por usuario
+- [x] Anti-enumeración: 200 si email no existe
+- [x] Transacción atómica: cambiar password + marcar token usado + invalidar otros tokens
+- [x] Variable `FRONTEND_URL` agregada a `.env.example` con default `http://localhost:3000`
 
 ### Frontend
-- [ ] `ForgotForm.tsx` rewriteado: detecta `?token=` en URL, muestra Vista 1 o Vista 2 según corresponda
-- [ ] Vista 1 más simple: solo input de email
-- [ ] Vista 2: 2 campos (nueva + confirmar), no necesita email ni temporal (todo va en el token)
-- [ ] Toast info (no error) cuando email no existe (anti-enumeración)
-- [ ] Link "¿Link expirado? Solicitar uno nuevo" en Vista 2
+- [x] `ForgotForm.tsx` rewriteado: detecta `?token=` en URL, muestra Vista 1 o Vista 2 según corresponda
+- [x] Vista 1 más simple: solo input de email
+- [x] Vista 2: 2 campos (nueva + confirmar), no necesita email ni temporal (todo va en el token)
+- [x] Toast info (no error) cuando email no existe (anti-enumeración)
+- [x] Link "¿Link expirado? Solicitar uno nuevo" en Vista 2
 
 ### Tests
-- [ ] T-95..T-103 implementados en `recovery.spec.js`
-- [ ] T-90..T-94 anteriores eliminados (no marcados OBSOLETE en `recovery.spec.js`; sí marcados en TEST_PLAN.md)
-- [ ] `npm test` corre 17/17 verde
+- [x] T-95..T-103 implementados en `recovery.spec.js`
+- [x] T-90..T-94 anteriores eliminados (no marcados OBSOLETE en `recovery.spec.js`; sí marcados en TEST_PLAN.md)
+- [x] `npm test` corre 17/17 verde
 
 ### Documentación (per AGENTS.md §13)
-- [ ] `API_REFERENCE.md`: nuevos shapes de `/recoverypass` y `/recoverypassnew`
-- [ ] `SCHEMA.md`: `password_reset_tokens` en resumen + bloque expandido
-- [ ] `GLOSSARY.md`: entrada "Token de reset"
-- [ ] `TEST_PLAN.md`: T-90..T-94 → OBSOLETE, T-95..T-103 → AUTOMATED
-- [ ] `MIGRATION.md`: Fase 8.3.5 con bitácora + migración SQL para BD existente
+- [x] `API_REFERENCE.md`: nuevos shapes de `/recoverypass` y `/recoverypassnew`
+- [x] `SCHEMA.md`: `password_reset_tokens` en resumen + bloque expandido
+- [x] `GLOSSARY.md`: entrada "Token de reset"
+- [x] `TEST_PLAN.md`: T-90..T-94 → OBSOLETE, T-95..T-103 → AUTOMATED
+- [x] `MIGRATION.md`: Fase 8.3.5 con bitácora + migración SQL para BD existente
 
 ### Migración para BD existente (NO va en database.sql, va en MIGRATION.md §9)
 ```sql
