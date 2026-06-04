@@ -435,29 +435,29 @@ Hay 2 opciones para `ARCHITECTURE.md`:
 Codex marca con `[x]` cuando completa cada uno:
 
 ### Backend (`ecommerceGTBackEnd/`)
-- [ ] `README.md` expandido (mantiene la sección de tests existente, agrega Quick start + env vars + estructura)
-- [ ] `docs/` creado
-- [ ] `docs/API_REFERENCE.md` con tabla de los 128 endpoints agrupados por feature
-- [ ] Endpoints "interesantes" (auth, payments, support, admin) con bloque expandido de request/response
-- [ ] `docs/SCHEMA.md` con ER diagram Mermaid + tabla resumen 41 tablas + bloques expandidos ~15 cores
-- [ ] `docs/ONBOARDING.md` con guía Día 0 / Día 0.5 / Día 1
-- [ ] `docs/GLOSSARY.md` con términos de dominio + técnicos + roles + estados
+- [x] `README.md` expandido (mantiene la sección de tests existente, agrega Quick start + env vars + estructura)
+- [x] `docs/` creado
+- [x] `docs/API_REFERENCE.md` con tabla de los 128 endpoints agrupados por feature
+- [x] Endpoints "interesantes" (auth, payments, support, admin) con bloque expandido de request/response
+- [x] `docs/SCHEMA.md` con ER diagram Mermaid + tabla resumen 41 tablas + bloques expandidos ~15 cores
+- [x] `docs/ONBOARDING.md` con guía Día 0 / Día 0.5 / Día 1
+- [x] `docs/GLOSSARY.md` con términos de dominio + técnicos + roles + estados
 
 ### Frontend (`ecommerceGT-Next/`)
-- [ ] `README.md` expandido (mantiene info del template original, agrega Quick start + estructura + convenciones)
-- [ ] `docs/FRONTEND_STRUCTURE.md` con tour de cada carpeta de `src/`
-- [ ] `docs/ARCHITECTURE.md` con diagrama top-level + descripción de capas
-- [ ] Cross-references entre los 2 READMEs
+- [x] `README.md` expandido (mantiene info del template original, agrega Quick start + estructura + convenciones)
+- [x] `docs/FRONTEND_STRUCTURE.md` con tour de cada carpeta de `src/`
+- [x] `docs/ARCHITECTURE.md` con diagrama top-level + descripción de capas
+- [x] Cross-references entre los 2 READMEs
 
 ### MIGRATION.md
-- [ ] Sección "Fase 13" agregada con bitácora de lo que se documentó
+- [x] Sección "Fase 13" agregada con bitácora de lo que se documentó
 
 ### Quality bar
-- [ ] Cero código nuevo (solo documentación)
-- [ ] Cero cambios funcionales
-- [ ] Tests siguen pasando (`npm test` en backend)
-- [ ] Cero linkrot — todos los links internos resuelven
-- [ ] Diagramas Mermaid se renderizan correctamente (verificar con preview de GitHub)
+- [x] Cero código nuevo (solo documentación)
+- [x] Cero cambios funcionales
+- [x] Tests siguen pasando (`npm test` en backend)
+- [x] Cero linkrot — todos los links internos resuelven
+- [x] Diagramas Mermaid se renderizan correctamente (render local con Mermaid CLI 11.15.0)
 
 ## Riesgos / edge cases
 
