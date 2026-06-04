@@ -1,33 +1,47 @@
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { ProductType } from "@/interFace/interFace";
-interface propsType {
-  product: ProductType;
+import Image from 'next/image';
+import Link from 'next/link';
+import React from 'react';
+import type { SellerRankingItem } from '@/types/api';
+import { getBackendUrl } from '@/utils/backendUrl';
+import { resolveAvatarSrc } from '@/utils/avatarUtils';
+
+interface SingleArtRankingProps {
+  seller: SellerRankingItem;
+  position: number;
 }
 
-const SingleArtRanking = ({ product }: propsType) => {
-  // distructure items
-  const { id, img, title, volume, hours, days, bids, price, name, count } =
-    product;
+function formatCount(value: number): string {
+  return new Intl.NumberFormat('es-GT').format(value);
+}
+
+function renderStars(value: number): string {
+  const filled = Math.round(value);
+  return `${'★'.repeat(filled)}${'☆'.repeat(Math.max(0, 5 - filled))}`;
+}
+
+const SingleArtRanking = ({ seller, position }: SingleArtRankingProps) => {
+  const fullName = `${seller.firstName} ${seller.lastName}`.trim() || 'Vendedor';
+  const avatarSrc = resolveAvatarSrc(seller.avatar, fullName, 64, getBackendUrl);
+  const profileHref = `/creator-profile/${seller.cusId}`;
 
   return (
-    <div className="rank-list-row">
+    <div className="rank-list-row seller-ranking-row">
       <div className="rank-list-cell rank-list-cell-sl">
-        <span></span>
+        <span>{position}</span>
       </div>
       <div className="rank-list-cell rank-list-cell-artwotrks">
-        <div className="art-item-single art-item-single-rank">
+        <div className="art-item-single art-item-single-rank seller-ranking-avatar">
           <div className="art-item-wraper">
             <div className="art-item-inner">
               <div className="art-item-img pos-rel">
-                <Link href={`/art-details/${id}`}>
+                <Link href={profileHref}>
                   <Image
                     width={50}
                     height={50}
-                    style={{ width: "100%", height: "auto" }}
-                    src={img}
-                    alt="art-img"
+                    src={avatarSrc}
+                    alt={fullName}
+                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%' }}
+                    unoptimized={avatarSrc.startsWith('data:')}
                   />
                 </Link>
               </div>
@@ -35,14 +49,23 @@ const SingleArtRanking = ({ product }: propsType) => {
           </div>
         </div>
       </div>
-      <div className="rank-list-cell rank-list-cell-market">{title}</div>
-      <div className="rank-list-cell rank-list-cell-volume">{volume}</div>
-      <div className="rank-list-cell rank-list-cell-hours">{hours}</div>
-      <div className="rank-list-cell rank-list-cell-days">{days}</div>
-      <div className="rank-list-cell rank-list-cell-bids">{bids}</div>
-      <div className="rank-list-cell rank-list-cell-price">{price}</div>
-      <div className="rank-list-cell rank-list-cell-owner">{name}</div>
-      <div className="rank-list-cell rank-list-cell-assets">{count}</div>
+      <div className="rank-list-cell rank-list-cell-market seller-ranking-name">
+        <Link href={profileHref}>{fullName}</Link>
+        {seller.handle && <span>@{seller.handle}</span>}
+      </div>
+      <div className="rank-list-cell rank-list-cell-volume seller-ranking-rating">
+        <span className="seller-ranking-stars">{renderStars(seller.averageRating)}</span>
+        <strong>{seller.averageRating.toFixed(1)}</strong>
+      </div>
+      <div className="rank-list-cell rank-list-cell-hours">
+        {formatCount(seller.totalReviews)} reseñas
+      </div>
+      <div className="rank-list-cell rank-list-cell-days">
+        {formatCount(seller.followers)}
+      </div>
+      <div className="rank-list-cell rank-list-cell-assets">
+        {formatCount(seller.totalpublis)}
+      </div>
     </div>
   );
 };

@@ -282,6 +282,23 @@ export interface TopSellerRow {
   score: number | string;
 }
 
+/** Fase 9 — ranking público de vendedores (`GET /sellers/ranking`). */
+export interface SellerRankingItem {
+  cusId: number;
+  firstName: string;
+  lastName: string;
+  handle: string | null;
+  avatar: string | null;
+  averageRating: number;
+  totalReviews: number;
+  followers: number;
+  totalpublis: number;
+}
+
+export interface SellerRankingResponse {
+  sellers: SellerRankingItem[];
+}
+
 /** Respuesta de `GET /verification/status`. */
 export interface VerificationStatusResponse {
   personal: { status: VerificationStatus; rejectReason: string | null };

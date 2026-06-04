@@ -137,6 +137,7 @@ El backend está estable y se comparte. La regla:
 | **7** | Cierre de venta + reseñas | ✅ Completada | 1 día |
 | **8** | Empresas y planes | ✅ Completada | 1–2 días |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
+| **9.1** | Ranking público de vendedores por reseñas verificadas | ✅ Completada | 0.5 día |
 | **10** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
 | **11** | Logging estructurado + alertas (Pino/Winston, log rotation, integración con Sentry/BetterStack, tabla `system_alerts`) | ⬜ Pendiente | 1–2 días |
 | **12** | Panel de administración / soporte (rol admin, dashboard de alertas, métricas, gestión usuarios) | ⬜ Pendiente | 2–3 días |
@@ -3702,6 +3703,33 @@ SELECT cus_id FROM ecom.customer
 
 Tamaño estimado: 1 ventana completa. Empezar por backend (esquema + endpoints +
 round-robin), luego frontend usuario, luego panel de soporte.
+
+---
+
+### Fase 9.1 — Ranking público de vendedores ✅
+
+**Objetivo:** reproponer `/art-ranking` como directorio público de vendedores, ordenado por calificación promedio de reseñas completadas.
+
+**Backend (`ecommerceGTBackEnd`):**
+- Se auditó `database.sql` antes de escribir la query: la tabla real de reseñas es `ecom.seller_ratings`; followers viven en `ecom.customer_follows`; publicaciones activas en `ecom.publications`.
+- Se agregó `getSellerRanking` en `config/connPostgresDB.js`, marcado con `// Codigo Aurelio`.
+- Se agregó la ruta pública `GET /sellers/ranking` en `server.js`.
+- El endpoint devuelve `{ sellers: [...] }`, solo vendedores con al menos una reseña `COMPLETED`, ordenados por promedio de estrellas DESC y total de reseñas DESC, con límite 50.
+
+**Frontend (`ecommerceGT-Next`):**
+- `src/types/api.ts`: agrega `SellerRankingItem` y `SellerRankingResponse`.
+- `src/hooks/api/useSellerRanking.ts`: hook React Query con `staleTime` de 5 minutos y genérico explícito en `ApiFetch.get`.
+- `src/components/art-ranking/RankingMain.tsx`: reemplaza datos estáticos por ranking real, con loading skeleton, error y empty state.
+- `src/components/art-ranking/SingleArtRanking.tsx`: renderiza posición, avatar con fallback de iniciales, nombre, handle, estrellas, reseñas, seguidores y publicaciones.
+- `src/components/art-ranking/RankingTableTitle.tsx`: columnas en español.
+
+**Verificación:**
+- `node --check server.js` pasa.
+- `node --check config/connPostgresDB.js` pasa.
+- `git diff --check` pasa en frontend y backend.
+- `npx tsc --noEmit` no muestra errores en los archivos de ranking ni en el hook nuevo. El proyecto completo todavía falla por errores preexistentes de `implicit any`/`never` en módulos fuera del alcance de esta subfase.
+
+**Pendiente de Fase 9 mayor:** sponsors/publicaciones destacadas siguen pendientes; el follow ya estaba adelantado en fases anteriores.
 
 ---
 
