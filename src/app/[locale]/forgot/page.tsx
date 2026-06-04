@@ -2,7 +2,7 @@
 import React from 'react';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
-import ForgotForm from '../../form/ForgotForm';
+import ForgotForm from '@/form/ForgotForm';
 
 // Importamos los envoltorios mágicos de la plantilla
 import DefaultWrapper from '@/layout/DefaultWrapper';
