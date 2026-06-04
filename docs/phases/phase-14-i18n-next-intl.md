@@ -503,15 +503,15 @@ Agregar a `tests/` del frontend (si Codex no tiene runner de frontend setup, est
 
 ### Criterios de aceptación 14.1
 
-- [ ] `next-intl` instalado, `react-i18next` y `i18next` siguen en `package.json` (convivencia).
-- [ ] `src/i18n/routing.ts`, `request.ts`, `navigation.ts` creados.
-- [ ] `src/middleware.ts` combina auth + intl, y los tests T-104..T-106 pasan.
-- [ ] Toda la app vive bajo `src/app/[locale]/`. Root layout solo retorna `children`.
-- [ ] `[locale]/layout.tsx` renderiza `<html lang={locale}>` + `NextIntlClientProvider` + `alternates.languages` con hreflang.
-- [ ] `messages/es/common.json`, `messages/en/common.json`, `messages/es/auth.json`, `messages/en/auth.json` existen y se cargan en `request.ts`.
-- [ ] Home en `/es` y `/en` muestra texto distinto en al menos una clave (smoke visual del PR).
-- [ ] Selector de idioma visible en header — Codex incluye screenshot en el PR.
-- [ ] **Tests automatizados del backend siguen verdes (17/17).** Este hito no toca backend.
+- [x] `next-intl` instalado, `react-i18next` y `i18next` siguen en `package.json` (convivencia).
+- [x] `src/i18n/routing.ts`, `request.ts`, `navigation.ts` creados.
+- [x] `src/middleware.ts` combina auth + intl, y los tests T-104..T-106 pasan.
+- [x] Toda la app vive bajo `src/app/[locale]/`. Root layout solo retorna `children`.
+- [x] `[locale]/layout.tsx` renderiza `<html lang={locale}>` + `NextIntlClientProvider` + `alternates.languages` con hreflang.
+- [x] `messages/es/common.json`, `messages/en/common.json`, `messages/es/auth.json`, `messages/en/auth.json` existen y se cargan en `request.ts`.
+- [x] Home en `/es` y `/en` muestra texto distinto en al menos una clave (smoke visual del PR).
+- [x] Selector de idioma visible en header — Codex incluye screenshot en el PR.
+- [x] **Tests automatizados del backend siguen verdes (17/17).** Este hito no toca backend.
 
 ---
 

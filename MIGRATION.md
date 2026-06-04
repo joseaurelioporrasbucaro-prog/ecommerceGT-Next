@@ -3017,26 +3017,50 @@ extranjeros y expats con poder de compra alto).
 > Sub-secciones que Codex llena al cerrar cada hito (commit + SHA + notas).
 > El revisor (Claude) confirma cada una antes de pasar a la siguiente.
 
-##### Hito 14.1 — Setup `next-intl` + estructura `[locale]` — ⬜ Pendiente
+##### Hito 14.1 — Setup `next-intl` + estructura `[locale]` — ✅ Completado
 
-- **SHA Codex:** _por completar_
-- **Tests añadidos:** T-104..T-108 (definidos en `docs/TEST_PLAN.md`)
-- **Decisiones aplicadas:** D-1, D-2, D-3, D-4, D-5, D-11
+- **SHA Codex:** `d574cef` (cierre smoke); commits del hito:
+  `141f7a3`, `b093781`, `7c76e30`, `fc7b56c`, `b18c747`,
+  `b504b93`, `d574cef`.
+- **Tests añadidos/documentados:** T-104..T-108 en `docs/TEST_PLAN.md`
+  como smoke manual (runner frontend queda para Fase 21).
+- **Validación ejecutada:**
+  - `npx tsc --noEmit` ✅
+  - `npx next build` ✅
+  - `npm test` backend ✅ 17/17
+  - `curl` smoke T-104..T-106 y T-108 ✅
+  - Browser smoke T-107..T-108 ✅ (`/tmp/kiosqui-fase14-es.png`,
+    `/tmp/kiosqui-fase14-en.png`)
+- **Decisiones aplicadas:** D-1=B, D-2=A, D-3=A, D-4=A, D-5=A,
+  D-6=B, D-7=B, D-8=B, D-9=B, D-10=A, D-11=B.
 - **Archivos creados:**
   - `src/i18n/routing.ts`
   - `src/i18n/request.ts`
   - `src/i18n/navigation.ts`
   - `src/app/[locale]/layout.tsx`
+  - `src/components/i18n/LanguageSwitcher.tsx`
+  - `src/utils/stripLocalePath.ts`
   - `messages/es/common.json`, `messages/en/common.json`
   - `messages/es/auth.json`, `messages/en/auth.json` (sembrado desde `src/i18n.js`)
 - **Archivos movidos:** todas las carpetas de `src/app/` → `src/app/[locale]/`,
   excepto `layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.ts`, `robots.ts`,
   `[...not_found]/`.
-- **Archivos modificados:** `src/middleware.ts` (combina auth + intl),
-  `src/app/layout.tsx` (root sin `<html>`), `next.config.js` (plugin
-  `next-intl`), `package.json` (add `next-intl`).
-- **Bloqueos resueltos:** _por completar_
-- **Notas del revisor:** _por completar_
+- **Archivos modificados:**
+  - `src/middleware.ts` combina `next-intl` + auth; auth corre aun cuando
+    `next-intl` devuelve rewrite interno.
+  - `src/app/layout.tsx` queda como root mínimo sin `<html>`.
+  - `src/app/[locale]/layout.tsx` contiene `<html lang={locale}>`,
+    `NextIntlClientProvider`, providers actuales y `alternates.languages`.
+  - `next.config.js` usa plugin `next-intl`.
+  - `package.json` / `package-lock.json` agregan `next-intl@3.26.5`.
+  - `HeaderOne` / `HeaderTwo` muestran selector de idioma.
+  - `KiosquiHero` incluye píldora piloto `common.nav.home` (`Inicio` / `Home`).
+  - `DefaultWrapper`, sidebars y cookie banner normalizan paths con locale.
+- **Bloqueos resueltos:** ninguno. Next 13.4.6 aceptó root layout sin
+  `<html>` y `[locale]/layout.tsx` con `<html lang={locale}>`.
+- **Notas del revisor:** Revisar que los links legacy con `next/link` puro
+  sigan redirigiendo por middleware; Hito 14.3 migrará los links restantes
+  de forma incremental.
 
 ##### Hito 14.2 — Migración base (5 archivos) — ⬜ Pendiente
 

@@ -551,6 +551,42 @@ Vendedor B con 0 reviews pero 50 followers, 200 views, 5 pubs.
 
 ---
 
+## i18n / next-intl (Fase 14.1)
+
+> No hay runner frontend instalado todavía; la automatización de estos smoke
+> queda diferida a Fase 21 según el plan. En Hito 14.1 se ejecutaron contra
+> `next start` local después de `npx next build`.
+
+### T-104 — Middleware redirige raíz a locale default — 🧪 SMOKE MANUAL
+**Ejecución:** `curl -I -H 'Accept-Language: es' http://localhost:3000/`
+
+**Esperado:** Redirect temporal de Next (`307`) a `/es`, con `Set-Cookie: NEXT_LOCALE=es`.
+
+### T-105 — Middleware respeta `Accept-Language: en` — 🧪 SMOKE MANUAL
+**Ejecución:** `curl -I -H 'Accept-Language: en' http://localhost:3000/`
+
+**Esperado:** Redirect temporal de Next (`307`) a `/en`, con `Set-Cookie: NEXT_LOCALE=en`.
+
+### T-106 — Middleware preserva auth redirect con locale — 🧪 SMOKE MANUAL
+**Ejecución:** `curl -I http://localhost:3000/es/messages` sin cookie `token`.
+
+**Esperado:** Redirect temporal de Next (`307`) a `/es/login?from=%2Fmessages`.
+
+### T-107 — `/es` y `/en` renderizan texto traducido visible — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local sobre `/es`; click en selector `EN`.
+
+**Esperado:** `/es` muestra `Inicio`; `/en` muestra `Home` en la píldora piloto del hero. Capturas: `/tmp/kiosqui-fase14-es.png`, `/tmp/kiosqui-fase14-en.png`.
+
+### T-108 — Selector de idioma persiste vía `NEXT_LOCALE` — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local: click `EN` navega `/es` → `/en`. Verificación HTTP:
+`curl -I http://localhost:3000/en` emite `Set-Cookie: NEXT_LOCALE=en` y
+`curl -I --cookie 'NEXT_LOCALE=en' -H 'Accept-Language: es' http://localhost:3000/`
+redirige a `/en`.
+
+**Esperado:** La cookie gana sobre `Accept-Language` en visitas posteriores.
+
+---
+
 ## Roadmap de automatización
 
 Orden sugerido para empezar:
@@ -586,4 +622,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-06-04 (Fase 20 — T-01/T-02/T-03/T-04/T-22 automatizados)
+**Última actualización:** 2026-06-04 (Fase 14.1 — T-104..T-108 smoke manual)

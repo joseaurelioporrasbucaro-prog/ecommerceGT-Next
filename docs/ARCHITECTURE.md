@@ -40,6 +40,7 @@ Responsabilidades:
 - Estado de servidor con React Query.
 - Estado de usuario con `AuthContext` + `/me`.
 - Protección inicial de rutas privadas con `src/middleware.ts`.
+- Internacionalización por sub-paths `/es` `/en` con `next-intl`.
 - Normalización visual de datos crudos del backend.
 - SEO público: metadata, sitemap, robots, JSON-LD en publicaciones.
 
@@ -58,6 +59,34 @@ No debe:
 - Soporta JSON y `FormData`.
 - Lanza `ApiError` con `status`, `message` y `body`.
 - Devuelve `unknown` por default; call sites deben pasar genérico.
+
+### i18n — `next-intl`
+
+La Fase 14 usa `next-intl` con sub-paths `/es` y `/en`. El locale default
+es `es`, la primera visita respeta `Accept-Language` y la elección queda en
+cookie `NEXT_LOCALE`.
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant M as middleware.ts
+  participant L as app/[locale]/layout.tsx
+  participant R as src/i18n/request.ts
+  participant Msg as messages/{locale}
+  participant P as Página
+
+  U->>M: GET / o /es/...
+  M->>M: next-intl resuelve locale
+  M->>M: auth compara path sin /es|/en
+  M-->>L: request localizado
+  L->>R: getMessages(locale)
+  R->>Msg: common.json + auth.json
+  Msg-->>L: mensajes namespaced
+  L-->>P: NextIntlClientProvider
+```
+
+Durante 14.1 y 14.2 conviven `next-intl` y el bundle legacy
+`react-i18next`. El cleanup del bundle viejo queda para el cierre de 14.2.
 
 ### Backend — `ecommerceGTBackEnd`
 
@@ -200,4 +229,5 @@ Soporte real se valida en backend con `requireSupport`. El frontend solo oculta/
 - Sesión JWT dura 1h sin refresh token.
 - CORS/cookies requieren ajuste si frontend/backend viven en dominios distintos.
 - Pauta todavía usa stub de pasarela; métodos de pago no cobran dinero real.
-- i18n completo pendiente de Fase 14.
+- i18n completo queda por cerrar en Hitos 14.2 a 14.4: cleanup legacy,
+  extracción de namespaces restantes, fechas/números, emails y SEO por locale.

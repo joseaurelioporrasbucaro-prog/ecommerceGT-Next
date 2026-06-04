@@ -7,12 +7,14 @@ Tour de `src/` para navegar el frontend sin tener que abrir todo el repo.
 ```text
 src/
 ├── app/          # rutas Next.js App Router
+├── i18n/         # routing/request/navigation de next-intl
 ├── components/   # UI por feature
 ├── hooks/api/    # React Query hooks contra backend
 ├── types/        # tipos compartidos, especialmente api.ts
 ├── utils/        # ApiFetch, AuthContext, helpers de dominio
 ├── layout/       # wrappers, headers, sidebars, footer
 ├── style/        # SCSS global del scaffold
+├── ../messages/  # JSON i18n por locale y namespace
 ├── form/         # formularios legacy/feature con Formik
 ├── elements/     # piezas genéricas del template
 ├── data/         # datos estáticos heredados o placeholders
@@ -23,24 +25,29 @@ src/
 
 ### `src/app/`
 
-Next.js App Router. Cada carpeta representa una ruta:
+Next.js App Router. Desde Fase 14.1, las páginas viven bajo `src/app/[locale]/`
+para soportar sub-paths `/es` y `/en`. En la raíz de `src/app/` solo quedan
+`layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.ts`, `robots.ts`,
+`[...not_found]/` y `[locale]/`.
 
 - `page.tsx` monta el componente principal.
 - Rutas dinámicas usan `[id]`, `[token]`, `[...not_found]`.
-- `layout.tsx` configura providers globales.
+- `src/app/layout.tsx` solo importa estilos globales y retorna `children`.
+- `src/app/[locale]/layout.tsx` configura `<html lang={locale}>`,
+  `NextIntlClientProvider`, providers globales y metadata.
 - `robots.ts` y `sitemap.ts` generan SEO técnico.
 
 Ejemplos:
 
 | Ruta | Archivo | Componente principal |
 | --- | --- | --- |
-| `/` | `src/app/page.tsx` | Home oficial. |
-| `/publications` | `src/app/publications/page.tsx` | `PublicationsMain`. |
-| `/publications/[id]` | `src/app/publications/[id]/page.tsx` | Detalle + metadata/JSON-LD. |
-| `/favorites` | `src/app/favorites/page.tsx` | `FavoritesMain`. |
-| `/messages` | `src/app/messages/page.tsx` | `MessagesMain`. |
-| `/soporte/*` | `src/app/soporte/.../page.tsx` | Portales de soporte. |
-| `/admin/*` | `src/app/admin/.../page.tsx` | Portales admin. |
+| `/es` / `/en` | `src/app/[locale]/page.tsx` | Home oficial. |
+| `/es/publications` | `src/app/[locale]/publications/page.tsx` | `PublicationsMain`. |
+| `/es/publications/[id]` | `src/app/[locale]/publications/[id]/page.tsx` | Detalle + metadata/JSON-LD. |
+| `/es/favorites` | `src/app/[locale]/favorites/page.tsx` | `FavoritesMain`. |
+| `/es/messages` | `src/app/[locale]/messages/page.tsx` | `MessagesMain`. |
+| `/es/soporte/*` | `src/app/[locale]/soporte/.../page.tsx` | Portales de soporte. |
+| `/es/admin/*` | `src/app/[locale]/admin/.../page.tsx` | Portales admin. |
 
 ### `src/components/`
 
@@ -114,8 +121,19 @@ Reglas:
 - `AuthContext.tsx` — usuario logueado, `checkAuth`, `logout`.
 - `QueryProvider.tsx` — React Query provider y devtools en desarrollo.
 - `backendUrl.ts` — resuelve rutas `/uploads/...` contra `NEXT_PUBLIC_API_URL`.
+- `stripLocalePath.ts` — normaliza paths `/es/...` y `/en/...` a paths internos sin locale.
 - `publicationUtils.ts`, `imageVariants.ts`, `publicationSeo.ts` — helpers de dominio/imagen/SEO.
 - `gtMunicipalityCoords.ts` — centroides de municipios para mapa.
+
+### `src/i18n/` y `messages/`
+
+Setup de `next-intl` introducido en Fase 14.1:
+
+- `src/i18n/routing.ts` — locales soportados (`es`, `en`), default `es` y `localePrefix: 'always'`.
+- `src/i18n/request.ts` — carga namespaces JSON desde `messages/<locale>/`.
+- `src/i18n/navigation.ts` — wrappers `Link`, `useRouter`, `usePathname`, `redirect`.
+- `messages/es/common.json` y `messages/en/common.json` — claves comunes iniciales.
+- `messages/es/auth.json` y `messages/en/auth.json` — claves auth sembradas desde el bundle legacy.
 
 ### `src/layout/`
 
@@ -214,15 +232,18 @@ El gate visual no reemplaza la seguridad: el backend valida `requireSupport` o `
 
 ## i18n
 
-i18n completo sigue pendiente de Fase 14.
+i18n está en migración gradual desde Fase 14.1.
 
 Estado actual:
 
-- `i18next` existe con bundle inline parcial.
-- La mayoría del contenido nuevo está hardcodeado en español.
-- No hay locale en URL ni selector consolidado.
+- `next-intl` está activo con sub-paths `/es` y `/en`.
+- `src/middleware.ts` combina resolución de locale con protección de rutas por cookie `token`.
+- `NEXT_LOCALE` persiste la elección del usuario.
+- El selector de idioma vive en `HeaderOne` y `HeaderTwo`.
+- `react-i18next`, `i18next` y `src/i18n.js` siguen presentes por convivencia hasta Hito 14.2.
+- La mayoría del contenido nuevo sigue hardcodeado en español hasta Hito 14.3.
 
-Regla práctica hasta Fase 14: todo texto nuevo visible al usuario debe ir en español claro.
+Regla práctica durante Fase 14: texto nuevo visible en pantallas migradas debe ir a `messages/`; texto fuera de alcance del hito queda en español claro hasta su migración.
 
 ## Páginas que todavía son referencia del template
 
