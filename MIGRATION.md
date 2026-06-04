@@ -136,6 +136,7 @@ El backend está estable y se comparte. La regla:
 | **6.3.3** | `MentionTextarea` con dropdown `@usuario` + linkificación en comentarios renderizados | ✅ Completada | 1 día |
 | **7** | Cierre de venta + reseñas | ✅ Completada | 1 día |
 | **8** | Empresas y planes | ✅ Completada | 1–2 días |
+| **8.3.5** | Password recovery con tokens cripto-seguros | ✅ Completada | 0.5–1 día |
 | **9** | Sponsors / publicaciones destacadas + ranking de vendedores + follow | ⬜ Pendiente | 2 días |
 | **9.1** | Ranking público de vendedores por reseñas verificadas | ✅ Completada | 0.5 día |
 | **10** | Pulido, i18n, SEO, deploy | ⬜ Pendiente | 2 días |
@@ -642,6 +643,44 @@ ORDER BY cus_id;
 - `useMyFavorites()` para `/favorites`.
 - `useMyPublications(cusId)` para `/my-publications`.
 - Reemplazar `favoritesCount = 0` en `PublicationContent` por `publication.favoritesCount`.
+
+### Fase 8.3.5 — Password recovery con tokens cripto-seguros
+
+**Cambio aplicado al `database.sql` (consolidado, sin ALTER):**
+
+Se agregó `CREATE TABLE IF NOT EXISTS ecom.password_reset_tokens` con FK a
+`ecom.customer(cus_id)`, token SHA-256, expiración, marcas de uso e IPs de
+auditoría. Producción nueva queda coherente desde cero.
+
+**SQL de migración para entornos ya poblados (dev/staging/prod):**
+
+```sql
+-- Fase 8.3.5 — Password recovery con tokens cripto-seguros.
+-- En producción nueva esto NO se ejecuta: database.sql ya contiene la tabla.
+
+CREATE TABLE IF NOT EXISTS ecom.password_reset_tokens (
+    prt_id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    cus_id           BIGINT NOT NULL REFERENCES ecom.customer(cus_id) ON DELETE CASCADE,
+    prt_token_hash   VARCHAR(128) NOT NULL,
+    prt_expires_at   TIMESTAMP NOT NULL,
+    prt_used_at      TIMESTAMP NULL,
+    prt_requested_ip VARCHAR(45) NULL,
+    prt_used_ip      VARCHAR(45) NULL,
+    prt_created_at   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prt_token_hash
+    ON ecom.password_reset_tokens(prt_token_hash);
+
+CREATE INDEX IF NOT EXISTS idx_prt_cus_id_expires
+    ON ecom.password_reset_tokens(cus_id, prt_expires_at);
+
+-- Cuentas que quedaron en el flujo viejo de contraseña temporal pasan al
+-- flujo nuevo: entran a /forgot, solicitan link y reciben token.
+UPDATE ecom.customer
+SET passta_id = 1
+WHERE passta_id = 5;
+```
 
 ### Fase 5 — Procesamiento de imágenes con `sharp`
 
@@ -3830,7 +3869,52 @@ Tests automatizados (`tests/api/auth/recovery.spec.js`):
 
 Tests totales: 8 → **13 pasando** en `npm test`.
 
-**Considerar a futuro:** migrar a sistema de tokens cripto-seguros con link directo (industry standard). El sistema actual sigue dependiendo de una contraseña temporal que viaja por email — un atacante con acceso al correo puede actuar. Lo correcto sería tokens single-use con expiración corta. Documentado como follow-up en `docs/phases/`.
+**Seguimiento:** el follow-up de tokens cripto-seguros quedó resuelto en Fase 8.3.5. Esta sección queda como contexto histórico del fix intermedio.
+
+---
+
+### Fase 8.3.5 — Password recovery con tokens cripto-seguros ✅
+
+**Objetivo:** reemplazar el flujo de recuperación basado en contraseña temporal por email (`lastPwd`, Fase 8.3.4) por tokens random single-use con expiración corta y hash SHA-256 en BD.
+
+**Decisiones aplicadas:**
+- D-1=B: el backend guarda `prt_token_hash` (SHA-256), no el token plaintext.
+- D-2=B: anti-enumeración; si el email no existe, `/recoverypass` devuelve 200 con mensaje genérico y no crea token.
+- D-3=B: token válido por 30 minutos.
+- D-4=B: rate-limit de 3 solicitudes por usuario en 1 hora.
+- D-5=A: se rompe compatibilidad con el payload viejo `{ email, lastPwd, npassword }`.
+- D-6=B: `passta_id=5` queda como estado defensivo legacy; el login todavía puede redirigir al usuario a `/forgot`.
+
+**Backend (`ecommerceGTBackEnd`):**
+- `database.sql`: agrega `ecom.password_reset_tokens` con índices `idx_prt_token_hash` e `idx_prt_cus_id_expires`.
+- `.env.example`, `tests/.env.test.example`, `tests/setup-env.js`: documentan/configuran `FRONTEND_URL=http://localhost:3000`.
+- `config/connPostgresDB.js`:
+  - `recoveryPwd` ahora genera token random de 32 bytes, guarda SHA-256, inserta expiración de 30 minutos, respeta bloqueo por intentos y envía link `/forgot?token=...`.
+  - `recoveryPwdGenNew` valida token existente/no usado/no expirado y cambia password en transacción (`SELECT ... FOR UPDATE`), marcando el token usado e invalidando otros tokens activos del usuario.
+- `tests/helpers/db.js`: agrega `getActiveTokensFor(cusId)`.
+- `tests/api/auth/recovery.spec.js`: reemplaza T-90..T-94 por T-95..T-103.
+
+**Frontend (`ecommerceGT-Next`):**
+- `src/form/ForgotForm.tsx`: detecta `?token=`. Sin token muestra solo email; con token muestra nueva contraseña + confirmar. Elimina `lastPwd`, contraseña temporal, `userForgot` y `any`.
+
+**Documentación canónica actualizada:**
+- Backend `docs/API_REFERENCE.md`: nuevos shapes de `/recoverypass` y `/recoverypassnew`.
+- Backend `docs/SCHEMA.md`: `password_reset_tokens` en resumen, ER y bloque expandido.
+- Backend `docs/GLOSSARY.md`: entrada "Token de reset" y nota de `passta_id=5` legacy.
+- Backend `README.md`: `FRONTEND_URL` y suite actualizada.
+- Frontend `docs/TEST_PLAN.md`: T-90..T-94 `🔒 OBSOLETE`, T-95..T-103 `🤖 AUTOMATED`.
+- Frontend `docs/ARCHITECTURE.md`: conteo actualizado a 42 tablas.
+- Frontend `docs/phases/phase-8.3.5-recovery-tokens.md`: checklist marcado durante la ejecución.
+
+**Migración para BDs existentes:** ver §9 "Fase 8.3.5 — Password recovery con tokens cripto-seguros"; incluye `CREATE TABLE`, índices y limpieza de `passta_id=5`.
+
+**Verificación:**
+- Backend `npx vitest run tests/api/auth/recovery.spec.js`: 9/9 pasa.
+- Backend `npm test`: 5 archivos, 17 tests, todo pasa.
+- Frontend `npx tsc --noEmit`: limpio.
+- Frontend `npx next build`: compila correctamente.
+
+**Follow-ups detectados:** considerar cleanup futuro de tokens viejos (`prt_used_at`/`prt_expires_at` antiguos) con job programado si la tabla crece.
 
 ---
 
