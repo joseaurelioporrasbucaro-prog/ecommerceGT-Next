@@ -422,4 +422,47 @@ REFERENCES customer(cus_id);  -- sin schema
 
 ---
 
+## 13. Mantenimiento de la documentación canónica (Fase 13+)
+
+A partir de Fase 13 el proyecto tiene un set de documentos vivos que **DEBEN actualizarse en el mismo PR** que aplica el cambio. Si una fase cierra sin actualizar las docs que toca, la fase está incompleta.
+
+### Mapa de qué documento actualizar según qué cambies
+
+| Cambiás… | Actualizar OBLIGATORIO | Ubicación |
+|---|---|---|
+| Un endpoint HTTP (nuevo, renombrar, cambiar shape) | `docs/API_REFERENCE.md` del backend | `ecommerceGTBackEnd/docs/` |
+| Una tabla o columna en `database.sql` | `docs/SCHEMA.md` del backend (tabla resumen + bloque expandido si es "core") + §12 reglas | `ecommerceGTBackEnd/docs/` |
+| Lógica de un endpoint complejo (login, recovery, etc.) | Verificar que la descripción de `API_REFERENCE.md` sigue siendo precisa | idem |
+| Un término del dominio (KIOSQUI, "pauta", roles, estados) | `docs/GLOSSARY.md` del backend | `ecommerceGTBackEnd/docs/` |
+| Un flujo de onboarding / setup | `docs/ONBOARDING.md` del backend | `ecommerceGTBackEnd/docs/` |
+| Una estructura de carpetas o convención en `src/` del frontend | `docs/FRONTEND_STRUCTURE.md` | `ecommerceGT-Next/docs/` |
+| Una capa o servicio externo nuevo (Redis, S3, cron, etc.) | `docs/ARCHITECTURE.md` | `ecommerceGT-Next/docs/` |
+| Implementás un test automatizado nuevo (T-NN) | `docs/TEST_PLAN.md` → marcar `🤖 AUTOMATED` con ruta del spec | `ecommerceGT-Next/docs/` |
+| Detectás un caso de prueba pendiente | `docs/TEST_PLAN.md` → agregar como `⚪ PENDING` | idem |
+| Cerrás una fase | `MIGRATION.md` → estado + sección bitácora | `ecommerceGT-Next/` |
+| Migración SQL para BDs pobladas (no entra en `database.sql`) | `MIGRATION.md` §9 con el SQL exacto | idem |
+
+### Reglas sobre el formato
+
+1. **IDs estables.** Los `T-NN` del TEST_PLAN y las secciones de fase (`Fase X.Y`) **nunca se renumeran**. Si un caso queda obsoleto, se marca `🔒 OBSOLETE` pero el número se reserva.
+2. **Granularidad.** En SCHEMA.md, expandir solo las ~15 tablas "core". Las catálogo van en la tabla resumen.
+3. **Mermaid.** Los diagramas viven inline en los `.md`, no como imágenes separadas. GitHub los renderiza.
+4. **Cross-references.** Si una sección depende de otra (ej. un endpoint que toca dos tablas), enlazar con anchor markdown.
+5. **Sin TODO sin owner.** Si un endpoint o tabla no se puede documentar al cierre de la fase, abrir issue con el TODO en lugar de dejar `(?)` en la doc.
+
+### Quién verifica
+
+El **revisor** (humano o IA) debe rechazar el PR si:
+- La fase agregó endpoints y `API_REFERENCE.md` no se tocó
+- La fase agregó tablas/columnas y `SCHEMA.md` no se tocó
+- La fase introdujo un término nuevo del dominio y `GLOSSARY.md` no se tocó
+- La fase no actualizó `MIGRATION.md` con bitácora
+- Tests nuevos automatizados sin actualizar `TEST_PLAN.md`
+
+### Excepción
+
+Cambios de pulido visual (CSS, copy, typo fix) **no requieren** actualizar API_REFERENCE / SCHEMA / GLOSSARY. Sí requieren `MIGRATION.md` solo si cierran una fase.
+
+---
+
 > Este archivo se actualiza cuando una regla cambia o se agrega una convención nueva. Las modificaciones van en el mismo PR donde se aplican.
