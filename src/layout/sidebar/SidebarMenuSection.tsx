@@ -10,11 +10,13 @@ import profile9 from "../../../public/assets/img/profile/profile9.jpg";
 import listIconTwo from "../../../public/assets/img/shape/list-icon-2.png";
 import Image from "next/image";
 import { menuItems } from "@/data/menu-data";
+import { useTranslations } from "next-intl";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
 import type { TopSellerRow } from "@/types/api";
 import { getBackendUrl } from "@/utils/backendUrl";
-import { usePathname } from "@/i18n/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/utils/AuthContext";
+import { stripLocalePath } from "@/utils/stripLocalePath";
 
 // Imágenes de respaldo cuando el vendedor no tiene avatar.
 const FALLBACK_AVATARS = [profile6, profile7, profile8, profile9];
@@ -34,17 +36,23 @@ interface propsType {
 }
 
 const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
+  const tNav = useTranslations("common.nav");
   const [activeMenu, setActiveMenu] = useState(false);
   const [sideMenuOpen2, setSideMenuOpen2] = useState(false);
   const [menuId, setmenuId] = useState(0);
   // Fase 9 — ranking real de vendedores (reemplaza la lista demo hardcodeada).
   const { data: topSellers } = useTopSellers(10);
   // Fase 8.5 — en rutas de soporte, el widget muestra el menú de soporte.
-  const pathname = usePathname();
+  const pathname = stripLocalePath(usePathname());
   const { user } = useAuth();
   const inSupport = pathname?.startsWith('/soporte') ?? false;
   const isSupportUser = user?.role === 'support' || user?.role === 'admin';
   const showSupportNav = inSupport && isSupportUser;
+  const translatedMenuLabels: Record<number, string> = {
+    1: tNav("home"),
+    2: tNav("publications"),
+    4: tNav("publications"),
+  };
 
 
 
@@ -93,7 +101,7 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                         }
                       }}                      
                       >
-                      {menuItem.label}
+                      {translatedMenuLabels[menuItem.id] ?? menuItem.label}
                     </Link>
                     <ul
                       className={

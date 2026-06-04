@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 /**
  * Fase 16 — Hero de KIOSQUI para la home oficial.
@@ -15,6 +16,7 @@ import { useRouter } from 'next/navigation';
  * listado consume el query param para filtrar.
  */
 const KiosquiHero: React.FC = () => {
+  const tNav = useTranslations('common.nav');
   const router = useRouter();
   const [query, setQuery] = useState('');
 
@@ -28,6 +30,7 @@ const KiosquiHero: React.FC = () => {
     <section className="kiosqui-hero">
       <div className="container">
         <div className="kh-inner">
+          <div className="kh-locale-pilot">{tNav('home')}</div>
           <h1 className="kh-title">
             Encontrá tu próximo hogar en{' '}
             <span className="kh-accent">Guatemala</span>
@@ -96,6 +99,20 @@ const KiosquiHero: React.FC = () => {
           max-width: 880px;
           margin: 0 auto;
           text-align: center;
+        }
+        .kh-locale-pilot {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 28px;
+          margin-bottom: 16px;
+          padding: 0 14px;
+          border: 1px solid rgba(128, 128, 128, 0.24);
+          border-radius: 999px;
+          color: var(--clr-theme-1, #2785ff);
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
         }
         .kh-title {
           font-size: clamp(34px, 5vw, 54px);

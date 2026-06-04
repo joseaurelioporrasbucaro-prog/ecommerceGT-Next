@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 if (typeof window !== "undefined") {
   require("bootstrap/dist/js/bootstrap");
 }
-import { usePathname } from "@/i18n/navigation";
+import { usePathname } from "next/navigation";
 import Footer from "./footer/Footer";
 import FooterTwo from "../layout/footer/footerTwo";
 import HeaderOne from "./header/HeaderOne";
@@ -17,6 +17,7 @@ import useLoading from "@/hooks/useLoading";
 import { animationCreate } from "@/utils/utils";
 import Preloader from "@/utils/Preloader";
 import { useAuth } from "@/utils/AuthContext";
+import { stripLocalePath } from "@/utils/stripLocalePath";
 
 interface WrapperProps {
   children: React.ReactNode;
@@ -42,7 +43,7 @@ const FULLSCREEN_PATTERNS = [
 ];
 
 const Wrapper: React.FC<WrapperProps> = ({ children }) => {
-  const pathName = usePathname();
+  const pathName = stripLocalePath(usePathname());
 
   const isAuthPage = AUTH_PAGES.some((p) => pathName?.startsWith(p));
   const usesTopNav = TOP_NAV_PAGES.some((p) => pathName?.startsWith(p));

@@ -54,7 +54,7 @@ const HeaderOne = ({ HeaderStatic }: HeaderOneProps) => {
                               placeholder={t('serchproducts') || 'Buscar usuarios o propiedades...'}
                            />
 
-                           <LanguageSwitcher className="header-lang ml-20 d-none d-md-inline-flex" />
+                           <LanguageSwitcher className="header-lang ml-20 d-inline-flex" />
 
                            {/* --- BELL DE NOTIFICACIONES (Fase 6.3) --- */}
                            <div className="ml-20 d-none d-md-inline-block">

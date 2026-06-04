@@ -51,7 +51,7 @@ const HeaderTwo = () => {
                 </div>
                 <div className="col-xl-5 col-lg-5 col-md-5 col-5">
                   <div className="header-main-right">
-                    <LanguageSwitcher className="header-lang ml-20 d-none d-md-inline-flex" />
+                    <LanguageSwitcher className="header-lang ml-20 d-inline-flex" />
 
                     {/* Si NO hay sesión, mostrar botón "Iniciar sesión"
                         en el header (en lugar del avatar logueado). */}

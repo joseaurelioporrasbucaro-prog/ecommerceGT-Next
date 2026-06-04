@@ -33,10 +33,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const intlResponse = intlMiddleware(req);
-  if (
-    intlResponse.headers.get('x-middleware-rewrite') ||
-    intlResponse.headers.get('location')
-  ) {
+  if (intlResponse.headers.get('location')) {
     return intlResponse;
   }
 

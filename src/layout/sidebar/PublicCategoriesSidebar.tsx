@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { usePathname } from '@/i18n/navigation';
+import { usePathname } from 'next/navigation';
 import { usePublicationCategories } from '@/hooks/api/useCatalogs';
+import { stripLocalePath } from '@/utils/stripLocalePath';
 import {
   getCategoryFallbackIcon,
 } from '@/components/publications/publicationUtils';
@@ -23,7 +24,7 @@ interface PublicCategoriesSidebarProps {
  * en pantallas ≥1400px se queda visible permanentemente (right: 0).
  */
 const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSidebarProps) => {
-  const pathname = usePathname();
+  const pathname = stripLocalePath(usePathname());
   const categoriesQuery = usePublicationCategories();
   const categories = categoriesQuery.data ?? [];
 

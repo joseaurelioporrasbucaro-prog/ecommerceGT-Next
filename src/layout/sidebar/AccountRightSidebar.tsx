@@ -3,10 +3,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { usePathname, useRouter } from '@/i18n/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
+import { stripLocalePath } from '@/utils/stripLocalePath';
 
 interface AccountRightSidebarProps {
   menuOpen2: boolean;
@@ -50,7 +51,7 @@ const ADMIN_ITEMS: AccountNavItem[] = [
  * En mobile se abre con el botón hamburguesa derecho del HeaderTwo.
  */
 const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarProps) => {
-  const pathname = usePathname();
+  const pathname = stripLocalePath(usePathname());
   const router = useRouter();
   const { user, logout } = useAuth();
   const [avatarErrored, setAvatarErrored] = useState(false);
