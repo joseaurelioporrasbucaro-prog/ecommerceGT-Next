@@ -413,49 +413,106 @@ Click "Configuración" → llega a `/admin/config`.
 
 ---
 
-## Password Recovery — Security (Fase 8.3.4)
+## Password Recovery — Security (Fase 8.3.5)
 
-> Fix de CWE-640 (Weak Password Recovery Mechanism). Antes de esta fase, cualquier persona que conociera un email podía cambiarle la contraseña a la víctima — el endpoint `/recoverypassnew` no validaba nada. Ahora exige `lastPwd` (la temporal enviada por email) y verifica con `bcrypt.compare`.
+> Fase 8.3.5 reemplaza el esquema de contraseña temporal por tokens cripto-seguros: token random de 32 bytes, SHA-256 en BD, link `/forgot?token=...`, expiración de 30 minutos, single-use y anti-enumeración de emails.
 
-### T-90 — Reset exitoso con temporal correcta — 🤖 AUTOMATED
+### T-90 — Reset exitoso con temporal correcta — 🔒 OBSOLETE
+**Reemplazado por:** T-98.
+
+**Motivo:** flujo legacy de Fase 8.3.4 basado en `lastPwd` / contraseña temporal.
+
+### T-91 — Rechazo con temporal incorrecta — 🔒 OBSOLETE
+**Reemplazado por:** T-99, T-100 y T-101.
+
+**Motivo:** `/recoverypassnew` ya no acepta contraseña temporal; valida token.
+
+### T-92 — Rechazo si falta lastPwd — 🔒 OBSOLETE
+**Reemplazado por:** T-99.
+
+**Motivo:** payload nuevo es `{ token, npassword }`.
+
+### T-93 — Rechazo si NO hay solicitud de reset activa — 🔒 OBSOLETE
+**Reemplazado por:** T-99 y T-101.
+
+**Motivo:** la solicitud activa vive en `ecom.password_reset_tokens`, no en `customer.passta_id=5`.
+
+### T-94 — Rechazo si npassword es muy corta — 🔒 OBSOLETE
+**Reemplazado por:** T-98/T-99 suite actual; la validación de largo sigue cubierta en backend.
+
+**Motivo:** se reserva el ID porque los T-NN no se renumeran.
+
+### T-95 — Solicitar reset crea un token en BD — 🤖 AUTOMATED
 **Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
 
-**Setup:** Cuenta con `passta_id=5` y `cus_password = hash(TEMP_PASSWORD)`.
-**Pasos:** `POST /recoverypassnew { email, lastPwd: TEMP_PASSWORD, npassword: NEW_PASSWORD }`.
+**Setup:** Usuario activo con email registrado.
+**Pasos:** `POST /recoverypass { email }`.
 
-**Esperado:** Status 200. BD: `passta_id=1`, `cus_password = hash(NEW_PASSWORD)`. La nueva contraseña funciona para login posterior.
+**Esperado:** Status 200. BD: una fila en `ecom.password_reset_tokens` con `prt_used_at IS NULL`; email contiene link con token de 64 chars.
 
-### T-91 — Rechazo con temporal incorrecta — 🤖 AUTOMATED
+### T-96 — Solicitar reset para email inexistente no enumera — 🤖 AUTOMATED
 **Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
 
-**Setup:** Igual a T-90.
-**Pasos:** Llamar con `lastPwd` que NO coincide con el hash.
+**Setup:** Email no registrado.
+**Pasos:** `POST /recoverypass { email }`.
 
-**Esperado:** Status 401 con `{ invalidTempPassword: true }`. BD sin cambios. `passta_id` sigue en 5.
+**Esperado:** Status 200 con mensaje genérico. No crea token ni envía email.
 
-### T-92 — Rechazo si falta lastPwd — 🤖 AUTOMATED
+### T-97 — Rate-limit de recovery — 🤖 AUTOMATED
 **Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
 
-**Setup:** Igual a T-90.
-**Pasos:** `POST /recoverypassnew { email, npassword }` sin `lastPwd`.
+**Setup:** Usuario activo.
+**Pasos:** Ejecutar 4 solicitudes `POST /recoverypass` en menos de 1 hora.
 
-**Esperado:** Status 400 con `{ missingTempPassword: true }`. BD sin cambios.
+**Esperado:** Solo 3 tokens activos y 3 emails enviados. La cuarta responde 200 silencioso.
 
-### T-93 — Rechazo si NO hay solicitud de reset activa — 🤖 AUTOMATED
+### T-98 — Reset exitoso con token válido — 🤖 AUTOMATED
 **Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
 
-**Setup:** Cuenta con `passta_id=1` (sin haber pasado por `/recoverypass`).
-**Pasos:** Llamar `/recoverypassnew` con la contraseña actual real como `lastPwd`.
+**Setup:** Token activo creado por `/recoverypass`.
+**Pasos:** `POST /recoverypassnew { token, npassword }`.
 
-**Esperado:** Status 403 con `{ noResetPending: true }`. Esto cierra otra puerta de ataque: aunque alguien tenga la contraseña actual de un usuario, no puede cambiarla vía este endpoint sin pasar por `/recoverypass` primero.
+**Esperado:** Status 200. Token marcado usado, password actualizado, `passta_id=1`, `cus_password_fail_count=0`.
 
-### T-94 — Rechazo si npassword es muy corta — 🤖 AUTOMATED
+### T-99 — Token inválido — 🤖 AUTOMATED
 **Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
 
-**Setup:** Igual a T-90.
-**Pasos:** Llamar con `npassword: "short"` (5 chars).
+**Setup:** Token de 64 chars que no existe en BD.
+**Pasos:** `POST /recoverypassnew { token, npassword }`.
 
-**Esperado:** Status 400. BD sin cambios.
+**Esperado:** Status 401 con `{ invalidToken: true }`.
+
+### T-100 — Token usado — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Token con `prt_used_at IS NOT NULL`.
+**Pasos:** `POST /recoverypassnew { token, npassword }`.
+
+**Esperado:** Status 401 con `{ tokenAlreadyUsed: true }`.
+
+### T-101 — Token expirado — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Token con `prt_expires_at < NOW()`.
+**Pasos:** `POST /recoverypassnew { token, npassword }`.
+
+**Esperado:** Status 401 con `{ tokenExpired: true }`.
+
+### T-102 — Reset invalida otros tokens activos — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Usuario con dos tokens activos.
+**Pasos:** Usar uno de los tokens en `/recoverypassnew`.
+
+**Esperado:** Ambos tokens quedan con `prt_used_at IS NOT NULL`; no quedan tokens activos del usuario.
+
+### T-103 — Token de otro usuario no afecta al actual — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGTBackEnd/tests/api/auth/recovery.spec.js`
+
+**Setup:** Usuario A y usuario B; token pertenece a B.
+**Pasos:** Usar token de B en `/recoverypassnew`.
+
+**Esperado:** Cambia password de B. Password de A queda intacto.
 
 ---
 
