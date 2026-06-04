@@ -42,7 +42,7 @@ export function useToggleFollow(sellerId: number) {
       const previous = queryClient.getQueryData<SellerInfo | null>(queryKey);
 
       const willFollow = !currentlyFollowing;
-      queryClient.setQueryData<SellerInfo | null>(queryKey, (curr) => {
+      queryClient.setQueryData<SellerInfo | null>(queryKey, (curr: SellerInfo | null | undefined) => {
         if (!curr) return curr;
         return {
           ...curr,
@@ -62,7 +62,7 @@ export function useToggleFollow(sellerId: number) {
       // Reconcilia con la verdad del servidor. Si el update optimista ya dejó
       // isFollowing == data.following, no hace nada (evita doble conteo).
       // Si por algún motivo no aplicó, lo corrige aquí.
-      queryClient.setQueryData<SellerInfo | null>(queryKey, (curr) => {
+      queryClient.setQueryData<SellerInfo | null>(queryKey, (curr: SellerInfo | null | undefined) => {
         if (!curr || curr.isFollowing === data.following) return curr;
         return {
           ...curr,

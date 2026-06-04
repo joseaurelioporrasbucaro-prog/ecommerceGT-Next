@@ -6,7 +6,7 @@ import Breadcrumbs from '@/utils/Breadcrumbs';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useMyTickets, useCreateTicket } from '@/hooks/api/useTickets';
-import type { TicketStatus } from '@/types/api';
+import type { TicketStatus, MyTicketRow } from '@/types/api';
 
 const STATUS_LABEL: Record<TicketStatus, string> = {
   open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
@@ -55,7 +55,7 @@ const MyTicketsMain = () => {
 
           {rows.length > 0 && (
             <div className="mt-list">
-              {rows.map((t) => (
+              {rows.map((t: MyTicketRow) => (
                 <Link key={t.ticket_id} href={`/soporte/tickets/${t.ticket_id}`} className="mt-card">
                   <div className="mt-card-main">
                     <span className={`mt-status mt-status-${t.status}`}>{STATUS_LABEL[t.status]}</span>

@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTopSellers } from '@/hooks/api/useTopSellers';
+import type { TopSellerRow } from '@/types/api';
 import { resolveAvatarSrc } from '@/utils/avatarUtils';
 import { getBackendUrl } from '@/utils/backendUrl';
 
@@ -36,7 +37,7 @@ const TopSellersShowcase: React.FC = () => {
             ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={`sk-${i}`} className="kts-card kts-skeleton" />
               ))
-            : sellers.map((s) => {
+            : sellers.map((s: TopSellerRow) => {
                 const fullName = [s.firstname, s.lastname]
                   .filter(Boolean)
                   .join(' ')

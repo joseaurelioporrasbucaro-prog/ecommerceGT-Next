@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import PublicationCard from './PublicationCard';
-import { useFeaturedPublications, recordAdClick } from '@/hooks/api/useCampaigns';
+import { useFeaturedPublications, recordAdClick, type FeaturedPublication } from '@/hooks/api/useCampaigns';
 import type { AnyPublicationListItem } from '@/types/api';
 
 /** Fase 10 — grid de publicaciones destacadas (patrocinadas). Para campañas con
@@ -16,7 +16,7 @@ const FeaturedPublicationsSection = ({ limit = 4 }: { limit?: number }) => {
     <div className="featured-section">
       <h4 className="featured-title"><i className="fas fa-bolt" /> Destacados</h4>
       <div className="row">
-        {items.map((pub) => {
+        {items.map((pub: FeaturedPublication) => {
           const isMessages = pub.campObjective === 'mensajes';
           return (
             <div key={pub.campId} className="featured-col-wrap">

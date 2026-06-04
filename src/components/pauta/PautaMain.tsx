@@ -11,7 +11,7 @@ import { useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useMyCampaigns, useCreateCampaign, useSetCampaignStatus, useAdCredit } from '@/hooks/api/useCampaigns';
 import { usePricingConfig } from '@/hooks/api/usePricingConfig';
 import Pagination from '@/components/support/Pagination';
-import type { CampaignStatus, CampaignObjective } from '@/types/api';
+import type { CampaignStatus, CampaignObjective, Campaign, MyPublicationItem, City, Municipality } from '@/types/api';
 
 const GUATEMALA = 502; // cou_id
 // Fase 10.7: las tarifas se leen de ecom.platform_config vía usePricingConfig().
@@ -91,15 +91,15 @@ const PautaMain = () => {
   // Fase 10.4: pub_ids con campaña no terminada (active/paused) — no se pueden duplicar.
   const lockedPubIds = React.useMemo(() => {
     const s = new Set<number>();
-    (campaigns.data ?? []).forEach((c) => {
+    (campaigns.data ?? []).forEach((c: Campaign) => {
       if (c.camp_status === 'active' || c.camp_status === 'paused') s.add(Number(c.pub_id));
     });
     return s;
   }, [campaigns.data]);
 
   // Solo publicaciones activas (no borrador=1, no anulada=4) y sin campaña activa.
-  const allActivePubs = (myPubs.data ?? []).filter((p) => p.pubsta_id !== 1 && p.pubsta_id !== 4);
-  const activePubs = allActivePubs.filter((p) => !lockedPubIds.has(p.pub_id));
+  const allActivePubs = (myPubs.data ?? []).filter((p: MyPublicationItem) => p.pubsta_id !== 1 && p.pubsta_id !== 4);
+  const activePubs = allActivePubs.filter((p: MyPublicationItem) => !lockedPubIds.has(p.pub_id));
   const lockedCount = allActivePubs.length - activePubs.length;
 
   const submit = () => {
@@ -198,7 +198,7 @@ const PautaMain = () => {
                 <label className="pa-label">Publicación</label>
                 <select value={pubId} onChange={(e) => setPubId(e.target.value)}>
                   <option value="">Selecciona…</option>
-                  {activePubs.map((p) => <option key={p.pub_id} value={p.pub_id}>{p.pub_title}</option>)}
+                  {activePubs.map((p: MyPublicationItem) => <option key={p.pub_id} value={p.pub_id}>{p.pub_title}</option>)}
                 </select>
                 {activePubs.length === 0 && lockedCount === 0 && <p className="pa-hint">No tienes publicaciones activas para promocionar.</p>}
                 {lockedCount > 0 && (
@@ -314,13 +314,13 @@ const PautaMain = () => {
                 <label className="pa-label">Departamento</label>
                 <select value={citId} onChange={(e) => { setCitId(e.target.value); setTowId(''); }}>
                   <option value="">Todos</option>
-                  {(cities.data ?? []).map((c) => <option key={c.city} value={String(c.city)}>{c.description}</option>)}
+                  {(cities.data ?? []).map((c: City) => <option key={c.city} value={String(c.city)}>{c.description}</option>)}
                 </select>
 
                 <label className="pa-label">Municipio</label>
                 <select value={towId} onChange={(e) => setTowId(e.target.value)} disabled={!citId}>
                   <option value="">Todos</option>
-                  {(munis.data ?? []).map((m) => <option key={m.municipality} value={String(m.municipality)}>{m.description}</option>)}
+                  {(munis.data ?? []).map((m: Municipality) => <option key={m.municipality} value={String(m.municipality)}>{m.description}</option>)}
                 </select>
 
                 <div className="pa-age">
@@ -346,7 +346,7 @@ const PautaMain = () => {
               {campaigns.isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
               {!campaigns.isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>Aún no tienes campañas.</p>}
               <div className="pa-list">
-                {pageRows.map((c) => (
+                {pageRows.map((c: Campaign) => (
                   <div key={c.camp_id} className="pa-camp">
                     <div className="pa-camp-main">
                       <span className={`pa-status pa-status-${c.camp_status}`}>{STATUS_LABEL[c.camp_status]}</span>

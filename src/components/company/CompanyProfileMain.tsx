@@ -7,6 +7,7 @@ import PublicationCard from '@/components/publications/PublicationCard';
 import { useCompanyProfile } from '@/hooks/api/useCompanyProfile';
 import { useCompanyPublications } from '@/hooks/api/useCompanyPublications';
 import { getBackendUrl } from '@/utils/backendUrl';
+import type { PublicationListItem, CompanyProfileEmployee } from '@/types/api';
 import coverImg from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
 
 type TabKey = 'publicaciones' | 'empleados';
@@ -180,7 +181,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                         )}
                         {publications.length > 0 && (
                           <div className="row">
-                            {publications.map((pub) => (
+                            {publications.map((pub: PublicationListItem) => (
                               <PublicationCard key={pub.id} publication={pub} />
                             ))}
                           </div>
@@ -197,7 +198,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                           <p className="cp-emp-note">Aún no hay empleados para mostrar.</p>
                         ) : (
                           <div className="cp-emp-grid">
-                            {employees.map((e) => {
+                            {employees.map((e: CompanyProfileEmployee) => {
                               const name = `${e.firstname ?? ''} ${e.lastname ?? ''}`.trim() || 'Usuario';
                               const avatar = e.imagenu ? getBackendUrl(e.imagenu) : null;
                               return (

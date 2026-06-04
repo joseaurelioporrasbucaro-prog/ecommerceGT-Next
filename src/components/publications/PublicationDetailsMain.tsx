@@ -12,6 +12,7 @@ import PublicationContent from './PublicationContent';
 import PublicationGallery from './PublicationGallery';
 import ReportPublicationButton from './ReportPublicationButton';
 import { getPublicationImagePath, getPublicationImagePathGlb } from './publicationUtils';
+import type { PublicationImage, PublicationImageGlb } from '@/types/api';
 
 interface PublicationDetailsMainProps {
   id: string;
@@ -31,17 +32,17 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
   const galleryImages = useMemo(() => {
     if (!publication) return [];
     return publication.images
-      .map((img) => getPublicationImagePath(img))
-      .filter((path) => path !== '')
-      .map((path) => getBackendUrl(path));
+      .map((img: PublicationImage) => getPublicationImagePath(img))
+      .filter((path: string) => path !== '')
+      .map((path: string) => getBackendUrl(path));
   }, [publication]);
 
   const galleryImagesGlb = useMemo(() => {
     if (!publication?.imagesglb) return [];
     return publication.imagesglb
-      .map((img) => getPublicationImagePathGlb(img))
-      .filter((path) => path !== '')
-      .map((path) => getBackendUrl(path));
+      .map((img: PublicationImageGlb) => getPublicationImagePathGlb(img))
+      .filter((path: string) => path !== '')
+      .map((path: string) => getBackendUrl(path));
   }, [publication]);
   const hasGlb = galleryImagesGlb.length > 0;
 

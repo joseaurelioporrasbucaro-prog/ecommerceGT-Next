@@ -16,7 +16,7 @@ import { useMyCampaigns } from '@/hooks/api/useCampaigns'; // Fase 10.3
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { getImageVariant } from '@/utils/imageVariants';
-import type { MyPublicationItem, UserSearchResult } from '@/types/api';
+import type { MyPublicationItem, UserSearchResult, Campaign } from '@/types/api';
 import { CARD_PLACEHOLDER, formatPrice } from './publicationUtils';
 
 const PUBSTA_SOLD = 3;
@@ -183,7 +183,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
                   borderRadius: 8, margin: 0, padding: '4px 0', listStyle: 'none',
                   boxShadow: '0 6px 24px rgba(0,0,0,0.12)',
                 }}>
-                  {users.map((u) => (
+                  {users.map((u: UserSearchResult) => (
                     <li key={u.cusId}>
                       <button
                         type="button"
@@ -258,7 +258,7 @@ const MyPublicationsMain = () => {
   const campaignsQuery = useMyCampaigns();
   const pautadaCampaignByPub = React.useMemo(() => {
     const map = new Map<number, number>(); // pub_id → camp_id
-    (campaignsQuery.data ?? []).forEach((c) => {
+    (campaignsQuery.data ?? []).forEach((c: Campaign) => {
       if (c.camp_status === 'active' || c.camp_status === 'paused') {
         map.set(Number(c.pub_id), Number(c.camp_id));
       }
@@ -307,7 +307,7 @@ const MyPublicationsMain = () => {
 
           {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length > 0 && (
             <div className="my-publications-list">
-                  {publications.map((publication) => {
+                  {publications.map((publication: MyPublicationItem) => {
                     const badge = getStatusBadge(publication.pubsta_id);
                     const isPautada = pautadaCampaignByPub.has(Number(publication.pub_id)); // Fase 10.3
 

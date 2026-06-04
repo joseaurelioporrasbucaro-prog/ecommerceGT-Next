@@ -8,7 +8,7 @@ import { ApiError } from '@/utils/Api';
 import {
   useTicket, useReplyTicket, useSupportAgents, useAssignTicket, useSetTicketStatus,
 } from '@/hooks/api/useTickets';
-import type { TicketStatus } from '@/types/api';
+import type { TicketStatus, SupportAgent, TicketMessage, TicketDetailResponse } from '@/types/api';
 
 const STATUS_LABEL: Record<TicketStatus, string> = {
   open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
@@ -39,7 +39,7 @@ const TicketDetailMain = ({ id }: { id: string }) => {
   if (isLoading) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><p style={{ opacity: 0.6 }}>Cargando ticket…</p></div></main>;
   if (isError || !data) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><div className="alert alert-danger">No se pudo cargar el ticket.</div></div></main>;
 
-  const { ticket, messages } = data;
+  const { ticket, messages } = data as TicketDetailResponse;
   const owner = `${ticket.owner_first ?? ''} ${ticket.owner_last ?? ''}`.trim() || 'Usuario';
 
   return (
@@ -71,14 +71,14 @@ const TicketDetailMain = ({ id }: { id: string }) => {
                   onChange={(e) => e.target.value && assign.mutate(Number(e.target.value), { onSuccess: () => toast.success('Reasignado'), onError: () => toast.error('No se pudo reasignar') })}
                 >
                   <option value="" disabled>Asignar a…</option>
-                  {agents?.map((a) => <option key={a.cus_id} value={a.cus_id}>{`${a.firstname ?? ''} ${a.lastname ?? ''}`.trim()}</option>)}
+                  {agents?.map((a: SupportAgent) => <option key={a.cus_id} value={a.cus_id}>{`${a.firstname ?? ''} ${a.lastname ?? ''}`.trim()}</option>)}
                 </select>
               </div>
             )}
           </div>
 
           <div className="td-thread">
-            {messages.map((m) => {
+            {messages.map((m: TicketMessage) => {
               const who = `${m.first ?? ''} ${m.last ?? ''}`.trim() || 'Usuario';
               const isStaffMsg = m.role === 'support' || m.role === 'admin';
               return (

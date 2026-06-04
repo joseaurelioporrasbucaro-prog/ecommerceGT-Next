@@ -14,7 +14,7 @@ import {
   usePublicationTransactions,
 } from '@/hooks/api/useCatalogs';
 import { useMySubscription } from '@/hooks/api/useSubscription';
-import type { UploadedImage } from '@/types/api';
+import type { UploadedImage, PublicationCategory, PublicationTransaction, Country, City, Municipality } from '@/types/api';
 
 export const PUBGEN_CASA = 1;
 export const PUBGEN_APTO = 2;
@@ -381,7 +381,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                     {...formik.getFieldProps('propertie')}
                   >
                     <option value="">Selecciona…</option>
-                    {(categoriesQuery.data ?? []).map((c) => (
+                    {(categoriesQuery.data ?? []).map((c: PublicationCategory) => (
                       <option key={c.pubgen_id} value={String(c.pubgen_id)}>
                         {c.pubgen_description}
                       </option>
@@ -404,7 +404,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                     {...formik.getFieldProps('transaction')}
                   >
                     <option value="">{propertieNum ? 'Selecciona…' : 'Elige la propiedad primero'}</option>
-                    {(transactionsQuery.data ?? []).map((t) => (
+                    {(transactionsQuery.data ?? []).map((t: PublicationTransaction) => (
                       <option key={t.pubtraid} value={String(t.pubtraidaux)}>
                         {t.description}
                       </option>
@@ -469,7 +469,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                     {...formik.getFieldProps('country')}
                   >
                     <option value="">Selecciona…</option>
-                    {(countriesQuery.data ?? []).map((c) => (
+                    {(countriesQuery.data ?? []).map((c: Country) => (
                       <option key={c.country} value={String(c.country)}>
                         {c.description}
                       </option>
@@ -492,7 +492,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                     {...formik.getFieldProps('city')}
                   >
                     <option value="">{countryNum ? 'Selecciona…' : 'Elige país primero'}</option>
-                    {(citiesQuery.data ?? []).map((c) => (
+                    {(citiesQuery.data ?? []).map((c: City) => (
                       <option key={c.city} value={String(c.city)}>
                         {c.description}
                       </option>
@@ -515,7 +515,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                     {...formik.getFieldProps('municipality')}
                   >
                     <option value="">{cityNum ? 'Selecciona…' : 'Elige ciudad primero'}</option>
-                    {(municipalitiesQuery.data ?? []).map((m) => (
+                    {(municipalitiesQuery.data ?? []).map((m: Municipality) => (
                       <option key={m.municipality} value={String(m.municipality)}>
                         {m.description}
                       </option>

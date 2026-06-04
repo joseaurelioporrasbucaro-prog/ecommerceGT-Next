@@ -28,7 +28,7 @@ export function useToggleCommentLike(pubId: number | string | null | undefined) 
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<Comment[]>(queryKey);
 
-      queryClient.setQueryData<Comment[]>(queryKey, (old = []) =>
+      queryClient.setQueryData<Comment[]>(queryKey, (old: Comment[] = []) =>
         old.map((c) =>
           c.comment_id === commentId
             ? {

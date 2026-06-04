@@ -65,7 +65,7 @@ const ActivityMain = () => {
   const filteredItems = useMemo(() => {
     const tab = TABS.find((t) => t.id === activeTab);
     if (!tab || tab.types === 'all') return items;
-    return items.filter((n) => (tab.types as NotificationType[]).includes(n.notif_type));
+    return items.filter((n: AppNotification) => (tab.types as NotificationType[]).includes(n.notif_type));
   }, [items, activeTab]);
 
   const handleClick = (notif: AppNotification) => {
@@ -149,7 +149,7 @@ const ActivityMain = () => {
                   </p>
                 </div>
               )}
-              {filteredItems.map((n) => (
+              {filteredItems.map((n: AppNotification) => (
                 <NotificationItem
                   key={n.notif_id}
                   notification={n}

@@ -28,7 +28,7 @@ export function useDeletePublication(cusId: number | null | undefined) {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<MyPublicationItem[]>(queryKey);
 
-      queryClient.setQueryData<MyPublicationItem[]>(queryKey, (old = []) =>
+      queryClient.setQueryData<MyPublicationItem[]>(queryKey, (old: MyPublicationItem[] = []) =>
         old.map((p) =>
           p.pub_id === pubId ? { ...p, pubsta_id: PUBSTA_VOID } : p,
         ),

@@ -7,7 +7,7 @@ import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import { useCities, useCountries, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useSellerInfo } from '@/hooks/api/usePublications';
 import { useAuth } from '@/utils/AuthContext';
-import type { PublicationDetail } from '@/types/api';
+import type { PublicationDetail, Country, City, Municipality } from '@/types/api';
 import { getBackendUrl } from '@/utils/backendUrl';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
 import { formatNumberValue, formatPrice, getPublicationStatusInfo } from './publicationUtils';
@@ -39,9 +39,9 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
   const sellerImage = seller?.imageUrl ? getBackendUrl(seller.imageUrl) : DEFAULT_AVATAR;
   const [avatarErrored, setAvatarErrored] = useState(false);
 
-  const countryName = countriesQuery.data?.find((c) => c.country === publication.cou_id)?.description;
-  const cityName = citiesQuery.data?.find((c) => c.city === publication.cit_id)?.description;
-  const municipalityName = municipalitiesQuery.data?.find((m) => m.municipality === publication.tow_id)?.description;
+  const countryName = countriesQuery.data?.find((c: Country) => c.country === publication.cou_id)?.description;
+  const cityName = citiesQuery.data?.find((c: City) => c.city === publication.cit_id)?.description;
+  const municipalityName = municipalitiesQuery.data?.find((m: Municipality) => m.municipality === publication.tow_id)?.description;
 
   const favoritesCount = publication.favoritesCount;
   const statusInfo = getPublicationStatusInfo(publication.pubsta_id);

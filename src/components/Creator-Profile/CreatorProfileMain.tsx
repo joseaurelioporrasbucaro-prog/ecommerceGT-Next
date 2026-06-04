@@ -14,6 +14,7 @@ import { useToggleFollow } from '@/hooks/api/useFollow';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import coverImg from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
+import type { PublicationListItem, SellerReview } from '@/types/api';
 
 /** Formatea grandes cantidades estilo plantilla (1.2k, 3.4M). */
 const fmtCount = (n: number): string => {
@@ -296,7 +297,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                         )}
                         {publications.length > 0 && (
                           <div className="row">
-                            {publications.map((pub) => (
+                            {publications.map((pub: PublicationListItem) => (
                               <PublicationCard key={pub.id} publication={pub} />
                             ))}
                           </div>
@@ -329,7 +330,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                             </div>
 
                             <div className="reviews-list">
-                              {reviews.reviews.map((rev, idx) => (
+                              {reviews.reviews.map((rev: SellerReview, idx: number) => (
                                 <div key={idx} className="review-card">
                                   <div className="review-head">
                                     <span className="review-avatar" aria-hidden>

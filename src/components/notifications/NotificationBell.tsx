@@ -88,7 +88,7 @@ const NotificationBell: React.FC = () => {
                 <p>No tenés notificaciones todavía.</p>
               </div>
             )}
-            {items.map((n) => (
+            {items.map((n: AppNotification) => (
               <NotificationItem
                 key={n.notif_id}
                 notification={n}

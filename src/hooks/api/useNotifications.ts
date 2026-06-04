@@ -51,13 +51,13 @@ export function useMarkNotificationAsRead() {
     onMutate: async (notifId) => {
       await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
       const previous = queryClient.getQueryData<AppNotification[]>(NOTIFICATIONS_QUERY_KEY);
-      queryClient.setQueryData<AppNotification[]>(NOTIFICATIONS_QUERY_KEY, (old = []) =>
+      queryClient.setQueryData<AppNotification[]>(NOTIFICATIONS_QUERY_KEY, (old: AppNotification[] = []) =>
         old.map((n) => (n.notif_id === notifId ? { ...n, is_read: true } : n)),
       );
       // Decrementar el unread count optimísticamente.
       queryClient.setQueryData<NotificationsUnreadResponse>(
         NOTIFICATIONS_UNREAD_QUERY_KEY,
-        (old) => (old ? { total: Math.max(0, old.total - 1) } : old),
+        (old: NotificationsUnreadResponse | undefined) => (old ? { total: Math.max(0, old.total - 1) } : old),
       );
       return { previous };
     },
@@ -80,7 +80,7 @@ export function useMarkAllNotificationsAsRead() {
 
     onSuccess: () => {
       // Marcar todas como leídas localmente y resetear contador.
-      queryClient.setQueryData<AppNotification[]>(NOTIFICATIONS_QUERY_KEY, (old = []) =>
+      queryClient.setQueryData<AppNotification[]>(NOTIFICATIONS_QUERY_KEY, (old: AppNotification[] = []) =>
         old.map((n) => ({ ...n, is_read: true })),
       );
       queryClient.setQueryData<NotificationsUnreadResponse>(NOTIFICATIONS_UNREAD_QUERY_KEY, {

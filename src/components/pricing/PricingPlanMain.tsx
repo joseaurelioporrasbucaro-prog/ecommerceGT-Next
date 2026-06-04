@@ -23,13 +23,13 @@ const PricingPlanMain = () => {
 
   const plans = plansQuery.data ?? [];
   const intervals = useMemo(
-    () => Array.from(new Set(plans.map((p) => p.interval))),
+    () => Array.from(new Set(plans.map((p: Plan) => p.interval))),
     [plans]
   );
   const hasAnnual = intervals.includes('Anual');
 
   const visiblePlans: Plan[] = useMemo(
-    () => plans.filter((p) => p.interval === interval),
+    () => plans.filter((p: Plan) => p.interval === interval),
     [plans, interval]
   );
 

@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useGenders, useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useCheckHandle, useUpdateHandle } from '@/hooks/api/useHandle';
 import { SELLER_INFO_QUERY_KEY } from '@/hooks/api/usePublications';
+import type { Gender, City, Municipality } from '@/types/api';
 import DangerZone from './DangerZone';
 
 interface UpdateInfoResponse {
@@ -204,7 +205,7 @@ const PersonalInfoTab = () => {
                             <label>Género</label>
                             <select className="form-control" style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }} {...formik.getFieldProps('genid')}>
                                 <option value="" disabled>Seleccione...</option>
-                                {genders.map((g) => (
+                                {genders.map((g: Gender) => (
                                     <option key={g.gen_id} value={g.gen_id}>{g.gen_description}</option>
                                 ))}
                             </select>
@@ -261,7 +262,7 @@ const PersonalInfoTab = () => {
                                 }}
                             >
                                 <option value="">Seleccione...</option>
-                                {cities.map((c) => (
+                                {cities.map((c: City) => (
                                     <option key={c.city} value={String(c.city)}>{c.description}</option>
                                 ))}
                             </select>
@@ -279,7 +280,7 @@ const PersonalInfoTab = () => {
                                 disabled={!formik.values.citId}
                             >
                                 <option value="">Seleccione...</option>
-                                {municipalities.map((m) => (
+                                {municipalities.map((m: Municipality) => (
                                     <option key={m.municipality} value={String(m.municipality)}>{m.description}</option>
                                 ))}
                             </select>

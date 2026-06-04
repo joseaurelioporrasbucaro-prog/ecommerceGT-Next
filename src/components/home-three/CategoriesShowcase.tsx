@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePublicationCategories } from '@/hooks/api/useCatalogs';
+import type { PublicationCategory } from '@/types/api';
 
 /**
  * Fase 16 — vitrina de las 3 grandes categorías de propiedades.
@@ -54,7 +55,7 @@ const CategoriesShowcase: React.FC = () => {
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={`sk-${i}`} className="kcs-card kcs-skeleton" />
               ))
-            : cats.slice(0, 3).map((c) => {
+            : cats.slice(0, 3).map((c: PublicationCategory) => {
                 const meta = CATEGORY_META[c.pubgen_id] ?? {
                   icon: 'fa-th-large',
                   hint: '',

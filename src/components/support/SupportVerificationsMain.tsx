@@ -97,7 +97,7 @@ const SupportVerificationsMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((req) => {
+                      {rows.map((req: VerificationRequestRow) => {
                         const isPersonal = req.ver_type === 'personal';
                         const name = `${req.firstname ?? ''} ${req.lastname ?? ''}`.trim() || 'Usuario';
                         return (

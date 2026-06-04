@@ -5,6 +5,7 @@ import ThemeChanger from '@/components/home/ThemeChanger';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { useInbox } from '@/hooks/api/useMessages';
+import type { InboxItem } from '@/types/api';
 import { usePublicationDetail } from '@/hooks/api/usePublications';
 import InboxList from './InboxList';
 import ConversationView from './ConversationView';
@@ -63,7 +64,7 @@ const MessagesMain: React.FC = () => {
     if (!hasActiveConversation || !inboxQuery.data) return null;
     return (
       inboxQuery.data.find(
-        (i) => i.pub_id === activePubId && i.contact_id === activeContactId,
+        (i: InboxItem) => i.pub_id === activePubId && i.contact_id === activeContactId,
       ) || null
     );
   }, [inboxQuery.data, hasActiveConversation, activePubId, activeContactId]);

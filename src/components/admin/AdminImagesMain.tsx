@@ -112,7 +112,7 @@ const AdminImagesMain: React.FC = () => {
           {rows.length === 0 && !listQuery.isLoading && <p style={{ opacity: 0.6 }}>No hay imágenes registradas.</p>}
 
           <div className="ai-grid">
-            {rows.map((row) => {
+            {rows.map((row: SiteAssetRow) => {
               const previewUrl = resolveAssetUrl(row.asset_url);
               const isUploading = uploadingKey === row.asset_key;
               return (

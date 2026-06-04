@@ -11,6 +11,7 @@ import listIconTwo from "../../../public/assets/img/shape/list-icon-2.png";
 import Image from "next/image";
 import { menuItems } from "@/data/menu-data";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
+import type { TopSellerRow } from "@/types/api";
 import { getBackendUrl } from "@/utils/backendUrl";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/utils/AuthContext";
@@ -139,7 +140,7 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
               <div className="menu2-sidebar-widget">
                 <h5 className="menu2-sidebar-widget-title mb-35">Top Seller</h5>
                 <div className="sidebar-creators-list">
-                  {(topSellers ?? []).map((s, i) => {
+                  {(topSellers ?? []).map((s: TopSellerRow, i: number) => {
                     const name = `${s.firstname ?? ""} ${s.lastname ?? ""}`.trim() || "Vendedor";
                     const avatar = s.imagenu ? getBackendUrl(s.imagenu) : null;
                     return (

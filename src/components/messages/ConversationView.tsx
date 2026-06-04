@@ -74,7 +74,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
     if (hasMarkedReadRef.current === key) return;
     if (!conversationQuery.data) return;
     const hasUnread = conversationQuery.data.some(
-      (m) => m.sender_id === contactId && !m.is_read,
+      (m: ConversationMessage) => m.sender_id === contactId && !m.is_read,
     );
     if (!hasUnread) {
       hasMarkedReadRef.current = key;
@@ -191,7 +191,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
             </div>
           </div>
         )}
-        {conversationQuery.data?.map((msg) => (
+        {conversationQuery.data?.map((msg: ConversationMessage) => (
           <MessageBubble
             key={msg.message_id}
             message={msg}

@@ -9,7 +9,7 @@ import { ApiError } from '@/utils/Api';
 import { useSupportReports, useResolveReport, useMessageContext } from '@/hooks/api/useSupportReports';
 import { useBanUser } from '@/hooks/api/useSupportUsers';
 import Pagination from './Pagination';
-import type { SupportReportRow, ReportType } from '@/types/api';
+import type { SupportReportRow, ReportType, ConversationContextMessage } from '@/types/api';
 
 const PAGE_SIZE = 15;
 
@@ -32,7 +32,7 @@ const ConversationModal = ({ messageId, onClose }: { messageId: number; onClose:
         <h5>Conversación</h5>
         {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
         <div className="sr-convo-list">
-          {data?.messages.map((m) => (
+          {data?.messages.map((m: ConversationContextMessage) => (
             <div key={m.message_id} className={`sr-bubble ${m.message_id === data.reportedMessageId ? 'reported' : ''}`}>
               <div className="sr-bubble-head">
                 <strong>{`${m.first ?? ''} ${m.last ?? ''}`.trim() || 'Usuario'}</strong>
@@ -146,7 +146,7 @@ const SupportReportsMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {paged.map((r) => {
+                      {paged.map((r: SupportReportRow) => {
                         const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || 'Usuario';
                         const href = contentHref(r);
                         // Fase 10.6: la publicación asociada está pautada.

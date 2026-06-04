@@ -5,6 +5,7 @@ import Breadcrumbs from '@/utils/Breadcrumbs';
 import CreatorSingle from './CreatorSingle';
 import { useTopSellers } from '@/hooks/api/useTopSellers';
 import defaultCover from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
+import type { TopSellerRow } from '@/types/api';
 
 const CreatorsMain = () => {
     // Fase 9 — ranking real de vendedores (reemplaza la data demo estática).
@@ -24,7 +25,7 @@ const CreatorsMain = () => {
                         <p style={{ opacity: 0.6 }}>Aún no hay vendedores en el ranking.</p>
                     )}
                     <div className="row wow fadeInUp">
-                        {sellers.map((s, i) => (
+                        {sellers.map((s: TopSellerRow, i: number) => (
                             <CreatorSingle key={s.id} creator={s} rank={i + 1} defaultCover={defaultCover} />
                         ))}
                     </div>

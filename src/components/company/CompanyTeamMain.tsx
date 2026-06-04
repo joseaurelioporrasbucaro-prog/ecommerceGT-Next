@@ -7,6 +7,7 @@ import { useCompanyTeam, useSetEmployeeLimit, useRemoveEmployee, useCancelInvita
 import { useInviteExistingUser, useAddEmployee } from '@/hooks/api/useCompany';
 import { useSearchBuyers } from '@/hooks/api/useSearchBuyers';
 import { useMySubscription } from '@/hooks/api/useSubscription';
+import type { CompanyTeamMember, CompanyPendingInvite, BuyerSearchResult } from '@/types/api';
 
 const CompanyTeamMain = () => {
   const { user } = useAuth();
@@ -93,7 +94,7 @@ const CompanyTeamMain = () => {
               <div className="tm-card">
                 <h3 className="tm-title">Miembros</h3>
                 <div className="tm-table">
-                  {members.map((m) => {
+                  {members.map((m: CompanyTeamMember) => {
                     const isSelf = m.cusid === user?.id;
                     return (
                       <div key={m.cusid} className="tm-row">
@@ -165,7 +166,7 @@ const CompanyTeamMain = () => {
                 <div className="tm-card">
                   <h3 className="tm-title">Invitaciones pendientes</h3>
                   <div className="tm-table">
-                    {pending.map((p) => (
+                    {pending.map((p: CompanyPendingInvite) => (
                       <div key={p.invid} className="tm-row">
                         <div className="tm-person">
                           <span className="tm-name">
@@ -216,7 +217,7 @@ const CompanyTeamMain = () => {
                         {!buyersQuery.isLoading && buyers.length === 0 && (
                           <li className="tm-search-empty">Sin resultados</li>
                         )}
-                        {buyers.map((b) => (
+                        {buyers.map((b: BuyerSearchResult) => (
                           <li key={b.cusId} className="tm-search-item">
                             <div>
                               <span className="tm-name">{b.firstName} {b.lastName}</span>

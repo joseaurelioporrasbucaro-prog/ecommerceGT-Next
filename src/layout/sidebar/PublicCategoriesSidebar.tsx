@@ -7,6 +7,7 @@ import { usePublicationCategories } from '@/hooks/api/useCatalogs';
 import {
   getCategoryFallbackIcon,
 } from '@/components/publications/publicationUtils';
+import type { PublicationCategory } from '@/types/api';
 
 interface PublicCategoriesSidebarProps {
   menuOpen2: boolean;
@@ -88,7 +89,7 @@ const PublicCategoriesSidebar = ({ menuOpen2, setMenuOpen2 }: PublicCategoriesSi
                     </div>
                   </li>
                 )}
-                {categories.map((cat) => (
+                {categories.map((cat: PublicationCategory) => (
                   <li key={cat.pubgen_id}>
                     <Link
                       href={`/publications?category=${encodeURIComponent(cat.pubgen_description)}`}

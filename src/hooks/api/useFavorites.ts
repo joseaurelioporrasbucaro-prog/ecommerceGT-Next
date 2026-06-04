@@ -100,20 +100,20 @@ export function useToggleFavorite(pubId: number) {
       if (user) {
         queryClient.setQueryData<AnyPublicationListItem[]>(
           PUBLICATIONS_QUERY_KEY,
-          (currentItems) =>
-            currentItems?.map((item) =>
+          (currentItems: AnyPublicationListItem[] | undefined) =>
+            currentItems?.map((item: AnyPublicationListItem) =>
               item.id === pubId ? withToggledFavorite(item, user.id) : item,
             ),
         );
 
         previousDetails.forEach(({ queryKey }) => {
-          queryClient.setQueryData<PublicationDetail>(queryKey, (currentDetail) =>
+          queryClient.setQueryData<PublicationDetail>(queryKey, (currentDetail: PublicationDetail | undefined) =>
             currentDetail ? toggleDetailFavorite(currentDetail, pubId) : currentDetail,
           );
         });
 
-        queryClient.setQueryData<FavoriteItem[]>(MY_FAVORITES_QUERY_KEY, (currentFavorites) =>
-          currentFavorites?.filter((favorite) => favorite.id !== pubId),
+        queryClient.setQueryData<FavoriteItem[]>(MY_FAVORITES_QUERY_KEY, (currentFavorites: FavoriteItem[] | undefined) =>
+          currentFavorites?.filter((favorite: FavoriteItem) => favorite.id !== pubId),
         );
       }
 

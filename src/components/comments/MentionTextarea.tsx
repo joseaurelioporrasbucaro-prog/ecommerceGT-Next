@@ -120,7 +120,7 @@ const MentionTextarea = ({
           {isLoading && suggestions.length === 0 ? (
             <li className="mention-empty">Buscando…</li>
           ) : (
-            suggestions.map((u, i) => (
+            suggestions.map((u: UserSearchResult, i: number) => (
               <li key={u.cusId}>
                 <button
                   type="button"

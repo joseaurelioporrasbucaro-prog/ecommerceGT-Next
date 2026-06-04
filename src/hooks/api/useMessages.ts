@@ -180,7 +180,7 @@ export function useReactToMessage(
       await queryClient.cancelQueries({ queryKey: conversationKey });
       const previous = queryClient.getQueryData<ConversationMessage[]>(conversationKey);
 
-      queryClient.setQueryData<ConversationMessage[]>(conversationKey, (old = []) =>
+      queryClient.setQueryData<ConversationMessage[]>(conversationKey, (old: ConversationMessage[] = []) =>
         old.map((m) => {
           if (m.message_id !== messageId) return m;
           const reactions = [...(m.reactions ?? [])];

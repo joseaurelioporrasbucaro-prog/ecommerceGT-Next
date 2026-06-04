@@ -118,7 +118,7 @@ const SupportUsersMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {paged.map((u) => {
+                      {paged.map((u: SupportUserRow) => {
                         const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || 'Usuario';
                         const isStaff = u.role === 'support' || u.role === 'admin';
                         // Fase 8.3.3 — bloqueo por intentos fallidos (passta_id=2).

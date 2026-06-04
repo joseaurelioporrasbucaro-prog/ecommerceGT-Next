@@ -295,7 +295,7 @@ const RegisterForm = () => {
             {renderError("handle")}
             {shouldCheckHandle && handleIsAvailable === false && handleSuggestions.length > 0 && (
               <div className="handle-suggestions">
-                {handleSuggestions.map((suggestion) => (
+                {handleSuggestions.map((suggestion: string) => (
                   <button
                     key={suggestion}
                     type="button"

@@ -9,6 +9,7 @@ import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
 import { getImageVariant } from '@/utils/imageVariants';
 import { CARD_PLACEHOLDER, getPublicationListAllImages } from '@/components/publications/publicationUtils';
+import type { AnyPublicationListItem, UserSearchResult } from '@/types/api';
 
 interface HeaderSearchProps {
   /** Clases extra para el <form> (controla visibilidad responsive por header). */
@@ -42,8 +43,8 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
     const all = publicationsQuery.data ?? [];
     return all
       // Excluye vendidas (pubsta 3) y anuladas (4): no deben buscarse.
-      .filter((p) => p.pubstaId !== 3 && p.pubstaId !== 4)
-      .filter((p) => p.title?.toLowerCase().includes(normalized))
+      .filter((p: AnyPublicationListItem) => p.pubstaId !== 3 && p.pubstaId !== 4)
+      .filter((p: AnyPublicationListItem) => p.title?.toLowerCase().includes(normalized))
       .slice(0, MAX_RESULTS);
   }, [enabled, normalized, publicationsQuery.data]);
 
@@ -100,7 +101,7 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
           {users.length > 0 && (
             <div className="hsd-section">
               <div className="hsd-title">Usuarios</div>
-              {users.map((u) => {
+              {users.map((u: UserSearchResult) => {
                 const name = `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || `@${u.handle}`;
                 const avatar = u.avatar ? getBackendUrl(u.avatar) : generateInitialsAvatar(name, 64);
                 return (
@@ -125,7 +126,7 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
           {publications.length > 0 && (
             <div className="hsd-section">
               <div className="hsd-title">Propiedades</div>
-              {publications.map((p) => {
+              {publications.map((p: AnyPublicationListItem) => {
                 const thumb = pubThumb(p);
                 return (
                   <Link

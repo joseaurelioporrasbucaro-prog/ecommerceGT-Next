@@ -5,6 +5,7 @@ import { usePublicationDetail } from '@/hooks/api/usePublications';
 import { ApiError } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { formatPrice, getPublicationImagePathGlb } from './publicationUtils';
+import type { PublicationImageGlb } from '@/types/api';
 
 /**
  * Visor 3D dedicado para los archivos GLB de una publicación.
@@ -74,14 +75,14 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
   const models = useMemo(() => {
     if (!publication?.imagesglb) return [] as { url: string; name: string }[];
     return publication.imagesglb
-      .map((g) => {
+      .map((g: PublicationImageGlb) => {
         const path = getPublicationImagePathGlb(g);
         return path ? {
           url: getBackendUrl(path),
           name: g.id || g.pubimaglb_id ? `Modelo ${g.id || g.pubimaglb_id}` : 'Modelo 3D',
         } : null;
       })
-      .filter((m): m is { url: string; name: string } => m !== null);
+      .filter((m: { url: string; name: string } | null): m is { url: string; name: string } => m !== null);
   }, [publication]);
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -272,7 +273,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
         {/* Thumbnails (solo si hay más de 1) */}
         {models.length > 1 && (
           <div className="pv-thumbnails">
-            {models.map((m, i) => (
+            {models.map((m: { url: string; name: string }, i: number) => (
               <button
                 key={m.url}
                 type="button"

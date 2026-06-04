@@ -6,7 +6,7 @@ import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { useSupportTickets } from '@/hooks/api/useTickets';
 import Pagination from './Pagination';
-import type { TicketStatus } from '@/types/api';
+import type { TicketStatus, SupportTicketRow } from '@/types/api';
 
 const STATUS_LABEL: Record<TicketStatus, string> = {
   open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
@@ -59,7 +59,7 @@ const SupportTicketsMain = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {paged.map((t) => {
+                      {paged.map((t: SupportTicketRow) => {
                         const owner = `${t.owner_first ?? ''} ${t.owner_last ?? ''}`.trim() || 'Usuario';
                         const agent = t.assigned_to ? `${t.agent_first ?? ''} ${t.agent_last ?? ''}`.trim() : '—';
                         return (
