@@ -11,7 +11,7 @@ import HeaderSearch from './component/HeaderSearch';
 import MobileMenu from '@/utils/MobileMenu';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTheme } from 'next-themes';
-import { useTranslation } from 'react-i18next';
+import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
 interface HeaderOneProps {
@@ -21,7 +21,7 @@ interface HeaderOneProps {
 const HeaderOne = ({ HeaderStatic }: HeaderOneProps) => {
  const {toggleSideMenu,sideMenuOpen} = useGlobalContext()
  const { setTheme } = useTheme();
- const { t } = useTranslation();
+ const tSearch = useTranslations('common.search');
 
    // sticky nav
    const { sticky } = useSticky();
@@ -51,7 +51,7 @@ const HeaderOne = ({ HeaderStatic }: HeaderOneProps) => {
                            </div>
                            <HeaderSearch
                               className="d-none d-xl-inline-block"
-                              placeholder={t('serchproducts') || 'Buscar usuarios o propiedades...'}
+                              placeholder={tSearch('products')}
                            />
 
                            <LanguageSwitcher className="header-lang ml-20 d-inline-flex" />
