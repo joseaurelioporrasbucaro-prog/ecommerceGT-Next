@@ -2970,7 +2970,7 @@ el UI sin valor.
 | 14.1 Setup | `next-intl` instalado, `src/app/[locale]/`, middleware combinado (auth+intl), home piloto traducida, selector de idioma visible, T-104..T-108 | ~6h |
 | 14.2 Migración base | Login/Register/Forgot/HeaderOne/HeaderTwo → `useTranslations`; cleanup de `react-i18next`+`i18next`+`src/i18n.js`; T-109..T-111 | ~3h |
 | 14.3 Contenido nuevo | 10 namespaces (messages, support, pauta, profile, notifications, admin, home, publications, legal, danger). Helper `useDateFmt`. 0 `toLocaleDateString` con literal. T-112..T-114 | ~12–16h |
-| 14.4 Backend + emails + SEO | Helper `emailTemplates.js` bilingüe, 20 endpoints con `{code, message, params}`, `sitemap.ts` con `/es+/en` + hreflang, `robots.ts` con disallow por locale, T-115..T-117 | ~5h |
+| 14.4 Backend + emails + SEO | Helper `emailTemplates.js` bilingüe, 20 endpoints con `{code, message, params}`, sitemap XML con `/es+/en` + hreflang, `robots.ts` con disallow por locale, T-115..T-117 | ~5h |
 | **Total** | | **~26–30h Codex** |
 
 **Out of scope (NO se hace en esta fase):**
@@ -3042,8 +3042,8 @@ bilingüe con sitemap/robots localizados.
   - `messages/es/common.json`, `messages/en/common.json`
   - `messages/es/auth.json`, `messages/en/auth.json` (sembrado desde `src/i18n.js`)
 - **Archivos movidos:** todas las carpetas de `src/app/` → `src/app/[locale]/`,
-  excepto `layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.ts`, `robots.ts`,
-  `[...not_found]/`.
+  excepto `layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.xml/route.ts`,
+  `robots.ts`, `[...not_found]/`.
 - **Archivos modificados:**
   - `src/middleware.ts` combina `next-intl` + auth; auth corre aun cuando
     `next-intl` devuelve rewrite interno.
@@ -3147,9 +3147,10 @@ bilingüe con sitemap/robots localizados.
 
 - **SHA Codex (backend):** `04c735d` (docs backend). Commits del hito backend:
   `b66f010`, `611f513`, `9252bdc`, `909ddd6`, `28df9f4`, `04c735d`.
-- **SHA Codex (frontend):** `7725e02` (fix final de middleware para sitemap/robots;
-  cierre documental en `docs(fase14.4): cierre completo Fase 14`). Commits de
-  código frontend: `7061487`, `b8af9b5`, `956d1c6`, `7725e02`.
+- **SHA Codex (frontend):** `29782ba` (fix final del sitemap XML con
+  `hreflang`). Commits de código frontend: `7061487`, `b8af9b5`, `956d1c6`,
+  `7725e02`, `29782ba`; cierre documental previo en `f3564ae` y ajuste smoke en
+  `a237ba7`.
 - **Tests añadidos/documentados:** T-115..T-117 automatizados en backend
   (`tests/api/emails/recovery-locale.spec.js`) y documentados en
   `docs/TEST_PLAN.md`.
@@ -3172,8 +3173,8 @@ bilingüe con sitemap/robots localizados.
   - `src/hooks/api/useCompany.ts`, `src/hooks/api/useCloseSale.ts` — mandan
     `locale` en invitaciones/alta de empleados y cierre de venta.
   - `src/types/api.ts` — payloads aceptan `locale`.
-  - `src/app/sitemap.ts` — emite variantes `/es/...` y `/en/...` con
-    `alternates.languages`.
+  - `src/app/sitemap.xml/route.ts` — emite XML manual con variantes `/es/...`
+    y `/en/...` + `xhtml:link hreflang`.
   - `src/app/robots.ts` — `allow`/`disallow` localizados por prefijo.
   - `src/middleware.ts` — excluye `sitemap.xml` y `robots.txt` del middleware
     i18n para que queden disponibles en raíz.
@@ -3188,7 +3189,9 @@ bilingüe con sitemap/robots localizados.
   - Sitemap smoke con `hreflang` ✅
 - **Bloqueos resueltos:** el primer smoke de `/sitemap.xml` mostró redirect
   307 a `/es/sitemap.xml`; se excluyeron `sitemap.xml` y `robots.txt` del
-  matcher de `src/middleware.ts` y el smoke con `hreflang` quedó verde.
+  matcher de `src/middleware.ts`. Después se detectó que Next 13.4 serializa
+  `src/app/sitemap.ts` sin `hreflang`; se reemplazó por
+  `src/app/sitemap.xml/route.ts` con XML explícito y el smoke quedó verde.
 - **Notas del revisor:** _por completar_
 
 ##### Cierre Fase 14 — ✅ Completada
