@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ApiFetch } from './Api';
 import type { AuthUser, MeResponse } from '@/types/api';
 import { CURRENT_USER_QUERY_KEY } from '@/hooks/api/useCurrentUser';
-import '../i18n';
 
 /**
  * Nota de arquitectura (transitoria):
