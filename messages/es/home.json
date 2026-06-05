@@ -1,1 +1,97 @@
-{}
+{
+  "hero": {
+    "titlePrefix": "Encontra tu proximo hogar en",
+    "titleAccent": "Guatemala",
+    "subtitle": "Casas, apartamentos y terrenos publicados directamente por propietarios verificados. Sin intermediarios escondidos.",
+    "searchPlaceholder": "Buscar por zona, departamento, direccion...",
+    "searchAria": "Buscar propiedad",
+    "search": "Buscar",
+    "searchByType": "Buscar por tipo:",
+    "types": {
+      "houses": "Casas",
+      "apartments": "Apartamentos",
+      "land": "Terrenos"
+    },
+    "trust": {
+      "verified": "Vendedores verificados con DPI",
+      "viewer": "Visor 3D para recorrer la propiedad",
+      "messages": "Mensajeria directa con el propietario"
+    }
+  },
+  "categories": {
+    "title": "Explora por tipo de propiedad",
+    "subtitle": "Filtra rapido el catalogo segun lo que estas buscando.",
+    "view": "Ver {category}",
+    "names": {
+      "houses": "Casas",
+      "apartments": "Apartamentos",
+      "land": "Terrenos",
+      "default": "Categoria"
+    },
+    "hints": {
+      "houses": "Casas con jardin, duplex y residencias en colonias seguras.",
+      "apartments": "Apartamentos amueblados, lofts y penthouses en zonas urbanas.",
+      "land": "Terrenos urbanos, agricolas y lotes para inversion.",
+      "default": ""
+    }
+  },
+  "featured": {
+    "title": "Propiedades destacadas",
+    "subtitle": "Seleccion curada de anuncios pautados por sus duenos.",
+    "viewAll": "Ver todas"
+  },
+  "how": {
+    "title": "Como funciona KIOSQUI",
+    "subtitle": "Del primer clic a las llaves en tu mano: un proceso simple y transparente.",
+    "steps": {
+      "search": {
+        "title": "Buscas",
+        "text": "Filtra por tipo, zona y presupuesto. Cada anuncio muestra fotos reales y, si esta disponible, recorrido 3D."
+      },
+      "contact": {
+        "title": "Contactas",
+        "text": "Envia mensajes directamente al propietario verificado. Sin intermediarios escondidos ni comisiones."
+      },
+      "visit": {
+        "title": "Visitas",
+        "text": "Coordina visita por chat o telefono. Lleva tus dudas y conoce la propiedad de primera mano."
+      },
+      "close": {
+        "title": "Cierras",
+        "text": "Cierra la negociacion directamente con el propietario y firma con tu asesor de confianza."
+      }
+    }
+  },
+  "topSellers": {
+    "title": "Vendedores destacados",
+    "subtitle": "Los propietarios y agentes mas activos de la plataforma.",
+    "fallback": "Vendedor",
+    "verified": "Verificado",
+    "publicationsCount": "{count, plural, one {# publicacion} other {# publicaciones}}"
+  },
+  "cta": {
+    "loggedTitle": "¿Listo para sumar otra publicacion?",
+    "guestTitle": "¿Tienes una propiedad para vender o rentar?",
+    "loggedText": "Publica rapido desde tu panel y empieza a recibir mensajes hoy mismo.",
+    "guestText": "Registrate gratis, verifica tu identidad y publica tu primera propiedad en menos de 5 minutos.",
+    "publish": "Publicar propiedad",
+    "myPublications": "Ver mis publicaciones",
+    "createAccount": "Crear cuenta gratis",
+    "viewPlans": "Ver planes"
+  },
+  "legacy": {
+    "heroTitle": "Descubre propiedades digitales y explora los mejores",
+    "heroAccent": "anuncios",
+    "heroText": "Hay suficientes propiedades disponibles para ayudarte a armar tu proxima busqueda.",
+    "exploreNow": "Explorar ahora",
+    "exploreArtworks": "Explorar publicaciones",
+    "currentBid": "Oferta actual",
+    "placeBid": "Ofertar",
+    "noArtworks": "No se encontraron resultados para \"{query}\".",
+    "items": {
+      "abstractCube": "Cubo abstracto colorido",
+      "cryptoArtwork": "Arte 3D",
+      "watchLooper": "Recorrido destacado"
+    }
+  }
+}

@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
  * listado consume el query param para filtrar.
  */
 const KiosquiHero: React.FC = () => {
+  const t = useTranslations('home');
   const tNav = useTranslations('common.nav');
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -32,53 +33,50 @@ const KiosquiHero: React.FC = () => {
         <div className="kh-inner">
           <div className="kh-locale-pilot">{tNav('home')}</div>
           <h1 className="kh-title">
-            Encontrá tu próximo hogar en{' '}
-            <span className="kh-accent">Guatemala</span>
+            {t('hero.titlePrefix')}{' '}
+            <span className="kh-accent">{t('hero.titleAccent')}</span>
           </h1>
-          <p className="kh-subtitle">
-            Casas, apartamentos y terrenos publicados directamente por
-            propietarios verificados. Sin intermediarios escondidos.
-          </p>
+          <p className="kh-subtitle">{t('hero.subtitle')}</p>
 
           <form className="kh-search" onSubmit={submit} role="search">
             <i className="fas fa-search kh-search-icon" aria-hidden="true" />
             <input
               type="text"
-              placeholder="Buscar por zona, departamento, dirección..."
+              placeholder={t('hero.searchPlaceholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Buscar propiedad"
+              aria-label={t('hero.searchAria')}
             />
             <button type="submit" className="fill-btn kh-search-btn">
-              Buscar
+              {t('hero.search')}
             </button>
           </form>
 
           <div className="kh-quick-links">
-            <span className="kh-quick-label">Buscar por tipo:</span>
+            <span className="kh-quick-label">{t('hero.searchByType')}</span>
             <Link href="/publications?propertie=1" className="kh-chip">
-              <i className="fas fa-home" /> Casas
+              <i className="fas fa-home" /> {t('hero.types.houses')}
             </Link>
             <Link href="/publications?propertie=2" className="kh-chip">
-              <i className="fas fa-building" /> Apartamentos
+              <i className="fas fa-building" /> {t('hero.types.apartments')}
             </Link>
             <Link href="/publications?propertie=3" className="kh-chip">
-              <i className="fas fa-map" /> Terrenos
+              <i className="fas fa-map" /> {t('hero.types.land')}
             </Link>
           </div>
 
           <div className="kh-trust-row">
             <div className="kh-trust">
               <i className="fas fa-shield-alt" />
-              <span>Vendedores verificados con DPI</span>
+              <span>{t('hero.trust.verified')}</span>
             </div>
             <div className="kh-trust">
               <i className="fas fa-cube" />
-              <span>Visor 3D para recorrer la propiedad</span>
+              <span>{t('hero.trust.viewer')}</span>
             </div>
             <div className="kh-trust">
               <i className="fas fa-comments" />
-              <span>Mensajería directa con el propietario</span>
+              <span>{t('hero.trust.messages')}</span>
             </div>
           </div>
         </div>

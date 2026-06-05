@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePublicationCategories } from '@/hooks/api/useCatalogs';
 import type { PublicationCategory } from '@/types/api';
 
@@ -16,29 +17,34 @@ import type { PublicationCategory } from '@/types/api';
  */
 type CategoryMeta = {
   icon: string;
-  hint: string;
+  hintKey: string;
+  nameKey: string;
   gradient: string;
 };
 
 const CATEGORY_META: Record<number, CategoryMeta> = {
   1: { // Casa
     icon: 'fa-home',
-    hint: 'Casas con jardín, dúplex y residencias en colonias seguras.',
+    hintKey: 'categories.hints.houses',
+    nameKey: 'categories.names.houses',
     gradient: 'linear-gradient(135deg, #2785ff 0%, #5fa1ff 100%)',
   },
   2: { // Apartamento
     icon: 'fa-building',
-    hint: 'Apartamentos amueblados, lofts y penthouses en zonas urbanas.',
+    hintKey: 'categories.hints.apartments',
+    nameKey: 'categories.names.apartments',
     gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
   },
   3: { // Terreno
     icon: 'fa-map',
-    hint: 'Terrenos urbanos, agrícolas y lotes para inversión.',
+    hintKey: 'categories.hints.land',
+    nameKey: 'categories.names.land',
     gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
   },
 };
 
 const CategoriesShowcase: React.FC = () => {
+  const t = useTranslations('home');
   const { data, isLoading } = usePublicationCategories();
   const cats = data ?? [];
 
@@ -46,8 +52,8 @@ const CategoriesShowcase: React.FC = () => {
     <section className="kh-section kcs-section">
       <div className="container">
         <div className="kh-section-head">
-          <h2>Explorá por tipo de propiedad</h2>
-          <p>Filtrá rápido el catálogo según lo que estás buscando.</p>
+          <h2>{t('categories.title')}</h2>
+          <p>{t('categories.subtitle')}</p>
         </div>
 
         <div className="kcs-grid">
@@ -58,9 +64,13 @@ const CategoriesShowcase: React.FC = () => {
             : cats.slice(0, 3).map((c: PublicationCategory) => {
                 const meta = CATEGORY_META[c.pubgen_id] ?? {
                   icon: 'fa-th-large',
-                  hint: '',
+                  hintKey: 'categories.hints.default',
+                  nameKey: 'categories.names.default',
                   gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)',
                 };
+                const categoryName = CATEGORY_META[c.pubgen_id]
+                  ? t(meta.nameKey)
+                  : c.pubgen_description;
                 return (
                   <Link
                     key={c.pubgen_id}
@@ -73,10 +83,10 @@ const CategoriesShowcase: React.FC = () => {
                     >
                       <i className={`fas ${meta.icon}`} />
                     </div>
-                    <h4>{c.pubgen_description}</h4>
-                    <p>{meta.hint}</p>
+                    <h4>{categoryName}</h4>
+                    <p>{t(meta.hintKey)}</p>
                     <span className="kcs-cta">
-                      Ver {c.pubgen_description.toLowerCase()}{' '}
+                      {t('categories.view', { category: categoryName.toLowerCase() })}{' '}
                       <i className="fas fa-arrow-right" />
                     </span>
                   </Link>

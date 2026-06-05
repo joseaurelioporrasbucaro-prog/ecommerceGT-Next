@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import thumb from "../../../public/assets/img/banner/banner-3-bg.jpg";
 import thumb2 from "../../../public/assets/img/banner/banner-3-bg.jpg";
 import thumb3 from "../../../public/assets/img/bids/oc-category-2-2.jpg";
@@ -10,6 +11,7 @@ import thumb7 from "../../../public/assets/img/bids/oc-category-3.jpg";
 import thumb8 from "../../../public/assets/img/profile/profile7.jpg";
 import Image from "next/image";
 const HeroSectionThree = () => {
+  const t = useTranslations('home');
   return (
     <div className="banner-area banner-area3 pos-rel pt-130">
       <div className="container c-container-1">
@@ -40,11 +42,10 @@ const HeroSectionThree = () => {
                   data-delay=".3s"
                   className="mb-20 font-prata"
                 >
-                  Discover Digital Artworks & Collect Best <span>NFTs</span>
+                  {t('legacy.heroTitle')} <span>{t('legacy.heroAccent')}</span>
                 </h1>
                 <p data-animation="fadeInUp" data-delay=".5s" className="mb-30">
-                  There is enough digital artworks available online to help you
-                  put together.
+                  {t('legacy.heroText')}
                 </p>
                 <div
                   className="banner-btn"
@@ -52,7 +53,7 @@ const HeroSectionThree = () => {
                   data-delay=".7s"
                 >
                   <Link className="fill-btn" href="/explore-arts">
-                    Explore Now
+                    {t('legacy.exploreNow')}
                   </Link>
                 </div>
               </div>
@@ -76,7 +77,7 @@ const HeroSectionThree = () => {
                     </div>
                     <div className="art-item-content pos-rel">
                       <h4 className="art-name">
-                        <Link href="/explore-arts">Color Abstract Cube</Link>
+                        <Link href="/explore-arts">{t('legacy.items.abstractCube')}</Link>
                       </h4>
                       <div className="artist">
                         <div className="profile-img pos-rel">
@@ -97,12 +98,12 @@ const HeroSectionThree = () => {
                       </div>
                       <div className="art-meta-info">
                         <div className="art-meta-item">
-                          <div className="art-meta-type">Current Bid</div>
+                          <div className="art-meta-type">{t('legacy.currentBid')}</div>
                           <div className="art-price">24.47 ETH</div>
                         </div>
                         <div className="art-activity-btn">
                           <a href="#" className="place-bid">
-                            Place Bid
+                            {t('legacy.placeBid')}
                           </a>
                         </div>
                       </div>
@@ -126,7 +127,7 @@ const HeroSectionThree = () => {
                     </div>
                     <div className="art-item-content pos-rel">
                       <h4 className="art-name">
-                        <Link href="/explore-arts">3D Crypto Artwork</Link>
+                        <Link href="/explore-arts">{t('legacy.items.cryptoArtwork')}</Link>
                       </h4>
                       <div className="artist">
                         <div className="profile-img pos-rel">
@@ -147,12 +148,12 @@ const HeroSectionThree = () => {
                       </div>
                       <div className="art-meta-info">
                         <div className="art-meta-item">
-                          <div className="art-meta-type">Current Bid</div>
+                          <div className="art-meta-type">{t('legacy.currentBid')}</div>
                           <div className="art-price">23.84 ETH</div>
                         </div>
                         <div className="art-activity-btn">
                           <a href="#" className="place-bid">
-                            Place Bid
+                            {t('legacy.placeBid')}
                           </a>
                         </div>
                       </div>
@@ -176,7 +177,7 @@ const HeroSectionThree = () => {
                     </div>
                     <div className="art-item-content pos-rel">
                       <h4 className="art-name">
-                        <Link href="/explore-arts">Watch Looper</Link>
+                        <Link href="/explore-arts">{t('legacy.items.watchLooper')}</Link>
                       </h4>
                       <div className="artist">
                         <div className="profile-img pos-rel">
@@ -197,12 +198,12 @@ const HeroSectionThree = () => {
                       </div>
                       <div className="art-meta-info">
                         <div className="art-meta-item">
-                          <div className="art-meta-type">Current Bid</div>
+                          <div className="art-meta-type">{t('legacy.currentBid')}</div>
                           <div className="art-price">32.84 ETH</div>
                         </div>
                         <div className="art-activity-btn">
                           <a href="#" className="place-bid">
-                            Place Bid
+                            {t('legacy.placeBid')}
                           </a>
                         </div>
                       </div>

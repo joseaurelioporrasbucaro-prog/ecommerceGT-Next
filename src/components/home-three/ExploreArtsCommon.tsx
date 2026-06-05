@@ -4,12 +4,14 @@ import useGlobalContext from "@/hooks/use-context";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { useTranslations } from "next-intl";
 interface sliceType {
   start: number;
   end: number;
 }
 
 const ExploreArtsCommon = ({ start, end }: sliceType) => {
+  const t = useTranslations('home');
   const { inputValue } = useGlobalContext();
   const filteredArtworks = productData
     .slice(start, end)
@@ -218,7 +220,7 @@ const ExploreArtsCommon = ({ start, end }: sliceType) => {
             </>
           ) : (
             <>
-              <h2>No Artworks Found {`" ${inputValue} "`} Title </h2>
+              <h2>{t('legacy.noArtworks', { query: inputValue })}</h2>
             </>
           )}
         </>

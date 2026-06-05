@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 /**
  * Fase 16 — sección "Cómo funciona KIOSQUI".
@@ -10,50 +11,48 @@ import React from 'react';
  *
  * Es contenido estático — no consume backend.
  */
-const STEPS: Array<{ icon: string; title: string; text: string }> = [
+const STEPS: Array<{ icon: string; titleKey: string; textKey: string }> = [
   {
     icon: 'fa-search-location',
-    title: 'Buscás',
-    text: 'Filtrá por tipo, zona, presupuesto. Cada anuncio muestra fotos reales y, si está disponible, recorrido 3D.',
+    titleKey: 'how.steps.search.title',
+    textKey: 'how.steps.search.text',
   },
   {
     icon: 'fa-comments',
-    title: 'Contactás',
-    text: 'Enviá mensajes directamente al propietario verificado. Sin intermediarios escondidos ni comisiones.',
+    titleKey: 'how.steps.contact.title',
+    textKey: 'how.steps.contact.text',
   },
   {
     icon: 'fa-key',
-    title: 'Visitás',
-    text: 'Coordiná visita por chat o teléfono. Llevá tus dudas y conocé la propiedad de primera mano.',
+    titleKey: 'how.steps.visit.title',
+    textKey: 'how.steps.visit.text',
   },
   {
     icon: 'fa-handshake',
-    title: 'Cerrás',
-    text: 'Cerrá la negociación directamente con el propietario y firmá con tu asesor de confianza.',
+    titleKey: 'how.steps.close.title',
+    textKey: 'how.steps.close.text',
   },
 ];
 
 const HowItWorks: React.FC = () => {
+  const t = useTranslations('home');
   return (
     <section className="kh-section hiw-section">
       <div className="container">
         <div className="kh-section-head">
-          <h2>Cómo funciona KIOSQUI</h2>
-          <p>
-            Del primer clic a las llaves en tu mano — un proceso simple y
-            transparente.
-          </p>
+          <h2>{t('how.title')}</h2>
+          <p>{t('how.subtitle')}</p>
         </div>
 
         <div className="hiw-grid">
           {STEPS.map((s, idx) => (
-            <div key={s.title} className="hiw-step">
+            <div key={s.titleKey} className="hiw-step">
               <div className="hiw-step-num">{idx + 1}</div>
               <div className="hiw-step-icon">
                 <i className={`fas ${s.icon}`} />
               </div>
-              <h4>{s.title}</h4>
-              <p>{s.text}</p>
+              <h4>{t(s.titleKey)}</h4>
+              <p>{t(s.textKey)}</p>
             </div>
           ))}
         </div>

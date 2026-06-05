@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import FeaturedPublicationsSection from '@/components/publications/FeaturedPublicationsSection';
 import { useFeaturedPublications } from '@/hooks/api/useCampaigns';
 
@@ -15,6 +16,7 @@ import { useFeaturedPublications } from '@/hooks/api/useCampaigns';
  * devuelve null). Eso evita un header solo con "no hay datos".
  */
 const FeaturedShowcase: React.FC = () => {
+  const t = useTranslations('home');
   const { data } = useFeaturedPublications(6);
   const hasItems = (data?.length ?? 0) > 0;
 
@@ -25,11 +27,11 @@ const FeaturedShowcase: React.FC = () => {
       <div className="container">
         <div className="kh-section-head fsc-head">
           <div>
-            <h2>Propiedades destacadas</h2>
-            <p>Selección curada de anuncios pautados por sus dueños.</p>
+            <h2>{t('featured.title')}</h2>
+            <p>{t('featured.subtitle')}</p>
           </div>
           <Link href="/publications" className="fsc-link">
-            Ver todas <i className="fas fa-arrow-right" />
+            {t('featured.viewAll')} <i className="fas fa-arrow-right" />
           </Link>
         </div>
         {/* El componente ya muestra su propio título "⚡ Destacados".

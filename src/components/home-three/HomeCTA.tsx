@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/utils/AuthContext';
 
 /**
@@ -13,6 +14,7 @@ import { useAuth } from '@/utils/AuthContext';
  * El CTA secundario lleva a /pricing-plan para conocer planes pagos.
  */
 const HomeCTA: React.FC = () => {
+  const t = useTranslations('home');
   const { user } = useAuth();
   const isLoggedIn = Boolean(user);
 
@@ -23,31 +25,31 @@ const HomeCTA: React.FC = () => {
           <div className="hcta-content">
             <h2>
               {isLoggedIn
-                ? '¿Listo para sumar otra publicación?'
-                : '¿Tenés una propiedad para vender o rentar?'}
+                ? t('cta.loggedTitle')
+                : t('cta.guestTitle')}
             </h2>
             <p>
               {isLoggedIn
-                ? 'Publicá rápido desde tu panel y empezá a recibir mensajes hoy mismo.'
-                : 'Registrate gratis, verificá tu identidad y publicá tu primera propiedad en menos de 5 minutos.'}
+                ? t('cta.loggedText')
+                : t('cta.guestText')}
             </p>
             <div className="hcta-actions">
               {isLoggedIn ? (
                 <>
                   <Link href="/upload" className="hcta-primary">
-                    <i className="fas fa-plus" /> Publicar propiedad
+                    <i className="fas fa-plus" /> {t('cta.publish')}
                   </Link>
                   <Link href="/my-publications" className="hcta-secondary">
-                    Ver mis publicaciones
+                    {t('cta.myPublications')}
                   </Link>
                 </>
               ) : (
                 <>
                   <Link href="/register" className="hcta-primary">
-                    Crear cuenta gratis
+                    {t('cta.createAccount')}
                   </Link>
                   <Link href="/pricing-plan" className="hcta-secondary">
-                    Ver planes
+                    {t('cta.viewPlans')}
                   </Link>
                 </>
               )}

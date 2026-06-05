@@ -1,1 +1,97 @@
-{}
+{
+  "hero": {
+    "titlePrefix": "Find your next home in",
+    "titleAccent": "Guatemala",
+    "subtitle": "Houses, apartments and land published directly by verified owners. No hidden intermediaries.",
+    "searchPlaceholder": "Search by zone, department, address...",
+    "searchAria": "Search property",
+    "search": "Search",
+    "searchByType": "Search by type:",
+    "types": {
+      "houses": "Houses",
+      "apartments": "Apartments",
+      "land": "Land"
+    },
+    "trust": {
+      "verified": "DPI-verified sellers",
+      "viewer": "3D viewer to tour the property",
+      "messages": "Direct messaging with the owner"
+    }
+  },
+  "categories": {
+    "title": "Explore by property type",
+    "subtitle": "Quickly filter the catalog based on what you are looking for.",
+    "view": "View {category}",
+    "names": {
+      "houses": "Houses",
+      "apartments": "Apartments",
+      "land": "Land",
+      "default": "Category"
+    },
+    "hints": {
+      "houses": "Houses with gardens, duplexes and residences in safe neighborhoods.",
+      "apartments": "Furnished apartments, lofts and penthouses in urban zones.",
+      "land": "Urban land, agricultural land and investment lots.",
+      "default": ""
+    }
+  },
+  "featured": {
+    "title": "Featured properties",
+    "subtitle": "A curated selection of ads promoted by their owners.",
+    "viewAll": "View all"
+  },
+  "how": {
+    "title": "How KIOSQUI works",
+    "subtitle": "From the first click to keys in your hand: a simple, transparent process.",
+    "steps": {
+      "search": {
+        "title": "Search",
+        "text": "Filter by type, zone and budget. Each ad shows real photos and, when available, a 3D tour."
+      },
+      "contact": {
+        "title": "Contact",
+        "text": "Send messages directly to the verified owner. No hidden intermediaries or commissions."
+      },
+      "visit": {
+        "title": "Visit",
+        "text": "Schedule a visit by chat or phone. Bring your questions and see the property firsthand."
+      },
+      "close": {
+        "title": "Close",
+        "text": "Close the negotiation directly with the owner and sign with your trusted advisor."
+      }
+    }
+  },
+  "topSellers": {
+    "title": "Featured sellers",
+    "subtitle": "The most active owners and agents on the platform.",
+    "fallback": "Seller",
+    "verified": "Verified",
+    "publicationsCount": "{count, plural, one {# publication} other {# publications}}"
+  },
+  "cta": {
+    "loggedTitle": "Ready to add another publication?",
+    "guestTitle": "Do you have a property to sell or rent?",
+    "loggedText": "Publish quickly from your dashboard and start receiving messages today.",
+    "guestText": "Register for free, verify your identity and publish your first property in under 5 minutes.",
+    "publish": "Publish property",
+    "myPublications": "View my publications",
+    "createAccount": "Create free account",
+    "viewPlans": "View plans"
+  },
+  "legacy": {
+    "heroTitle": "Discover digital properties and explore the best",
+    "heroAccent": "listings",
+    "heroText": "There are enough available properties to help you put together your next search.",
+    "exploreNow": "Explore now",
+    "exploreArtworks": "Explore publications",
+    "currentBid": "Current bid",
+    "placeBid": "Place bid",
+    "noArtworks": "No results found for \"{query}\".",
+    "items": {
+      "abstractCube": "Color abstract cube",
+      "cryptoArtwork": "3D artwork",
+      "watchLooper": "Featured tour"
+    }
+  }
+}

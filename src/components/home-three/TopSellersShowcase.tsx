@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useTopSellers } from '@/hooks/api/useTopSellers';
 import type { TopSellerRow } from '@/types/api';
 import { resolveAvatarSrc } from '@/utils/avatarUtils';
@@ -18,6 +19,7 @@ import { getBackendUrl } from '@/utils/backendUrl';
  * sección — devuelve null. Evita mostrar una "Top Sellers" vacía.
  */
 const TopSellersShowcase: React.FC = () => {
+  const t = useTranslations('home');
   const { data, isLoading } = useTopSellers(8);
   const sellers = data ?? [];
 
@@ -28,8 +30,8 @@ const TopSellersShowcase: React.FC = () => {
     <section className="kh-section kts-section">
       <div className="container">
         <div className="kh-section-head">
-          <h2>Vendedores destacados</h2>
-          <p>Los propietarios y agentes más activos de la plataforma.</p>
+          <h2>{t('topSellers.title')}</h2>
+          <p>{t('topSellers.subtitle')}</p>
         </div>
 
         <div className="kts-grid">
@@ -42,7 +44,7 @@ const TopSellersShowcase: React.FC = () => {
                   .filter(Boolean)
                   .join(' ')
                   .trim();
-                const displayName = fullName || s.handle || 'Vendedor';
+                const displayName = fullName || s.handle || t('topSellers.fallback');
                 const avatarSrc = resolveAvatarSrc(
                   s.imagenu,
                   fullName || (s.handle ?? null),
@@ -61,7 +63,7 @@ const TopSellersShowcase: React.FC = () => {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={avatarSrc} alt={displayName} className="kts-avatar" />
                       {s.verified && (
-                        <span className="kts-verified" title="Verificado">
+                        <span className="kts-verified" title={t('topSellers.verified')}>
                           <i className="fas fa-check" />
                         </span>
                       )}
@@ -70,7 +72,7 @@ const TopSellersShowcase: React.FC = () => {
                       <p className="kts-name">{displayName}</p>
                       {s.handle && <p className="kts-handle">@{s.handle}</p>}
                       <p className="kts-meta">
-                        {totalPubs} {totalPubs === 1 ? 'publicación' : 'publicaciones'}
+                        {t('topSellers.publicationsCount', { count: totalPubs })}
                         {reviews > 0 && (
                           <>
                             {' · '}
