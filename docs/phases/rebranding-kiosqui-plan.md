@@ -191,14 +191,18 @@ CSS exactas de los 8 gaps están en `02-NEXT-STEPS.md §1` (no se repiten acá).
 
 ### F0 — Foundation (1 dueño, PRIMERO)
 
+> **ESTADO: F0.1 ✅ HECHO (2026-06-05).** La rama `design/kiosqui-system` ya existe
+> y está pusheada a origin en **ambos** repos; home/pricing ya están migrados y
+> commiteados (`5f13a74`), junto con el plan, el gaps doc y el paquete de handoff.
+> **Codex: empezá directo en F0.2.** NO recrees la rama ni re-portes home/pricing.
+
 ```
-Objetivo: montar la rama de diseño y el contrato compartido.
-1. git checkout main && git pull. Crear design/kiosqui-system. Portar el trabajo
-   home+pricing de claude/interesting-aryabhata-529860 (hoy SIN commitear):
-   commitearlo (`design: migrar home + pricing a tokens Kiosqui`) y mergear a
-   design/kiosqui-system. Verificar que vinieron src/style/kiosqui/*.css y
-   public/fonts/encode-sans-expanded/. (Los CSS de Kiosqui se importan en
-   src/app/layout.tsx — NO moverlos a un @import de SCSS: gotcha 3.1.)
+Objetivo: completar el contrato compartido (tokens + primitivas + logo).
+1. ✅ HECHO — rama design/kiosqui-system creada + pusheada (ambos repos) y
+   home/pricing migrados/commiteados. Solo hacé:
+   git fetch && git checkout design/kiosqui-system && git pull
+   (Los CSS de Kiosqui se importan en src/app/layout.tsx — NO moverlos a un
+   @import de SCSS: gotcha 3.1.)
 2. Token --rating en src/style/kiosqui/colors_and_type.css:
    :root{--rating:var(--green-600);} [data-theme="dark"]{--rating:var(--green-400);}
 3. Primitivas globales (bloques CSS EXACTOS de 02-NEXT-STEPS.md §1):
@@ -338,7 +342,7 @@ docs/phases/kiosqui-feedback-claude-design.md.
 
 ## 9. Orden sugerido con presupuesto acotado
 
-1. **F0** (obligatorio, desbloquea todo) — Codex o un Claude Code con ventana.
+1. **F0.2–F0.4** (F0.1 ✅ ya hecho; desbloquea todo) — Codex o un Claude Code.
 2. **WP-1** a Codex (mecánico, barato) en paralelo con WP-2.
 3. **WP-2 (PublicationCard)** — mayor impacto visual, temprano.
 4. **WP-4 (header/footer + dark 3.4)** — se ve en toda la app.
