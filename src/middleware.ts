@@ -59,5 +59,5 @@ export function middleware(req: NextRequest) {
 export const config = {
   // Excluye assets estáticos y el directorio de uploads del backend
   // para que el middleware no se ejecute en cada imagen/fuente.
-  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|assets|uploads|api).*)'],
-};
+    matcher: ['/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|assets|uploads|api).*)'],
+  };
