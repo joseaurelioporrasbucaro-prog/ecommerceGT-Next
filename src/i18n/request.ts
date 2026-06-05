@@ -4,7 +4,20 @@ import type { AbstractIntlMessages } from 'use-intl';
 
 import { defaultLocale, isAppLocale } from './routing';
 
-const namespaces = ['common', 'auth'] as const;
+const namespaces = [
+  'common',
+  'auth',
+  'messages',
+  'support',
+  'pauta',
+  'profile',
+  'notifications',
+  'admin',
+  'home',
+  'publications',
+  'legal',
+  'danger',
+] as const;
 
 type Namespace = (typeof namespaces)[number];
 type Messages = Record<Namespace, AbstractIntlMessages>;
