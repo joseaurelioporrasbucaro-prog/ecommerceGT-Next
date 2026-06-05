@@ -1,1 +1,81 @@
-{}
+{
+  "main": {
+    "chats": "Chats",
+    "loading": "Loading...",
+    "loadError": "Chats could not be loaded.",
+    "emptyTitle": "Select a conversation",
+    "emptySubtitle": "Choose a chat from the list to get started."
+  },
+  "inbox": {
+    "searchPlaceholder": "Search chats...",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "emptyResults": "No results.",
+    "emptyTitle": "You do not have conversations yet.",
+    "emptySubtitle": "Contact a seller from a publication detail page.",
+    "unreadLabel": "{count, plural, one {# unread} other {# unread}}"
+  },
+  "conversation": {
+    "defaultTitle": "Conversation",
+    "loading": "Loading messages...",
+    "loadError": "The conversation could not be loaded.",
+    "sendError": "The message could not be sent.",
+    "emptyTitle": "This is the start of your conversation.",
+    "emptyTitleWithName": "This is the start of your conversation with {name}.",
+    "emptySubtitle": "You can use one of these messages to break the ice:",
+    "starters": {
+      "available": "Hi. I am interested in your property. Is it still available?",
+      "visit": "Can we schedule a visit this week?",
+      "offer": "Do you accept offers or is the price fixed?",
+      "includes": "What exactly does the property include? (utilities, furniture, etc.)"
+    },
+    "replyingTo": "Replying to {name}",
+    "cancelReply": "Cancel reply",
+    "placeholder": "Write a message...",
+    "sending": "Sending...",
+    "send": "Send"
+  },
+  "bubble": {
+    "messageFallback": "Message",
+    "react": "React",
+    "reply": "Reply",
+    "report": "Report",
+    "removeReaction": "Remove reaction",
+    "sameReaction": "React the same way"
+  },
+  "report": {
+    "success": "Report sent. Thank you for helping us keep the community safe.",
+    "error": "The report could not be sent.",
+    "title": "Report message",
+    "close": "Close report",
+    "previewLabel": "Reported message:",
+    "reason": "Reason",
+    "reasons": {
+      "spam": "Spam or unwanted advertising",
+      "ofensivo": "Offensive language or harassment",
+      "estafa": "Possible scam or fraud",
+      "otro": "Other reason"
+    },
+    "detail": "Details (optional)",
+    "detailPlaceholder": "Tell us more if you want...",
+    "consent": "I understand and accept that the support team will have access to this conversation to review the report and take the appropriate measures.",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "submit": "Submit report"
+  },
+  "info": {
+    "contactFallback": "Contact",
+    "profileTitle": "View profile",
+    "publicationTitle": "View publication",
+    "profile": "Profile",
+    "publication": "Publication",
+    "shortcuts": "Shortcuts",
+    "viewSellerProfile": "View seller profile",
+    "viewPublication": "View publication",
+    "exploreProperties": "Explore properties",
+    "aboutPublication": "About this publication",
+    "viewDetail": "View details"
+  }
+}

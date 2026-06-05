@@ -1,1 +1,81 @@
-{}
+{
+  "main": {
+    "chats": "Chats",
+    "loading": "Cargando...",
+    "loadError": "No se pudieron cargar los chats.",
+    "emptyTitle": "Selecciona una conversacion",
+    "emptySubtitle": "Elige un chat de la lista para empezar."
+  },
+  "inbox": {
+    "searchPlaceholder": "Buscar en chats...",
+    "tabs": {
+      "all": "Todos",
+      "unread": "No leidos"
+    },
+    "emptyResults": "Sin resultados.",
+    "emptyTitle": "Aun no tienes conversaciones.",
+    "emptySubtitle": "Contacta a un vendedor desde el detalle de una publicacion.",
+    "unreadLabel": "{count, plural, one {# sin leer} other {# sin leer}}"
+  },
+  "conversation": {
+    "defaultTitle": "Conversacion",
+    "loading": "Cargando mensajes...",
+    "loadError": "No se pudo cargar la conversacion.",
+    "sendError": "No se pudo enviar el mensaje.",
+    "emptyTitle": "Es el inicio de tu conversacion.",
+    "emptyTitleWithName": "Es el inicio de tu conversacion con {name}.",
+    "emptySubtitle": "Puedes usar uno de estos mensajes para romper el hielo:",
+    "starters": {
+      "available": "Hola. Me interesa tu propiedad. ¿Sigue disponible?",
+      "visit": "¿Podemos coordinar una visita esta semana?",
+      "offer": "¿Aceptas alguna oferta o el precio es fijo?",
+      "includes": "¿Que incluye exactamente la propiedad? (servicios, mobiliario, etc.)"
+    },
+    "replyingTo": "Respondiendo a {name}",
+    "cancelReply": "Cancelar respuesta",
+    "placeholder": "Escribe un mensaje...",
+    "sending": "Enviando...",
+    "send": "Enviar"
+  },
+  "bubble": {
+    "messageFallback": "Mensaje",
+    "react": "Reaccionar",
+    "reply": "Responder",
+    "report": "Denunciar",
+    "removeReaction": "Quitar reaccion",
+    "sameReaction": "Reaccionar igual"
+  },
+  "report": {
+    "success": "Reporte enviado. Gracias por ayudarnos a mantener la comunidad segura.",
+    "error": "No se pudo enviar el reporte.",
+    "title": "Denunciar mensaje",
+    "close": "Cerrar denuncia",
+    "previewLabel": "Mensaje denunciado:",
+    "reason": "Razon",
+    "reasons": {
+      "spam": "Spam o publicidad no deseada",
+      "ofensivo": "Lenguaje ofensivo o acoso",
+      "estafa": "Posible estafa o fraude",
+      "otro": "Otra razon"
+    },
+    "detail": "Detalle (opcional)",
+    "detailPlaceholder": "Cuentanos mas si quieres...",
+    "consent": "Entiendo y acepto que el equipo de soporte tendra acceso a esta conversacion para revisar la denuncia y tomar las medidas que correspondan.",
+    "cancel": "Cancelar",
+    "sending": "Enviando...",
+    "submit": "Enviar denuncia"
+  },
+  "info": {
+    "contactFallback": "Contacto",
+    "profileTitle": "Ver perfil",
+    "publicationTitle": "Ver publicacion",
+    "profile": "Perfil",
+    "publication": "Publicacion",
+    "shortcuts": "Accesos directos",
+    "viewSellerProfile": "Ver perfil del vendedor",
+    "viewPublication": "Ver publicacion",
+    "exploreProperties": "Explorar propiedades",
+    "aboutPublication": "Sobre esta publicacion",
+    "viewDetail": "Ver detalle"
+  }
+}

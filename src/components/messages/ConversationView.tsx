@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import {
   useConversation,
@@ -13,6 +14,7 @@ import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
+import { useDateFmt } from '@/utils/datetime';
 import type {
   ConversationMessage,
   MessageReportReason,
@@ -20,22 +22,8 @@ import type {
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 
-// Fase 10.4: prompts sugeridos para arrancar una conversación con el dueño
-// de una propiedad (especialmente útil cuando se llega desde un anuncio
-// patrocinado con CTA "Enviar mensaje"). Se inyecta el título de la
-// publicación dinámicamente en runtime.
-const CONVERSATION_STARTERS = [
-  '¡Hola! Me interesa tu propiedad. ¿Sigue disponible?',
-  '¿Podemos coordinar una visita esta semana?',
-  '¿Aceptas alguna oferta o el precio es fijo?',
-  '¿Qué incluye exactamente la propiedad? (servicios, mobiliario, etc.)',
-];
-const REPORT_REASONS: { value: MessageReportReason; label: string }[] = [
-  { value: 'spam', label: 'Spam o publicidad no deseada' },
-  { value: 'ofensivo', label: 'Lenguaje ofensivo o acoso' },
-  { value: 'estafa', label: 'Posible estafa o fraude' },
-  { value: 'otro', label: 'Otra razón' },
-];
+const CONVERSATION_STARTER_KEYS = ['available', 'visit', 'offer', 'includes'] as const;
+const REPORT_REASONS: MessageReportReason[] = ['spam', 'ofensivo', 'estafa', 'otro'];
 
 interface InboxItemLite {
   contact_name: string;
@@ -50,6 +38,7 @@ interface ConversationViewProps {
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, inboxItem }) => {
+  const t = useTranslations('messages');
   const { user } = useAuth();
   const conversationQuery = useConversation(pubId, contactId);
   const sendMutation = useSendMessage(pubId, contactId);
@@ -96,7 +85,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
       { receiver_id: contactId, pub_id: pubId, content, reply_to_message_id: replyId },
       {
         onError: (err) => {
-          const message = err instanceof ApiError ? err.message : 'No se pudo enviar el mensaje.';
+          const message = err instanceof ApiError ? err.message : t('conversation.sendError');
           toast.error(message);
           setDraft(content);
           if (replyId && replyTo) setReplyTo(replyTo);
@@ -120,18 +109,18 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
       { messageId: reportTarget.message_id, reason, detail: detail || undefined },
       {
         onSuccess: () => {
-          toast.success('Reporte enviado. Gracias por ayudarnos a mantener la comunidad segura.');
+          toast.success(t('report.success'));
           setReportTarget(null);
         },
         onError: (err) => {
-          const message = err instanceof ApiError ? err.message : 'No se pudo enviar el reporte.';
+          const message = err instanceof ApiError ? err.message : t('report.error');
           toast.error(message);
         },
       },
     );
   };
 
-  const contactName = inboxItem?.contact_name ?? 'Conversación';
+  const contactName = inboxItem?.contact_name ?? t('conversation.defaultTitle');
   const contactAvatar = inboxItem?.contact_image
     ? getBackendUrl(inboxItem.contact_image)
     : generateInitialsAvatar(contactName, 80);
@@ -161,33 +150,38 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
 
       <div className="conversation-messages">
         {conversationQuery.isLoading && (
-          <div className="conversation-state">Cargando mensajes…</div>
+          <div className="conversation-state">{t('conversation.loading')}</div>
         )}
         {conversationQuery.error && (
           <div className="conversation-state conversation-state-error">
             {conversationQuery.error instanceof ApiError
               ? conversationQuery.error.message
-              : 'No se pudo cargar la conversación.'}
+              : t('conversation.loadError')}
           </div>
         )}
         {conversationQuery.data && conversationQuery.data.length === 0 && (
           <div className="conversation-empty">
             <div className="conversation-empty-icon"><i className="fas fa-comments" /></div>
             <p className="conversation-empty-title">
-              Es el inicio de tu conversación{inboxItem?.contact_name ? ` con ${inboxItem.contact_name}` : ''}.
+              {inboxItem?.contact_name
+                ? t('conversation.emptyTitleWithName', { name: inboxItem.contact_name })
+                : t('conversation.emptyTitle')}
             </p>
-            <p className="conversation-empty-subtitle">Puedes usar uno de estos mensajes para romper el hielo:</p>
+            <p className="conversation-empty-subtitle">{t('conversation.emptySubtitle')}</p>
             <div className="conversation-starters">
-              {CONVERSATION_STARTERS.map((s) => (
+              {CONVERSATION_STARTER_KEYS.map((key) => {
+                const starter = t(`conversation.starters.${key}`);
+                return (
                 <button
-                  key={s}
+                  key={key}
                   type="button"
                   className="conversation-starter"
-                  onClick={() => setDraft(s)}
+                  onClick={() => setDraft(starter)}
                 >
-                  {s}
+                  {starter}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -209,7 +203,9 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         <div className="reply-preview">
           <div className="reply-preview-content">
             <span className="reply-preview-label">
-              Respondiendo a {replyTo.reply_to_sender_name ?? replyTo.sender_name ?? 'mensaje'}
+              {t('conversation.replyingTo', {
+                name: replyTo.reply_to_sender_name ?? replyTo.sender_name ?? t('bubble.messageFallback'),
+              })}
             </span>
             <span className="reply-preview-text">{replyTo.content}</span>
           </div>
@@ -217,7 +213,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
             type="button"
             className="reply-preview-close"
             onClick={() => setReplyTo(null)}
-            aria-label="Cancelar respuesta"
+            aria-label={t('conversation.cancelReply')}
           >
             <i className="fal fa-times" />
           </button>
@@ -229,7 +225,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           ref={composerRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Escribí un mensaje…"
+          placeholder={t('conversation.placeholder')}
           rows={2}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -244,7 +240,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           className="fill-btn conversation-send"
           disabled={sendMutation.isPending || draft.trim().length === 0}
         >
-          {sendMutation.isPending ? 'Enviando…' : 'Enviar'}
+          {sendMutation.isPending ? t('conversation.sending') : t('conversation.send')}
         </button>
       </form>
 
@@ -456,12 +452,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   onReply,
   onReport,
 }) => {
+  const t = useTranslations('messages');
+  const dateFmt = useDateFmt();
   const isMine =
     Number(message.sender_id) === Number(myUserId) || Number(message.sender_id) === 0;
-  const time = new Date(message.created_at).toLocaleTimeString('es-GT', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const time = dateFmt.time(message.created_at, '');
 
   const [showReactions, setShowReactions] = useState(false);
   const pickerRef = useRef<HTMLDivElement | null>(null);
@@ -494,7 +489,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         {message.reply_to_message_id && message.reply_to_content && (
           <div className="reply-snippet">
             <span className="reply-snippet-author">
-              {message.reply_to_sender_name ?? 'Mensaje'}
+              {message.reply_to_sender_name ?? t('bubble.messageFallback')}
             </span>
             <span className="reply-snippet-text">{message.reply_to_content}</span>
           </div>
@@ -513,7 +508,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <button
                   type="button"
                   className="bubble-action"
-                  title="Reaccionar"
+                  title={t('bubble.react')}
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowReactions((v) => !v);
@@ -524,7 +519,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <button
                   type="button"
                   className="bubble-action"
-                  title="Responder"
+                  title={t('bubble.reply')}
                   onClick={() => onReply(message)}
                 >
                   <i className="fal fa-reply" />
@@ -533,7 +528,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                   <button
                     type="button"
                     className="bubble-action"
-                    title="Denunciar"
+                    title={t('bubble.report')}
                     onClick={() => onReport(message)}
                   >
                     <i className="fal fa-flag" />
@@ -568,7 +563,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 type="button"
                 className={`reaction-chip${r.mine ? ' is-mine-reaction' : ''}`}
                 onClick={() => onReact(message.message_id, r.emoji)}
-                title={r.mine ? 'Quitar reacción' : 'Reaccionar igual'}
+                title={r.mine ? t('bubble.removeReaction') : t('bubble.sameReaction')}
               >
                 <span className="reaction-chip-emoji">{r.emoji}</span>
                 <span className="reaction-chip-count">{r.count}</span>
@@ -784,6 +779,7 @@ interface ReportModalProps {
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, isSubmitting }) => {
+  const t = useTranslations('messages');
   const [reason, setReason] = useState<MessageReportReason>('spam');
   const [detail, setDetail] = useState('');
   const [consent, setConsent] = useState(false);
@@ -792,52 +788,52 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
     <div className="report-overlay" onClick={onCancel}>
       <div className="report-modal" onClick={(e) => e.stopPropagation()}>
         <header className="report-header">
-          <h4>Denunciar mensaje</h4>
-          <button type="button" className="report-close" onClick={onCancel}>
+          <h4>{t('report.title')}</h4>
+          <button type="button" className="report-close" onClick={onCancel} aria-label={t('report.close')}>
             <i className="fal fa-times" />
           </button>
         </header>
 
         <div className="report-preview">
-          <small>Mensaje denunciado:</small>
+          <small>{t('report.previewLabel')}</small>
           <p>{message.content}</p>
         </div>
 
         <div className="report-body">
-          <label className="report-label">Razón</label>
+          <label className="report-label">{t('report.reason')}</label>
           {REPORT_REASONS.map((r) => (
-            <label key={r.value} className="report-option">
+            <label key={r} className="report-option">
               <input
                 type="radio"
                 name="reason"
-                value={r.value}
-                checked={reason === r.value}
-                onChange={() => setReason(r.value)}
+                value={r}
+                checked={reason === r}
+                onChange={() => setReason(r)}
               />
-              <span>{r.label}</span>
+              <span>{t(`report.reasons.${r}`)}</span>
             </label>
           ))}
 
           <label className="report-label" style={{ marginTop: '14px' }}>
-            Detalle (opcional)
+            {t('report.detail')}
           </label>
           <textarea
             value={detail}
             onChange={(e) => setDetail(e.target.value)}
-            placeholder="Contanos más si querés…"
+            placeholder={t('report.detailPlaceholder')}
             rows={3}
             maxLength={500}
           />
 
           <label className="report-consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-            <span>Entiendo y acepto que el equipo de soporte tendrá acceso a esta conversación para revisar la denuncia y tomar las medidas que correspondan.</span>
+            <span>{t('report.consent')}</span>
           </label>
         </div>
 
         <footer className="report-footer">
           <button type="button" className="report-cancel" onClick={onCancel} disabled={isSubmitting}>
-            Cancelar
+            {t('report.cancel')}
           </button>
           <button
             type="button"
@@ -845,7 +841,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ message, onCancel, onSubmit, 
             onClick={() => onSubmit(reason, detail)}
             disabled={isSubmitting || !consent}
           >
-            {isSubmitting ? 'Enviando…' : 'Enviar denuncia'}
+            {isSubmitting ? t('report.sending') : t('report.submit')}
           </button>
         </footer>
       </div>

@@ -2,8 +2,10 @@
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
+import { useDateFmt } from '@/utils/datetime';
 import type { InboxItem } from '@/types/api';
 
 type Tab = 'todos' | 'no-leidos';
@@ -14,25 +16,29 @@ interface InboxListProps {
   activeContactId: number | null;
 }
 
-const formatTime = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
+const shouldShowTodayTime = (date: Date): boolean => {
   const now = new Date();
-  const sameDay =
-    d.getDate() === now.getDate() &&
-    d.getMonth() === now.getMonth() &&
-    d.getFullYear() === now.getFullYear();
-  if (sameDay) {
-    return d.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
-  }
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 7) {
-    return d.toLocaleDateString('es-GT', { weekday: 'short' });
-  }
-  return d.toLocaleDateString('es-GT', { day: '2-digit', month: 'short' });
+  return (
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  );
+};
+
+const shouldShowWeekday = (date: Date): boolean => {
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  return diffDays < 7;
+};
+
+const toDate = (iso: string): Date | null => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
 };
 
 const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContactId }) => {
+  const t = useTranslations('messages');
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<Tab>('todos');
 
@@ -62,7 +68,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
         <input
           type="text"
           className="inbox-search"
-          placeholder="Buscar en chats…"
+          placeholder={t('inbox.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -75,14 +81,14 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           className={`inbox-tab${tab === 'todos' ? ' is-active' : ''}`}
           onClick={() => setTab('todos')}
         >
-          Todos
+          {t('inbox.tabs.all')}
         </button>
         <button
           type="button"
           className={`inbox-tab${tab === 'no-leidos' ? ' is-active' : ''}`}
           onClick={() => setTab('no-leidos')}
         >
-          No leídos
+          {t('inbox.tabs.unread')}
           {items.filter((i) => i.unread_conversation > 0).length > 0 && (
             <span className="tab-badge">
               {items.filter((i) => i.unread_conversation > 0).length}
@@ -95,11 +101,11 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
       {filtered.length === 0 ? (
         <div className="inbox-empty">
           {search || tab === 'no-leidos'
-            ? 'Sin resultados.'
+            ? t('inbox.emptyResults')
             : (
               <>
-                <p>Aún no tenés conversaciones.</p>
-                <small>Contactá a un vendedor desde el detalle de una publicación.</small>
+                <p>{t('inbox.emptyTitle')}</p>
+                <small>{t('inbox.emptySubtitle')}</small>
               </>
             )}
         </div>
@@ -229,6 +235,8 @@ interface InboxRowProps {
 }
 
 const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
+  const t = useTranslations('messages');
+  const dateFmt = useDateFmt();
   const [errored, setErrored] = useState(false);
   const avatarSrc =
     !errored && item.contact_image
@@ -236,6 +244,14 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
       : generateInitialsAvatar(item.contact_name, 88);
   const href = `/messages?pub=${item.pub_id}&with=${item.contact_id}`;
   const hasUnread = item.unread_conversation > 0;
+  const lastMessageDate = toDate(item.last_msg_date);
+  const formattedTime = lastMessageDate
+    ? shouldShowTodayTime(lastMessageDate)
+      ? dateFmt.time(lastMessageDate, '')
+      : shouldShowWeekday(lastMessageDate)
+        ? dateFmt.weekdayShort(lastMessageDate, '')
+        : dateFmt.dayMonth(lastMessageDate, '')
+    : '';
 
   return (
     <li>
@@ -251,13 +267,16 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
             unoptimized
           />
           {hasUnread && (
-            <span className="inbox-dot" aria-label={`${item.unread_conversation} sin leer`} />
+            <span
+              className="inbox-dot"
+              aria-label={t('inbox.unreadLabel', { count: item.unread_conversation })}
+            />
           )}
         </span>
         <span className="inbox-meta">
           <span className="inbox-row-top">
             <strong className="inbox-name">{item.contact_name}</strong>
-            <span className="inbox-time">{formatTime(item.last_msg_date)}</span>
+            <span className="inbox-time">{formattedTime}</span>
           </span>
           <span className="inbox-sub">
             <span className="inbox-pub-title">{item.pub_title}</span>

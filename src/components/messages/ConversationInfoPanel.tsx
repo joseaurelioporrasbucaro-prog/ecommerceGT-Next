@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
 import type { InboxItem } from '@/types/api';
@@ -17,10 +18,11 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
   contactId,
   inboxItem,
 }) => {
+  const t = useTranslations('messages');
   const [imgErrored, setImgErrored] = useState(false);
   const [openSection, setOpenSection] = useState<'acciones' | 'publicacion' | null>('acciones');
 
-  const contactName = inboxItem?.contact_name ?? 'Contacto';
+  const contactName = inboxItem?.contact_name ?? t('info.contactFallback');
   const avatarSrc =
     !imgErrored && inboxItem?.contact_image
       ? getBackendUrl(inboxItem.contact_image)
@@ -49,13 +51,13 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
 
       {/* Acciones rápidas */}
       <div className="info-actions-row">
-        <Link href={`/creator-profile/${contactId}`} className="info-action-btn" title="Ver perfil">
+        <Link href={`/creator-profile/${contactId}`} className="info-action-btn" title={t('info.profileTitle')}>
           <i className="fal fa-user" />
-          <span>Perfil</span>
+          <span>{t('info.profile')}</span>
         </Link>
-        <Link href={`/publications/${pubId}`} className="info-action-btn" title="Ver publicación">
+        <Link href={`/publications/${pubId}`} className="info-action-btn" title={t('info.publicationTitle')}>
           <i className="fal fa-home" />
-          <span>Publicación</span>
+          <span>{t('info.publication')}</span>
         </Link>
       </div>
 
@@ -66,22 +68,22 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           onClick={() => toggle('acciones')}
           type="button"
         >
-          <span>Accesos directos</span>
+          <span>{t('info.shortcuts')}</span>
           <i className={`fal fa-chevron-${openSection === 'acciones' ? 'up' : 'down'}`} />
         </button>
         {openSection === 'acciones' && (
           <div className="info-section-body">
             <Link href={`/creator-profile/${contactId}`} className="info-link">
               <i className="fal fa-user-circle" />
-              Ver perfil del vendedor
+              {t('info.viewSellerProfile')}
             </Link>
             <Link href={`/publications/${pubId}`} className="info-link">
               <i className="fal fa-search-location" />
-              Ver publicación
+              {t('info.viewPublication')}
             </Link>
             <Link href={`/publications?category=`} className="info-link">
               <i className="fal fa-th-large" />
-              Explorar propiedades
+              {t('info.exploreProperties')}
             </Link>
           </div>
         )}
@@ -95,14 +97,14 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
             onClick={() => toggle('publicacion')}
             type="button"
           >
-            <span>Sobre esta publicación</span>
+            <span>{t('info.aboutPublication')}</span>
             <i className={`fal fa-chevron-${openSection === 'publicacion' ? 'up' : 'down'}`} />
           </button>
           {openSection === 'publicacion' && (
             <div className="info-section-body">
               <p className="info-pub-title">{inboxItem.pub_title}</p>
               <Link href={`/publications/${pubId}`} className="fill-btn info-pub-btn">
-                Ver detalle
+                {t('info.viewDetail')}
               </Link>
             </div>
           )}

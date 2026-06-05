@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
@@ -12,6 +13,7 @@ import ConversationView from './ConversationView';
 import ConversationInfoPanel from './ConversationInfoPanel';
 
 const MessagesMain: React.FC = () => {
+  const t = useTranslations('messages');
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,17 +85,17 @@ const MessagesMain: React.FC = () => {
         {/* ── Col izquierda: inbox ── */}
         <aside className={`msg-sidebar${mobilePanel === 'chat' ? ' mobile-hidden' : ''}`}>
           <div className="msg-sidebar-head">
-            <h4 className="msg-sidebar-title">Chats</h4>
+            <h4 className="msg-sidebar-title">{t('main.chats')}</h4>
           </div>
 
           {inboxQuery.isLoading && (
-            <div className="msg-state">Cargando…</div>
+            <div className="msg-state">{t('main.loading')}</div>
           )}
           {inboxQuery.error && (
             <div className="msg-state msg-state-error">
               {inboxQuery.error instanceof ApiError
                 ? inboxQuery.error.message
-                : 'No se pudieron cargar los chats.'}
+                : t('main.loadError')}
             </div>
           )}
           {!inboxQuery.isLoading && !inboxQuery.error && (
@@ -111,15 +113,15 @@ const MessagesMain: React.FC = () => {
           {mobilePanel === 'chat' && (
             <button type="button" className="msg-back-btn" onClick={handleMobileBack}>
               <i className="fal fa-arrow-left" />
-              Chats
+              {t('main.chats')}
             </button>
           )}
 
           {!hasActiveConversation ? (
             <div className="msg-empty">
               <i className="fal fa-comments" />
-              <h4>Seleccioná una conversación</h4>
-              <p>Elegí un chat de la lista para empezar.</p>
+              <h4>{t('main.emptyTitle')}</h4>
+              <p>{t('main.emptySubtitle')}</p>
             </div>
           ) : (
             <ConversationView
