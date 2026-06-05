@@ -1,10 +1,14 @@
 
 import Image from "next/image";
 import React from "react";
+import { useTranslations } from "next-intl";
+import { ProductType } from "@/interFace/interFace";
+
 interface singleCreatorType {
-  singleCreator: any;
+  singleCreator: ProductType;
 }
 const CreatorProfileCard = ({ singleCreator }: singleCreatorType) => {
+  const t = useTranslations('profile');
   return (
     <>
       <div className="col-xl-3 col-lg-6 col-md-8">
@@ -24,24 +28,23 @@ const CreatorProfileCard = ({ singleCreator }: singleCreatorType) => {
           </h4>
           <div className="artist-id">{singleCreator?.artistId}</div>
           <p>
-            My name is Justin Baker & change my occupation after five years of
-            working in sales. I still like drawing.
+            {t('legacy.bio')}
           </p>
           <ul>
             <li>
-              <i className="fas fa-map-marker-alt"></i>Bran Street New York, USA
+              <i className="fas fa-map-marker-alt"></i>{t('legacy.address')}
             </li>
             <li>
               <i className="flaticon-link"></i>
               <a href="#">bit.ly/yte89k6</a>
             </li>
             <li>
-              <i className="flaticon-calendar"></i>Joined March 2010
+              <i className="flaticon-calendar"></i>{t('legacy.joined')}
             </li>
           </ul>
           <div className="message-creator-btn">
             <a href="#" className="fill-btn icon-left">
-              <i className="fas fa-paper-plane"></i>Message to Creator
+              <i className="fas fa-paper-plane"></i>{t('seller.sendMessage')}
             </a>
           </div>
         </div>

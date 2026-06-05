@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { toast } from 'react-toastify';
@@ -11,6 +12,7 @@ import { ApiError } from '@/utils/Api';
 import ImageCropperModal from '@/components/common/ImageCropperModal';
 
 const CompanyMain = () => {
+  const t = useTranslations('profile');
   const { user } = useAuth();
   const companyQuery = useCompany();
   const company = companyQuery.data;
@@ -41,7 +43,7 @@ const CompanyMain = () => {
     event.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      toast.error('Selecciona un archivo de imagen.');
+      toast.error(t('companySettings.imageRequired'));
       return;
     }
     setLogoCropSrc(URL.createObjectURL(file));
@@ -57,10 +59,10 @@ const CompanyMain = () => {
     try {
       const path = await uploadImage(file, 'card');
       setLogoPath(path);
-      toast.info('Logo listo. Guarda los cambios para aplicarlo.');
+      toast.info(t('companySettings.logoReady'));
       closeLogoCropper();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : 'No se pudo subir el logo');
+      toast.error(error instanceof ApiError ? error.message : t('companySettings.logoError'));
     } finally {
       setLogoUploading(false);
     }
@@ -82,28 +84,27 @@ const CompanyMain = () => {
 
   return (
     <>
-      <Breadcrumbs breadcrumbTitle="Datos de la empresa" breadcrumbSubTitle="Empresa" />
+      <Breadcrumbs breadcrumbTitle={t('companySettings.breadcrumbTitle')} breadcrumbSubTitle={t('companySettings.breadcrumbSubtitle')} />
 
       <section className="company-area pt-50 pb-80">
         <div className="container">
           {!user && (
             <div className="alert alert-info">
-              Debes <Link href="/login?from=/company">iniciar sesión</Link> para ver tu empresa.
+              {t('companySettings.loginPrefix')} <Link href="/login?from=/company">{t('companySettings.loginLink')}</Link> {t('companySettings.loginSuffix')}
             </div>
           )}
 
           {user && companyQuery.isLoading && (
-            <div className="text-center pt-40">Cargando empresa…</div>
+            <div className="text-center pt-40">{t('company.loading')}</div>
           )}
 
           {user && companyQuery.isError && (
             <div className="cm-empty">
-              <h3>No perteneces a ninguna empresa</h3>
+              <h3>{t('companySettings.noCompanyTitle')}</h3>
               <p>
-                Las cuentas de empresa se crean al registrarte como empresa. Si
-                tienes un plan empresarial, puedes gestionar tu equipo aquí.
+                {t('companySettings.noCompanyText')}
               </p>
-              <Link href="/pricing-plan" className="cm-btn">Ver planes</Link>
+              <Link href="/pricing-plan" className="cm-btn">{t('companySettings.viewPlans')}</Link>
             </div>
           )}
 
@@ -112,22 +113,22 @@ const CompanyMain = () => {
               <div className="col-lg-8">
                 <div className="cm-card">
                   <div className="cm-head">
-                    <h3 className="cm-title">Datos de la empresa</h3>
+                    <h3 className="cm-title">{t('companySettings.title')}</h3>
                     {isAdmin && (
                       <Link href="/company/equipo" className="cm-link">
-                        <i className="fal fa-users" /> Gestionar equipo
+                        <i className="fal fa-users" /> {t('companySettings.manageTeam')}
                       </Link>
                     )}
                   </div>
 
                   {!isAdmin && (
                     <p className="cm-note">
-                      Solo el administrador puede editar estos datos.
+                      {t('companySettings.adminOnly')}
                     </p>
                   )}
 
                   <form onSubmit={handleSaveCompany}>
-                    <label className="cm-label">Logo de la empresa</label>
+                    <label className="cm-label">{t('companySettings.logo')}</label>
                     <div className="cm-logo-row">
                       <span className="cm-logo">
                         {logoPath ? (
@@ -139,7 +140,7 @@ const CompanyMain = () => {
                       </span>
                       {isAdmin && (
                         <label className="cm-btn cm-btn-file">
-                          {logoUploading ? 'Subiendo…' : 'Cambiar logo'}
+                          {logoUploading ? t('companySettings.uploading') : t('companySettings.changeLogo')}
                           <input
                             type="file"
                             accept="image/*"
@@ -151,7 +152,7 @@ const CompanyMain = () => {
                       )}
                     </div>
 
-                    <label className="cm-label">Razón social</label>
+                    <label className="cm-label">{t('companySettings.legalName')}</label>
                     <input
                       className="cm-input"
                       value={form.bname}
@@ -159,7 +160,7 @@ const CompanyMain = () => {
                       disabled={!isAdmin}
                       required
                     />
-                    <label className="cm-label">Nombre comercial</label>
+                    <label className="cm-label">{t('companySettings.tradeName')}</label>
                     <input
                       className="cm-input"
                       value={form.btname}
@@ -167,14 +168,14 @@ const CompanyMain = () => {
                       disabled={!isAdmin}
                       required
                     />
-                    <label className="cm-label">Dirección</label>
+                    <label className="cm-label">{t('companySettings.address')}</label>
                     <input
                       className="cm-input"
                       value={form.baddress}
                       onChange={(e) => setForm({ ...form, baddress: e.target.value })}
                       disabled={!isAdmin}
                     />
-                    <label className="cm-label">Teléfono</label>
+                    <label className="cm-label">{t('companySettings.phone')}</label>
                     <input
                       className="cm-input"
                       value={form.bphone}
@@ -189,7 +190,7 @@ const CompanyMain = () => {
                         onChange={(e) => setShowEmployees(e.target.checked)}
                         disabled={!isAdmin}
                       />
-                      <span>Mostrar mis empleados en el perfil público de la empresa</span>
+                      <span>{t('companySettings.showEmployees')}</span>
                     </label>
 
                     {isAdmin && (
@@ -198,7 +199,7 @@ const CompanyMain = () => {
                         className="cm-btn mt-20"
                         disabled={updateCompany.isPending}
                       >
-                        {updateCompany.isPending ? 'Guardando…' : 'Guardar cambios'}
+                        {updateCompany.isPending ? t('companySettings.saving') : t('companySettings.save')}
                       </button>
                     )}
                   </form>
@@ -214,7 +215,7 @@ const CompanyMain = () => {
           imageSrc={logoCropSrc}
           aspect={1}
           cropShape="rect"
-          title="Encuadra el logo"
+          title={t('companySettings.cropLogo')}
           busy={logoUploading}
           onCancel={closeLogoCropper}
           onConfirm={handleLogoCropped}

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import Pagination from "@/utils/Pagination";
 import ExploreArtsBids from "./ExploreArtsBids";
 import CollectionCard from "./CollectionCard";
@@ -8,47 +9,54 @@ import TotalBids from "./TotalBids";
 import Image from "next/image";
 import CreatorProfileCard from "./CreatorProfileCard";
 import { ProductType } from "@/interFace/interFace";
+import coverImg from "../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg";
 
 interface singleCreatorType {
-  singleCreator: ProductType | any;
+  singleCreator: ProductType;
 }
 
 const CreatorDetails = ({ singleCreator }: singleCreatorType) => {
+  const t = useTranslations('profile');
   const [activeNav, setactiveNav] = useState<number>(1);
   const menuData = [
     {
       id: 1,
       navId: "nav-created-tab",
       dataTarget: "tab-nav1",
-      artistMeta: "Created",
+      artistMeta: t('legacy.created'),
+      kind: "created",
       create: "16",
     },
     {
       id: 2,
       navId: "nav-collection-tab",
       dataTarget: "tab-nav2",
-      artistMeta: "Collection",
+      artistMeta: t('legacy.collection'),
+      kind: "collection",
       create: "95",
     },
     {
       id: 3,
       navId: "nav-featured-tab",
       dataTarget: "tab-nav3",
-      artistMeta: "Featured Items",
+      artistMeta: t('legacy.featuredItems'),
+      kind: "featured",
       create: "12",
     },
     {
       id: 4,
       navId: "nav-sold-tab",
       dataTarget: "tab-nav4",
-      artistMeta: "Total Sold",
+      artistMeta: t('legacy.totalSold'),
+      kind: "sold",
       create: "24",
     },
     {
       id: 5,
       navId: "nav-bid-tab",
       dataTarget: "tab-nav5",
-      artistMeta: "Total Bids",
+      artistMeta: t('legacy.totalBids'),
+      kind: "bids",
       create: "96",
     },
   ];
@@ -56,7 +64,7 @@ const CreatorDetails = ({ singleCreator }: singleCreatorType) => {
     <>
       <section className="creator-details-area pt-0 pb-90">
         <div className="creator-cover-img creator-details-cover-img pos-rel wow fadeInUp">
-          <Image src={singleCreator?.coverImage} alt="cover-img" />
+          <Image src={singleCreator.coverImage ?? coverImg} alt="cover-img" />
         </div>
         <div className="container">
           <div className="row">
@@ -73,7 +81,7 @@ const CreatorDetails = ({ singleCreator }: singleCreatorType) => {
                     </div>
                   </div>
                   <div className="artist-meta-item artist-meta-item-border">
-                    <div className="artist-meta-type">Like</div>
+                    <div className="artist-meta-type">{t('stats.likes')}</div>
                     <div className="artist-likes">879,502</div>
                   </div>
                   <div className="artist-meta-item artist-meta-item-border">
@@ -182,19 +190,19 @@ const CreatorDetails = ({ singleCreator }: singleCreatorType) => {
                       >
                         <div className="created-items-wrapper">
                           <div className="row">
-                            {item.artistMeta === "Created" && (
+                            {item.kind === "created" && (
                               <ExploreArtsBids start={34} end={40} />
                             )}
-                            {item.artistMeta === "Collection" && (
+                            {item.kind === "collection" && (
                               <CollectionCard />
                             )}
-                            {item.artistMeta === "Featured Items" && (
+                            {item.kind === "featured" && (
                               <ExploreArtsBids start={38} end={44} />
                             )}
-                            {item.artistMeta === "Total Sold" && (
+                            {item.kind === "sold" && (
                               <ExploreArtsBids start={39} end={45} />
                             )}
-                            {item.artistMeta === "Total Bids" && <TotalBids />}
+                            {item.kind === "bids" && <TotalBids />}
                           </div>
 
                           <div className="row">

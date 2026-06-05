@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import ProfileBreadCamb from '@/components/Creator-Profile/ProfileBreadCamb';
 import PublicationCard from '@/components/publications/PublicationCard';
 import { useCompanyProfile } from '@/hooks/api/useCompanyProfile';
 import { useCompanyPublications } from '@/hooks/api/useCompanyPublications';
 import { getBackendUrl } from '@/utils/backendUrl';
+import { useDateFmt } from '@/utils/datetime';
 import type { PublicationListItem, CompanyProfileEmployee } from '@/types/api';
 import coverImg from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
 
@@ -18,19 +20,14 @@ const fmtCount = (n: number): string => {
   return String(n);
 };
 
-const fmtJoinDate = (iso: string | null): string | null => {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('es-GT', { month: 'long', year: 'numeric' });
-};
-
 const toInt = (v: number | string | null | undefined): number => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 };
 
 const CompanyProfileMain = ({ id }: { id: string }) => {
+  const t = useTranslations('profile');
+  const dateFmt = useDateFmt();
   const [activeTab, setActiveTab] = useState<TabKey>('publicaciones');
   const profileQuery = useCompanyProfile(id);
   const pubsQuery = useCompanyPublications(id);
@@ -39,9 +36,9 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
   const employees = data?.employees ?? [];
   const publications = pubsQuery.data ?? [];
 
-  const tradeName = company?.tradename || 'Empresa';
+  const tradeName = company?.tradename || t('company.fallback');
   const logoUrl = company?.logo ? getBackendUrl(company.logo) : null;
-  const joinDate = fmtJoinDate(company?.joindate ?? null);
+  const joinDate = company?.joindate ? dateFmt.monthYear(company.joindate, '') : null;
 
   return (
     <>
@@ -53,9 +50,9 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
         </div>
 
         <div className="container">
-          {profileQuery.isLoading && <div className="alert alert-info mt-30">Cargando empresa…</div>}
+          {profileQuery.isLoading && <div className="alert alert-info mt-30">{t('company.loading')}</div>}
           {profileQuery.isError && (
-            <div className="alert alert-danger mt-30">No se pudo cargar el perfil de la empresa.</div>
+            <div className="alert alert-danger mt-30">{t('company.loadError')}</div>
           )}
 
           {company && (
@@ -84,7 +81,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                   <h4 className="artist-name pos-rel">
                     {tradeName}
                     {company.verified && (
-                      <span className="cp-gold-check" title="Empresa verificada">
+                      <span className="cp-gold-check" title={t('company.verified')}>
                         <i className="fas fa-check" />
                       </span>
                     )}
@@ -95,7 +92,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                   {company.verified && (
                     <div className="cp-badge-wrap">
                       <span className="cp-badge">
-                        <i className="fas fa-check-circle" /> Empresa verificada
+                        <i className="fas fa-check-circle" /> {t('company.verified')}
                       </span>
                     </div>
                   )}
@@ -111,7 +108,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                       {joinDate && (
                         <li>
                           <i className="flaticon-calendar" />
-                          Desde {joinDate}
+                          {t('company.since', { date: joinDate })}
                         </li>
                       )}
                     </ul>
@@ -124,11 +121,11 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                 <div className="creator-info-bar mb-30 wow fadeInUp">
                   <div className="artist-meta-info creator-details-meta-info">
                     <div className="artist-meta-item artist-meta-item-border">
-                      <div className="artist-meta-type">Empleados</div>
+                      <div className="artist-meta-type">{t('company.employees')}</div>
                       <div className="artist-created">{fmtCount(toInt(company.membercount))}</div>
                     </div>
                     <div className="artist-meta-item">
-                      <div className="artist-meta-type">Publicaciones</div>
+                      <div className="artist-meta-type">{t('stats.publications')}</div>
                       <div className="artist-likes">{fmtCount(toInt(company.totalpublis))}</div>
                     </div>
                   </div>
@@ -146,7 +143,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                         >
                           <span className="profile-nav-button">
                             <span className="artist-meta-item artist-meta-item-border">
-                              <span className="artist-meta-type">Publicaciones</span>
+                              <span className="artist-meta-type">{t('stats.publications')}</span>
                               <span className="artist-created">{fmtCount(toInt(company.totalpublis))}</span>
                             </span>
                           </span>
@@ -159,7 +156,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                         >
                           <span className="profile-nav-button">
                             <span className="artist-meta-item">
-                              <span className="artist-meta-type">Empleados</span>
+                              <span className="artist-meta-type">{t('company.employees')}</span>
                               <span className="artist-created">{fmtCount(toInt(company.membercount))}</span>
                             </span>
                           </span>
@@ -172,11 +169,11 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                     {/* ── Tab Publicaciones: las de todos los empleados ── */}
                     {activeTab === 'publicaciones' && (
                       <div className="created-items-wrapper">
-                        {pubsQuery.isLoading && <p style={{ opacity: 0.6 }}>Cargando publicaciones…</p>}
+                        {pubsQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('seller.loadingPublications')}</p>}
                         {!pubsQuery.isLoading && publications.length === 0 && (
                           <div className="profile-empty">
                             <i className="fal fa-folder-open" />
-                            <p>Esta empresa todavía no tiene publicaciones activas.</p>
+                            <p>{t('company.noPublications')}</p>
                           </div>
                         )}
                         {publications.length > 0 && (
@@ -193,13 +190,13 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                     {activeTab === 'empleados' && (
                       <div className="cp-employees">
                         {!company.showemployees ? (
-                          <p className="cp-emp-note">Esta empresa no muestra a sus empleados.</p>
+                          <p className="cp-emp-note">{t('company.hiddenEmployees')}</p>
                         ) : employees.length === 0 ? (
-                          <p className="cp-emp-note">Aún no hay empleados para mostrar.</p>
+                          <p className="cp-emp-note">{t('company.noEmployees')}</p>
                         ) : (
                           <div className="cp-emp-grid">
                             {employees.map((e: CompanyProfileEmployee) => {
-                              const name = `${e.firstname ?? ''} ${e.lastname ?? ''}`.trim() || 'Usuario';
+                              const name = `${e.firstname ?? ''} ${e.lastname ?? ''}`.trim() || t('seller.userFallback');
                               const avatar = e.imagenu ? getBackendUrl(e.imagenu) : null;
                               return (
                                 <Link key={e.cusid} href={`/creator-profile/${e.cusid}`} className="cp-emp-card">

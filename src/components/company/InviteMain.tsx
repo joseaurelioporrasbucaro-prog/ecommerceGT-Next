@@ -2,12 +2,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { useInvitation, useRespondInvitation } from '@/hooks/api/useInvitations';
 
 const InviteMain = ({ token }: { token: string }) => {
+  const t = useTranslations('profile');
   const { user } = useAuth();
   const router = useRouter();
   const invitationQuery = useInvitation(token);
@@ -23,18 +25,18 @@ const InviteMain = ({ token }: { token: string }) => {
           router.push('/company');
         }
       },
-      onError: (err) => toast.error(err.message || 'No se pudo procesar la invitación'),
+      onError: (err) => toast.error(err.message || t('invite.processError')),
     });
   };
 
   const statusLabel: Record<string, string> = {
-    accepted: 'Esta invitación ya fue aceptada.',
-    rejected: 'Esta invitación fue rechazada.',
+    accepted: t('invite.accepted'),
+    rejected: t('invite.rejected'),
   };
 
   return (
     <>
-      <Breadcrumbs breadcrumbTitle="Invitación a empresa" breadcrumbSubTitle="Invitación" />
+      <Breadcrumbs breadcrumbTitle={t('invite.breadcrumbTitle')} breadcrumbSubTitle={t('invite.breadcrumbSubtitle')} />
 
       <section className="invite-area pt-50 pb-80">
         <div className="container">
@@ -43,35 +45,35 @@ const InviteMain = ({ token }: { token: string }) => {
               <div className="iv-card">
                 {!user && (
                   <>
-                    <h3 className="iv-title">Inicia sesión para ver tu invitación</h3>
+                    <h3 className="iv-title">{t('invite.loginTitle')}</h3>
                     <p className="iv-text">
-                      Necesitas tener la sesión iniciada con la cuenta invitada.
+                      {t('invite.loginText')}
                     </p>
                     <Link href={`/login?from=/invite/${token}`} className="iv-btn">
-                      Iniciar sesión
+                      {t('invite.loginButton')}
                     </Link>
                   </>
                 )}
 
                 {user && invitationQuery.isLoading && (
-                  <p className="iv-text">Cargando invitación…</p>
+                  <p className="iv-text">{t('invite.loading')}</p>
                 )}
 
                 {user && invitationQuery.isError && (
                   <>
-                    <h3 className="iv-title">Invitación no encontrada</h3>
+                    <h3 className="iv-title">{t('invite.notFoundTitle')}</h3>
                     <p className="iv-text">
-                      El enlace no es válido o la invitación ya no existe.
+                      {t('invite.notFoundText')}
                     </p>
-                    <Link href="/" className="iv-btn">Ir al inicio</Link>
+                    <Link href="/" className="iv-btn">{t('invite.home')}</Link>
                   </>
                 )}
 
                 {user && invitation && !invitation.isForMe && (
                   <>
-                    <h3 className="iv-title">Esta invitación no es para ti</h3>
+                    <h3 className="iv-title">{t('invite.notForYouTitle')}</h3>
                     <p className="iv-text">
-                      Inicia sesión con la cuenta a la que se envió la invitación.
+                      {t('invite.notForYouText')}
                     </p>
                   </>
                 )}
@@ -80,9 +82,9 @@ const InviteMain = ({ token }: { token: string }) => {
                   <>
                     <h3 className="iv-title">{statusLabel[invitation.status]}</h3>
                     <p className="iv-text">
-                      Invitación al equipo de <strong>{invitation.busName}</strong>.
+                      {t('invite.teamOf')} <strong>{invitation.busName}</strong>.
                     </p>
-                    <Link href="/company" className="iv-btn">Ir a mi empresa</Link>
+                    <Link href="/company" className="iv-btn">{t('invite.goCompany')}</Link>
                   </>
                 )}
 
@@ -92,31 +94,30 @@ const InviteMain = ({ token }: { token: string }) => {
                       <i className="fal fa-building" />
                     </div>
                     <h3 className="iv-title">
-                      {invitation.inviterName || 'Una empresa'} te invitó a su equipo
+                      {t('invite.pendingTitle', { name: invitation.inviterName || t('invite.companyFallback') })}
                     </h3>
                     <p className="iv-text">
-                      Empresa: <strong>{invitation.busName}</strong>
+                      {t('invite.company')}: <strong>{invitation.busName}</strong>
                     </p>
                     <p className="iv-note">
-                      Si aceptas, formarás parte de esta empresa. Solo puedes pertenecer
-                      a una empresa a la vez.
+                      {t('invite.note')}
                     </p>
                     <div className="iv-actions">
                       <button
                         type="button"
                         className="iv-btn"
                         onClick={() => handleRespond(true)}
-                        disabled={respond.isPending}
-                      >
-                        {respond.isPending ? 'Procesando…' : 'Aceptar'}
+                      disabled={respond.isPending}
+                    >
+                        {respond.isPending ? t('invite.processing') : t('invite.accept')}
                       </button>
                       <button
                         type="button"
                         className="iv-btn iv-btn-ghost"
                         onClick={() => handleRespond(false)}
-                        disabled={respond.isPending}
-                      >
-                        Rechazar
+                      disabled={respond.isPending}
+                    >
+                        {t('invite.reject')}
                       </button>
                     </div>
                   </>

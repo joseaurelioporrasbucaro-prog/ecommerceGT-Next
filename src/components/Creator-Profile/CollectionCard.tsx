@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import { useTranslations } from "next-intl";
 import art14 from "../../../public/assets/img/art/art14.jpg";
 import art16 from "../../../public/assets/img/art/art16.jpg";
 import art12 from "../../../public/assets/img/art/art12.jpg";
@@ -20,6 +21,7 @@ import art10 from "../../../public/assets/img/art/art10.jpg";
 import art20 from "../../../public/assets/img/art/art20.jpg";
 import Image from "next/image";
 const CollectionCard = () => {
+  const t = useTranslations('profile');
   return (
     <>
       <div className="col-lg-4 col-md-6 col-sm-6">
@@ -89,7 +91,7 @@ const CollectionCard = () => {
                     <li>
                       <a href="#">
                         <i className="fal fa-share-alt"></i>
-                        Share
+                        {t('legacy.share')}
                       </a>
                     </li>
                   </ul>
@@ -100,11 +102,11 @@ const CollectionCard = () => {
               </div>
               <div className="collection-category">
                 <h4 className="category-name">
-                  <Link href="/explore-arts">Flat landscapes</Link>
+                  <Link href="/explore-arts">{t('legacy.collections.flatLandscapes')}</Link>
                 </h4>
                 <Link className="resource-meta-item" href="/explore-arts">
                   <div className="resource-created">18</div>
-                  <div className="resource-meta-type">Items</div>
+                  <div className="resource-meta-type">{t('legacy.items')}</div>
                 </Link>
               </div>
             </div>
@@ -178,7 +180,7 @@ const CollectionCard = () => {
                     <li>
                       <a href="#">
                         <i className="fal fa-share-alt"></i>
-                        Share
+                        {t('legacy.share')}
                       </a>
                     </li>
                   </ul>
@@ -190,13 +192,13 @@ const CollectionCard = () => {
               <div className="collection-category">
                 <h4 className="category-name">
                   <Link href="/explore-arts">
-                    Creative Artwork
+                    {t('legacy.collections.creativeArtwork')}
                   </Link>
                 </h4>
                 <Link className="resource-meta-item" href="/explore-arts">
                   
                     <div className="resource-created">12</div>
-                    <div className="resource-meta-type">Items</div>
+                    <div className="resource-meta-type">{t('legacy.items')}</div>
                   
                 </Link>
               </div>
@@ -271,7 +273,7 @@ const CollectionCard = () => {
                     <li>
                       <a href="#">
                         <i className="fal fa-share-alt"></i>
-                        Share
+                        {t('legacy.share')}
                       </a>
                     </li>
                   </ul>
@@ -282,11 +284,11 @@ const CollectionCard = () => {
               </div>
               <div className="collection-category">
                 <h4 className="category-name">
-                  <Link href="/explore-arts">Digital Painting</Link>
+                  <Link href="/explore-arts">{t('legacy.collections.digitalPainting')}</Link>
                 </h4>
                 <Link className="resource-meta-item" href="/explore-arts">
                   <div className="resource-created">17</div>
-                  <div className="resource-meta-type">Items</div>
+                  <div className="resource-meta-type">{t('legacy.items')}</div>
                 </Link>
               </div>
             </div>
@@ -360,7 +362,7 @@ const CollectionCard = () => {
                     <li>
                       <a href="#">
                         <i className="fal fa-share-alt"></i>
-                        Share
+                        {t('legacy.share')}
                       </a>
                     </li>
                   </ul>
@@ -371,11 +373,11 @@ const CollectionCard = () => {
               </div>
               <div className="collection-category">
                 <h4 className="category-name">
-                  <Link href="/explore-arts">Abstract Art</Link>
+                  <Link href="/explore-arts">{t('legacy.collections.abstractArt')}</Link>
                 </h4>
                 <Link className="resource-meta-item" href="/explore-arts">
                   <div className="resource-created">13</div>
-                  <div className="resource-meta-type">Items</div>
+                  <div className="resource-meta-type">{t('legacy.items')}</div>
                 </Link>
               </div>
             </div>
@@ -449,7 +451,7 @@ const CollectionCard = () => {
                     <li>
                       <a href="#">
                         <i className="fal fa-share-alt"></i>
-                        Share
+                        {t('legacy.share')}
                       </a>
                     </li>
                   </ul>
@@ -460,11 +462,11 @@ const CollectionCard = () => {
               </div>
               <div className="collection-category">
                 <h4 className="category-name">
-                  <Link href="/explore-arts">CDigital Product</Link>
+                  <Link href="/explore-arts">{t('legacy.collections.digitalProduct')}</Link>
                 </h4>
                 <Link className="resource-meta-item" href="/explore-arts">
                   <div className="resource-created">21</div>
-                  <div className="resource-meta-type">Items</div>
+                  <div className="resource-meta-type">{t('legacy.items')}</div>
                 </Link>
               </div>
             </div>
@@ -538,7 +540,7 @@ const CollectionCard = () => {
                     <li>
                       <a href="#">
                         <i className="fal fa-share-alt"></i>
-                        Share
+                        {t('legacy.share')}
                       </a>
                     </li>
                   </ul>
@@ -549,11 +551,11 @@ const CollectionCard = () => {
               </div>
               <div className="collection-category">
                 <h4 className="category-name">
-                  <Link href="/explore-arts">Colorful Design</Link>
+                  <Link href="/explore-arts">{t('legacy.collections.colorfulDesign')}</Link>
                 </h4>
                 <Link className="resource-meta-item" href="/explore-arts">
                   <div className="resource-created">14</div>
-                  <div className="resource-meta-type">Items</div>
+                  <div className="resource-meta-type">{t('legacy.items')}</div>
                 </Link>
               </div>
             </div>

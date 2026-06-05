@@ -1,12 +1,18 @@
 
 import Link from 'next/link';
 import React from 'react';
+import { useTranslations } from 'next-intl';
+
+interface SingleCreatorSummary {
+    name?: string | null;
+}
 
 interface singleCreatorType{
-    singleCreator:any;
+    singleCreator?: SingleCreatorSummary;
 }
 
 const ProfileBreadCamb = ({singleCreator}:singleCreatorType) => {
+    const t = useTranslations('profile');
     return (
         <>
              <section className="page-title-area">
@@ -18,7 +24,7 @@ const ProfileBreadCamb = ({singleCreator}:singleCreatorType) => {
                                 <div className="breadcrumb-menu">
                                     <nav className="breadcrumb-trail breadcrumbs">
                                         <ul className="trail-items">
-                                            <li className="trail-item trail-begin"><Link href="/">Home</Link></li>
+                                            <li className="trail-item trail-begin"><Link href="/">{t('breadcrumbs.home')}</Link></li>
                                             <li className="trail-item trail-end"><span>{singleCreator?.name}</span></li>
                                         </ul>
                                     </nav>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import ProfileBreadCamb from './ProfileBreadCamb';
@@ -13,6 +14,7 @@ import { useSellerPublications } from '@/hooks/api/useSellerPublications';
 import { useToggleFollow } from '@/hooks/api/useFollow';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
+import { useDateFmt } from '@/utils/datetime';
 import coverImg from '../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg';
 import type { PublicationListItem, SellerReview } from '@/types/api';
 
@@ -23,25 +25,21 @@ const fmtCount = (n: number): string => {
   return String(n);
 };
 
-const fmtJoinDate = (iso: string | null): string | null => {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('es-GT', { month: 'long', year: 'numeric' });
-};
-
 // ─── Estrellas (display) ──────────────────────────────────────────────────────
-const Stars = ({ value, size = 16 }: { value: number; size?: number }) => (
-  <span className="profile-stars" aria-label={`${value} de 5`}>
-    {[1, 2, 3, 4, 5].map((i) => (
-      <i
-        key={i}
-        className={i <= Math.round(value) ? 'fas fa-star' : 'far fa-star'}
-        style={{ fontSize: size, color: i <= Math.round(value) ? '#f59e0b' : 'rgba(128,128,128,0.35)', marginRight: 2 }}
-      />
-    ))}
-  </span>
-);
+const Stars = ({ value, size = 16 }: { value: number; size?: number }) => {
+  const t = useTranslations('profile');
+  return (
+    <span className="profile-stars" aria-label={t('rating.outOfFive', { value })}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <i
+          key={i}
+          className={i <= Math.round(value) ? 'fas fa-star' : 'far fa-star'}
+          style={{ fontSize: size, color: i <= Math.round(value) ? '#f59e0b' : 'rgba(128,128,128,0.35)', marginRight: 2 }}
+        />
+      ))}
+    </span>
+  );
+};
 
 type TabKey = 'publicaciones' | 'reseñas';
 
@@ -50,6 +48,8 @@ interface CreatorProfileMainProps {
 }
 
 const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
+  const t = useTranslations('profile');
+  const dateFmt = useDateFmt();
   const [activeTab, setActiveTab] = useState<TabKey>('publicaciones');
 
   const { user } = useAuth();
@@ -62,11 +62,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
   const reviews = reviewsQuery.data;
   const publications = pubsQuery.data ?? [];
 
-  const displayName = seller ? `${seller.firstName} ${seller.lastName}`.trim() : 'Vendedor';
+  const displayName = seller ? `${seller.firstName} ${seller.lastName}`.trim() : t('seller.fallback');
   const avatarUrl = seller?.imageUrl ? getBackendUrl(seller.imageUrl) : null;
   const average = reviews?.average ?? 0;
   const totalReviews = reviews?.totalReviews ?? 0;
-  const joinDate = fmtJoinDate(seller?.joinDate ?? null);
+  const joinDate = seller?.joinDate ? dateFmt.monthYear(seller.joinDate, '') : null;
   // No mostrar el botón Seguir en el perfil propio.
   const isOwnProfile = user != null && String(user.id) === String(id);
 
@@ -77,7 +77,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         await navigator.share({ title: displayName, url });
       } else {
         await navigator.clipboard.writeText(url);
-        toast.success('Enlace del perfil copiado al portapapeles.');
+        toast.success(t('seller.shareCopied'));
       }
     } catch {
       /* el usuario canceló el share nativo — sin acción */
@@ -91,12 +91,14 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
       onSuccess: (data) => {
         // Usa la verdad del servidor (data.following), no un valor capturado.
         toast.success(
-          data.following ? `Ahora sigues a ${displayName}` : `Dejaste de seguir a ${displayName}`,
+          data.following
+            ? t('seller.followingNow', { name: displayName })
+            : t('seller.unfollowedNow', { name: displayName }),
         );
       },
       onError: (err) => {
         if (err.message && !err.message.includes('iniciar sesión')) {
-          toast.error('No se pudo actualizar el seguimiento.');
+          toast.error(t('seller.followError'));
         }
       },
     });
@@ -123,8 +125,8 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         </div>
 
         <div className="container">
-          {sellerQuery.isLoading && <div className="alert alert-info mt-30">Cargando perfil...</div>}
-          {sellerQuery.error && <div className="alert alert-danger mt-30">No se pudo cargar el perfil del vendedor.</div>}
+          {sellerQuery.isLoading && <div className="alert alert-info mt-30">{t('seller.loadingProfile')}</div>}
+          {sellerQuery.error && <div className="alert alert-danger mt-30">{t('seller.loadError')}</div>}
 
           {seller && (
             <div className="row">
@@ -153,7 +155,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                   <h4 className="artist-name">
                     {displayName}
                     {seller.verified && (
-                      <i className="fas fa-check-circle profile-verified-icon" title="Cuenta verificada" />
+                      <i className="fas fa-check-circle profile-verified-icon" title={t('seller.verifiedAccount')} />
                     )}
                   </h4>
 
@@ -185,14 +187,14 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                   {joinDate && (
                     <p className="profile-join-date">
                       <i className="far fa-calendar-alt" />
-                      Se unió en {joinDate}
+                      {t('seller.joined', { date: joinDate })}
                     </p>
                   )}
 
                   {/* Botón enviar mensaje — ancho completo */}
                   <div className="message-creator-btn">
                     <Link href="/messages" className="fill-btn icon-left">
-                      <i className="fas fa-paper-plane" />Enviar mensaje
+                      <i className="fas fa-paper-plane" />{t('seller.sendMessage')}
                     </Link>
                   </div>
                 </div>
@@ -203,23 +205,23 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                 <div className="creator-info-bar mb-30 wow fadeInUp">
                   <div className="artist-meta-info creator-details-meta-info">
                     <div className="artist-meta-item artist-meta-item-border">
-                      <div className="artist-meta-type">Publicaciones</div>
+                      <div className="artist-meta-type">{t('stats.publications')}</div>
                       <div className="artist-created">{seller.totalPublications}</div>
                     </div>
                     <div className="artist-meta-item artist-meta-item-border">
-                      <div className="artist-meta-type">Vistas</div>
+                      <div className="artist-meta-type">{t('stats.views')}</div>
                       <div className="artist-likes">{fmtCount(seller.totalViews)}</div>
                     </div>
                     <div className="artist-meta-item artist-meta-item-border">
-                      <div className="artist-meta-type">Likes</div>
+                      <div className="artist-meta-type">{t('stats.likes')}</div>
                       <div className="artist-likes">{fmtCount(seller.likes)}</div>
                     </div>
                     <div className="artist-meta-item artist-meta-item-border">
-                      <div className="artist-meta-type">Seguidores</div>
+                      <div className="artist-meta-type">{t('stats.followers')}</div>
                       <div className="artist-follwers">{fmtCount(seller.followers)}</div>
                     </div>
                     <div className="artist-meta-item">
-                      <div className="artist-meta-type">Siguiendo</div>
+                      <div className="artist-meta-type">{t('stats.following')}</div>
                       <div className="artist-followed">{fmtCount(seller.following)}</div>
                     </div>
                   </div>
@@ -234,7 +236,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                           onClick={handleToggleFollow}
                           disabled={followMutation.isPending}
                         >
-                          {seller.isFollowing ? 'Siguiendo' : 'Seguir'}
+                          {seller.isFollowing ? t('seller.following') : t('seller.follow')}
                         </button>
                       </div>
                     )}
@@ -242,8 +244,8 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                       type="button"
                       className="creator-share-btn"
                       onClick={handleShare}
-                      title="Compartir perfil"
-                      aria-label="Compartir perfil"
+                      title={t('seller.share')}
+                      aria-label={t('seller.share')}
                     >
                       <i className="flaticon-share" />
                     </button>
@@ -262,7 +264,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                         >
                           <span className="profile-nav-button">
                             <span className="artist-meta-item artist-meta-item-border">
-                              <span className="artist-meta-type">Publicaciones</span>
+                              <span className="artist-meta-type">{t('stats.publications')}</span>
                               <span className="artist-created">{seller.totalPublications}</span>
                             </span>
                           </span>
@@ -275,7 +277,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                         >
                           <span className="profile-nav-button">
                             <span className="artist-meta-item">
-                              <span className="artist-meta-type">Reseñas</span>
+                              <span className="artist-meta-type">{t('stats.reviews')}</span>
                               <span className="artist-created">{totalReviews}</span>
                             </span>
                           </span>
@@ -288,11 +290,11 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     {/* ── Tab Publicaciones ── */}
                     {activeTab === 'publicaciones' && (
                       <div className="created-items-wrapper">
-                        {pubsQuery.isLoading && <p style={{ opacity: 0.6 }}>Cargando publicaciones...</p>}
+                        {pubsQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('seller.loadingPublications')}</p>}
                         {!pubsQuery.isLoading && publications.length === 0 && (
                           <div className="profile-empty">
                             <i className="fal fa-folder-open" />
-                            <p>Este vendedor todavía no tiene publicaciones activas.</p>
+                            <p>{t('seller.noPublications')}</p>
                           </div>
                         )}
                         {publications.length > 0 && (
@@ -308,12 +310,12 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                     {/* ── Tab Reseñas ── */}
                     {activeTab === 'reseñas' && (
                       <div className="created-items-wrapper">
-                        {reviewsQuery.isLoading && <p style={{ opacity: 0.6 }}>Cargando reseñas...</p>}
+                        {reviewsQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('seller.loadingReviews')}</p>}
 
                         {!reviewsQuery.isLoading && totalReviews === 0 && (
                           <div className="profile-empty">
                             <i className="fal fa-star" />
-                            <p>Este vendedor todavía no tiene reseñas.</p>
+                            <p>{t('seller.noReviews')}</p>
                           </div>
                         )}
 
@@ -324,7 +326,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                               <div>
                                 <Stars value={average} size={20} />
                                 <div className="reviews-summary-count">
-                                  {totalReviews} reseña{totalReviews !== 1 ? 's' : ''}
+                                  {t('seller.reviewCount', { count: totalReviews })}
                                 </div>
                               </div>
                             </div>
@@ -341,9 +343,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
                                         {rev.cus_first_name} {rev.cus_last_name}
                                       </div>
                                       <div className="review-date">
-                                        {new Date(rev.completed_at).toLocaleDateString('es-GT', {
-                                          year: 'numeric', month: 'long', day: 'numeric',
-                                        })}
+                                        {dateFmt.medium(rev.completed_at)}
                                       </div>
                                     </div>
                                     <Stars value={rev.rating_stars} size={14} />

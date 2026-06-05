@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { useCompanyTeam, useSetEmployeeLimit, useRemoveEmployee, useCancelInvitation } from '@/hooks/api/useCompanyTeam';
@@ -10,6 +11,7 @@ import { useMySubscription } from '@/hooks/api/useSubscription';
 import type { CompanyTeamMember, CompanyPendingInvite, BuyerSearchResult } from '@/types/api';
 
 const CompanyTeamMain = () => {
+  const t = useTranslations('profile');
   const { user } = useAuth();
   const teamQuery = useCompanyTeam();
   const subQuery = useMySubscription();
@@ -60,24 +62,24 @@ const CompanyTeamMain = () => {
 
   return (
     <>
-      <Breadcrumbs breadcrumbTitle="Gestión de equipo" breadcrumbSubTitle="Equipo" />
+      <Breadcrumbs breadcrumbTitle={t('team.breadcrumbTitle')} breadcrumbSubTitle={t('team.breadcrumbSubtitle')} />
 
       <section className="team-area pt-50 pb-80">
         <div className="container">
           {!user && (
             <div className="alert alert-info">
-              Debes <Link href="/login?from=/company/equipo">iniciar sesión</Link>.
+              {t('team.loginPrefix')} <Link href="/login?from=/company/equipo">{t('team.loginLink')}</Link>.
             </div>
           )}
 
           {user && teamQuery.isLoading && (
-            <div className="text-center pt-40">Cargando equipo…</div>
+            <div className="text-center pt-40">{t('team.loading')}</div>
           )}
 
           {user && teamQuery.isError && (
             <div className="tm-empty">
-              <h3>No perteneces a ninguna empresa</h3>
-              <Link href="/pricing-plan" className="tm-btn">Ver planes</Link>
+              <h3>{t('companySettings.noCompanyTitle')}</h3>
+              <Link href="/pricing-plan" className="tm-btn">{t('companySettings.viewPlans')}</Link>
             </div>
           )}
 
@@ -85,14 +87,14 @@ const CompanyTeamMain = () => {
             <>
               <div className="tm-top">
                 <Link href="/company" className="tm-back">
-                  <i className="fal fa-arrow-left" /> Datos de la empresa
+                  <i className="fal fa-arrow-left" /> {t('companySettings.title')}
                 </Link>
-                <span className="tm-slots">{members.length} / {userLimit} usuarios</span>
+                <span className="tm-slots">{t('team.slots', { used: members.length, limit: userLimit })}</span>
               </div>
 
               {/* Miembros */}
               <div className="tm-card">
-                <h3 className="tm-title">Miembros</h3>
+                <h3 className="tm-title">{t('team.members')}</h3>
                 <div className="tm-table">
                   {members.map((m: CompanyTeamMember) => {
                     const isSelf = m.cusid === user?.id;
@@ -101,7 +103,7 @@ const CompanyTeamMain = () => {
                         <div className="tm-person">
                           <span className="tm-name">
                             {m.firstname} {m.lastname}
-                            {m.isadmin && <span className="tm-tag tm-tag-admin">Admin</span>}
+                            {m.isadmin && <span className="tm-tag tm-tag-admin">{t('team.admin')}</span>}
                             <span className="tm-tag">{m.status}</span>
                           </span>
                           <span className="tm-email">{m.email}</span>
@@ -110,13 +112,13 @@ const CompanyTeamMain = () => {
                         {isAdmin ? (
                           <>
                             <div className="tm-limit">
-                              <label>Publicaciones</label>
+                              <label>{t('stats.publications')}</label>
                               <div className="tm-limit-row">
                                 <input
                                   type="number"
                                   min={0}
                                   className="tm-limit-input"
-                                  placeholder="plan"
+                                  placeholder={t('team.plan')}
                                   value={valueFor(m.cusid, m.publimit)}
                                   onChange={(e) =>
                                     setEditLimits({ ...editLimits, [m.cusid]: e.target.value })
@@ -128,11 +130,11 @@ const CompanyTeamMain = () => {
                                   onClick={() => handleSaveLimit(m.cusid)}
                                   disabled={setLimit.isPending}
                                 >
-                                  Guardar
+                                  {t('team.save')}
                                 </button>
                               </div>
                               <span className="tm-used">
-                                Usadas: {m.pubused}
+                                {t('team.used')}: {m.pubused}
                                 {m.publimit != null ? ` / ${m.publimit}` : ''}
                               </span>
                             </div>
@@ -143,16 +145,16 @@ const CompanyTeamMain = () => {
                                   className="tm-remove"
                                   onClick={() => removeEmployee.mutate(m.cusid)}
                                   disabled={removeEmployee.isPending}
-                                  title="Quitar de la empresa"
+                                  title={t('team.removeFromCompany')}
                                 >
-                                  <i className="fal fa-user-times" /> Quitar
+                                  <i className="fal fa-user-times" /> {t('team.remove')}
                                 </button>
                               )}
                             </div>
                           </>
                         ) : (
                           <span className="tm-used">
-                            {m.pubused}{m.publimit != null ? ` / ${m.publimit}` : ''} publicaciones
+                            {t('team.publicationUsage', { used: m.pubused, limit: m.publimit != null ? ` / ${m.publimit}` : '' })}
                           </span>
                         )}
                       </div>
@@ -164,14 +166,14 @@ const CompanyTeamMain = () => {
               {/* Pendientes */}
               {pending.length > 0 && (
                 <div className="tm-card">
-                  <h3 className="tm-title">Invitaciones pendientes</h3>
+                  <h3 className="tm-title">{t('team.pendingInvitations')}</h3>
                   <div className="tm-table">
                     {pending.map((p: CompanyPendingInvite) => (
                       <div key={p.invid} className="tm-row">
                         <div className="tm-person">
                           <span className="tm-name">
                             {p.firstname} {p.lastname}
-                            <span className="tm-tag tm-tag-pending">Pendiente</span>
+                            <span className="tm-tag tm-tag-pending">{t('team.pending')}</span>
                           </span>
                           <span className="tm-email">{p.email}</span>
                         </div>
@@ -183,7 +185,7 @@ const CompanyTeamMain = () => {
                               onClick={() => cancelInvitation.mutate(p.invid)}
                               disabled={cancelInvitation.isPending}
                             >
-                              <i className="fal fa-times" /> Cancelar
+                              <i className="fal fa-times" /> {t('team.cancel')}
                             </button>
                           )}
                         </div>
@@ -196,26 +198,26 @@ const CompanyTeamMain = () => {
               {/* Agregar miembros (solo admin) */}
               {isAdmin && (
                 <div className="tm-card">
-                  <h3 className="tm-title">Invitar usuario existente</h3>
+                  <h3 className="tm-title">{t('team.inviteExisting')}</h3>
                   {!canInviteMore && (
                     <p className="tm-note">
-                      Alcanzaste el límite de tu plan.{' '}
-                      <Link href="/pricing-plan">Mejóralo</Link> para agregar más.
+                      {t('team.limitReached')}{' '}
+                      <Link href="/pricing-plan">{t('team.upgrade')}</Link> {t('team.addMore')}
                     </p>
                   )}
                   <div className="tm-search-wrap">
                     <input
                       className="tm-input"
-                      placeholder="Buscar por nombre o correo"
+                      placeholder={t('team.searchPlaceholder')}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       disabled={!canInviteMore}
                     />
                     {search.trim().length >= 2 && (
                       <ul className="tm-search-results">
-                        {buyersQuery.isLoading && <li className="tm-search-empty">Buscando…</li>}
+                        {buyersQuery.isLoading && <li className="tm-search-empty">{t('team.searching')}</li>}
                         {!buyersQuery.isLoading && buyers.length === 0 && (
-                          <li className="tm-search-empty">Sin resultados</li>
+                          <li className="tm-search-empty">{t('team.noResults')}</li>
                         )}
                         {buyers.map((b: BuyerSearchResult) => (
                           <li key={b.cusId} className="tm-search-item">
@@ -229,7 +231,7 @@ const CompanyTeamMain = () => {
                               onClick={() => handleInviteExisting(b.cusId)}
                               disabled={!canInviteMore || inviteExisting.isPending}
                             >
-                              Invitar
+                              {t('team.invite')}
                             </button>
                           </li>
                         ))}
@@ -238,11 +240,11 @@ const CompanyTeamMain = () => {
                   </div>
 
                   <form onSubmit={handleAddEmployee}>
-                    <h4 className="tm-subtitle">¿No tiene cuenta? Invítalo por correo</h4>
+                    <h4 className="tm-subtitle">{t('team.inviteByEmail')}</h4>
                     <div className="tm-row2">
                       <input
                         className="tm-input"
-                        placeholder="Nombre"
+                        placeholder={t('team.firstName')}
                         value={emp.firstName}
                         onChange={(e) => setEmp({ ...emp, firstName: e.target.value })}
                         disabled={!canInviteMore}
@@ -250,7 +252,7 @@ const CompanyTeamMain = () => {
                       />
                       <input
                         className="tm-input"
-                        placeholder="Apellido"
+                        placeholder={t('team.lastName')}
                         value={emp.lastName}
                         onChange={(e) => setEmp({ ...emp, lastName: e.target.value })}
                         disabled={!canInviteMore}
@@ -260,7 +262,7 @@ const CompanyTeamMain = () => {
                     <input
                       className="tm-input"
                       type="email"
-                      placeholder="Correo electrónico"
+                      placeholder={t('team.email')}
                       value={emp.email}
                       onChange={(e) => setEmp({ ...emp, email: e.target.value })}
                       disabled={!canInviteMore}
@@ -271,7 +273,7 @@ const CompanyTeamMain = () => {
                       className="tm-btn mt-10"
                       disabled={!canInviteMore || addEmployee.isPending}
                     >
-                      {addEmployee.isPending ? 'Enviando…' : 'Invitar empleado'}
+                      {addEmployee.isPending ? t('team.sending') : t('team.inviteEmployee')}
                     </button>
                   </form>
                 </div>
