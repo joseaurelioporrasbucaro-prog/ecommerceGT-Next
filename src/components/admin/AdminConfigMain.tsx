@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { usePricingConfig } from '@/hooks/api/usePricingConfig';
+import { useDateFmt } from '@/utils/datetime';
 import {
   useUpdatePlatformConfig,
   type UpdatePlatformConfigPayload,
@@ -24,8 +26,8 @@ import {
 
 interface ConfigField {
   key: UpdatePlatformConfigPayload['key'];
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   prefix: string;
   step: number;
   min: number;
@@ -34,40 +36,33 @@ interface ConfigField {
 const FIELDS: ConfigField[] = [
   {
     key: 'ad_impression_cost',
-    label: 'Costo por impresión',
-    description:
-      'Cobrado al anunciante cada vez que su tarjeta aparece en el ranking destacado. Calibrá pensando en el CPM (costo por mil impresiones) objetivo.',
+    labelKey: 'config.fields.impression.label',
+    descriptionKey: 'config.fields.impression.description',
     prefix: 'Q',
     step: 0.001,
     min: 0,
   },
   {
     key: 'ad_click_cost',
-    label: 'Costo por clic',
-    description:
-      'Cobrado cuando el comprador hace clic en una tarjeta pautada y abre la conversación. Es el evento de mayor valor — calibrá más alto que la impresión.',
+    labelKey: 'config.fields.click.label',
+    descriptionKey: 'config.fields.click.description',
     prefix: 'Q',
     step: 0.05,
     min: 0,
   },
   {
     key: 'ad_min_budget',
-    label: 'Presupuesto mínimo por campaña',
-    description:
-      'El anunciante no puede crear una campaña por debajo de este monto. Sirve para evitar campañas testimoniales sin tracción.',
+    labelKey: 'config.fields.minBudget.label',
+    descriptionKey: 'config.fields.minBudget.description',
     prefix: 'Q',
     step: 1,
     min: 0,
   },
 ];
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat('es-GT', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  }).format(n);
-
 const AdminConfigMain: React.FC = () => {
+  const t = useTranslations('admin');
+  const dateFmt = useDateFmt();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const current = usePricingConfig();
@@ -95,15 +90,18 @@ const AdminConfigMain: React.FC = () => {
     const raw = draft[field.key];
     const parsed = Number(raw);
     if (!Number.isFinite(parsed) || parsed < field.min) {
-      toast.error(`Valor inválido para "${field.label}".`);
+      toast.error(t('config.invalidValue', { label: t(field.labelKey) }));
       return;
     }
     try {
       await updateMut.mutateAsync({ key: field.key, value: parsed });
-      toast.success(`"${field.label}" actualizado a Q ${fmt(parsed)}.`);
+      toast.success(t('config.updated', {
+        label: t(field.labelKey),
+        value: dateFmt.number(parsed, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+      }));
     } catch (e) {
       toast.error(
-        e instanceof ApiError ? e.message : 'No se pudo guardar el cambio.',
+        e instanceof ApiError ? e.message : t('config.saveError'),
       );
     }
   };
@@ -116,12 +114,11 @@ const AdminConfigMain: React.FC = () => {
     return (
       <main>
         <ThemeChanger />
-        <Breadcrumbs breadcrumbTitle="Configuración" breadcrumbSubTitle="Solo administradores" />
+        <Breadcrumbs breadcrumbTitle={t('config.shortTitle')} breadcrumbSubTitle={t('common.adminOnly')} />
         <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
           <div className="container">
             <p style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.6 }}>
-              <i className="fas fa-lock" /> Esta sección es solo para administradores
-              de la plataforma.
+              <i className="fas fa-lock" /> {t('common.adminOnlyMessage')}
             </p>
           </div>
         </section>
@@ -133,17 +130,14 @@ const AdminConfigMain: React.FC = () => {
     <main>
       <ThemeChanger />
       <Breadcrumbs
-        breadcrumbTitle="Configuración de plataforma"
-        breadcrumbSubTitle="Tarifas dinámicas de pauta · cambios al instante"
+        breadcrumbTitle={t('config.title')}
+        breadcrumbSubTitle={t('config.subtitle')}
       />
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           <div className="ac-intro mb-30">
             <p>
-              Editá las tarifas que cobramos por la pauta. Cada cambio refresca
-              el cache del backend al instante (60 s máximo de propagación). Los
-              valores aplican a campañas nuevas — campañas ya activas mantienen
-              el precio con el que se crearon.
+              {t('config.intro')}
             </p>
           </div>
 
@@ -158,13 +152,13 @@ const AdminConfigMain: React.FC = () => {
               return (
                 <div key={field.key} className={`ac-card ${isDirty ? 'is-dirty' : ''}`}>
                   <div className="ac-card-head">
-                    <h3>{field.label}</h3>
+                    <h3>{t(field.labelKey)}</h3>
                     <span className="ac-current">
-                      Actual: <strong>Q {fmt(liveValue)}</strong>
+                      {t('config.current')}: <strong>Q {dateFmt.number(liveValue, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</strong>
                     </span>
                   </div>
 
-                  <p className="ac-desc">{field.description}</p>
+                  <p className="ac-desc">{t(field.descriptionKey)}</p>
 
                   <div className="ac-input-row">
                     <span className="ac-prefix">{field.prefix}</span>
@@ -187,7 +181,7 @@ const AdminConfigMain: React.FC = () => {
                       onClick={() => handleReset(field)}
                       disabled={!isDirty || isSaving}
                     >
-                      Descartar
+                      {t('config.discard')}
                     </button>
                     <button
                       type="button"
@@ -197,11 +191,11 @@ const AdminConfigMain: React.FC = () => {
                     >
                       {isSaving ? (
                         <>
-                          <i className="fal fa-spinner fa-spin" /> Guardando…
+                          <i className="fal fa-spinner fa-spin" /> {t('config.saving')}
                         </>
                       ) : (
                         <>
-                          <i className="fal fa-save" /> Guardar cambio
+                          <i className="fal fa-save" /> {t('config.saveChange')}
                         </>
                       )}
                     </button>
@@ -213,8 +207,9 @@ const AdminConfigMain: React.FC = () => {
 
           <div className="ac-footnote mt-30">
             <p>
-              <i className="fal fa-info-circle" /> Las modificaciones quedan registradas
-              en <code>ecom.platform_config.updated_by</code> con tu <code>cus_id</code>.
+              <i className="fal fa-info-circle" /> {t('config.footnotePrefix')}{' '}
+              <code>ecom.platform_config.updated_by</code> {t('config.footnoteSuffix')}{' '}
+              <code>cus_id</code>.
             </p>
           </div>
         </div>

@@ -1,1 +1,48 @@
-{}
+{
+  "common": {
+    "adminOnly": "Administrators only",
+    "adminOnlyMessage": "This section is only for platform administrators.",
+    "loading": "Loading..."
+  },
+  "config": {
+    "shortTitle": "Configuration",
+    "title": "Platform configuration",
+    "subtitle": "Dynamic ad pricing - instant changes",
+    "intro": "Edit the rates we charge for ads. Each change refreshes the backend cache instantly (maximum 60 s propagation). Values apply to new campaigns; already active campaigns keep the price they were created with.",
+    "current": "Current",
+    "discard": "Discard",
+    "saving": "Saving...",
+    "saveChange": "Save change",
+    "saveError": "Could not save the change.",
+    "invalidValue": "Invalid value for \"{label}\".",
+    "updated": "\"{label}\" updated to Q {value}.",
+    "footnotePrefix": "Changes are recorded in",
+    "footnoteSuffix": "with your",
+    "fields": {
+      "impression": {
+        "label": "Cost per impression",
+        "description": "Charged to the advertiser each time their card appears in the featured ranking. Calibrate it with the target CPM (cost per thousand impressions) in mind."
+      },
+      "click": {
+        "label": "Cost per click",
+        "description": "Charged when the buyer clicks a promoted card and opens the conversation. This is the highest-value event; calibrate it higher than impressions."
+      },
+      "minBudget": {
+        "label": "Minimum campaign budget",
+        "description": "Advertisers cannot create a campaign below this amount. It helps avoid token campaigns with no traction."
+      }
+    }
+  },
+  "images": {
+    "title": "Site images",
+    "subtitle": "User-facing image CMS",
+    "intro": "Change user-facing images (404, hero, banners, logos, etc.) without redeploying. Changes propagate to all users in about 10 minutes.",
+    "empty": "There are no registered images.",
+    "noDimensions": "No dimensions",
+    "updatedBy": "Updated by {name} on {date}",
+    "uploading": "Uploading...",
+    "changeImage": "Change image",
+    "updated": "Image \"{key}\" updated.",
+    "updateError": "Could not update the image."
+  }
+}

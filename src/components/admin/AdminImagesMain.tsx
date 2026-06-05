@@ -1,12 +1,14 @@
 "use client";
 import React, { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiFetch, ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { resolveAssetUrl } from '@/hooks/api/useSiteAssets';
+import { useDateFmt } from '@/utils/datetime';
 
 /**
  * Fase 15 — Portal admin de gestión de imágenes (CMS-lite).
@@ -28,6 +30,8 @@ interface SiteAssetRow {
 }
 
 const AdminImagesMain: React.FC = () => {
+  const t = useTranslations('admin');
+  const dateFmt = useDateFmt();
   const { user } = useAuth();
   const qc = useQueryClient();
   const isAdmin = user?.role === 'admin';
@@ -67,9 +71,9 @@ const AdminImagesMain: React.FC = () => {
         width: r.width,
         height: r.height,
       });
-      toast.success(`Imagen "${assetKey}" actualizada.`);
+      toast.success(t('images.updated', { key: assetKey }));
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : 'No se pudo actualizar la imagen.');
+      toast.error(e instanceof ApiError ? e.message : t('images.updateError'));
     } finally {
       setUploadingKey(null);
     }
@@ -79,11 +83,11 @@ const AdminImagesMain: React.FC = () => {
     return (
       <main>
         <ThemeChanger />
-        <Breadcrumbs breadcrumbTitle="Imágenes del sitio" breadcrumbSubTitle="Solo administradores" />
+        <Breadcrumbs breadcrumbTitle={t('images.title')} breadcrumbSubTitle={t('common.adminOnly')} />
         <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
           <div className="container">
             <p style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.6 }}>
-              <i className="fas fa-lock" /> Esta sección es solo para administradores de la plataforma.
+              <i className="fas fa-lock" /> {t('common.adminOnlyMessage')}
             </p>
           </div>
         </section>
@@ -96,20 +100,19 @@ const AdminImagesMain: React.FC = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Imágenes del sitio" breadcrumbSubTitle="CMS de imágenes user-facing" />
+      <Breadcrumbs breadcrumbTitle={t('images.title')} breadcrumbSubTitle={t('images.subtitle')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           <div className="ai-intro">
-            <h5><i className="fas fa-image" /> Imágenes del sitio</h5>
+            <h5><i className="fas fa-image" /> {t('images.title')}</h5>
             <p>
-              Cambia las imágenes user-facing (404, hero, banners, logos, etc.) sin redeploy.
-              Los cambios se propagan en ~10 minutos a todos los usuarios.
+              {t('images.intro')}
             </p>
           </div>
 
-          {listQuery.isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
-          {rows.length === 0 && !listQuery.isLoading && <p style={{ opacity: 0.6 }}>No hay imágenes registradas.</p>}
+          {listQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
+          {rows.length === 0 && !listQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('images.empty')}</p>}
 
           <div className="ai-grid">
             {rows.map((row: SiteAssetRow) => {
@@ -129,12 +132,14 @@ const AdminImagesMain: React.FC = () => {
                     <code className="ai-key">{row.asset_key}</code>
                     <strong>{row.asset_label ?? row.asset_key}</strong>
                     <span className="ai-dims">
-                      {row.width && row.height ? `${row.width}×${row.height}` : 'Sin dimensiones'}
+                      {row.width && row.height ? `${row.width}x${row.height}` : t('images.noDimensions')}
                     </span>
                     {row.updated_by_name && (
                       <span className="ai-meta">
-                        Actualizado por {row.updated_by_name} el{' '}
-                        {new Date(row.updated_at).toLocaleDateString('es-GT')}
+                        {t('images.updatedBy', {
+                          name: row.updated_by_name,
+                          date: dateFmt.short(row.updated_at),
+                        })}
                       </span>
                     )}
                   </div>
@@ -156,7 +161,7 @@ const AdminImagesMain: React.FC = () => {
                       onClick={() => fileInputs.current[row.asset_key]?.click()}
                       disabled={isUploading || updateMut.isPending}
                     >
-                      {isUploading ? <><i className="fas fa-spinner fa-spin" /> Subiendo…</> : <><i className="fas fa-upload" /> Cambiar imagen</>}
+                      {isUploading ? <><i className="fas fa-spinner fa-spin" /> {t('images.uploading')}</> : <><i className="fas fa-upload" /> {t('images.changeImage')}</>}
                     </button>
                   </div>
                 </div>

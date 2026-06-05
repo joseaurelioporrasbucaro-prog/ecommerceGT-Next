@@ -1,1 +1,48 @@
-{}
+{
+  "common": {
+    "adminOnly": "Solo administradores",
+    "adminOnlyMessage": "Esta seccion es solo para administradores de la plataforma.",
+    "loading": "Cargando..."
+  },
+  "config": {
+    "shortTitle": "Configuracion",
+    "title": "Configuracion de plataforma",
+    "subtitle": "Tarifas dinamicas de pauta - cambios al instante",
+    "intro": "Edita las tarifas que cobramos por la pauta. Cada cambio refresca el cache del backend al instante (60 s maximo de propagacion). Los valores aplican a campanas nuevas; campanas ya activas mantienen el precio con el que se crearon.",
+    "current": "Actual",
+    "discard": "Descartar",
+    "saving": "Guardando...",
+    "saveChange": "Guardar cambio",
+    "saveError": "No se pudo guardar el cambio.",
+    "invalidValue": "Valor invalido para \"{label}\".",
+    "updated": "\"{label}\" actualizado a Q {value}.",
+    "footnotePrefix": "Las modificaciones quedan registradas en",
+    "footnoteSuffix": "con tu",
+    "fields": {
+      "impression": {
+        "label": "Costo por impresion",
+        "description": "Cobrado al anunciante cada vez que su tarjeta aparece en el ranking destacado. Calibra pensando en el CPM (costo por mil impresiones) objetivo."
+      },
+      "click": {
+        "label": "Costo por clic",
+        "description": "Cobrado cuando el comprador hace clic en una tarjeta pautada y abre la conversacion. Es el evento de mayor valor; calibra mas alto que la impresion."
+      },
+      "minBudget": {
+        "label": "Presupuesto minimo por campana",
+        "description": "El anunciante no puede crear una campana por debajo de este monto. Sirve para evitar campanas testimoniales sin traccion."
+      }
+    }
+  },
+  "images": {
+    "title": "Imagenes del sitio",
+    "subtitle": "CMS de imagenes visibles al usuario",
+    "intro": "Cambia las imagenes visibles al usuario (404, hero, banners, logos, etc.) sin redeploy. Los cambios se propagan en unos 10 minutos a todos los usuarios.",
+    "empty": "No hay imagenes registradas.",
+    "noDimensions": "Sin dimensiones",
+    "updatedBy": "Actualizado por {name} el {date}",
+    "uploading": "Subiendo...",
+    "changeImage": "Cambiar imagen",
+    "updated": "Imagen \"{key}\" actualizada.",
+    "updateError": "No se pudo actualizar la imagen."
+  }
+}
