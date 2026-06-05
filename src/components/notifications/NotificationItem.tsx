@@ -2,8 +2,10 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
+import { useDateFmt } from '@/utils/datetime';
 import {
   formatRelativeTime,
   getNotificationContent,
@@ -22,10 +24,14 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   onClick,
   compact = false,
 }) => {
-  const content = getNotificationContent(notification);
+  const t = useTranslations('notifications');
+  const dateFmt = useDateFmt();
+  const formatMoney = (value: number) =>
+    `Q${dateFmt.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const content = getNotificationContent(notification, t, formatMoney);
   const actorName =
     `${notification.actor_first_name ?? ''} ${notification.actor_last_name ?? ''}`.trim() ||
-    'Alguien';
+    t('actorFallback');
   const avatarSrc = notification.actor_image
     ? getBackendUrl(notification.actor_image)
     : generateInitialsAvatar(actorName, 80);
@@ -59,10 +65,12 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         {content.snippet && (
           <div className="notif-snippet">«{content.snippet}»</div>
         )}
-        <div className="notif-time">{formatRelativeTime(notification.created_at)}</div>
+        <div className="notif-time">
+          {formatRelativeTime(notification.created_at, t, (iso) => dateFmt.dayMonth(iso, ''))}
+        </div>
       </div>
 
-      {!notification.is_read && <span className="notif-dot" aria-label="Sin leer" />}
+      {!notification.is_read && <span className="notif-dot" aria-label={t('unread')} />}
 
       <style jsx>{`
         :global(.notif-item) {

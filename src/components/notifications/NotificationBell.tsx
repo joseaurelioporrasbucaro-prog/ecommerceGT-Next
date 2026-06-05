@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   useMarkAllNotificationsAsRead,
   useMarkNotificationAsRead,
@@ -12,6 +13,7 @@ import NotificationItem from './NotificationItem';
 import type { AppNotification } from '@/types/api';
 
 const NotificationBell: React.FC = () => {
+  const t = useTranslations('notifications');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -52,7 +54,7 @@ const NotificationBell: React.FC = () => {
         type="button"
         className="notif-bell-btn"
         onClick={() => setOpen((v) => !v)}
-        aria-label={`Notificaciones${unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}`}
+        aria-label={unreadCount > 0 ? t('bellLabelUnread', { count: unreadCount }) : t('bellLabel')}
       >
         <i className="fal fa-bell" />
         {unreadCount > 0 && (
@@ -65,7 +67,7 @@ const NotificationBell: React.FC = () => {
       {open && (
         <div className="notif-dropdown" role="menu">
           <header className="notif-dropdown-head">
-            <strong>Notificaciones</strong>
+            <strong>{t('title')}</strong>
             {unreadCount > 0 && (
               <button
                 type="button"
@@ -73,19 +75,19 @@ const NotificationBell: React.FC = () => {
                 onClick={() => markAllAsRead.mutate()}
                 disabled={markAllAsRead.isPending}
               >
-                Marcar todas
+                {t('markAll')}
               </button>
             )}
           </header>
 
           <div className="notif-dropdown-body">
             {listQuery.isLoading && (
-              <div className="notif-state">Cargando…</div>
+              <div className="notif-state">{t('loading')}</div>
             )}
             {!listQuery.isLoading && items.length === 0 && (
               <div className="notif-state notif-empty">
                 <i className="fal fa-bell-slash" />
-                <p>No tenés notificaciones todavía.</p>
+                <p>{t('empty')}</p>
               </div>
             )}
             {items.map((n: AppNotification) => (
@@ -100,7 +102,7 @@ const NotificationBell: React.FC = () => {
 
           <footer className="notif-dropdown-foot">
             <Link href="/activity" onClick={() => setOpen(false)}>
-              Ver todas
+              {t('viewAll')}
             </Link>
           </footer>
         </div>

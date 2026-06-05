@@ -1,1 +1,44 @@
-{}
+{
+  "actorFallback": "Alguien",
+  "bellLabel": "Notificaciones",
+  "bellLabelUnread": "Notificaciones ({count} sin leer)",
+  "title": "Notificaciones",
+  "markAll": "Marcar todas",
+  "loading": "Cargando...",
+  "empty": "No tienes notificaciones todavia.",
+  "viewAll": "Ver todas",
+  "unread": "Sin leer",
+  "relative": {
+    "now": "ahora",
+    "minutes": "hace {count} min",
+    "hours": "hace {count} h",
+    "days": "hace {count} d"
+  },
+  "content": {
+    "mention": "{name} te menciono en un comentario",
+    "reply": "{name} respondio a tu comentario",
+    "comment": "{name} comento en tu publicacion",
+    "commentLike": "A {name} le gusto tu comentario",
+    "pubFavorite": "{name} guardo tu publicacion en favoritos",
+    "message": "{name} te envio un mensaje",
+    "saleClosed": "{name} cerro la venta contigo. Califica la experiencia.",
+    "reviewStars": "{name} te califico con {stars, plural, one {# estrella} other {# estrellas}}",
+    "reviewReceived": "{name} te dejo una resena",
+    "companyAddedNamed": "Te agregaron al equipo de {busName}",
+    "companyAdded": "Te agregaron a una empresa",
+    "companyInviteNamed": "{name} te invito al equipo de {busName}",
+    "companyInvite": "{name} te invito a una empresa",
+    "companyInviteSnippet": "Toca para aceptar o rechazar",
+    "companyInviteAccepted": "{name} acepto tu invitacion a la empresa",
+    "businessVerified": "Tu empresa fue verificada",
+    "accountVerified": "Tu cuenta fue verificada",
+    "verifiedSnippet": "Tu check ya es visible en tu perfil",
+    "verificationRejected": "Tu solicitud de verificacion fue rechazada",
+    "reason": "Motivo: {reason}",
+    "verificationRetry": "Puedes corregir y volver a enviar",
+    "ticketReply": "{name} respondio tu ticket",
+    "ticketAssigned": "Se te asigno un ticket de soporte",
+    "pubSanctionedRefund": "Una publicacion tuya fue retirada por soporte",
+    "refundedCredit": "Se devolvieron {amount} a tu credito de pauta."
+  }
+}

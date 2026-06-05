@@ -1,1 +1,44 @@
-{}
+{
+  "actorFallback": "Someone",
+  "bellLabel": "Notifications",
+  "bellLabelUnread": "Notifications ({count} unread)",
+  "title": "Notifications",
+  "markAll": "Mark all",
+  "loading": "Loading...",
+  "empty": "You do not have notifications yet.",
+  "viewAll": "View all",
+  "unread": "Unread",
+  "relative": {
+    "now": "now",
+    "minutes": "{count} min ago",
+    "hours": "{count} h ago",
+    "days": "{count} d ago"
+  },
+  "content": {
+    "mention": "{name} mentioned you in a comment",
+    "reply": "{name} replied to your comment",
+    "comment": "{name} commented on your publication",
+    "commentLike": "{name} liked your comment",
+    "pubFavorite": "{name} saved your publication to favorites",
+    "message": "{name} sent you a message",
+    "saleClosed": "{name} closed the sale with you. Rate the experience.",
+    "reviewStars": "{name} rated you with {stars, plural, one {# star} other {# stars}}",
+    "reviewReceived": "{name} left you a review",
+    "companyAddedNamed": "You were added to the {busName} team",
+    "companyAdded": "You were added to a company",
+    "companyInviteNamed": "{name} invited you to the {busName} team",
+    "companyInvite": "{name} invited you to a company",
+    "companyInviteSnippet": "Tap to accept or reject",
+    "companyInviteAccepted": "{name} accepted your company invitation",
+    "businessVerified": "Your company was verified",
+    "accountVerified": "Your account was verified",
+    "verifiedSnippet": "Your check is now visible on your profile",
+    "verificationRejected": "Your verification request was rejected",
+    "reason": "Reason: {reason}",
+    "verificationRetry": "You can correct it and submit again",
+    "ticketReply": "{name} replied to your ticket",
+    "ticketAssigned": "A support ticket was assigned to you",
+    "pubSanctionedRefund": "One of your publications was removed by support",
+    "refundedCredit": "{amount} was returned to your ad credit."
+  }
+}
