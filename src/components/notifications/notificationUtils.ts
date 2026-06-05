@@ -107,7 +107,7 @@ export function getNotificationContent(
         snippet,
         href: notif.recipient_cus_id ? `/creator-profile/${notif.recipient_cus_id}` : '/activity',
         icon: 'fa-star',
-        iconColor: '#f59e0b',
+        iconColor: 'var(--rating)',
       };
     },
     company_added: () => {
@@ -189,7 +189,7 @@ export function getNotificationContent(
         snippet: refunded > 0 ? t('content.refundedCredit', { amount: formatMoney(refunded) }) : null,
         href: '/pauta',
         icon: 'fa-undo',
-        iconColor: '#f59e0b',
+        iconColor: 'var(--rating)',
       };
     },
   };

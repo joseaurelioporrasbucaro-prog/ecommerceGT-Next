@@ -109,8 +109,8 @@ const CookieConsentBanner: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(39, 133, 255, 0.12);
-          color: var(--clr-theme-1, #2785ff);
+          background: var(--lav-200);
+          color: var(--lav-500);
           font-size: 20px;
         }
         .ccb-text {

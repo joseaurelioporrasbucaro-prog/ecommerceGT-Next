@@ -33,7 +33,7 @@ const StarRating = ({
             border: 'none',
             cursor: 'pointer',
             fontSize: 40,
-            color: star <= (hovered || value) ? '#f59e0b' : 'rgba(128,128,128,0.3)',
+            color: star <= (hovered || value) ? 'var(--rating)' : 'rgba(128,128,128,0.3)',
             transition: 'color 0.12s',
             padding: '0 2px',
           }}
@@ -134,7 +134,7 @@ const SurveyMain = ({ token }: SurveyMainProps) => {
                         margin: '0 auto 18px',
                         borderRadius: '50%',
                         background: 'rgba(245,158,11,0.12)',
-                        color: '#f59e0b',
+                        color: 'var(--rating)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -158,7 +158,7 @@ const SurveyMain = ({ token }: SurveyMainProps) => {
                             marginBottom: 20,
                             fontSize: 14,
                             fontWeight: 600,
-                            color: '#f59e0b',
+                            color: 'var(--rating)',
                           }}
                         >
                           {STAR_LABELS[stars]}

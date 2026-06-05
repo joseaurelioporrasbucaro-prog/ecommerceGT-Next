@@ -363,7 +363,7 @@ const CompanyTeamMain = () => {
           color: #fff;
         }
         .tm-tag-pending {
-          background: #f59e0b;
+          background: var(--rating);
           color: #fff;
         }
         .tm-limit {

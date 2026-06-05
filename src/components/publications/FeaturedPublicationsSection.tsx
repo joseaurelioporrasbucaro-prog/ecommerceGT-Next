@@ -42,7 +42,7 @@ const FeaturedPublicationsSection = ({ limit = 4 }: { limit?: number }) => {
       <style jsx>{`
         .featured-section { margin-bottom: 36px; }
         .featured-title { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; }
-        .featured-title :global(i) { color: #f59e0b; }
+        .featured-title :global(i) { color: var(--rating); }
       `}</style>
     </div>
   );

@@ -240,8 +240,8 @@ const AdminConfigMain: React.FC = () => {
           transition: border-color 0.2s;
         }
         .ac-card.is-dirty {
-          border-color: var(--clr-theme-1, #2785ff);
-          box-shadow: 0 0 0 3px rgba(39, 133, 255, 0.1);
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-soft);
         }
         .ac-card-head {
           display: flex;
