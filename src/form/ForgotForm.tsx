@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useFormik, type FormikProps } from "formik";
 import * as Yup from "yup";
-import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, ApiFetch } from "@/utils/Api";
 
 type EmailValues = {
@@ -22,8 +22,6 @@ type RecoveryResponse = {
   message?: string;
 };
 
-const GENERIC_RECOVERY_MESSAGE = "Si el correo está registrado, recibirás un link para restablecer.";
-
 const renderError = <T extends Record<string, string>>(
   formikInstance: FormikProps<T>,
   field: keyof T,
@@ -38,13 +36,14 @@ const renderError = <T extends Record<string, string>>(
 const ForgotForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useTranslation();
+  const t = useTranslations("auth");
   const token = searchParams.get("token") || "";
+  const genericRecoveryMessage = t("forgot.genericMessage");
 
   const emailSchema = Yup.object().shape({
     email: Yup.string()
-      .email(t("auth.validation.invalidEmailDomain"))
-      .required(t("auth.validation.requiredAll")),
+      .email(t("validation.invalidEmailDomain"))
+      .required(t("validation.requiredAll")),
   });
 
   const formikEmail = useFormik<EmailValues>({
@@ -54,14 +53,14 @@ const ForgotForm = () => {
       setSubmitting(true);
       try {
         const res = await ApiFetch.post<RecoveryResponse>("/recoverypass", { email: values.email });
-        toast.success(res.message || GENERIC_RECOVERY_MESSAGE);
+        toast.success(res.message || genericRecoveryMessage);
         resetForm();
       } catch (error) {
-        const msg = error instanceof ApiError ? error.message : GENERIC_RECOVERY_MESSAGE;
+        const msg = error instanceof ApiError ? error.message : genericRecoveryMessage;
         if (error instanceof ApiError && error.status === 429) {
           toast.error(msg);
         } else {
-          toast.info(GENERIC_RECOVERY_MESSAGE);
+          toast.info(genericRecoveryMessage);
         }
       } finally {
         setSubmitting(false);
@@ -71,13 +70,13 @@ const ForgotForm = () => {
 
   const passwordSchema = Yup.object().shape({
     password: Yup.string()
-      .min(8, t("auth.validation.passwordLength"))
-      .matches(/[A-Z]/, t("auth.validation.passwordUppercase"))
-      .matches(/[0-9]/, t("auth.validation.passwordNumber"))
-      .required(t("auth.validation.requiredAll")),
+      .min(8, t("validation.passwordLength"))
+      .matches(/[A-Z]/, t("validation.passwordUppercase"))
+      .matches(/[0-9]/, t("validation.passwordNumber"))
+      .required(t("validation.requiredAll")),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password")], t("auth.validation.passwordMismatch"))
-      .required(t("auth.validation.requiredAll")),
+      .oneOf([Yup.ref("password")], t("validation.passwordMismatch"))
+      .required(t("validation.requiredAll")),
   });
 
   const formikPassword = useFormik<PasswordValues>({
@@ -90,10 +89,10 @@ const ForgotForm = () => {
           token,
           npassword: values.password,
         });
-        toast.success(res.message || "Contraseña actualizada exitosamente.");
+        toast.success(res.message || t("forgot.updateSuccess"));
         router.push("/login");
       } catch (error) {
-        const msg = error instanceof ApiError ? error.message : "Error al actualizar contraseña.";
+        const msg = error instanceof ApiError ? error.message : t("forgot.updateError");
         toast.error(msg);
       } finally {
         setSubmitting(false);
@@ -105,14 +104,14 @@ const ForgotForm = () => {
     return (
       <form onSubmit={formikEmail.handleSubmit} className="login-form">
         <p className="mb-4 text-gray text-center">
-          Ingresá tu correo. Si está registrado, te enviaremos un link para restablecer tu contraseña.
+          {t("forgot.instructions")}
         </p>
         <div className="single-input-unit">
-          <label htmlFor="email">{t("auth.register.email")}</label>
+          <label htmlFor="email">{t("register.email")}</label>
           <input
             type="email"
             name="email"
-            placeholder="ejemplo@correo.com"
+            placeholder={t("forgot.emailPlaceholder")}
             onChange={formikEmail.handleChange}
             onBlur={formikEmail.handleBlur}
             value={formikEmail.values.email}
@@ -121,11 +120,11 @@ const ForgotForm = () => {
         </div>
         <div className="login-btn mt-30">
           <button className="fill-btn" type="submit" disabled={formikEmail.isSubmitting}>
-            {formikEmail.isSubmitting ? "Enviando..." : "Enviar link"}
+            {formikEmail.isSubmitting ? t("forgot.sending") : t("forgot.sendLink")}
           </button>
         </div>
         <div className="note mt-3 text-center">
-          <Link className="text-btn" href="/login">Volver al Login</Link>
+          <Link className="text-btn" href="/login">{t("forgot.backToLogin")}</Link>
         </div>
       </form>
     );
@@ -134,10 +133,10 @@ const ForgotForm = () => {
   return (
     <form onSubmit={formikPassword.handleSubmit} className="login-form">
       <p className="mb-4 text-gray text-center">
-        Escribí tu nueva contraseña. El link es válido por 30 minutos y se puede usar una sola vez.
+        {t("forgot.newPasswordInstructions")}
       </p>
       <div className="single-input-unit mb-4">
-        <label htmlFor="password">Nueva contraseña</label>
+        <label htmlFor="password">{t("forgot.newPassword")}</label>
         <input
           type="password"
           name="password"
@@ -150,7 +149,7 @@ const ForgotForm = () => {
         {renderError(formikPassword, "password")}
       </div>
       <div className="single-input-unit">
-        <label htmlFor="confirmPassword">Confirmar nueva contraseña</label>
+        <label htmlFor="confirmPassword">{t("forgot.confirmNewPassword")}</label>
         <input
           type="password"
           name="confirmPassword"
@@ -164,11 +163,11 @@ const ForgotForm = () => {
       </div>
       <div className="login-btn mt-30">
         <button className="fill-btn" type="submit" disabled={formikPassword.isSubmitting}>
-          {formikPassword.isSubmitting ? "Guardando..." : "Cambiar contraseña"}
+          {formikPassword.isSubmitting ? t("forgot.saving") : t("forgot.changePassword")}
         </button>
       </div>
       <div className="note mt-3 text-center">
-        <Link className="text-btn" href="/forgot">¿Link expirado? Solicitar uno nuevo</Link>
+        <Link className="text-btn" href="/forgot">{t("forgot.expiredLink")}</Link>
       </div>
     </form>
   );
