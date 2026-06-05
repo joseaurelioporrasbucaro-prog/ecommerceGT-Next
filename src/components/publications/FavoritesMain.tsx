@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiError } from '@/utils/Api';
@@ -24,8 +25,8 @@ const INITIAL_FILTERS: PublicationFilters = {
 
 const PAGE_SIZE = 12;
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Error inesperado';
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
 function matchesSearch(publication: AnyPublicationListItem, search: string): boolean {
@@ -63,7 +64,7 @@ function applySort(items: AnyPublicationListItem[], sort: SortOption): AnyPublic
  * que `PublicationListItemAuth`. Normalizamos para reusar `PublicationCard`
  * y todas las utilidades de filtro/sort de PublicationsMain.
  */
-function favoriteToPublication(item: FavoriteItem): PublicationListItemAuth {
+function favoriteToPublication(item: FavoriteItem, fallbackCategory: string): PublicationListItemAuth {
   return {
     id: item.id,
     pubstaId: item.pubstaId,
@@ -79,7 +80,7 @@ function favoriteToPublication(item: FavoriteItem): PublicationListItemAuth {
     country: item.country,
     city: item.city,
     town: item.town,
-    category: item.category || 'Propiedad',
+    category: item.category || fallbackCategory,
     image: item.image || '',
     images: item.image ? [{ id: item.image, url: item.image }] : [],
     id_cus: 0,
@@ -93,6 +94,7 @@ function favoriteToPublication(item: FavoriteItem): PublicationListItemAuth {
 // ============================================================================
 
 const FavoritesMain = () => {
+  const t = useTranslations('publications');
   const [filters, setFilters] = useState<PublicationFilters>(INITIAL_FILTERS);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -102,8 +104,8 @@ const FavoritesMain = () => {
 
   // Mapear FavoriteItem → PublicationListItemAuth para reusar PublicationCard.
   const publications = useMemo<AnyPublicationListItem[]>(
-    () => (favoritesQuery.data ?? []).map(favoriteToPublication),
-    [favoritesQuery.data],
+    () => (favoritesQuery.data ?? []).map((item: FavoriteItem) => favoriteToPublication(item, t('card.propertyFallback'))),
+    [favoritesQuery.data, t],
   );
   const categories = categoriesQuery.data ?? [];
 
@@ -152,7 +154,7 @@ const FavoritesMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Mis favoritos" breadcrumbSubTitle="Mis favoritos" />
+      <Breadcrumbs breadcrumbTitle={t('favoritesPage.breadcrumbTitle')} breadcrumbSubTitle={t('favoritesPage.breadcrumbTitle')} />
 
       <section className="artworks-area pt-130 pb-90">
         <div className="container">
@@ -173,7 +175,7 @@ const FavoritesMain = () => {
           {isLoading && (
             <div className="row wow fadeInUp">
               <div className="col-12">
-                <div className="alert alert-info">Cargando favoritos...</div>
+                <div className="alert alert-info">{t('favoritesPage.loading')}</div>
               </div>
             </div>
           )}
@@ -181,7 +183,7 @@ const FavoritesMain = () => {
           {error && (
             <div className="row wow fadeInUp">
               <div className="col-12">
-                <div className="alert alert-danger">{getErrorMessage(error)}</div>
+                <div className="alert alert-danger">{getErrorMessage(error, t('common.unexpectedError'))}</div>
               </div>
             </div>
           )}
@@ -199,14 +201,13 @@ const FavoritesMain = () => {
                 ) : publications.length === 0 ? (
                   <div className="col-12">
                     <div className="alert alert-warning">
-                      Todavía no tenés publicaciones guardadas como favoritas.
-                      Tocá el corazón en cualquier propiedad para agregarla acá.
+                      {t('favoritesPage.empty')}
                     </div>
                   </div>
                 ) : (
                   <div className="col-12">
                     <div className="alert alert-warning">
-                      No encontramos favoritos con esos filtros.
+                      {t('favoritesPage.emptyFilters')}
                     </div>
                   </div>
                 )}
@@ -215,13 +216,13 @@ const FavoritesMain = () => {
               {hasMore && (
                 <div ref={sentinelRef} className="text-center py-4" aria-live="polite">
                   <i className="fal fa-spinner fa-spin"></i>
-                  <span className="ms-2">Cargando más favoritos...</span>
+                  <span className="ms-2">{t('favoritesPage.loadingMore')}</span>
                 </div>
               )}
 
               {!hasMore && visiblePublications.length > 0 && (
                 <div className="text-center py-4 text-muted" style={{ opacity: 0.6 }}>
-                  Mostrando {visiblePublications.length} de {filteredAndSorted.length} favoritos
+                  {t('favoritesPage.showing', { visible: visiblePublications.length, total: filteredAndSorted.length })}
                 </div>
               )}
             </>

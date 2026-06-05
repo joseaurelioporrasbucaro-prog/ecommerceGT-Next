@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import ForumComment from '@/components/comments/ForumComment';
 import ForumReply from '@/components/comments/ForumReply';
 import MentionTextarea from '@/components/comments/MentionTextarea';
@@ -12,6 +13,7 @@ import { useAuth } from '@/utils/AuthContext';
 import { useAddComment, usePublicationComments } from '@/hooks/api/usePublicationComments';
 import { useToggleCommentLike } from '@/hooks/api/useToggleCommentLike';
 import ReportCommentButton from './ReportCommentButton';
+import { useDateFmt } from '@/utils/datetime';
 import type { Comment } from '@/types/api';
 import { getPublicationStatusInfo } from './publicationUtils';
 
@@ -29,15 +31,6 @@ interface CommentNode extends Comment {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Error inesperado';
-}
-
-function formatCommentDate(value: string): { date: string; time: string } {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return { date: value, time: '' };
-  return {
-    date: new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium' }).format(d),
-    time: new Intl.DateTimeFormat('es-GT', { timeStyle: 'short' }).format(d),
-  };
 }
 
 /**
@@ -86,6 +79,7 @@ interface InlineReplyFormProps {
 }
 
 const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineReplyFormProps) => {
+  const t = useTranslations('publications');
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -93,7 +87,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
     e.preventDefault();
     const trimmed = content.trim();
     if (!trimmed) {
-      setError('Escribe algo antes de enviar.');
+      setError(t('comments.replyRequired'));
       return;
     }
     setError(null);
@@ -101,7 +95,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
       await onSubmit(trimmed);
       setContent('');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Error inesperado');
+      setError(err instanceof ApiError ? err.message : t('common.unexpectedError'));
     }
   };
 
@@ -109,13 +103,13 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
     <form className="inline-reply-form" onSubmit={handleSubmit}>
       <div className="inline-reply-target">
         <i className="fal fa-reply"></i>
-        Respondiendo a <strong>{authorName}</strong>
+        {t('comments.replyingTo')} <strong>{authorName}</strong>
       </div>
       <MentionTextarea
         rows={3}
         value={content}
         onChange={setContent}
-        placeholder={`Escribe tu respuesta a ${authorName}... (usa @ para mencionar)`}
+        placeholder={t('comments.replyPlaceholder', { name: authorName })}
         disabled={isPending}
         autoFocus
       />
@@ -127,7 +121,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           onClick={onCancel}
           disabled={isPending}
         >
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           type="submit"
@@ -135,7 +129,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           disabled={isPending}
         >
           <i className="fal fa-paper-plane"></i>
-          {isPending ? 'Enviando...' : 'Enviar respuesta'}
+          {isPending ? t('common.sending') : t('comments.sendReply')}
         </button>
       </div>
 
@@ -252,7 +246,9 @@ const CommentNodeView = ({
   isClosed,
   currentUserId,
 }: CommentNodeProps) => {
-  const { date, time } = formatCommentDate(node.created_at);
+  const dateFmt = useDateFmt();
+  const date = dateFmt.medium(node.created_at, node.created_at);
+  const time = dateFmt.time(node.created_at, '');
   const authorName = `${node.cus_first_name} ${node.cus_last_name}`;
   const authorHref = `/creator-profile/${node.cus_id}`;
   const isReplyingHere = replyingTo === node.comment_id;
@@ -341,6 +337,7 @@ const CommentNodeView = ({
 // ============================================================================
 
 const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
+  const t = useTranslations('publications');
   const router = useRouter();
   const { user } = useAuth();
   const commentsQuery = usePublicationComments(pubId);
@@ -353,7 +350,16 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const tree = useMemo(() => buildCommentTree(comments), [comments]);
-  const statusInfo = getPublicationStatusInfo(pubstaId);
+  const statusInfo = getPublicationStatusInfo(pubstaId, {
+    sold: t('status.sold'),
+    soldSub: t('status.soldSub'),
+    void: t('status.void'),
+    voidSub: t('status.voidSub'),
+    draft: t('status.draft'),
+    draftSub: t('status.draftSub'),
+    available: t('status.available'),
+    availableSub: t('status.availableSub'),
+  });
   const isClosed = statusInfo.isClosed;
   const canComment = !!user && !isClosed;
 
@@ -369,7 +375,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
     e.preventDefault();
     const trimmed = content.trim();
     if (!trimmed) {
-      setFormError('Escribe un comentario antes de publicar.');
+      setFormError(t('comments.commentRequired'));
       return;
     }
     setFormError(null);
@@ -377,7 +383,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
       await addCommentMutation.mutateAsync({ content: trimmed, parent_id: null });
       setContent('');
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Error inesperado');
+      setFormError(err instanceof ApiError ? err.message : t('common.unexpectedError'));
     }
   };
 
@@ -392,19 +398,19 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
         <div className="row wow fadeInUp">
           <div className="col-lg-10 mx-auto">
             <div className="section-title1 mb-30">
-              <h2 className="section-main-title1">Comentarios</h2>
+              <h2 className="section-main-title1">{t('comments.title')}</h2>
             </div>
 
             {/* Aviso si la publicación está cerrada */}
             {isClosed && (
               <div className="closed-publication-notice">
                 <i className="fal fa-lock"></i>
-                Esta publicación está {statusInfo.label.toLowerCase()} y ya no acepta nuevos comentarios.
+                {t('comments.closedNotice', { status: statusInfo.label.toLowerCase() })}
               </div>
             )}
 
             {commentsQuery.isLoading && (
-              <div className="alert alert-info">Cargando comentarios...</div>
+              <div className="alert alert-info">{t('comments.loading')}</div>
             )}
 
             {commentsQuery.error && (
@@ -412,7 +418,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
             )}
 
             {!commentsQuery.isLoading && !commentsQuery.error && tree.length === 0 && (
-              <div className="alert alert-warning">Esta publicación todavía no tiene comentarios.</div>
+              <div className="alert alert-warning">{t('comments.empty')}</div>
             )}
 
             {/* Árbol de cascada */}
@@ -441,13 +447,13 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                   <form onSubmit={handleNewCommentSubmit}>
                     <label className="form-label-bold">
                       <i className="fal fa-comment"></i>
-                      Deja un comentario
+                      {t('comments.leaveComment')}
                     </label>
                     <MentionTextarea
                       rows={4}
                       value={content}
                       onChange={setContent}
-                      placeholder="Escribe un comentario... (usa @ para mencionar)"
+                      placeholder={t('comments.commentPlaceholder')}
                       disabled={addCommentMutation.isPending}
                     />
                     {formError && <div className="text-danger mt-2">{formError}</div>}
@@ -458,7 +464,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                         disabled={addCommentMutation.isPending}
                       >
                         <i className="fal fa-paper-plane"></i>
-                        {addCommentMutation.isPending ? 'Enviando...' : 'Comentar'}
+                        {addCommentMutation.isPending ? t('common.sending') : t('comments.submit')}
                       </button>
                     </div>
                   </form>
@@ -468,7 +474,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                       className="form-control"
                       rows={3}
                       value=""
-                      placeholder="Inicia sesión para comentar"
+                      placeholder={t('comments.loginPlaceholder')}
                       disabled
                       readOnly
                     />
@@ -477,7 +483,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
                       className="btn-submit-comment mt-15"
                     >
                       <i className="fal fa-sign-in"></i>
-                      Inicia sesión para comentar
+                      {t('comments.loginCta')}
                     </Link>
                   </div>
                 )}

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import { useCities, useCountries, useMunicipalities } from '@/hooks/api/useCatalogs';
 import { useSellerInfo } from '@/hooks/api/usePublications';
@@ -19,6 +20,7 @@ interface PublicationContentProps {
 const DEFAULT_AVATAR = '/assets/img/profile/avatar.png';
 
 const PublicationContent = ({ publication }: PublicationContentProps) => {
+  const t = useTranslations('publications');
   const { user } = useAuth();
   const countriesQuery = useCountries();
   const citiesQuery = useCities(publication.cou_id);
@@ -35,7 +37,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
 
   const seller = sellerQuery.data;
   const sellerName = seller ? `${seller.firstName} ${seller.lastName}` : publication.user;
-  const sellerHandle = seller?.handle ? `@${seller.handle}` : '@vendedor';
+  const sellerHandle = seller?.handle ? `@${seller.handle}` : t('detail.sellerFallback');
   const sellerImage = seller?.imageUrl ? getBackendUrl(seller.imageUrl) : DEFAULT_AVATAR;
   const [avatarErrored, setAvatarErrored] = useState(false);
 
@@ -44,14 +46,25 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
   const municipalityName = municipalitiesQuery.data?.find((m: Municipality) => m.municipality === publication.tow_id)?.description;
 
   const favoritesCount = publication.favoritesCount;
-  const statusInfo = getPublicationStatusInfo(publication.pubsta_id);
+  const statusInfo = getPublicationStatusInfo(publication.pubsta_id, {
+    sold: t('status.sold'),
+    soldSub: t('status.soldSub'),
+    void: t('status.void'),
+    voidSub: t('status.voidSub'),
+    draft: t('status.draft'),
+    draftSub: t('status.draftSub'),
+    available: t('status.available'),
+    availableSub: t('status.availableSub'),
+  });
+  const favoriteLabel = publication.isFavorite ? t('favorite.remove') : t('favorite.add');
+  const notSpecified = t('common.notSpecified');
 
   return (
     <section className="art-details-area pt-50 pb-0">
       <div className="container">
         <div className="art-details-content wow fadeInUp">
           {/* ───────── Vendedor ───────── */}
-          <div className="created-by">Publicado por</div>
+          <div className="created-by">{t('detail.publishedBy')}</div>
           <div className="seller-row">
             <div className="seller-avatar">
               <Link href={`/creator-profile/${publication.cus_id}`}>
@@ -64,7 +77,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
                   unoptimized={avatarErrored}
                 />
               </Link>
-              <span className="seller-verified" aria-label="Vendedor verificado">
+              <span className="seller-verified" aria-label={t('detail.sellerVerified')}>
                 <i className="fas fa-check"></i>
               </span>
             </div>
@@ -90,17 +103,21 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           {/* ───────── Precio / Vistas / Estado ───────── */}
           <div className="meta-grid">
             <div className="meta-cell">
-              <div className="meta-label">Precio</div>
-              <div className="meta-value meta-price">{formatPrice(publication.pubdet_price, publication.pubdet_currency)}</div>
-              <div className="meta-sublabel">{publication.pubdet_currency === 'USD' ? 'Dólares' : 'Quetzales'}</div>
+              <div className="meta-label">{t('card.price')}</div>
+              <div className="meta-value meta-price">
+                {formatPrice(publication.pubdet_price, publication.pubdet_currency, t('card.priceConsult'))}
+              </div>
+              <div className="meta-sublabel">
+                {publication.pubdet_currency === 'USD' ? t('detail.currencyUsd') : t('detail.currencyGtq')}
+              </div>
             </div>
             <div className="meta-cell">
-              <div className="meta-label">Vistas</div>
+              <div className="meta-label">{t('detail.views')}</div>
               <div className="meta-value">{formatNumberValue(publication.pub_views, '0')}</div>
-              <div className="meta-sublabel">Interés acumulado</div>
+              <div className="meta-sublabel">{t('detail.interest')}</div>
             </div>
             <div className="meta-cell">
-              <div className="meta-label">Estado</div>
+              <div className="meta-label">{t('detail.status')}</div>
               <div className="meta-value" style={{ color: statusInfo.color }}>
                 {statusInfo.label}
               </div>
@@ -112,13 +129,13 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           <div className="action-row">
             <Link href={`/creator-profile/${publication.cus_id}`} className="action-btn action-btn-primary">
               <i className="fal fa-user"></i>
-              <span>Ver vendedor</span>
+              <span>{t('detail.viewSeller')}</span>
             </Link>
             <button
               type="button"
               className={`action-btn action-btn-secondary ${publication.isFavorite ? 'is-favorite' : ''}`}
-              title={publication.isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
-              aria-label={publication.isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
+              title={favoriteLabel}
+              aria-label={favoriteLabel}
               onClick={() => toggleFavoriteMutation.mutate()}
               disabled={toggleFavoriteMutation.isPending}
             >
@@ -130,21 +147,21 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
                 type="button"
                 className="action-btn action-btn-secondary"
                 disabled
-                title="Esta es tu propia publicación."
-                aria-label="No podés contactarte a ti mismo"
+                title={t('detail.contactOwnerTitle')}
+                aria-label={t('detail.contactOwnerAria')}
               >
                 <i className="flaticon-chatting"></i>
-                <span>Contactar</span>
+                <span>{t('detail.contact')}</span>
               </button>
             ) : (
               <Link
                 href={contactHref}
                 className="action-btn action-btn-secondary"
-                title={user ? 'Enviar mensaje al vendedor' : 'Inicia sesión para contactar al vendedor'}
-                aria-label="Enviar mensaje al vendedor"
+                title={user ? t('detail.contactSellerTitle') : t('detail.contactLoginTitle')}
+                aria-label={t('detail.contactSellerTitle')}
               >
                 <i className="flaticon-chatting"></i>
-                <span>Contactar</span>
+                <span>{t('detail.contact')}</span>
               </Link>
             )}
           </div>
@@ -163,7 +180,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
                     role="tab"
                     aria-selected="true"
                   >
-                    <span className="profile-nav-button">Información</span>
+                    <span className="profile-nav-button">{t('detail.info')}</span>
                   </button>
                   <button
                     className="nav-link"
@@ -174,7 +191,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
                     role="tab"
                     aria-selected="false"
                   >
-                    <span className="profile-nav-button">Características</span>
+                    <span className="profile-nav-button">{t('detail.features')}</span>
                   </button>
                 </div>
               </nav>
@@ -183,42 +200,46 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
               <div className="tab-content" id="nav-tabContent">
                 <div className="tab-pane fade active show" id="tab-info" role="tabpanel" aria-labelledby="nav-info-tab">
                   <div className="info-list">
-                    <InfoRow icon="address" label="Dirección" value={publication.pub_address} />
-                    <InfoRow icon="country" label="País" value={countryName} />
-                    <InfoRow icon="state" label="Departamento" value={cityName} />
-                    <InfoRow icon="town" label="Municipio" value={municipalityName} />
+                    <InfoRow icon="address" label={t('features.address')} value={publication.pub_address} fallback={notSpecified} />
+                    <InfoRow icon="country" label={t('features.country')} value={countryName} fallback={notSpecified} />
+                    <InfoRow icon="state" label={t('features.state')} value={cityName} fallback={notSpecified} />
+                    <InfoRow icon="town" label={t('features.municipality')} value={municipalityName} fallback={notSpecified} />
                   </div>
                 </div>
                 <div className="tab-pane fade" id="tab-details" role="tabpanel" aria-labelledby="nav-details-tab">
                   <div className="info-list">
-                    <InfoRow icon="rooms" label="Habitaciones" value={formatNumberValue(publication.pubdet_rooms)} />
-                    <InfoRow icon="bathrooms" label="Baños" value={formatNumberValue(publication.pubdet_bathrooms)} />
-                    <InfoRow icon="parking" label="Parqueos" value={formatNumberValue(publication.pubdet_parking)} />
+                    <InfoRow icon="rooms" label={t('features.rooms')} value={formatNumberValue(publication.pubdet_rooms, notSpecified)} fallback={notSpecified} />
+                    <InfoRow icon="bathrooms" label={t('features.bathrooms')} value={formatNumberValue(publication.pubdet_bathrooms, notSpecified)} fallback={notSpecified} />
+                    <InfoRow icon="parking" label={t('features.parking')} value={formatNumberValue(publication.pubdet_parking, notSpecified)} fallback={notSpecified} />
                     {/* Fase 19.5: la etiqueta de "Nivel" cambia según el tipo.
                         Apto = nivel del edificio. Casa = niveles totales. */}
                     <InfoRow
                       icon="level"
-                      label={Number(publication.pubgen_id) === 1 ? 'Niveles' : 'Nivel'}
-                      value={formatNumberValue(publication.pubdet_level)}
+                      label={Number(publication.pubgen_id) === 1 ? t('features.levels') : t('features.level')}
+                      value={formatNumberValue(publication.pubdet_level, notSpecified)}
+                      fallback={notSpecified}
                     />
                     <InfoRow
                       icon="size"
-                      label="Tamaño"
-                      value={publication.pubdet_size ? `${publication.pubdet_size} m²` : 'No especificado'}
+                      label={t('features.size')}
+                      value={publication.pubdet_size ? `${publication.pubdet_size} m²` : notSpecified}
+                      fallback={notSpecified}
                     />
                     {/* Fase 19.5 — frente y fondo, solo si son terreno y los tienen. */}
                     {publication.pubdet_frente != null && (
                       <InfoRow
                         icon="size"
-                        label="Frente"
+                        label={t('features.width')}
                         value={`${publication.pubdet_frente} m`}
+                        fallback={notSpecified}
                       />
                     )}
                     {publication.pubdet_fondo != null && (
                       <InfoRow
                         icon="size"
-                        label="Fondo"
+                        label={t('features.depth')}
                         value={`${publication.pubdet_fondo} m`}
+                        fallback={notSpecified}
                       />
                     )}
                   </div>
@@ -230,7 +251,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
               {publication.amenities && publication.amenities.length > 0 && (
                 <div className="amenities-section">
                   <h4 className="amenities-title">
-                    <i className="fas fa-star" /> Comodidades
+                    <i className="fas fa-star" /> {t('features.amenities')}
                   </h4>
                   <div className="amenities-grid">
                     {publication.amenities.map((a) => (
@@ -524,16 +545,17 @@ interface InfoRowProps {
   icon: 'address' | 'country' | 'state' | 'town' | 'rooms' | 'bathrooms' | 'parking' | 'level' | 'size';
   label: string;
   value: string | null | undefined;
+  fallback: string;
 }
 
-const InfoRow = ({ icon, label, value }: InfoRowProps) => (
+const InfoRow = ({ icon, label, value, fallback }: InfoRowProps) => (
   <div className="info-row">
     <span className="info-row-label">
       <PropertyFeatureIcon feature={icon} size={16} />
       {label}
     </span>
     <span className="info-row-separator">:</span>
-    <span className="info-row-value">{value ?? 'No especificado'}</span>
+    <span className="info-row-value">{value ?? fallback}</span>
   </div>
 );
 

@@ -29,7 +29,6 @@ export function buildPlaceholderSvg(width: number, height: number): string {
     `<rect width="100%" height="100%" fill="#1f1d2b"/>`,
     `<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="#3a3852" stroke-width="2" stroke-dasharray="12 8"/>`,
     `<text x="50%" y="48%" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="bold" fill="#9b98c5" text-anchor="middle" dominant-baseline="middle">${width} × ${height}</text>`,
-    `<text x="50%" y="58%" font-family="Arial,sans-serif" font-size="${Math.floor(fontSize * 0.5)}" fill="#6a6889" text-anchor="middle" dominant-baseline="middle">Sube una imagen ${width}×${height}px</text>`,
     `</svg>`,
   ].join('');
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -59,10 +58,11 @@ export const THUMB_PLACEHOLDER = buildPlaceholderSvg(
  */
 export function formatPrice(
   price: number | string | null | undefined,
-  currency?: string | null,
+  currency: string | null | undefined,
+  fallback: string,
 ): string {
   if (price === null || price === undefined || price === '') {
-    return 'Precio por consultar';
+    return fallback;
   }
 
   const numericPrice = Number(price);
@@ -71,16 +71,13 @@ export function formatPrice(
   }
 
   const isUsd = currency === 'USD';
-  // Usamos en-US para garantizar coma=miles, punto=decimal (Intl con GTQ a veces
-  // mete espacio fino o usa punto como miles según la versión de ICU del runtime).
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numericPrice);
+  const fixed = numericPrice.toFixed(2);
+  const [integerPart, decimalPart] = fixed.split('.');
+  const formatted = `${integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${decimalPart}`;
   return `${isUsd ? '$' : 'Q'} ${formatted}`;
 }
 
-export function formatNumberValue(value: number | null | undefined, fallback = 'No especificado'): string {
+export function formatNumberValue(value: number | null | undefined, fallback: string): string {
   if (value === null || value === undefined) {
     return fallback;
   }
@@ -164,10 +161,13 @@ export interface StatusBadge {
  * Badge a renderizar según el estado de la publicación,
  * o null si está publicada activa (no se muestra badge).
  */
-export function getStatusBadge(pubstaId: number | null | undefined): StatusBadge | null {
-  if (pubstaId === PUBSTA_SOLD) return { label: 'Vendida', color: '#ef4444' };
-  if (pubstaId === PUBSTA_DRAFT) return { label: 'Borrador', color: '#9ca3af' };
-  if (pubstaId === PUBSTA_VOID) return { label: 'Anulada', color: '#6b7280' };
+export function getStatusBadge(
+  pubstaId: number | null | undefined,
+  labels: Record<'sold' | 'draft' | 'void', string>,
+): StatusBadge | null {
+  if (pubstaId === PUBSTA_SOLD) return { label: labels.sold, color: '#ef4444' };
+  if (pubstaId === PUBSTA_DRAFT) return { label: labels.draft, color: '#9ca3af' };
+  if (pubstaId === PUBSTA_VOID) return { label: labels.void, color: '#6b7280' };
   return null;
 }
 
@@ -184,17 +184,20 @@ export interface PublicationStatusInfo {
  * Devuelve color, sub-etiqueta descriptiva y bandera `isClosed` para que la UI
  * pueda deshabilitar acciones (comentar, contactar) en publicaciones cerradas.
  */
-export function getPublicationStatusInfo(pubstaId: number | null | undefined): PublicationStatusInfo {
+export function getPublicationStatusInfo(
+  pubstaId: number | null | undefined,
+  labels: Record<'sold' | 'soldSub' | 'void' | 'voidSub' | 'draft' | 'draftSub' | 'available' | 'availableSub', string>,
+): PublicationStatusInfo {
   switch (pubstaId) {
     case PUBSTA_SOLD:
-      return { label: 'Vendida', sublabel: 'Ya no está disponible', color: '#ef4444', isClosed: true };
+      return { label: labels.sold, sublabel: labels.soldSub, color: '#ef4444', isClosed: true };
     case PUBSTA_VOID:
-      return { label: 'Anulada', sublabel: 'Retirada por el vendedor', color: '#6b7280', isClosed: true };
+      return { label: labels.void, sublabel: labels.voidSub, color: '#6b7280', isClosed: true };
     case PUBSTA_DRAFT:
-      return { label: 'Borrador', sublabel: 'No publicada todavía', color: '#9ca3af', isClosed: true };
+      return { label: labels.draft, sublabel: labels.draftSub, color: '#9ca3af', isClosed: true };
     case PUBSTA_PUBLISHED:
     default:
-      return { label: 'Disponible', sublabel: 'Publicación activa', color: '#2ed573', isClosed: false };
+      return { label: labels.available, sublabel: labels.availableSub, color: '#2ed573', isClosed: false };
   }
 }
 
@@ -320,9 +323,3 @@ export function getPropertyFallbackIcon(feature: PropertyFeature): string {
 // ============================================================================
 
 export type SortOption = 'recent' | 'price-asc' | 'price-desc';
-
-export const SORT_OPTIONS: Array<{ id: number; option: string; value: SortOption }> = [
-  { id: 1, option: 'Más recientes', value: 'recent' },
-  { id: 2, option: 'Menor precio', value: 'price-asc' },
-  { id: 3, option: 'Mayor precio', value: 'price-desc' },
-];

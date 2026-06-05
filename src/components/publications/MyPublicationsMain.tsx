@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Modal from 'react-responsive-modal';
 import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
@@ -66,15 +67,18 @@ const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) =
   );
 };
 
-function getStatusBadge(pubstaId: number): { label: string; color: string } | null {
-  if (pubstaId === PUBSTA_SOLD) return { label: 'Vendida', color: '#ef4444' };
-  if (pubstaId === PUBSTA_DRAFT) return { label: 'Borrador', color: '#9ca3af' };
-  if (pubstaId === PUBSTA_VOID) return { label: 'Anulada', color: '#6b7280' };
+function getStatusBadge(
+  pubstaId: number,
+  labels: { sold: string; draft: string; void: string },
+): { label: string; color: string } | null {
+  if (pubstaId === PUBSTA_SOLD) return { label: labels.sold, color: '#ef4444' };
+  if (pubstaId === PUBSTA_DRAFT) return { label: labels.draft, color: '#9ca3af' };
+  if (pubstaId === PUBSTA_VOID) return { label: labels.void, color: '#6b7280' };
   return null;
 }
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Error inesperado';
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
 // ─── Sub-componente: modal de "Cerrar venta" ──────────────────────────────────
@@ -84,6 +88,7 @@ interface CloseSaleModalProps {
 }
 
 const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
+  const t = useTranslations('publications');
   const [buyerQuery, setBuyerQuery] = useState('');
   const [selectedBuyer, setSelectedBuyer] = useState<UserSearchResult | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -104,11 +109,11 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
       { pub_id: publication.pub_id, buyer_id: selectedBuyer.cusId },
       {
         onSuccess: () => {
-          toast.success('¡Venta cerrada! El comprador recibirá un email para calificarte.');
+          toast.success(t('myPublications.closeSaleSuccess'));
           onClose();
         },
         onError: (err) => {
-          toast.error(err instanceof ApiError ? err.message : 'No se pudo cerrar la venta.');
+          toast.error(err instanceof ApiError ? err.message : t('myPublications.closeSaleError'));
         },
       },
     );
@@ -134,9 +139,9 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
         }}>
           <i className="fas fa-handshake" />
         </div>
-        <h4 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700 }}>Cerrar venta</h4>
+        <h4 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700 }}>{t('myPublications.closeSale')}</h4>
         <p style={{ margin: '0 0 20px', fontSize: 15, opacity: 0.75, lineHeight: 1.5 }}>
-          Indica quién compró <strong>&ldquo;{publication?.pub_title}&rdquo;</strong>. Se enviará un email al comprador para que te califique.
+          {t('myPublications.closeSaleDescription', { title: publication?.pub_title ?? '' })}
         </p>
 
         {/* Búsqueda de comprador */}
@@ -155,7 +160,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
                 type="button"
                 onClick={() => setSelectedBuyer(null)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 16 }}
-                title="Cambiar comprador"
+                title={t('myPublications.changeBuyer')}
               >
                 <i className="fas fa-times" />
               </button>
@@ -164,7 +169,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
             <>
               <input
                 type="text"
-                placeholder="Busca al comprador por nombre o @handle..."
+                placeholder={t('myPublications.searchBuyerPlaceholder')}
                 value={buyerQuery}
                 onChange={(e) => { setBuyerQuery(e.target.value); setDropdownOpen(true); }}
                 onFocus={() => setDropdownOpen(true)}
@@ -208,7 +213,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
                   borderRadius: 8, padding: '12px 14px', fontSize: 13, opacity: 0.65,
                   boxShadow: '0 6px 24px rgba(0,0,0,0.1)',
                 }}>
-                  No se encontraron usuarios
+                  {t('myPublications.noUsersFound')}
                 </div>
               )}
             </>
@@ -223,7 +228,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
             disabled={closeSaleMutation.isPending}
             style={{ height: 44, padding: '0 22px', fontSize: 14, minWidth: 120 }}
           >
-            Cancelar
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -239,7 +244,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
               opacity: !selectedBuyer || closeSaleMutation.isPending ? 0.6 : 1,
             }}
           >
-            {closeSaleMutation.isPending ? 'Cerrando…' : 'Confirmar venta'}
+            {closeSaleMutation.isPending ? t('myPublications.closeSaleLoading') : t('myPublications.closeSaleConfirm')}
           </button>
         </div>
       </div>
@@ -249,6 +254,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 const MyPublicationsMain = () => {
+  const t = useTranslations('publications');
   const { user } = useAuth();
   const publicationsQuery = useMyPublications(user?.id);
   const publications = publicationsQuery.data ?? [];
@@ -275,10 +281,10 @@ const MyPublicationsMain = () => {
     setPendingDelete(null);
     deleteMutation.mutate(target.pub_id, {
       onSuccess: () => {
-        toast.success(`"${target.pub_title}" fue anulada.`);
+        toast.success(t('myPublications.deleteSuccess', { title: target.pub_title }));
       },
       onError: (err) => {
-        const message = err instanceof ApiError ? err.message : 'No se pudo eliminar la publicación.';
+        const message = err instanceof ApiError ? err.message : t('myPublications.deleteError');
         toast.error(message);
       },
     });
@@ -287,28 +293,32 @@ const MyPublicationsMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Mis publicaciones" breadcrumbSubTitle="Mis publicaciones" />
+      <Breadcrumbs breadcrumbTitle={t('myPublications.breadcrumbTitle')} breadcrumbSubTitle={t('myPublications.breadcrumbTitle')} />
 
       <section className="artworks-area pt-80 pb-90">
         <div className="container c-container-1">
           {publicationsQuery.isLoading && (
-            <div className="alert alert-info">Cargando tus publicaciones...</div>
+            <div className="alert alert-info">{t('myPublications.loading')}</div>
           )}
 
           {publicationsQuery.error && (
-            <div className="alert alert-danger">{getErrorMessage(publicationsQuery.error)}</div>
+            <div className="alert alert-danger">{getErrorMessage(publicationsQuery.error, t('common.unexpectedError'))}</div>
           )}
 
           {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length === 0 && (
             <div className="alert alert-warning">
-              Todavía no tienes publicaciones creadas.
+              {t('myPublications.empty')}
             </div>
           )}
 
           {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length > 0 && (
             <div className="my-publications-list">
                   {publications.map((publication: MyPublicationItem) => {
-                    const badge = getStatusBadge(publication.pubsta_id);
+                    const badge = getStatusBadge(publication.pubsta_id, {
+                      sold: t('status.sold'),
+                      draft: t('status.draft'),
+                      void: t('status.void'),
+                    });
                     const isPautada = pautadaCampaignByPub.has(Number(publication.pub_id)); // Fase 10.3
 
                     return (
@@ -333,7 +343,7 @@ const MyPublicationsMain = () => {
                             )}
                             {isPautada && !badge && (
                               <span className="my-publication-badge pautada-badge">
-                                <i className="fas fa-bolt" /> Pautada
+                                <i className="fas fa-bolt" /> {t('myPublications.promoted')}
                               </span>
                             )}
                           </span>
@@ -347,7 +357,7 @@ const MyPublicationsMain = () => {
                           </h4>
                           <p>{publication.pub_description}</p>
                           <div className="my-publication-meta">
-                            <span>{formatPrice(publication.pubdet_price, publication.pubdet_currency)}</span>
+                            <span>{formatPrice(publication.pubdet_price, publication.pubdet_currency, t('card.priceConsult'))}</span>
                             <span>{publication.pub_address}</span>
                           </div>
                         </div>
@@ -358,20 +368,20 @@ const MyPublicationsMain = () => {
                             <Link
                               href={`/pauta?pub=${publication.pub_id}`}
                               className="border-btn pautar-btn"
-                              title="Promociona esta publicación con pauta paga"
+                              title={t('myPublications.promoteTitle')}
                             >
                               <i className="fas fa-bolt" style={{ marginRight: 6 }} />
-                              Pautar
+                              {t('myPublications.promote')}
                             </Link>
                           )}
                           {publication.pubsta_id === PUBSTA_ACTIVE && isPautada && (
                             <Link
                               href="/pauta"
                               className="border-btn pautar-btn active"
-                              title="Esta publicación tiene una campaña activa"
+                              title={t('myPublications.campaignActiveTitle')}
                             >
                               <i className="fas fa-bolt" style={{ marginRight: 6 }} />
-                              Ver pauta
+                              {t('myPublications.viewCampaign')}
                             </Link>
                           )}
                           {/* Botón "Cerrar venta" — solo publicaciones activas */}
@@ -380,10 +390,10 @@ const MyPublicationsMain = () => {
                               type="button"
                               className="border-btn close-sale-btn"
                               onClick={() => setPendingCloseSale(publication)}
-                              title="Marca esta publicación como vendida y notifica al comprador"
+                              title={t('myPublications.closeSaleTitle')}
                             >
                               <i className="fas fa-handshake" style={{ marginRight: 6 }} />
-                              Cerrar venta
+                              {t('myPublications.closeSale')}
                             </button>
                           )}
                           {(() => {
@@ -391,9 +401,9 @@ const MyPublicationsMain = () => {
                             const isSold = publication.pubsta_id === PUBSTA_SOLD;
                             const editDisabled = isVoid || isSold;
                             const editTitle = isVoid
-                              ? 'Las publicaciones anuladas no se pueden editar.'
+                              ? t('myPublications.editDisabledVoid')
                               : isSold
-                                ? 'Las publicaciones vendidas no se pueden editar.'
+                                ? t('myPublications.editDisabledSold')
                                 : undefined;
 
                             return editDisabled ? (
@@ -403,14 +413,14 @@ const MyPublicationsMain = () => {
                                 disabled
                                 title={editTitle}
                               >
-                                Editar
+                                {t('myPublications.edit')}
                               </button>
                             ) : (
                               <Link
                                 href={`/publications/${publication.pub_id}/edit`}
                                 className="border-btn"
                               >
-                                Editar
+                                {t('myPublications.edit')}
                               </Link>
                             );
                           })()}
@@ -423,9 +433,9 @@ const MyPublicationsMain = () => {
 
                             const disabled = isVoid || isSold || isDeleting;
                             const title = isSold
-                              ? 'Las publicaciones vendidas no se pueden eliminar.'
+                              ? t('myPublications.deleteDisabledSold')
                               : isVoid
-                                ? 'Esta publicación ya está anulada.'
+                                ? t('myPublications.deleteDisabledVoid')
                                 : undefined;
 
                             return (
@@ -436,7 +446,7 @@ const MyPublicationsMain = () => {
                                 title={title}
                                 onClick={() => setPendingDelete(publication)}
                               >
-                                {isDeleting ? 'Eliminando…' : 'Eliminar'}
+                                {isDeleting ? t('myPublications.deleteLoading') : t('myPublications.delete')}
                               </button>
                             );
                           })()}
@@ -475,9 +485,9 @@ const MyPublicationsMain = () => {
           <div className="delete-modal-icon" aria-hidden="true">
             <i className="fas fa-exclamation-triangle" />
           </div>
-          <h4 className="delete-modal-title">¿Eliminar publicación?</h4>
+          <h4 className="delete-modal-title">{t('myPublications.deleteTitle')}</h4>
           <p className="delete-modal-text">
-            Vas a anular <strong>&ldquo;{pendingDelete?.pub_title}&rdquo;</strong>. La publicación dejará de aparecer en el catálogo público y en favoritos de otros usuarios. Aún la podrás ver en esta lista marcada como <em>Anulada</em>.
+            {t('myPublications.deleteDescription', { title: pendingDelete?.pub_title ?? '' })}
           </p>
           <div className="delete-modal-actions">
             <button
@@ -486,7 +496,7 @@ const MyPublicationsMain = () => {
               onClick={() => setPendingDelete(null)}
               disabled={deleteMutation.isPending}
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
             <button
               type="button"
@@ -494,7 +504,7 @@ const MyPublicationsMain = () => {
               onClick={handleConfirmDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Eliminando…' : 'Sí, eliminar'}
+              {deleteMutation.isPending ? t('myPublications.deleteLoading') : t('myPublications.deleteConfirm')}
             </button>
           </div>
         </div>

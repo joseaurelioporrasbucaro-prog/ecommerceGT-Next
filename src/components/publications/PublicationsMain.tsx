@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiError } from '@/utils/Api';
@@ -26,8 +27,8 @@ const INITIAL_FILTERS: PublicationFilters = {
 
 const PAGE_SIZE = 12;
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Error inesperado';
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
 function matchesSearch(publication: AnyPublicationListItem, search: string): boolean {
@@ -67,6 +68,7 @@ function applySort(items: AnyPublicationListItem[], sort: SortOption): AnyPublic
 // ============================================================================
 
 const PublicationsMain = () => {
+  const t = useTranslations('publications');
   // Lee filtros iniciales desde la URL (ej. /publications?category=Casa
   // viene desde los chips del sidebar derecho o links externos).
   const searchParams = useSearchParams();
@@ -211,8 +213,8 @@ const PublicationsMain = () => {
     <main>
       <ThemeChanger />
       <Breadcrumbs
-        breadcrumbTitle="Publicaciones"
-        breadcrumbSubTitle="Publicaciones"
+        breadcrumbTitle={t('listing.breadcrumbTitle')}
+        breadcrumbSubTitle={t('listing.breadcrumbTitle')}
       />
 
       <section className="artworks-area pt-130 pb-90">
@@ -235,28 +237,28 @@ const PublicationsMain = () => {
 
           {/* Fase 19 — toggle de vista (Lista / Mapa / Split). */}
           <div className="view-toggle">
-            <span className="view-toggle-label">Ver como:</span>
-            <div className="view-toggle-group" role="group" aria-label="Modo de visualización">
+            <span className="view-toggle-label">{t('listing.viewAs')}</span>
+            <div className="view-toggle-group" role="group" aria-label={t('listing.viewModeAria')}>
               <button
                 type="button"
                 className={`view-toggle-btn ${viewMode === 'list' ? 'is-active' : ''}`}
                 onClick={() => setViewMode('list')}
               >
-                <i className="fas fa-th" /> Lista
+                <i className="fas fa-th" /> {t('listing.viewList')}
               </button>
               <button
                 type="button"
                 className={`view-toggle-btn ${viewMode === 'split' ? 'is-active' : ''}`}
                 onClick={() => setViewMode('split')}
               >
-                <i className="fas fa-columns" /> Lista + Mapa
+                <i className="fas fa-columns" /> {t('listing.viewSplit')}
               </button>
               <button
                 type="button"
                 className={`view-toggle-btn ${viewMode === 'map' ? 'is-active' : ''}`}
                 onClick={() => setViewMode('map')}
               >
-                <i className="fas fa-map-marked-alt" /> Mapa
+                <i className="fas fa-map-marked-alt" /> {t('listing.viewMap')}
               </button>
             </div>
           </div>
@@ -267,7 +269,7 @@ const PublicationsMain = () => {
           {isLoading && (
             <div className="row wow fadeInUp">
               <div className="col-12">
-                <div className="alert alert-info">Cargando publicaciones...</div>
+                <div className="alert alert-info">{t('listing.loadingPublications')}</div>
               </div>
             </div>
           )}
@@ -275,7 +277,7 @@ const PublicationsMain = () => {
           {error && (
             <div className="row wow fadeInUp">
               <div className="col-12">
-                <div className="alert alert-danger">{getErrorMessage(error)}</div>
+                <div className="alert alert-danger">{getErrorMessage(error, t('common.unexpectedError'))}</div>
               </div>
             </div>
           )}
@@ -313,7 +315,7 @@ const PublicationsMain = () => {
                       ) : (
                         <div className="col-12">
                           <div className="alert alert-warning">
-                            No encontramos publicaciones con esos filtros.
+                            {t('listing.emptyFilters')}
                           </div>
                         </div>
                       )}
@@ -321,7 +323,7 @@ const PublicationsMain = () => {
                     {hasMore && (
                       <div ref={sentinelRef} className="text-center py-4" aria-live="polite">
                         <i className="fal fa-spinner fa-spin" />
-                        <span className="ms-2">Cargando más propiedades...</span>
+                        <span className="ms-2">{t('listing.loadingMore')}</span>
                       </div>
                     )}
                   </div>
@@ -347,7 +349,7 @@ const PublicationsMain = () => {
                     ) : (
                       <div className="col-12">
                         <div className="alert alert-warning">
-                          No encontramos publicaciones con esos filtros.
+                          {t('listing.emptyFilters')}
                         </div>
                       </div>
                     )}
@@ -356,13 +358,13 @@ const PublicationsMain = () => {
                   {hasMore && (
                     <div ref={sentinelRef} className="text-center py-4" aria-live="polite">
                       <i className="fal fa-spinner fa-spin" />
-                      <span className="ms-2">Cargando más propiedades...</span>
+                      <span className="ms-2">{t('listing.loadingMore')}</span>
                     </div>
                   )}
 
                   {!hasMore && visiblePublications.length > 0 && (
                     <div className="text-center py-4 text-muted" style={{ opacity: 0.6 }}>
-                      Mostrando {visiblePublications.length} de {filteredAndSorted.length} propiedades
+                      {t('listing.showing', { visible: visiblePublications.length, total: filteredAndSorted.length })}
                     </div>
                   )}
                 </>

@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import PublicationCard from './PublicationCard';
 import { useFeaturedPublications, recordAdClick, type FeaturedPublication } from '@/hooks/api/useCampaigns';
 import type { AnyPublicationListItem } from '@/types/api';
@@ -8,13 +9,14 @@ import type { AnyPublicationListItem } from '@/types/api';
  *  objetivo 'mensajes' se sustituye el CTA "Ver propiedad" por "Enviar mensaje"
  *  dorado (Fase 10.4) usando el prop `ctaOverride` de PublicationCard. */
 const FeaturedPublicationsSection = ({ limit = 4 }: { limit?: number }) => {
+  const t = useTranslations('publications');
   const { data } = useFeaturedPublications(limit);
   const items = data ?? [];
   if (items.length === 0) return null;
 
   return (
     <div className="featured-section">
-      <h4 className="featured-title"><i className="fas fa-bolt" /> Destacados</h4>
+      <h4 className="featured-title"><i className="fas fa-bolt" /> {t('card.featured')}</h4>
       <div className="row">
         {items.map((pub: FeaturedPublication) => {
           const isMessages = pub.campObjective === 'mensajes';
@@ -25,7 +27,7 @@ const FeaturedPublicationsSection = ({ limit = 4 }: { limit?: number }) => {
                   publication={pub as unknown as AnyPublicationListItem}
                   isFeatured
                   ctaOverride={isMessages ? {
-                    label: 'Enviar mensaje',
+                    label: t('card.sendMessage'),
                     href: `/messages?pub=${pub.id}`,
                     iconClass: 'fa-paper-plane',
                     gold: true,

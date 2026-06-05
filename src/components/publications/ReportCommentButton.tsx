@@ -1,49 +1,57 @@
 "use client";
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMutation } from '@tanstack/react-query';
 import { ApiError, ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 
-const REASONS = ['Spam', 'Contenido ofensivo', 'Acoso', 'Estafa / fraude', 'Otro'];
+const REASONS = [
+  { value: 'Spam', labelKey: 'reasonSpam' },
+  { value: 'Contenido ofensivo', labelKey: 'reasonOffensive' },
+  { value: 'Acoso', labelKey: 'reasonHarassment' },
+  { value: 'Estafa / fraude', labelKey: 'reasonFraud' },
+  { value: 'Otro', labelKey: 'reasonOther' },
+] as const;
 
 /** Fase 8.4 — botón + modal para denunciar un comentario (con consentimiento). */
 const ReportCommentButton = ({ commentId }: { commentId: number }) => {
+  const t = useTranslations('publications');
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState(REASONS[0]);
+  const [reason, setReason] = useState<string>(REASONS[0].value);
   const [consent, setConsent] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => ApiFetch.post<{ message: string }>('/reportcomment', { comment_id: commentId, reason }),
     onSuccess: (r) => {
-      toast.success(r.message || 'Comentario denunciado.');
+      toast.success(r.message || t('reports.commentSuccess'));
       setOpen(false);
       setConsent(false);
     },
-    onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo enviar la denuncia'),
+    onError: (e) => toast.error(e instanceof ApiError ? e.message : t('reports.error')),
   });
 
   return (
     <>
-      <button type="button" className="rc-trigger" onClick={() => setOpen(true)} title="Denunciar comentario">
-        <i className="fal fa-flag" /> Denunciar
+      <button type="button" className="rc-trigger" onClick={() => setOpen(true)} title={t('reports.commentTitle')}>
+        <i className="fal fa-flag" /> {t('reports.trigger')}
       </button>
 
       {open && (
         <div className="rc-overlay" role="dialog" aria-modal="true">
           <div className="rc-modal">
-            <h5>Denunciar comentario</h5>
-            <label className="rc-label">Motivo</label>
+            <h5>{t('reports.commentTitle')}</h5>
+            <label className="rc-label">{t('reports.reasonLabel')}</label>
             <select value={reason} onChange={(e) => setReason(e.target.value)}>
-              {REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+              {REASONS.map((r) => <option key={r.value} value={r.value}>{t(`reports.${r.labelKey}`)}</option>)}
             </select>
             <label className="rc-consent">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-              <span>Entiendo y acepto que el equipo de soporte tendrá acceso a este comentario para revisar la denuncia y tomar las medidas que correspondan.</span>
+              <span>{t('reports.consentComment')}</span>
             </label>
             <div className="rc-actions">
-              <button className="rc-ghost" onClick={() => setOpen(false)}>Cancelar</button>
+              <button className="rc-ghost" onClick={() => setOpen(false)}>{t('common.cancel')}</button>
               <button className="rc-send" onClick={() => mutation.mutate()} disabled={mutation.isPending || !consent}>
-                {mutation.isPending ? 'Enviando…' : 'Enviar denuncia'}
+                {mutation.isPending ? t('common.sending') : t('reports.send')}
               </button>
             </div>
           </div>

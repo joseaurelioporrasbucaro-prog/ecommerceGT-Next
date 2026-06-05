@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import type { AnyPublicationListItem } from '@/types/api';
 import {
@@ -60,6 +61,7 @@ interface PubWithCoords {
 }
 
 const PropertiesMap: React.FC<Props> = ({ publications }) => {
+  const t = useTranslations('publications');
   // Geocodificar todas las publicaciones (memo: se recalcula solo cuando
   // cambia la lista, que es lo deseable cuando los filtros aplican).
   const clusters = useMemo(() => {
@@ -119,17 +121,17 @@ const PropertiesMap: React.FC<Props> = ({ publications }) => {
                   )}
                   <div className="pm-popup-title">{first.title}</div>
                   <div className="pm-popup-price">
-                    {formatPrice(first.price, first.currency)}
+                    {formatPrice(first.price, first.currency, t('card.priceConsult'))}
                   </div>
                   <div className="pm-popup-loc">
                     <i className="fas fa-map-marker-alt" /> {first.town || first.city}
                   </div>
                   <Link href={`/publications/${first.id}`} className="pm-popup-cta">
-                    Ver propiedad
+                    {t('card.viewProperty')}
                   </Link>
                   {count > 1 && (
                     <div className="pm-popup-more">
-                      + {count - 1} {count - 1 === 1 ? 'propiedad más' : 'propiedades más'} en esta zona
+                      {t('map.moreInArea', { count: count - 1 })}
                     </div>
                   )}
                 </div>
@@ -142,7 +144,7 @@ const PropertiesMap: React.FC<Props> = ({ publications }) => {
       {publications.length === 0 && (
         <div className="pm-empty-overlay">
           <i className="fas fa-map-marked-alt" />
-          <p>No hay propiedades para mostrar con los filtros actuales.</p>
+          <p>{t('map.empty')}</p>
         </div>
       )}
 

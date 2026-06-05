@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import { getImageVariant } from '@/utils/imageVariants';
 import type { AnyPublicationListItem } from '@/types/api';
@@ -37,6 +38,7 @@ interface PublicationCardProps {
 }
 
 const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOverride }: PublicationCardProps) => {
+  const t = useTranslations('publications');
   const allImages = useMemo(() => getPublicationListAllImages(publication), [publication]);
   const hasMultiple = allImages.length > 1;
 
@@ -57,10 +59,14 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
 
   const isFavorite = isPublicationListItemAuth(publication) && publication.isFavorite;
   const isLand = isLandCategory(publication.category);
-  const statusBadge = getStatusBadge(publication.pubstaId);
+  const statusBadge = getStatusBadge(publication.pubstaId, {
+    sold: t('status.sold'),
+    draft: t('status.draft'),
+    void: t('status.void'),
+  });
 
   // Solo municipio (town). Si no hay, fallback a city.
-  const locationLabel = publication.town || publication.city || 'Sin ubicación';
+  const locationLabel = publication.town || publication.city || t('card.noLocation');
 
   const categoryFallback = getCategoryFallbackIcon(publication.category);
 
@@ -113,13 +119,13 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
                 {isFeatured && (
                   <div className="publication-featured-badge">
                     <i className="fas fa-bolt"></i>
-                    Patrocinado
+                    {t('card.featured')}
                   </div>
                 )}
                 {isNew && !statusBadge && (
                   <div className="publication-new-badge">
                     <i className="fas fa-star"></i>
-                    Nuevo
+                    {t('card.new')}
                   </div>
                 )}
               </div>
@@ -160,8 +166,8 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
                 <button
                   type="button"
                   className={`publication-like-btn ${isFavorite ? 'is-active' : ''}`}
-                  title={isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
-                  aria-label={isFavorite ? 'Quitar de favoritos' : 'Guardar como favorito'}
+                  title={isFavorite ? t('favorite.remove') : t('favorite.add')}
+                  aria-label={isFavorite ? t('favorite.remove') : t('favorite.add')}
                   onClick={handleToggleFavorite}
                   disabled={toggleFavoriteMutation.isPending}
                 >
@@ -176,8 +182,8 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
               {/* Precio + botón Ver propiedad */}
               <div className="publication-price-row">
                 <div className="publication-price-block">
-                  <div className="art-meta-type">Precio</div>
-                  <div className="art-price">{formatPrice(publication.price, publication.currency)}</div>
+                  <div className="art-meta-type">{t('card.price')}</div>
+                  <div className="art-price">{formatPrice(publication.price, publication.currency, t('card.priceConsult'))}</div>
                 </div>
                 {ctaOverride ? (
                   <Link
@@ -193,7 +199,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
                     href={`/publications/${publication.id}`}
                     className="publication-view-btn"
                   >
-                    Ver propiedad
+                    {t('card.viewProperty')}
                   </Link>
                 )}
               </div>
@@ -202,7 +208,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
               <div className="publication-stats mt-auto">
                 <div className="publication-stats-features">
                   {isLand ? (
-                    <div className="publication-stat-item" title="Tamaño">
+                    <div className="publication-stat-item" title={t('features.size')}>
                       <PropertyFeatureIcon feature="size" size={18} />
                       <span>
                         {publication.sizee !== null && publication.sizee !== undefined
@@ -212,15 +218,15 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
                     </div>
                   ) : (
                     <>
-                      <div className="publication-stat-item" title="Habitaciones">
+                      <div className="publication-stat-item" title={t('features.rooms')}>
                         <PropertyFeatureIcon feature="rooms" size={18} />
                         <span>{formatNumberValue(publication.rooms, '-')}</span>
                       </div>
-                      <div className="publication-stat-item" title="Baños">
+                      <div className="publication-stat-item" title={t('features.bathrooms')}>
                         <PropertyFeatureIcon feature="bathrooms" size={18} />
                         <span>{formatNumberValue(publication.bathrooms, '-')}</span>
                       </div>
-                      <div className="publication-stat-item" title="Parqueos">
+                      <div className="publication-stat-item" title={t('features.parking')}>
                         <PropertyFeatureIcon feature="parking" size={18} />
                         <span>{formatNumberValue(publication.parking, '-')}</span>
                       </div>

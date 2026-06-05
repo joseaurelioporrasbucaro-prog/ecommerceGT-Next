@@ -1,9 +1,10 @@
 "use client";
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import NiceSelect from '@/elements/niceSelect/NiceSelect';
 import type { PublicationCategory } from '@/types/api';
-import { SORT_OPTIONS, type SortOption } from './publicationUtils';
+import { type SortOption } from './publicationUtils';
 
 export interface PublicationFilters {
   search: string;
@@ -28,11 +29,16 @@ interface PublicationsBarProps {
   onFiltersChange: (filters: PublicationFilters) => void;
 }
 
-const ALL_OPTION = { id: 0, option: 'Todas las propiedades' };
-
 const PublicationsBar = ({ filters, categories, onFiltersChange }: PublicationsBarProps) => {
+  const t = useTranslations('publications');
+  const allOption = { id: 0, option: t('filters.allProperties') };
+  const sortOptions: Array<{ id: number; option: string; value: SortOption }> = [
+    { id: 1, option: t('filters.sortRecent'), value: 'recent' },
+    { id: 2, option: t('filters.sortLowPrice'), value: 'price-asc' },
+    { id: 3, option: t('filters.sortHighPrice'), value: 'price-desc' },
+  ];
   const categoryOptions = [
-    ALL_OPTION,
+    allOption,
     ...categories.map((cat) => ({ id: cat.pubgen_id, option: cat.pubgen_description })),
   ];
 
@@ -45,14 +51,14 @@ const PublicationsBar = ({ filters, categories, onFiltersChange }: PublicationsB
   };
 
   const handleSortChange = (item: { id: number; option: string }) => {
-    const sortOption = SORT_OPTIONS.find((opt) => opt.id === item.id);
+    const sortOption = sortOptions.find((opt) => opt.id === item.id);
     if (sortOption) {
       onFiltersChange({ ...filters, sort: sortOption.value });
     }
   };
 
   // Default current del sort: posición de la opción activa actual
-  const currentSortIndex = SORT_OPTIONS.findIndex((opt) => opt.value === filters.sort);
+  const currentSortIndex = sortOptions.findIndex((opt) => opt.value === filters.sort);
 
   return (
     <div className="row wow fadeInUp">
@@ -77,20 +83,20 @@ const PublicationsBar = ({ filters, categories, onFiltersChange }: PublicationsB
                 value={filters.search}
                 onChange={handleSearchChange}
                 type="text"
-                placeholder="Buscar por título, ubicación o descripción"
+                placeholder={t('filters.searchPlaceholder')}
               />
-              <button type="submit" aria-label="Buscar publicaciones">
+              <button type="submit" aria-label={t('filters.searchAria')}>
                 <i className="fal fa-search"></i>
               </button>
             </div>
           </div>
           <div className="filter-by-sale d-flex filter-oction">
             <div className="select-category-title">
-              <i className="flaticon-filter"></i> Filtros
+              <i className="flaticon-filter"></i> {t('filters.label')}
             </div>
             <div>
               <NiceSelect
-                options={SORT_OPTIONS}
+                options={sortOptions}
                 defaultCurrent={currentSortIndex >= 0 ? currentSortIndex : 0}
                 onChange={handleSortChange}
                 name="sort"

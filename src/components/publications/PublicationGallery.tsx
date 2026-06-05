@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { getImageVariant } from '@/utils/imageVariants';
 import {
   DETAIL_PLACEHOLDER,
@@ -22,6 +23,7 @@ interface PublicationGalleryProps {
  * - Flechas y thumbnails para navegar.
  */
 const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
+  const t = useTranslations('publications');
   const list = images.length > 0 ? images : [DETAIL_PLACEHOLDER];
   const [activeIndex, setActiveIndex] = useState(0);
   // Cadena de fallback para la imagen principal: variante _detail → original → placeholder.
@@ -69,7 +71,7 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
               type="button"
               className="gallery-arrow gallery-arrow-prev"
               onClick={goPrev}
-              aria-label="Imagen anterior"
+              aria-label={t('gallery.previous')}
             >
               <i className="fal fa-angle-left"></i>
             </button>
@@ -77,7 +79,7 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
               type="button"
               className="gallery-arrow gallery-arrow-next"
               onClick={goNext}
-              aria-label="Imagen siguiente"
+              aria-label={t('gallery.next')}
             >
               <i className="fal fa-angle-right"></i>
             </button>
@@ -101,6 +103,7 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
                 setMainStage('variant');
               }}
               alt={alt}
+              ariaLabel={t('gallery.viewImage')}
             />
           ))}
         </div>
@@ -186,10 +189,11 @@ interface ThumbnailButtonProps {
   image: string;
   isActive: boolean;
   alt: string;
+  ariaLabel: string;
   onClick: () => void;
 }
 
-const ThumbnailButton = ({ image, isActive, alt, onClick }: ThumbnailButtonProps) => {
+const ThumbnailButton = ({ image, isActive, alt, ariaLabel, onClick }: ThumbnailButtonProps) => {
   // Cadena de fallback: variante _thumb → original → placeholder.
   const [stage, setStage] = useState<'variant' | 'original' | 'placeholder'>('variant');
   const src =
@@ -203,7 +207,7 @@ const ThumbnailButton = ({ image, isActive, alt, onClick }: ThumbnailButtonProps
     <button
       type="button"
       onClick={onClick}
-      aria-label="Ver imagen"
+      aria-label={ariaLabel}
       className={`gallery-thumb ${isActive ? 'is-active' : ''}`}
     >
       <Image

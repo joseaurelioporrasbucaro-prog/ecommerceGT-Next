@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Navigation, A11y } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css/bundle';
@@ -62,6 +63,7 @@ const CategorySlider = ({
   activeCategory,
   onSelect,
 }: CategorySliderProps) => {
+  const t = useTranslations('publications');
   const nextClass = `${uniqueId}-next`;
   const prevClass = `${uniqueId}-prev`;
 
@@ -80,7 +82,7 @@ const CategorySlider = ({
           >
             <SwiperSlide style={{ width: 'auto' }}>
               <CategoryButton
-                label="Todas"
+                label={t('filters.all')}
                 iconPath={null}
                 fallbackIcon="fa-th-large"
                 isActive={activeCategory === ''}

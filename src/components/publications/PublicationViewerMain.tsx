@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePublicationDetail } from '@/hooks/api/usePublications';
 import { ApiError } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
@@ -55,10 +56,10 @@ declare global {
 
 type BgPreset = 'dark' | 'light' | 'showroom';
 
-const BG_PRESETS: Record<BgPreset, { background: string; color: string; label: string }> = {
-  dark:     { background: '#0f0f1e',                                       color: '#fff',     label: 'Oscuro' },
-  light:    { background: '#f3f4f6',                                       color: '#1f2937',  label: 'Claro' },
-  showroom: { background: 'linear-gradient(180deg,#1e293b 0%,#475569 100%)', color: '#fff',   label: 'Estudio' },
+const BG_PRESETS: Record<BgPreset, { background: string; color: string; labelKey: 'dark' | 'light' | 'showroom' }> = {
+  dark:     { background: '#0f0f1e',                                       color: '#fff',     labelKey: 'dark' },
+  light:    { background: '#f3f4f6',                                       color: '#1f2937',  labelKey: 'light' },
+  showroom: { background: 'linear-gradient(180deg,#1e293b 0%,#475569 100%)', color: '#fff',   labelKey: 'showroom' },
 };
 
 interface PublicationViewerMainProps {
@@ -66,6 +67,7 @@ interface PublicationViewerMainProps {
 }
 
 const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => {
+  const t = useTranslations('publications');
   const publicationQuery = usePublicationDetail(id);
   const publication = publicationQuery.data;
 
@@ -77,13 +79,14 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
     return publication.imagesglb
       .map((g: PublicationImageGlb) => {
         const path = getPublicationImagePathGlb(g);
+        const modelId = g.id || g.pubimaglb_id;
         return path ? {
           url: getBackendUrl(path),
-          name: g.id || g.pubimaglb_id ? `Modelo ${g.id || g.pubimaglb_id}` : 'Modelo 3D',
+          name: modelId ? t('viewer.modelNamed', { id: modelId }) : t('viewer.model3d'),
         } : null;
       })
       .filter((m: { url: string; name: string } | null): m is { url: string; name: string } => m !== null);
-  }, [publication]);
+  }, [publication, t]);
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -149,7 +152,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
   if (publicationQuery.isLoading) {
     return (
       <div className="pv-loading">
-        <i className="fas fa-spinner fa-spin" /> Cargando visor 3D…
+        <i className="fas fa-spinner fa-spin" /> {t('viewer.loading3d')}
       </div>
     );
   }
@@ -158,8 +161,8 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
     return (
       <div className="pv-error">
         <i className="fas fa-exclamation-triangle" />
-        <p>{publicationQuery.error instanceof ApiError ? publicationQuery.error.message : 'No se pudo cargar la publicación.'}</p>
-        <Link href="/publications" className="pv-btn">Volver al catálogo</Link>
+        <p>{publicationQuery.error instanceof ApiError ? publicationQuery.error.message : t('viewer.errorPublication')}</p>
+        <Link href="/publications" className="pv-btn">{t('viewer.returnCatalog')}</Link>
         <style jsx>{viewerStyles}</style>
       </div>
     );
@@ -169,9 +172,9 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
     return (
       <div className="pv-error">
         <i className="fas fa-cube" />
-        <p>Esta publicación no tiene archivos 3D.</p>
+        <p>{t('viewer.noModels')}</p>
         <Link href={`/publications/${id}`} className="pv-btn">
-          <i className="fas fa-arrow-left" /> Volver a la publicación
+          <i className="fas fa-arrow-left" /> {t('viewer.returnPublication')}
         </Link>
         <style jsx>{viewerStyles}</style>
       </div>
@@ -187,16 +190,16 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
       <header className="pv-header">
         <Link href={`/publications/${id}`} className="pv-back">
           <i className="fas fa-arrow-left" />
-          <span>Volver a la publicación</span>
+          <span>{t('viewer.returnPublication')}</span>
         </Link>
         <div className="pv-title">
           <h1>{publication.pub_title}</h1>
           <span className="pv-subtitle">
-            <i className="fas fa-cube" /> Visor 3D — {models.length} {models.length === 1 ? 'modelo' : 'modelos'}
+            <i className="fas fa-cube" /> {t('viewer.subtitle')} — {t('viewer.modelCount', { count: models.length })}
           </span>
         </div>
         <div className="pv-price">
-          {formatPrice(publication.pubdet_price, publication.pubdet_currency)}
+          {formatPrice(publication.pubdet_price, publication.pubdet_currency, t('card.priceConsult'))}
         </div>
       </header>
 
@@ -207,7 +210,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
             <model-viewer
               key={activeModel.url}
               src={activeModel.url}
-              alt={`Modelo 3D: ${publication.pub_title}`}
+              alt={t('viewer.modelAlt', { title: publication.pub_title })}
               camera-controls
               auto-rotate={autoRotate ? '' : undefined}
               rotation-per-second="20deg"
@@ -225,7 +228,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
             />
           ) : (
             <div className="pv-canvas-loading">
-              <i className="fas fa-spinner fa-spin" /> Cargando visor…
+              <i className="fas fa-spinner fa-spin" /> {t('viewer.canvasLoading')}
             </div>
           )}
         </div>
@@ -237,34 +240,34 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
               type="button"
               className={`pv-tool ${autoRotate ? 'active' : ''}`}
               onClick={() => setAutoRotate((v) => !v)}
-              title={autoRotate ? 'Detener rotación automática del modelo' : 'Activar rotación automática del modelo'}
+              title={autoRotate ? t('viewer.pauseRotateTitle') : t('viewer.startRotateTitle')}
             >
               <i className={`fas ${autoRotate ? 'fa-pause' : 'fa-sync'}`} />
-              <span>{autoRotate ? 'Pausar rotación' : 'Rotación auto'}</span>
+              <span>{autoRotate ? t('viewer.pauseRotate') : t('viewer.autoRotate')}</span>
             </button>
 
             <button
               type="button"
               className="pv-tool"
               onClick={handleFullscreen}
-              title="Pantalla completa"
+              title={t('viewer.fullscreen')}
             >
               <i className="fas fa-expand" />
-              <span>Pantalla completa</span>
+              <span>{t('viewer.fullscreen')}</span>
             </button>
           </div>
 
           <div className="pv-toolbar-group pv-bg-group">
-            <span className="pv-bg-label">Fondo:</span>
+            <span className="pv-bg-label">{t('viewer.bgLabel')}</span>
             {(Object.keys(BG_PRESETS) as BgPreset[]).map((preset) => (
               <button
                 key={preset}
                 type="button"
                 className={`pv-bg-swatch ${bg === preset ? 'active' : ''}`}
                 onClick={() => setBg(preset)}
-                title={BG_PRESETS[preset].label}
+                title={t(`viewer.${BG_PRESETS[preset].labelKey}`)}
                 style={{ background: BG_PRESETS[preset].background }}
-                aria-label={BG_PRESETS[preset].label}
+                aria-label={t(`viewer.${BG_PRESETS[preset].labelKey}`)}
               />
             ))}
           </div>
@@ -282,7 +285,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
                 title={m.name}
               >
                 <i className="fas fa-cube" />
-                <span>Modelo {i + 1}</span>
+                <span>{t('viewer.modelNamed', { id: i + 1 })}</span>
               </button>
             ))}
           </div>
@@ -291,7 +294,7 @@ const PublicationViewerMain: React.FC<PublicationViewerMainProps> = ({ id }) => 
         {/* Hint de uso */}
         <div className="pv-hint">
           <i className="fas fa-info-circle" />
-          <span>Arrastra para rotar · Rueda del ratón para zoom · Doble click para reset</span>
+          <span>{t('viewer.hint')}</span>
         </div>
       </div>
 

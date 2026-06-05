@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import React, { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import { ApiError } from '@/utils/Api';
 import { usePublicationDetail } from '@/hooks/api/usePublications';
@@ -18,11 +19,12 @@ interface PublicationDetailsMainProps {
   id: string;
 }
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Error inesperado';
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
 const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
+  const t = useTranslations('publications');
   const publicationQuery = usePublicationDetail(id);
   const publication = publicationQuery.data;
 
@@ -57,15 +59,15 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
             <div className="col-lg-12">
               <div className="page-title">
                 <h2 className="breadcrumb-title mb-10">
-                  {publication?.pub_title ?? 'Detalle de publicación'}
+                  {publication?.pub_title ?? t('detail.breadcrumbTitle')}
                 </h2>
                 <div className="breadcrumb-menu">
                   <nav className="breadcrumb-trail breadcrumbs">
                     <ul className="trail-items">
-                      <li className="trail-item trail-begin"><Link href="/">Inicio</Link></li>
-                      <li className="trail-item"><Link href="/publications">Publicaciones</Link></li>
+                      <li className="trail-item trail-begin"><Link href="/">{t('detail.home')}</Link></li>
+                      <li className="trail-item"><Link href="/publications">{t('listing.breadcrumbTitle')}</Link></li>
                       <li className="trail-item trail-end">
-                        <span>{publication?.pub_title ?? 'Detalle'}</span>
+                        <span>{publication?.pub_title ?? t('detail.breadcrumbFallback')}</span>
                       </li>
                     </ul>
                   </nav>
@@ -79,7 +81,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
       {publicationQuery.isLoading && (
         <section className="art-details-area pt-130 pb-90">
           <div className="container">
-            <div className="alert alert-info">Cargando publicación...</div>
+            <div className="alert alert-info">{t('detail.loadingPublication')}</div>
           </div>
         </section>
       )}
@@ -87,7 +89,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
       {publicationQuery.error && (
         <section className="art-details-area pt-130 pb-90">
           <div className="container">
-            <div className="alert alert-danger">{getErrorMessage(publicationQuery.error)}</div>
+            <div className="alert alert-danger">{getErrorMessage(publicationQuery.error, t('common.unexpectedError'))}</div>
           </div>
         </section>
       )}
@@ -103,7 +105,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
                   <div className="action-row">
                     <Link href={`/publications/${publication.pub_id}/viewer`} className="action-btn action-btn-primary">
                       <i className="fas fa-cube"></i>
-                      <span>Explorar 3D</span>
+                      <span>{t('detail.explore3d')}</span>
                     </Link>
                   </div>
                 </>

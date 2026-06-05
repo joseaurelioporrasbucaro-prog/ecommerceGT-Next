@@ -1,19 +1,21 @@
 "use client";
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMutation } from '@tanstack/react-query';
 import { ApiError, ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 
 const REASONS: { value: string; label: string }[] = [
-  { value: 'spam', label: 'Spam' },
-  { value: 'ofensivo', label: 'Contenido ofensivo' },
-  { value: 'estafa', label: 'Estafa / fraude' },
-  { value: 'prohibido', label: 'Producto prohibido' },
-  { value: 'otro', label: 'Otro' },
+  { value: 'spam', label: 'reasonSpam' },
+  { value: 'ofensivo', label: 'reasonOffensive' },
+  { value: 'estafa', label: 'reasonFraud' },
+  { value: 'prohibido', label: 'reasonProhibited' },
+  { value: 'otro', label: 'reasonOther' },
 ];
 
 /** Fase 8.4 — botón + modal para denunciar una publicación. */
 const ReportPublicationButton = ({ pubId }: { pubId: number | string }) => {
+  const t = useTranslations('publications');
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('spam');
   const [detail, setDetail] = useState('');
@@ -22,38 +24,38 @@ const ReportPublicationButton = ({ pubId }: { pubId: number | string }) => {
   const mutation = useMutation({
     mutationFn: () => ApiFetch.post<{ message: string }>(`/reportpublication/${pubId}`, { reason, detail: detail || undefined }),
     onSuccess: (r) => {
-      toast.success(r.message || 'Denuncia enviada.');
+      toast.success(r.message || t('reports.publicationSuccess'));
       setOpen(false);
       setDetail('');
       setConsent(false);
     },
-    onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo enviar la denuncia'),
+    onError: (e) => toast.error(e instanceof ApiError ? e.message : t('reports.error')),
   });
 
   return (
     <>
-      <button type="button" className="rp-trigger" onClick={() => setOpen(true)} title="Denunciar publicación">
-        <i className="fas fa-flag" /> Denunciar
+      <button type="button" className="rp-trigger" onClick={() => setOpen(true)} title={t('reports.publicationTitle')}>
+        <i className="fas fa-flag" /> {t('reports.trigger')}
       </button>
 
       {open && (
         <div className="rp-overlay" role="dialog" aria-modal="true">
           <div className="rp-modal">
-            <h5>Denunciar publicación</h5>
-            <label className="rp-label">Motivo</label>
+            <h5>{t('reports.publicationTitle')}</h5>
+            <label className="rp-label">{t('reports.reasonLabel')}</label>
             <select value={reason} onChange={(e) => setReason(e.target.value)}>
-              {REASONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+              {REASONS.map((r) => <option key={r.value} value={r.value}>{t(`reports.${r.label}`)}</option>)}
             </select>
-            <label className="rp-label">Detalle (opcional)</label>
-            <textarea rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="Cuéntanos qué pasó…" />
+            <label className="rp-label">{t('reports.detailLabel')}</label>
+            <textarea rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} placeholder={t('reports.detailPlaceholder')} />
             <label className="rp-consent">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-              <span>Entiendo y acepto que el equipo de soporte tendrá acceso a esta publicación para revisar la denuncia y tomar las medidas que correspondan.</span>
+              <span>{t('reports.consentPublication')}</span>
             </label>
             <div className="rp-actions">
-              <button className="rp-ghost" onClick={() => setOpen(false)}>Cancelar</button>
+              <button className="rp-ghost" onClick={() => setOpen(false)}>{t('common.cancel')}</button>
               <button className="rp-send" onClick={() => mutation.mutate()} disabled={mutation.isPending || !consent}>
-                {mutation.isPending ? 'Enviando…' : 'Enviar denuncia'}
+                {mutation.isPending ? t('common.sending') : t('reports.send')}
               </button>
             </div>
           </div>

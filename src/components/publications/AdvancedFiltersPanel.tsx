@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { PublicationFilters } from './PublicationsBar';
 import AmenitiesPicker from '@/components/Upload/AmenitiesPicker';
 
@@ -32,6 +33,7 @@ const countActive = (f: PublicationFilters): number => {
 };
 
 const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => {
+  const t = useTranslations('publications');
   const [open, setOpen] = useState(false);
   const activeCount = countActive(filters);
 
@@ -61,7 +63,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
         aria-expanded={open}
       >
         <i className="fas fa-sliders-h" />
-        <span>Filtros avanzados</span>
+        <span>{t('filters.advanced')}</span>
         {activeCount > 0 && <span className="afp-badge">{activeCount}</span>}
         <i className={`fas ${open ? 'fa-chevron-up' : 'fa-chevron-down'} afp-chevron`} />
       </button>
@@ -70,7 +72,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
         <div className="afp-body">
           <div className="afp-grid">
             <div className="afp-group">
-              <label className="afp-label">Precio mínimo</label>
+              <label className="afp-label">{t('filters.priceMin')}</label>
               <input
                 type="number"
                 inputMode="numeric"
@@ -80,17 +82,17 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
               />
             </div>
             <div className="afp-group">
-              <label className="afp-label">Precio máximo</label>
+              <label className="afp-label">{t('filters.priceMax')}</label>
               <input
                 type="number"
                 inputMode="numeric"
-                placeholder="Sin límite"
+                placeholder={t('filters.withoutLimit')}
                 value={filters.priceMax || ''}
                 onChange={(e) => update({ priceMax: e.target.value })}
               />
             </div>
             <div className="afp-group">
-              <label className="afp-label">Habitaciones (mín)</label>
+              <label className="afp-label">{t('filters.roomsMin')}</label>
               <input
                 type="number"
                 inputMode="numeric"
@@ -101,7 +103,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
               />
             </div>
             <div className="afp-group">
-              <label className="afp-label">Baños (mín)</label>
+              <label className="afp-label">{t('filters.bathroomsMin')}</label>
               <input
                 type="number"
                 inputMode="numeric"
@@ -112,7 +114,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
               />
             </div>
             <div className="afp-group">
-              <label className="afp-label">Tamaño (m²) (mín)</label>
+              <label className="afp-label">{t('filters.sizeMin')}</label>
               <input
                 type="number"
                 inputMode="numeric"
@@ -123,10 +125,10 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
               />
             </div>
             <div className="afp-group afp-group-wide">
-              <label className="afp-label">Ubicación (zona, municipio, ciudad)</label>
+              <label className="afp-label">{t('filters.location')}</label>
               <input
                 type="text"
-                placeholder="Ej. Mixco, Antigua, zona 15..."
+                placeholder={t('filters.locationPlaceholder')}
                 value={filters.location || ''}
                 onChange={(e) => update({ location: e.target.value })}
               />
@@ -137,7 +139,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
               estilo de chips. La publicación debe tener TODAS las marcadas
               (AND), no cualquiera (OR) — es lo intuitivo para el comprador. */}
           <div className="afp-amenities">
-            <label className="afp-label">Comodidades requeridas (todas):</label>
+            <label className="afp-label">{t('filters.amenitiesRequired')}</label>
             <AmenitiesPicker
               value={filters.amenityIds || []}
               onChange={(next) => update({ amenityIds: next })}
@@ -147,8 +149,7 @@ const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => 
           {activeCount > 0 && (
             <div className="afp-actions">
               <button type="button" className="afp-clear-btn" onClick={clearAll}>
-                <i className="fas fa-times-circle" /> Limpiar {activeCount}{' '}
-                {activeCount === 1 ? 'filtro' : 'filtros'}
+                <i className="fas fa-times-circle" /> {t('filters.clear', { count: activeCount })}
               </button>
             </div>
           )}
