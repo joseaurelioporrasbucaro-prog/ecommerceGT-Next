@@ -1,1 +1,53 @@
-{}
+{
+  "cancel": "Cancelar",
+  "passwordLabel": "Confirmá con tu contraseña actual",
+  "passwordPlaceholder": "Contraseña",
+  "header": {
+    "title": "Zona sensible",
+    "body": "Acciones que afectan el estado de tu cuenta. Elegí la que corresponda."
+  },
+  "validation": {
+    "ackDeactivate": "Confirmá que entendés la acción.",
+    "ackDelete": "Confirmá que aceptás las consecuencias.",
+    "password": "Ingresá tu contraseña."
+  },
+  "toast": {
+    "deactivated": "Cuenta desactivada.",
+    "deactivateError": "No se pudo desactivar la cuenta",
+    "deleteScheduled": "Eliminación programada.",
+    "deleteError": "No se pudo programar la eliminación"
+  },
+  "deactivate": {
+    "ack": "Entiendo que mi cuenta queda pausada y que puedo recuperarla en cualquier momento iniciando sesión.",
+    "button": "Desactivar",
+    "cardBody": "Pausa tu cuenta sin perder nada — publicaciones, mensajes, fotos y configuración quedan intactas. Podés regresar haciendo login cuando quieras y todo se reactiva automáticamente.",
+    "cardTitle": "Desactivar mi cuenta (recuperable)",
+    "confirm": "Desactivar cuenta",
+    "items": {
+      "kept": "Tus publicaciones y mensajes se conservan tal como están.",
+      "noLimit": "No hay límite de tiempo para volver.",
+      "paused": "Tu cuenta queda pausada y no podés iniciar sesión normalmente.",
+      "return": "Cuando quieras regresar, iniciá sesión con tu correo y contraseña y la cuenta se reactiva sola."
+    },
+    "modalIntro": "Esta opción es <strong>reversible</strong>. Al confirmar:",
+    "modalTitle": "¿Desactivar tu cuenta?",
+    "pending": "Desactivando…"
+  },
+  "delete": {
+    "ack": "Entiendo que tengo 30 días para arrepentirme y que pasado ese plazo la eliminación es permanente.",
+    "button": "Eliminar cuenta",
+    "cardBody": "Programa tu cuenta para eliminación en 30 días. Durante ese plazo podés cambiar de opinión iniciando sesión. Pasados los 30 días, tu información personal se anonimiza de forma definitiva y la cuenta no se puede recuperar.",
+    "cardTitle": "Eliminar mi cuenta (30 días de gracia)",
+    "confirm": "Programar eliminación",
+    "items": {
+      "anonymize": "Pasados los 30 días, tu nombre se reemplaza por “Usuario eliminado”, tu correo, teléfono, dirección, fotos, DPI y handle se borran de forma <strong>definitiva e irreversible</strong>.",
+      "cancelWindow": "Durante 30 días podés <strong>cancelar la eliminación</strong> iniciando sesión con tu correo y contraseña — todo vuelve a la normalidad.",
+      "noLogin": "Después del plazo no podrás iniciar sesión con esta cuenta. Si querés regresar, deberás crear una nueva.",
+      "pauseCampaigns": "Tus campañas activas se pausan (el crédito de pauta se perderá si pasan los 30 días sin recuperar).",
+      "pauseListings": "Tus publicaciones se pausan inmediatamente (no aparecen en el catálogo)."
+    },
+    "modalIntro": "Esta acción inicia un <strong>plazo de 30 días</strong>. Al confirmar:",
+    "modalTitle": "¿Eliminar tu cuenta?",
+    "pending": "Procesando…"
+  }
+}

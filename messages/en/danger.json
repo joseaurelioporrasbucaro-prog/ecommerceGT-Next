@@ -1,1 +1,53 @@
-{}
+{
+  "cancel": "Cancel",
+  "passwordLabel": "Confirm with your current password",
+  "passwordPlaceholder": "Password",
+  "header": {
+    "title": "Sensitive zone",
+    "body": "Actions that affect your account status. Choose the one that applies."
+  },
+  "validation": {
+    "ackDeactivate": "Confirm that you understand the action.",
+    "ackDelete": "Confirm that you accept the consequences.",
+    "password": "Enter your password."
+  },
+  "toast": {
+    "deactivated": "Account deactivated.",
+    "deactivateError": "The account could not be deactivated",
+    "deleteScheduled": "Deletion scheduled.",
+    "deleteError": "The deletion could not be scheduled"
+  },
+  "deactivate": {
+    "ack": "I understand that my account will be paused and that I can recover it at any time by signing in.",
+    "button": "Deactivate",
+    "cardBody": "Pause your account without losing anything — listings, messages, photos, and settings remain intact. You can come back by signing in whenever you want and everything will reactivate automatically.",
+    "cardTitle": "Deactivate my account (recoverable)",
+    "confirm": "Deactivate account",
+    "items": {
+      "kept": "Your listings and messages remain exactly as they are.",
+      "noLimit": "There is no time limit to come back.",
+      "paused": "Your account is paused and you cannot sign in normally.",
+      "return": "When you want to return, sign in with your email and password and the account reactivates automatically."
+    },
+    "modalIntro": "This option is <strong>reversible</strong>. When you confirm:",
+    "modalTitle": "Deactivate your account?",
+    "pending": "Deactivating…"
+  },
+  "delete": {
+    "ack": "I understand that I have 30 days to change my mind and that after that period deletion is permanent.",
+    "button": "Delete account",
+    "cardBody": "Schedule your account for deletion in 30 days. During that period you can change your mind by signing in. After 30 days, your personal information is permanently anonymized and the account cannot be recovered.",
+    "cardTitle": "Delete my account (30-day grace period)",
+    "confirm": "Schedule deletion",
+    "items": {
+      "anonymize": "After 30 days, your name is replaced with “Deleted user”, and your email, phone, address, photos, DPI, and handle are deleted <strong>permanently and irreversibly</strong>.",
+      "cancelWindow": "During 30 days you can <strong>cancel deletion</strong> by signing in with your email and password — everything returns to normal.",
+      "noLogin": "After the period ends, you will not be able to sign in with this account. If you want to return, you will need to create a new one.",
+      "pauseCampaigns": "Your active campaigns are paused (ad credit will be lost if the 30 days pass without recovery).",
+      "pauseListings": "Your listings are paused immediately (they no longer appear in the catalog)."
+    },
+    "modalIntro": "This action starts a <strong>30-day period</strong>. When you confirm:",
+    "modalTitle": "Delete your account?",
+    "pending": "Processing…"
+  }
+}

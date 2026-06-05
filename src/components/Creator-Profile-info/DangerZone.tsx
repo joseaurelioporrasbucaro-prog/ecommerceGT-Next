@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Modal from 'react-responsive-modal';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
@@ -28,6 +29,7 @@ import { ApiError } from '@/utils/Api';
 type Mode = null | 'deactivate' | 'delete';
 
 const DangerZone: React.FC = () => {
+  const t = useTranslations('danger');
   const router = useRouter();
   const { logout } = useAuth();
   const deactivateMut = useDeactivateAccount();
@@ -38,6 +40,9 @@ const DangerZone: React.FC = () => {
   const [password, setPassword] = useState('');
 
   const pending = deactivateMut.isPending || deleteMut.isPending;
+  const rich = {
+    strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+  };
 
   const close = () => {
     if (pending) return;          // no cerramos a mitad de request
@@ -57,25 +62,25 @@ const DangerZone: React.FC = () => {
   };
 
   const confirmDeactivate = () => {
-    if (!acknowledged) { toast.error('Confirmá que entendés la acción.'); return; }
-    if (password.length < 4) { toast.error('Ingresá tu contraseña.'); return; }
+    if (!acknowledged) { toast.error(t('validation.ackDeactivate')); return; }
+    if (password.length < 4) { toast.error(t('validation.password')); return; }
     deactivateMut.mutate(
       { password },
       {
-        onSuccess: (r) => finish(r.message || 'Cuenta desactivada.'),
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo desactivar la cuenta'),
+        onSuccess: (r) => finish(r.message || t('toast.deactivated')),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('toast.deactivateError')),
       },
     );
   };
 
   const confirmDelete = () => {
-    if (!acknowledged) { toast.error('Confirmá que aceptás las consecuencias.'); return; }
-    if (password.length < 4) { toast.error('Ingresá tu contraseña.'); return; }
+    if (!acknowledged) { toast.error(t('validation.ackDelete')); return; }
+    if (password.length < 4) { toast.error(t('validation.password')); return; }
     deleteMut.mutate(
       { password },
       {
-        onSuccess: (r) => finish(r.message || 'Eliminación programada.'),
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo programar la eliminación'),
+        onSuccess: (r) => finish(r.message || t('toast.deleteScheduled')),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('toast.deleteError')),
       },
     );
   };
@@ -83,18 +88,16 @@ const DangerZone: React.FC = () => {
   return (
     <div className="danger-zone">
       <div className="dz-head">
-        <h5><i className="fas fa-exclamation-triangle" /> Zona sensible</h5>
-        <p>Acciones que afectan el estado de tu cuenta. Elegí la que corresponda.</p>
+        <h5><i className="fas fa-exclamation-triangle" /> {t('header.title')}</h5>
+        <p>{t('header.body')}</p>
       </div>
 
       {/* Opción 1: DESACTIVAR */}
       <div className="dz-row dz-row-warning">
         <div>
-          <strong>Desactivar mi cuenta (recuperable)</strong>
+          <strong>{t('deactivate.cardTitle')}</strong>
           <p>
-            Pausa tu cuenta sin perder nada — publicaciones, mensajes, fotos
-            y configuración quedan intactas. Podés regresar haciendo login
-            cuando quieras y todo se reactiva automáticamente.
+            {t('deactivate.cardBody')}
           </p>
         </div>
         <button
@@ -102,19 +105,16 @@ const DangerZone: React.FC = () => {
           className="dz-btn dz-btn-warning"
           onClick={() => setMode('deactivate')}
         >
-          <i className="fas fa-pause" /> Desactivar
+          <i className="fas fa-pause" /> {t('deactivate.button')}
         </button>
       </div>
 
       {/* Opción 2: ELIMINAR */}
       <div className="dz-row dz-row-danger">
         <div>
-          <strong>Eliminar mi cuenta (30 días de gracia)</strong>
+          <strong>{t('delete.cardTitle')}</strong>
           <p>
-            Programa tu cuenta para eliminación en 30 días. Durante ese plazo
-            podés cambiar de opinión iniciando sesión. Pasados los 30 días,
-            tu información personal se anonimiza de forma definitiva y la
-            cuenta no se puede recuperar.
+            {t('delete.cardBody')}
           </p>
         </div>
         <button
@@ -122,7 +122,7 @@ const DangerZone: React.FC = () => {
           className="dz-btn dz-btn-danger"
           onClick={() => setMode('delete')}
         >
-          <i className="fas fa-trash" /> Eliminar cuenta
+          <i className="fas fa-trash" /> {t('delete.button')}
         </button>
       </div>
 
@@ -141,13 +141,13 @@ const DangerZone: React.FC = () => {
           <div className="dz-modal-icon dz-modal-icon-warning">
             <i className="fas fa-pause" />
           </div>
-          <h4>¿Desactivar tu cuenta?</h4>
-          <p className="dz-modal-text">Esta opción es <strong>reversible</strong>. Al confirmar:</p>
+          <h4>{t('deactivate.modalTitle')}</h4>
+          <p className="dz-modal-text">{t.rich('deactivate.modalIntro', rich)}</p>
           <ul className="dz-modal-list">
-            <li>Tu cuenta queda pausada y no podés iniciar sesión normalmente.</li>
-            <li>Tus publicaciones y mensajes se conservan tal como están.</li>
-            <li>Cuando quieras regresar, iniciá sesión con tu correo y contraseña y la cuenta se reactiva sola.</li>
-            <li>No hay límite de tiempo para volver.</li>
+            <li>{t('deactivate.items.paused')}</li>
+            <li>{t('deactivate.items.kept')}</li>
+            <li>{t('deactivate.items.return')}</li>
+            <li>{t('deactivate.items.noLimit')}</li>
           </ul>
 
           <label className="dz-modal-ack">
@@ -156,14 +156,14 @@ const DangerZone: React.FC = () => {
               checked={acknowledged}
               onChange={(e) => setAcknowledged(e.target.checked)}
             />
-            <span>Entiendo que mi cuenta queda pausada y que puedo recuperarla en cualquier momento iniciando sesión.</span>
+            <span>{t('deactivate.ack')}</span>
           </label>
 
-          <label className="dz-modal-pwd-label">Confirmá con tu contraseña actual</label>
+          <label className="dz-modal-pwd-label">{t('passwordLabel')}</label>
           <input
             type="password"
             className="dz-modal-pwd"
-            placeholder="Contraseña"
+            placeholder={t('passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -171,7 +171,7 @@ const DangerZone: React.FC = () => {
 
           <div className="dz-modal-actions">
             <button type="button" className="border-btn" onClick={close} disabled={pending}>
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               type="button"
@@ -179,7 +179,7 @@ const DangerZone: React.FC = () => {
               onClick={confirmDeactivate}
               disabled={!acknowledged || password.length < 4 || pending}
             >
-              {deactivateMut.isPending ? 'Desactivando…' : 'Desactivar cuenta'}
+              {deactivateMut.isPending ? t('deactivate.pending') : t('deactivate.confirm')}
             </button>
           </div>
         </div>
@@ -200,20 +200,18 @@ const DangerZone: React.FC = () => {
           <div className="dz-modal-icon dz-modal-icon-danger">
             <i className="fas fa-exclamation-triangle" />
           </div>
-          <h4>¿Eliminar tu cuenta?</h4>
+          <h4>{t('delete.modalTitle')}</h4>
           <p className="dz-modal-text">
-            Esta acción inicia un <strong>plazo de 30 días</strong>. Al confirmar:
+            {t.rich('delete.modalIntro', rich)}
           </p>
           <ul className="dz-modal-list">
-            <li>Tus publicaciones se pausan inmediatamente (no aparecen en el catálogo).</li>
-            <li>Tus campañas activas se pausan (el crédito de pauta se perderá si pasan los 30 días sin recuperar).</li>
-            <li>Durante 30 días podés <strong>cancelar la eliminación</strong> iniciando sesión con tu correo y contraseña — todo vuelve a la normalidad.</li>
+            <li>{t('delete.items.pauseListings')}</li>
+            <li>{t('delete.items.pauseCampaigns')}</li>
+            <li>{t.rich('delete.items.cancelWindow', rich)}</li>
             <li>
-              Pasados los 30 días, tu nombre se reemplaza por &quot;Usuario eliminado&quot;,
-              tu correo, teléfono, dirección, fotos, DPI y handle se borran
-              de forma <strong>definitiva e irreversible</strong>.
+              {t.rich('delete.items.anonymize', rich)}
             </li>
-            <li>Después del plazo no podrás iniciar sesión con esta cuenta. Si querés regresar, deberás crear una nueva.</li>
+            <li>{t('delete.items.noLogin')}</li>
           </ul>
 
           <label className="dz-modal-ack">
@@ -223,16 +221,15 @@ const DangerZone: React.FC = () => {
               onChange={(e) => setAcknowledged(e.target.checked)}
             />
             <span>
-              Entiendo que tengo 30 días para arrepentirme y que pasado ese plazo
-              la eliminación es permanente.
+              {t('delete.ack')}
             </span>
           </label>
 
-          <label className="dz-modal-pwd-label">Confirmá con tu contraseña actual</label>
+          <label className="dz-modal-pwd-label">{t('passwordLabel')}</label>
           <input
             type="password"
             className="dz-modal-pwd"
-            placeholder="Contraseña"
+            placeholder={t('passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -240,7 +237,7 @@ const DangerZone: React.FC = () => {
 
           <div className="dz-modal-actions">
             <button type="button" className="border-btn" onClick={close} disabled={pending}>
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               type="button"
@@ -248,7 +245,7 @@ const DangerZone: React.FC = () => {
               onClick={confirmDelete}
               disabled={!acknowledged || password.length < 4 || pending}
             >
-              {deleteMut.isPending ? 'Procesando…' : 'Programar eliminación'}
+              {deleteMut.isPending ? t('delete.pending') : t('delete.confirm')}
             </button>
           </div>
         </div>
