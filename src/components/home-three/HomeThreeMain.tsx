@@ -50,8 +50,10 @@ const HomeThreeMain: React.FC = () => {
         }
         .kh-section .kh-section-head h2 {
           margin: 0 0 8px;
+          font-family: var(--font-display);
           font-size: clamp(24px, 3.4vw, 32px);
           font-weight: 800;
+          letter-spacing: -0.02em;
           color: var(--clr-common-heading);
         }
         .kh-section .kh-section-head p {

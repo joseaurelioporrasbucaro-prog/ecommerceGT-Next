@@ -76,7 +76,7 @@ const TopSellersShowcase: React.FC = () => {
                         {reviews > 0 && (
                           <>
                             {' · '}
-                            <i className="fas fa-star" style={{ color: '#f59e0b' }} />{' '}
+                            <i className="fas fa-star" style={{ color: 'var(--green-600)' }} />{' '}
                             {rating.toFixed(1)}
                           </>
                         )}
@@ -115,8 +115,8 @@ const TopSellersShowcase: React.FC = () => {
         }
         .kts-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-          border-color: var(--clr-theme-1, #2785ff);
+          box-shadow: 0 10px 22px rgba(30, 45, 74, 0.08);
+          border-color: var(--lav-500);
         }
         .kts-skeleton {
           min-height: 86px;
@@ -148,8 +148,8 @@ const TopSellersShowcase: React.FC = () => {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: var(--clr-theme-1, #2785ff);
-          color: #fff;
+          background: var(--green-500);
+          color: var(--navy-900);
           font-size: 10px;
           display: flex;
           align-items: center;
@@ -170,12 +170,13 @@ const TopSellersShowcase: React.FC = () => {
         .kts-handle {
           margin: 1px 0 4px;
           font-size: 12.5px;
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--lav-700);
           font-weight: 600;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
+        :global([data-theme='dark']) .kts-handle { color: var(--lav-400); }
         .kts-meta {
           margin: 0;
           font-size: 12px;

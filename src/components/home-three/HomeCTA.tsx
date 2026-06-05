@@ -69,17 +69,31 @@ const HomeCTA: React.FC = () => {
           position: relative;
           overflow: hidden;
           padding: 48px 44px;
-          border-radius: 20px;
-          background: linear-gradient(
-            135deg,
-            var(--clr-theme-1, #2785ff) 0%,
-            #1d6fe8 100%
-          );
-          color: #fff;
+          border-radius: 28px;
+          background: var(--navy-800);
+          color: var(--cream);
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 30px;
+        }
+        /* Halos radiales lavanda/verde dentro del banner (como la referencia). */
+        .hcta-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(
+              circle at 100% 0%,
+              rgba(181, 172, 239, 0.3),
+              transparent 50%
+            ),
+            radial-gradient(
+              circle at 0% 100%,
+              rgba(155, 198, 74, 0.18),
+              transparent 50%
+            );
+          pointer-events: none;
         }
         .hcta-content {
           position: relative;
@@ -89,10 +103,11 @@ const HomeCTA: React.FC = () => {
         }
         .hcta-card :global(h2) {
           margin: 0 0 12px;
+          font-family: var(--font-display);
           font-size: clamp(24px, 3.5vw, 34px);
           font-weight: 800;
           line-height: 1.2;
-          color: #fff !important;
+          color: var(--cream) !important;
         }
         /* Fix 2026-06-02: el texto del párrafo se veía oscuro porque el
            template define color del body con --clr-common-body-text (gris
@@ -117,24 +132,26 @@ const HomeCTA: React.FC = () => {
            el gradiente azul→morado del template no se cuele. Selector con
            :global porque .hcta-primary lo aplica un componente Link de
            Next.js (rendea como anchor), y styled-jsx no scope-a hijos así. */
+        /* Primario verde de marca con texto navy (no blanco/azul). */
         .hcta-card :global(.hcta-primary) {
           display: inline-flex;
           align-items: center;
-          height: 50px;
-          padding: 0 28px;
-          border-radius: 5px;
-          background: #fff;
-          color: var(--clr-theme-1, #2785ff);
+          height: 52px;
+          padding: 0 30px;
+          border-radius: 999px;
+          background: var(--green-500);
+          color: var(--navy-900);
+          font-family: var(--font-display);
           font-size: 15px;
           font-weight: 700;
           text-decoration: none;
-          transition: transform 0.15s, box-shadow 0.15s;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+          transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
         }
         .hcta-card :global(.hcta-primary):hover {
+          background: var(--green-400);
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
-          color: var(--clr-theme-1, #2785ff);
+          box-shadow: 0 8px 20px rgba(155, 198, 74, 0.35);
+          color: var(--navy-900);
         }
         .hcta-card :global(.hcta-primary i) {
           margin-right: 7px;
@@ -142,19 +159,20 @@ const HomeCTA: React.FC = () => {
         .hcta-card :global(.hcta-secondary) {
           font-size: 14px;
           font-weight: 600;
-          color: #fff !important;
+          color: var(--lav-300) !important;
           text-decoration: underline;
           padding: 12px 4px;
         }
         .hcta-card :global(.hcta-secondary):hover {
-          opacity: 0.85;
-          color: #fff !important;
+          color: var(--cream) !important;
         }
         .hcta-decor {
+          position: relative;
+          z-index: 1;
           flex-shrink: 0;
           font-size: 180px;
-          opacity: 0.12;
           line-height: 1;
+          color: rgba(181, 172, 239, 0.18);
         }
         @media (max-width: 768px) {
           .hcta-card {

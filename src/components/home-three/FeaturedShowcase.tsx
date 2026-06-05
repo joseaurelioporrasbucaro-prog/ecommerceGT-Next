@@ -57,14 +57,15 @@ const FeaturedShowcase: React.FC = () => {
         .fsc-link {
           font-size: 14px;
           font-weight: 700;
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--lav-700);
           text-decoration: none;
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          transition: gap 0.15s;
+          transition: gap 0.15s, color 0.15s;
         }
-        .fsc-link:hover { gap: 11px; }
+        :global([data-theme='dark']) .fsc-link { color: var(--lav-400); }
+        .fsc-link:hover { gap: 11px; color: var(--lav-600); }
         .fsc-link :global(i) { font-size: 12px; }
         /* Oculto el título interno de FeaturedPublicationsSection — ya
            pusimos el nuestro arriba. */

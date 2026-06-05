@@ -83,15 +83,38 @@ const KiosquiHero: React.FC = () => {
       </div>
 
       <style jsx>{`
+        /* Kiosqui: halos radiales lavanda/verde sobre el canvas (--bg
+           auto-conmuta cream/oscuro). Reemplaza el gradiente azul del template. */
         .kiosqui-hero {
           padding: 96px 0 80px;
-          background: linear-gradient(
-              135deg,
-              rgba(39, 133, 255, 0.06) 0%,
-              rgba(39, 133, 255, 0.02) 60%,
-              transparent 100%
+          position: relative;
+          overflow: hidden;
+          background:
+            radial-gradient(
+              900px 480px at 85% -10%,
+              rgba(181, 172, 239, 0.28),
+              transparent 60%
             ),
-            var(--clr-bg-bodylight, #eff1f5);
+            radial-gradient(
+              700px 400px at -10% 110%,
+              rgba(155, 198, 74, 0.18),
+              transparent 60%
+            ),
+            var(--bg, #f8f4ee);
+        }
+        :global([data-theme='dark']) .kiosqui-hero {
+          background:
+            radial-gradient(
+              900px 480px at 85% -10%,
+              rgba(181, 172, 239, 0.18),
+              transparent 60%
+            ),
+            radial-gradient(
+              700px 400px at -10% 110%,
+              rgba(155, 198, 74, 0.1),
+              transparent 60%
+            ),
+            var(--bg, #0e1422);
         }
         .kh-inner {
           max-width: 880px;
@@ -113,16 +136,33 @@ const KiosquiHero: React.FC = () => {
           text-transform: uppercase;
         }
         .kh-title {
+          font-family: var(--font-display);
           font-size: clamp(34px, 5vw, 54px);
           font-weight: 800;
+          letter-spacing: -0.02em;
           line-height: 1.15;
           color: var(--clr-common-heading);
           margin: 0 0 18px;
         }
+        /* Acento lavanda con subrayado translúcido (sello de marca). */
         .kh-accent {
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--lav-700);
           position: relative;
           white-space: nowrap;
+          background: linear-gradient(
+            180deg,
+            transparent 62%,
+            rgba(181, 172, 239, 0.35) 62%
+          );
+          padding: 0 4px;
+        }
+        :global([data-theme='dark']) .kh-accent {
+          color: var(--lav-400);
+          background: linear-gradient(
+            180deg,
+            transparent 62%,
+            rgba(181, 172, 239, 0.22) 62%
+          );
         }
         .kh-subtitle {
           font-size: 17px;
@@ -137,10 +177,10 @@ const KiosquiHero: React.FC = () => {
           gap: 8px;
           background: var(--clr-bg-white, #fff);
           border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 12px;
-          padding: 6px 6px 6px 18px;
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-          max-width: 640px;
+          border-radius: 999px;
+          padding: 7px 7px 7px 22px;
+          box-shadow: 0 14px 40px rgba(30, 45, 74, 0.1);
+          max-width: 660px;
           margin: 0 auto 22px;
         }
         .kh-search-icon {
@@ -160,11 +200,25 @@ const KiosquiHero: React.FC = () => {
         .kh-search input::placeholder {
           color: var(--clr-common-placeholder, #b4b4b4);
         }
+        /* Botón verde de marca (no el gradiente azul-morado de .fill-btn). */
         .kh-search-btn {
-          height: 44px !important;
-          line-height: 44px !important;
-          padding: 0 24px !important;
+          height: 48px !important;
+          line-height: 48px !important;
+          padding: 0 26px !important;
           font-size: 15px !important;
+          font-family: var(--font-display);
+          font-weight: 600;
+          border-radius: 999px !important;
+          background-image: none !important;
+          background: var(--green-500) !important;
+          color: var(--navy-900) !important;
+        }
+        .kh-search-btn:hover {
+          background: var(--green-600) !important;
+          color: var(--navy-900) !important;
+        }
+        .kh-search-btn:active {
+          background: var(--green-700) !important;
         }
         .kh-quick-links {
           display: flex;
@@ -194,13 +248,18 @@ const KiosquiHero: React.FC = () => {
           transition: all 0.15s;
         }
         .kh-chip:hover {
-          border-color: var(--clr-theme-1, #2785ff);
-          color: var(--clr-theme-1, #2785ff);
+          border-color: var(--lav-500);
+          color: var(--lav-700);
+          background: var(--lav-100);
           transform: translateY(-1px);
         }
         .kh-chip :global(i) {
           font-size: 12px;
-          opacity: 0.7;
+          color: var(--lav-700);
+          opacity: 0.85;
+        }
+        .kh-chip:hover :global(i) {
+          opacity: 1;
         }
         .kh-trust-row {
           display: flex;
@@ -220,7 +279,7 @@ const KiosquiHero: React.FC = () => {
         }
         .kh-trust :global(i) {
           font-size: 16px;
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--green-600);
         }
         @media (max-width: 640px) {
           .kiosqui-hero {
@@ -230,6 +289,7 @@ const KiosquiHero: React.FC = () => {
             flex-direction: column;
             padding: 14px;
             gap: 12px;
+            border-radius: 20px;
           }
           .kh-search-icon {
             display: none;

@@ -74,16 +74,19 @@ const HowItWorks: React.FC = () => {
           border-radius: 14px;
           text-align: center;
         }
+        /* Número en navy (light) / lavanda (dark, vía --clr-theme-1), texto
+           cream en light y navy oscuro en dark para contraste sobre lavanda. */
         .hiw-step-num {
           position: absolute;
           top: -14px;
           left: 50%;
           transform: translateX(-50%);
-          width: 28px;
-          height: 28px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           background: var(--clr-theme-1, #2785ff);
-          color: #fff;
+          color: var(--cream);
+          font-family: var(--font-display);
           font-size: 13px;
           font-weight: 700;
           display: flex;
@@ -91,20 +94,51 @@ const HowItWorks: React.FC = () => {
           justify-content: center;
           border: 3px solid var(--clr-bg-bodylight, #eff1f5);
         }
+        :global([data-theme='dark']) .hiw-step-num { color: var(--navy-900); }
+        /* Íconos con fondo alternado lavanda / verde / neutro / lavanda. */
         .hiw-step-icon {
           width: 64px;
           height: 64px;
           margin: 8px auto 18px;
           border-radius: 14px;
-          background: rgba(39, 133, 255, 0.1);
-          color: var(--clr-theme-1, #2785ff);
+          background: var(--lav-200);
+          color: var(--lav-700);
           font-size: 26px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
+        .hiw-step:nth-child(2) .hiw-step-icon {
+          background: var(--green-100);
+          color: var(--green-700);
+        }
+        .hiw-step:nth-child(3) .hiw-step-icon {
+          background: rgba(212, 200, 182, 0.35);
+          color: var(--navy-700);
+        }
+        .hiw-step:nth-child(4) .hiw-step-icon {
+          background: var(--lav-200);
+          color: var(--lav-700);
+        }
+        :global([data-theme='dark']) .hiw-step-icon {
+          background: rgba(181, 172, 239, 0.18);
+          color: var(--lav-400);
+        }
+        :global([data-theme='dark']) .hiw-step:nth-child(2) .hiw-step-icon {
+          background: rgba(155, 198, 74, 0.18);
+          color: var(--green-400);
+        }
+        :global([data-theme='dark']) .hiw-step:nth-child(3) .hiw-step-icon {
+          background: rgba(248, 244, 238, 0.06);
+          color: var(--cream);
+        }
+        :global([data-theme='dark']) .hiw-step:nth-child(4) .hiw-step-icon {
+          background: rgba(181, 172, 239, 0.18);
+          color: var(--lav-400);
+        }
         .hiw-step h4 {
           margin: 0 0 8px;
+          font-family: var(--font-display);
           font-size: 18px;
           font-weight: 700;
           color: var(--clr-common-heading);

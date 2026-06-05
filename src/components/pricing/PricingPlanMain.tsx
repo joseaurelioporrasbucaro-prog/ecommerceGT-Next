@@ -211,39 +211,41 @@ const PricingPlanMain = () => {
 
       <style jsx>{`
         .pp-heading {
+          font-family: var(--font-display);
           font-size: 36px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
           margin-bottom: 12px;
         }
         .pp-sub {
           color: var(--clr-common-body-text);
           margin-bottom: 30px;
         }
+        /* Cápsula pill con el activo en navy (como la referencia). */
         .pp-toggle {
           display: flex;
-          justify-content: center;
-          gap: 0;
-          margin-bottom: 40px;
+          width: fit-content;
+          margin: 0 auto 40px;
+          padding: 5px;
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          border-radius: 999px;
         }
         .pp-toggle button {
-          border: 1px solid var(--clr-common-border);
-          background: var(--clr-bg-white);
-          color: var(--clr-common-heading);
-          padding: 10px 28px;
+          border: none;
+          background: transparent;
+          color: var(--fg-muted);
+          padding: 10px 26px;
+          border-radius: 999px;
+          font-family: var(--font-display);
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           transition: 0.3s;
         }
-        .pp-toggle button:first-child {
-          border-radius: 30px 0 0 30px;
-        }
-        .pp-toggle button:last-child {
-          border-radius: 0 30px 30px 0;
-          border-left: 0;
-        }
         .pp-toggle button.active {
-          background: var(--clr-theme-1);
-          color: #fff;
-          border-color: var(--clr-theme-1);
+          background: var(--navy-800);
+          color: var(--cream);
         }
         .pp-grid {
           margin-top: 10px;
@@ -253,35 +255,42 @@ const PricingPlanMain = () => {
           position: relative;
           background: var(--clr-bg-white);
           border: 1px solid var(--clr-common-border);
-          border-radius: 16px;
+          border-radius: 20px;
           padding: 32px 26px;
           margin-top: 30px;
           height: calc(100% - 30px);
           display: flex;
           flex-direction: column;
-          transition: transform 0.3s, box-shadow 0.3s;
+          transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
         }
         .pp-card:hover {
           transform: translateY(-6px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 16px 36px rgba(30, 45, 74, 0.1);
         }
+        /* Card destacada (= plan actual del usuario): borde navy + inset y
+           fondo cálido. En dark, --clr-theme-1 ya es lavanda vía el bridge. */
         .pp-card.is-current {
           border-color: var(--clr-theme-1);
           box-shadow: 0 0 0 2px var(--clr-theme-1) inset;
+          background: var(--paper);
         }
         .pp-badge {
           position: absolute;
-          top: 16px;
-          right: 16px;
-          background: var(--clr-theme-1);
-          color: #fff;
+          top: -13px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--green-500);
+          color: var(--navy-900);
           font-size: 12px;
-          font-weight: 600;
-          padding: 4px 12px;
-          border-radius: 20px;
+          font-weight: 700;
+          padding: 5px 14px;
+          border-radius: 999px;
+          white-space: nowrap;
         }
         .pp-name {
+          font-family: var(--font-display);
           font-size: 20px;
+          font-weight: 700;
           margin-bottom: 14px;
         }
         .pp-price {
@@ -291,8 +300,10 @@ const PricingPlanMain = () => {
           margin-bottom: 8px;
         }
         .pp-amount {
+          font-family: var(--font-display);
           font-size: 34px;
-          font-weight: 700;
+          font-weight: 800;
+          letter-spacing: -0.02em;
           color: var(--clr-common-heading);
         }
         .pp-interval {
@@ -312,39 +323,55 @@ const PricingPlanMain = () => {
           flex: 1;
         }
         .pp-features li {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
           padding: 7px 0;
           color: var(--clr-common-body-text);
           font-size: 15px;
         }
+        /* Check verde en círculo (sello de la referencia). */
         .pp-features i {
-          color: var(--clr-theme-1);
-          margin-right: 6px;
+          flex-shrink: 0;
+          width: 18px;
+          height: 18px;
+          margin-top: 4px;
+          border-radius: 999px;
+          background: var(--green-100);
+          color: var(--green-600);
+          font-size: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
+        /* CTA de marca verde con texto navy. */
         .pp-btn {
           display: inline-block;
           width: 100%;
           text-align: center;
-          padding: 12px 20px;
-          border-radius: 30px;
-          background: var(--clr-theme-1);
-          color: #fff !important;
-          font-weight: 600;
-          border: none;
+          padding: 13px 20px;
+          border-radius: 999px;
+          background: var(--action);
+          color: var(--on-action) !important;
+          font-family: var(--font-display);
+          font-weight: 700;
+          border: 1.5px solid transparent;
           cursor: pointer;
           transition: 0.3s;
           text-decoration: none;
         }
         .pp-btn:hover:not(:disabled) {
-          opacity: 0.9;
+          background: var(--action-hover);
         }
         .pp-btn:disabled {
           cursor: default;
           opacity: 0.7;
         }
+        /* "Plan actual" (disabled) → outline atenuado, no el verde de acción. */
         .pp-btn-current {
           background: transparent;
-          color: var(--clr-theme-1) !important;
-          border: 1px solid var(--clr-theme-1);
+          color: var(--fg-muted) !important;
+          border: 1.5px solid var(--border-strong);
         }
       `}</style>
     </>

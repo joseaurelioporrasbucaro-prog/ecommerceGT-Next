@@ -19,7 +19,10 @@ type CategoryMeta = {
   icon: string;
   hintKey: string;
   nameKey: string;
-  gradient: string;
+  /** Variante de color del icono (gradientes definidos en <style jsx>).
+      Se usa una clase en vez de inline-style para que el dark mode pueda
+      overridear Casa a lavanda (el navy se pierde sobre superficie oscura). */
+  variant: 'casa' | 'apto' | 'terreno' | 'default';
 };
 
 const CATEGORY_META: Record<number, CategoryMeta> = {
@@ -27,19 +30,19 @@ const CATEGORY_META: Record<number, CategoryMeta> = {
     icon: 'fa-home',
     hintKey: 'categories.hints.houses',
     nameKey: 'categories.names.houses',
-    gradient: 'linear-gradient(135deg, #2785ff 0%, #5fa1ff 100%)',
+    variant: 'casa',
   },
   2: { // Apartamento
     icon: 'fa-building',
     hintKey: 'categories.hints.apartments',
     nameKey: 'categories.names.apartments',
-    gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+    variant: 'apto',
   },
   3: { // Terreno
     icon: 'fa-map',
     hintKey: 'categories.hints.land',
     nameKey: 'categories.names.land',
-    gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+    variant: 'terreno',
   },
 };
 
@@ -66,7 +69,7 @@ const CategoriesShowcase: React.FC = () => {
                   icon: 'fa-th-large',
                   hintKey: 'categories.hints.default',
                   nameKey: 'categories.names.default',
-                  gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)',
+                  variant: 'default' as const,
                 };
                 const categoryName = CATEGORY_META[c.pubgen_id]
                   ? t(meta.nameKey)
@@ -77,10 +80,7 @@ const CategoriesShowcase: React.FC = () => {
                     href={`/publications?propertie=${c.pubgen_id}`}
                     className="kcs-card"
                   >
-                    <div
-                      className="kcs-icon"
-                      style={{ background: meta.gradient }}
-                    >
+                    <div className={`kcs-icon kcs-icon--${meta.variant}`}>
                       <i className={`fas ${meta.icon}`} />
                     </div>
                     <h4>{categoryName}</h4>
@@ -123,12 +123,12 @@ const CategoriesShowcase: React.FC = () => {
         }
         .kcs-card:hover {
           transform: translateY(-4px);
-          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-          border-color: var(--clr-theme-1, #2785ff);
+          box-shadow: 0 16px 36px rgba(30, 45, 74, 0.1);
+          border-color: var(--lav-500);
         }
         .kcs-card:hover .kcs-cta {
           gap: 12px;
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--lav-700);
         }
         .kcs-skeleton {
           min-height: 240px;
@@ -156,8 +156,26 @@ const CategoriesShowcase: React.FC = () => {
           justify-content: center;
           margin-bottom: 20px;
         }
+        /* Gradientes de marca por categoría (antes inline-style). */
+        .kcs-icon--casa {
+          background: linear-gradient(135deg, var(--navy-800), var(--navy-600));
+        }
+        .kcs-icon--apto {
+          background: linear-gradient(135deg, var(--green-600), var(--green-500));
+        }
+        .kcs-icon--terreno {
+          background: linear-gradient(135deg, var(--lav-600), var(--lav-500));
+        }
+        .kcs-icon--default {
+          background: linear-gradient(135deg, var(--ink-700), var(--ink-500));
+        }
+        /* En dark el navy de Casa se pierde sobre la superficie oscura → lavanda. */
+        :global([data-theme='dark']) .kcs-icon--casa {
+          background: linear-gradient(135deg, var(--lav-600), var(--lav-500));
+        }
         .kcs-card h4 {
           margin: 0 0 8px;
+          font-family: var(--font-display);
           font-size: 22px;
           font-weight: 700;
           color: var(--clr-common-heading);

@@ -1,0 +1,30 @@
+/* ============================================================
+   KIOSQUI — Bridge: remapea las variables del template Oction
+   (--clr-*) a los tokens de marca de colors_and_type.css.
+   Se importa DESPUÉS del scaffold (ver src/app/layout.tsx) para
+   ganar en cascada sobre las definiciones de _common.scss.
+
+   Revert: quitar los 3 @import de Kiosqui en layout.tsx y borrar
+   el directorio src/style/kiosqui/ + public/fonts/encode-sans-expanded/.
+   ============================================================ */
+:root {
+  --clr-theme-1:            var(--navy-800);
+  --clr-common-heading:     var(--fg-strong);
+  --clr-common-body-text:   var(--fg-muted);
+  --clr-common-border:      var(--border);
+  --clr-common-placeholder: var(--fg-subtle);
+  --clr-bg-bodylight:       var(--cream);
+  --clr-bg-white:           var(--surface);
+  --clr-bg-gray:            var(--paper);
+  --clr-bg-footer:          var(--surface-sunk);
+}
+
+/* Los tokens semánticos (--surface / --fg-* / --border / --paper) ya cambian
+   solos en dark dentro de colors_and_type.css, así que --clr-bg-white,
+   --clr-common-heading, etc. heredan el valor oscuro sin redefinirlos acá.
+   Solo redeclaramos lo que NO mapea 1:1: el acento pasa a lavanda (el navy
+   "oscuro sobre claro" no funciona en dark) y bodylight al fondo oscuro. */
+[data-theme='dark'] {
+  --clr-theme-1:      var(--lav-400);
+  --clr-bg-bodylight: var(--bg);
+}

@@ -99,8 +99,16 @@ export default async function LocaleLayout({
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
         <link rel="stylesheet" href="/assets/css/fontAwesome5Pro.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+        {/* Kiosqui — body font de marca (Encode Sans). El display (Encode Sans
+            Expanded) se auto-hostea en src/style/kiosqui/colors_and_type.css. */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
