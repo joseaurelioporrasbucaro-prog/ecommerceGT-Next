@@ -562,135 +562,80 @@ p {
 
 // fill-btn
 .fill-btn {
-	font-size: 16px;
-	color: var(--clr-common-white);
-	font-weight: 600;
-	background-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff);
-	background-size: 200% 100%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
 	height: 50px;
-	display: inline-block;
-	line-height: 50px;
-	border-radius: 5px;
-	padding: 0 35px;
-	position: relative;
-	overflow: hidden;
-	transition: all linear 0.3s;
+	padding: 0 26px;
+	border: 1.5px solid transparent;
+	border-radius: 999px;            // pill — sello de marca
+	background: var(--green-500);    // ACCIÓN
+	color: var(--navy-900);          // texto navy sobre verde
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 15px;
+	line-height: 1;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background .15s ease, color .15s ease, border-color .15s ease,
+		transform .08s ease, box-shadow .15s ease;
 
-	&:hover {
-		color: var(--clr-common-white);
-		background-position: 100% 100%;
-	}
+	&:hover  { background: var(--green-600); color: var(--navy-900); }
+	&:active { background: var(--green-700); transform: translateY(1px); }
+	&:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(181,172,239,.55); }
+	&:disabled, &.disabled { opacity: .45; pointer-events: none; }
 }
 
 .fill-btn-orange {
-	font-size: 16px;
-	color: #171717;
-	font-weight: 600;
-	background: #fcbd11;
-	height: 50px;
-	display: inline-block;
-	line-height: 50px;
-	border-radius: 5px;
-	padding: 0 35px;
-	position: relative;
-	overflow: hidden;
+	background: var(--warning);
+	color: var(--ink-900);
+}
 
-	&:before {
-		background-color: var(--clr-common-white);
-		content: "";
-		height: 150px;
-		left: -75px;
-		position: absolute;
-		top: -35px;
-		transform: rotate(35deg);
-		transition: all 1600ms cubic-bezier(0.19, 1, 0.22, 1);
-		width: 40px;
-		opacity: 0;
-	}
-
-	&:hover {
-		color: #171717;
-
-		&:before {
-			left: 120%;
-			transition: all 1300ms cubic-bezier(0.19, 1, 0.22, 1);
-			opacity: 0.25;
-		}
-	}
+.fill-btn-orange:hover {
+	background: #c2741f;
 }
 
 .fill-btn-lightblue {
-	font-size: 16px;
-	color: var(--clr-common-white);
-	font-weight: 600;
-	background: #3b99fc;
-	height: 50px;
-	display: inline-block;
-	line-height: 50px;
-	border-radius: 5px;
-	padding: 0 35px;
-	position: relative;
-	overflow: hidden;
+	background: var(--lav-500);
+	color: var(--navy-900);
+}
 
-	&:before {
-		background-color: var(--clr-common-white);
-		content: "";
-		height: 150px;
-		left: -75px;
-		position: absolute;
-		top: -35px;
-		transform: rotate(35deg);
-		transition: all 1600ms cubic-bezier(0.19, 1, 0.22, 1);
-		width: 40px;
-		opacity: 0;
-	}
-
-	&:hover {
-		color: var(--clr-common-white);
-
-		&:before {
-			left: 120%;
-			transition: all 1300ms cubic-bezier(0.19, 1, 0.22, 1);
-			opacity: 0.25;
-		}
-	}
+.fill-btn-lightblue:hover {
+	background: var(--lav-600);
+	color: #fff;
 }
 
 .fill-btn-lightred {
+	background: var(--danger);
+	color: #fff;
+}
+
+.fill-btn-lightred:hover {
+	background: #b53d3d;
+}
+
+.fill-btn-outline {
+	background: transparent;
+	color: var(--primary);
+	border-color: var(--border-strong);
+}
+
+.fill-btn-outline:hover {
+	border-color: var(--primary);
+	background: var(--sand-100);
+}
+
+.fill-btn-sm {
+	height: 40px;
+	padding: 0 18px;
+	font-size: 13.5px;
+}
+
+.fill-btn-lg {
+	height: 56px;
+	padding: 0 32px;
 	font-size: 16px;
-	color: var(--clr-common-white);
-	font-weight: 600;
-	background: #fd3566;
-	height: 50px;
-	display: inline-block;
-	line-height: 50px;
-	border-radius: 5px;
-	padding: 0 35px;
-	position: relative;
-	overflow: hidden;
-
-	&:before {
-		background-color: var(--clr-common-white);
-		content: "";
-		height: 150px;
-		left: -75px;
-		position: absolute;
-		top: -35px;
-		transform: rotate(35deg);
-		transition: all 1600ms cubic-bezier(0.19, 1, 0.22, 1);
-		width: 40px;
-		opacity: 0;
-	}
-
-	&:hover {
-		color: var(--clr-common-white);
-
-		&:before {
-			left: 120%;
-			transition: all 1300ms cubic-bezier(0.19, 1, 0.22, 1);
-			opacity: 0.25;
-		}
-	}
 }
 
 .border-btn {

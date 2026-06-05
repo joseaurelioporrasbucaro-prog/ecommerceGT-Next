@@ -1,0 +1,33 @@
+.badge-featured {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	border-radius: 999px;
+	background: var(--lav-500);
+	color: var(--navy-900);
+	font-family: var(--font-body);
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+
+	i { font-size: 11px; }
+}
+
+// Variante "estado de venta" — verde sólido
+.badge-status {
+	@extend .badge-featured;
+	background: var(--green-500);
+}
+
+// Variante "tipo/categoría" — navy ghost
+.badge-type {
+	@extend .badge-featured;
+	background: var(--navy-100);
+	color: var(--navy-700);
+}
+
+[data-theme="dark"] .badge-type {
+	background: rgba(248,244,238,.10);
+	color: var(--cream);
+}

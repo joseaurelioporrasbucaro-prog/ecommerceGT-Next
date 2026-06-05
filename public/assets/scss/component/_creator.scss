@@ -45,8 +45,7 @@
 
 .follow-artist {
 	height: 40px;
-	background-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff);
-	background-size: 200% 100%;
+	background: var(--green-500);
 	display: inline-block;
 	line-height: 40px;
 	color: var(--clr-common-white);
@@ -290,11 +289,7 @@
 			padding-left: 30px;
 			background: var(--clr-bg-white);
 			color: var(--clr-common-white);
-			background-image: linear-gradient(to right,
-					#2b81ff,
-					#7237ff,
-					#2b81ff);
-			background-size: 200% 100%;
+			background: var(--green-500);
 
 			&:before {
 				left: 14px;

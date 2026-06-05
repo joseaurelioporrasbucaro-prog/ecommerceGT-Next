@@ -141,8 +141,7 @@
 		line-height: 50px;
 		text-align: center;
 		height: 50px;
-		background-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff);
-		background-size: 200% 100%;
+		background: var(--green-500);
 		color: var(--clr-common-white);
 		border: none;
 		position: absolute;

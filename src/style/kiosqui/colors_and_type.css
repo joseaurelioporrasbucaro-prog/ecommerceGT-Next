@@ -139,6 +139,7 @@
   --danger-bg:   #f8e4e4;
   --info:        var(--lav-700);
   --info-bg:     var(--lav-200);
+  --rating:      var(--green-600);
 
   /* ===== BORDERS ===== */
   --border:        #e6ddcf;        /* warm hairline on cream */
@@ -247,6 +248,7 @@
   --danger-bg:   rgba(229,115,115,0.18);
   --info:        var(--lav-400);
   --info-bg:     rgba(181,172,239,0.18);
+  --rating:      var(--green-400);
 
   /* Bordes */
   --border:        rgba(248,244,238,0.08);
