@@ -1,12 +1,11 @@
 "use client";
 import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useCheckHandle, useHandleSuggestions } from "@/hooks/api/useHandle";
+import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, ApiFetch } from "@/utils/Api";
 import type { RegisterPayload } from "@/types/api";
 
@@ -47,7 +46,7 @@ function getSuggestionsFromError(error: unknown): string[] {
 
 const RegisterForm = () => {
   const router = useRouter();
-  const { t } = useTranslation();
+  const t = useTranslations("auth");
 
   // 1. Esquema de Validación Dinámico (Usa 't' para los idiomas en tiempo real)
   const registerSchema = Yup.object().shape({
@@ -56,44 +55,44 @@ const RegisterForm = () => {
     // Validaciones condicionales: Solo se exigen si isBusiness es TRUE
     noIdentification: Yup.string().when("isBusiness", {
       is: true,
-      then: (schema) => schema.required(t("auth.validation.requiredAll")),
+      then: (schema) => schema.required(t("validation.requiredAll")),
       otherwise: (schema) => schema.notRequired(),
     }),
     busNameC: Yup.string().when("isBusiness", {
       is: true,
-      then: (schema) => schema.required(t("auth.validation.requiredAll")),
+      then: (schema) => schema.required(t("validation.requiredAll")),
       otherwise: (schema) => schema.notRequired(),
     }),
     busName: Yup.string().when("isBusiness", {
       is: true,
-      then: (schema) => schema.required(t("auth.validation.requiredAll")),
+      then: (schema) => schema.required(t("validation.requiredAll")),
       otherwise: (schema) => schema.notRequired(),
     }),
 
     // Validaciones estándar
-    firstName: Yup.string().required(t("auth.validation.requiredAll")),
-    lastName: Yup.string().required(t("auth.validation.requiredAll")),
+    firstName: Yup.string().required(t("validation.requiredAll")),
+    lastName: Yup.string().required(t("validation.requiredAll")),
     email: Yup.string()
-      .email(t("auth.validation.invalidEmailDomain"))
-      .required(t("auth.validation.requiredAll")),
+      .email(t("validation.invalidEmailDomain"))
+      .required(t("validation.requiredAll")),
     password: Yup.string()
-      .min(8, t("auth.validation.passwordLength"))
-      .matches(/[A-Z]/, t("auth.validation.passwordUppercase"))
-      .matches(/[0-9]/, t("auth.validation.passwordNumber"))
-      .required(t("auth.validation.requiredAll")),
+      .min(8, t("validation.passwordLength"))
+      .matches(/[A-Z]/, t("validation.passwordUppercase"))
+      .matches(/[0-9]/, t("validation.passwordNumber"))
+      .required(t("validation.requiredAll")),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password")], t("auth.validation.passwordMismatch"))
-      .required(t("auth.validation.requiredAll")),
+      .oneOf([Yup.ref("password")], t("validation.passwordMismatch"))
+      .required(t("validation.requiredAll")),
     handle: Yup.string()
       .matches(/^[a-z0-9_]{3,30}$/, {
-        message: "Usa 3 a 30 caracteres: minúsculas, números o guion bajo.",
+        message: t("register.handleValidation"),
         excludeEmptyString: true,
       })
       .notRequired(),
     // Fase 12 — gate legal: sin aceptar términos, no se puede registrar.
     acceptTerms: Yup.boolean().oneOf(
       [true],
-      "Debes aceptar los Términos y la Política de Privacidad para registrarte.",
+      t("register.acceptTermsRequired"),
     ),
   });
 
@@ -139,7 +138,7 @@ const RegisterForm = () => {
         // Llamada a la API
         const res = await ApiFetch.post<{ message?: string }>("/register", payload);
         
-        toast.success(res.message || "¡Cuenta creada exitosamente!");
+        toast.success(res.message || t("register.success"));
         resetForm();
         router.push("/login"); // Redirección al Login como lo tenías antes
 
@@ -148,7 +147,7 @@ const RegisterForm = () => {
         if (suggestions.length > 0) {
           await formik.setFieldValue("handle", suggestions[0]);
         }
-        toast.error(error instanceof ApiError ? error.message : "Error al crear la cuenta");
+        toast.error(error instanceof ApiError ? error.message : t("register.error"));
       } finally {
         setSubmitting(false);
       }
@@ -183,7 +182,7 @@ const RegisterForm = () => {
                 onChange={formik.handleChange}
                 style={{ width: "20px", height: "20px", marginRight: "10px" }}
               />
-              {t("auth.register.isBusiness")}
+              {t("register.isBusiness")}
             </label>
         </div>
 
@@ -192,7 +191,7 @@ const RegisterForm = () => {
           <>
             <div className="col-md-12">
               <div className="single-input-unit">
-                <label>{t("auth.register.businessId")}</label>
+                <label>{t("register.businessId")}</label>
                 <input
                   type="text"
                   name="noIdentification"
@@ -205,7 +204,7 @@ const RegisterForm = () => {
             </div>
             <div className="col-md-6">
               <div className="single-input-unit">
-                <label>{t("auth.register.tradeName")}</label>
+                <label>{t("register.tradeName")}</label>
                 <input
                   type="text"
                   name="busNameC"
@@ -218,7 +217,7 @@ const RegisterForm = () => {
             </div>
             <div className="col-md-6">
               <div className="single-input-unit">
-                <label>{t("auth.register.businessName")}</label>
+                <label>{t("register.businessName")}</label>
                 <input
                   type="text"
                   name="busName"
@@ -235,7 +234,7 @@ const RegisterForm = () => {
         {/* Campos Estándar */}
         <div className="col-md-6">
           <div className="single-input-unit">
-            <label>{!formik.values.isBusiness ? t("auth.register.firstName") : t("auth.register.firstNameRep")}</label>
+            <label>{!formik.values.isBusiness ? t("register.firstName") : t("register.firstNameRep")}</label>
             <input
               type="text"
               name="firstName"
@@ -248,7 +247,7 @@ const RegisterForm = () => {
         </div>
         <div className="col-md-6">
           <div className="single-input-unit">
-            <label>{t("auth.register.lastName")}</label>
+            <label>{t("register.lastName")}</label>
             <input
               type="text"
               name="lastName"
@@ -261,7 +260,7 @@ const RegisterForm = () => {
         </div>
         <div className="col-md-12">
           <div className="single-input-unit">
-            <label>{t("auth.register.email")}</label>
+            <label>{t("register.email")}</label>
             <input
               type="email"
               name="email"
@@ -274,7 +273,7 @@ const RegisterForm = () => {
         </div>
         <div className="col-md-12">
           <div className="single-input-unit handle-input-unit">
-            <label>Nombre de usuario</label>
+            <label>{t("register.handle")}</label>
             <div className="handle-input-wrap">
               <input
                 type="text"
@@ -284,7 +283,7 @@ const RegisterForm = () => {
                 }}
                 onBlur={formik.handleBlur}
                 value={formik.values.handle}
-                placeholder="opcional, ej. ana_garcia"
+                placeholder={t("register.handlePlaceholder")}
               />
               {shouldCheckHandle && (
                 <span className={`handle-status ${handleIsAvailable ? "is-valid" : "is-invalid"}`}>
@@ -309,16 +308,16 @@ const RegisterForm = () => {
               </div>
             )}
             {shouldCheckHandle && handleIsAvailable === true && (
-              <div className="handle-help is-valid">Nombre disponible</div>
+              <div className="handle-help is-valid">{t("register.handleAvailable")}</div>
             )}
             {shouldCheckHandle && handleIsAvailable === false && (
-              <div className="handle-help is-invalid">Ese nombre ya está ocupado.</div>
+              <div className="handle-help is-invalid">{t("register.handleUnavailable")}</div>
             )}
           </div>
         </div>
         <div className="col-md-6">
           <div className="single-input-unit">
-            <label>{t("auth.register.password")}</label>
+            <label>{t("register.password")}</label>
             <input
               type="password"
               name="password"
@@ -331,7 +330,7 @@ const RegisterForm = () => {
         </div>
         <div className="col-md-6">
           <div className="single-input-unit">
-            <label>{t("auth.register.confirmPassword")}</label>
+            <label>{t("register.confirmPassword")}</label>
             <input
               type="password"
               name="confirmPassword"
@@ -404,13 +403,13 @@ const RegisterForm = () => {
             onBlur={formik.handleBlur}
           />
           <span>
-            He leído y acepto los{" "}
+            {t("register.legal.prefix")}{" "}
             <Link href="/terminos" target="_blank" rel="noopener noreferrer">
-              Términos y Condiciones
+              {t("register.legal.terms")}
             </Link>{" "}
-            y la{" "}
+            {t("register.legal.and")}{" "}
             <Link href="/privacidad" target="_blank" rel="noopener noreferrer">
-              Política de Privacidad
+              {t("register.legal.privacy")}
             </Link>
             .
           </span>
@@ -426,10 +425,10 @@ const RegisterForm = () => {
           type="submit"
           disabled={formik.isSubmitting || !formik.values.acceptTerms}
         >
-          {formik.isSubmitting ? "..." : t("auth.register.submit")}
+          {formik.isSubmitting ? "..." : t("register.submit")}
         </button>
         <div className="note">
-          {t("auth.register.haveAccountLink")}
+          {t("register.haveAccountLink")}
         </div>
       </div>
 
