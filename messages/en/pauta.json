@@ -1,1 +1,99 @@
-{}
+{
+  "breadcrumbs": {
+    "title": "Ads",
+    "subtitle": "Promote your publications"
+  },
+  "common": {
+    "loading": "Loading...",
+    "select": "Select...",
+    "all": "All"
+  },
+  "campaignStatus": {
+    "active": "Active",
+    "paused": "Paused",
+    "finished": "Finished"
+  },
+  "objectiveLabel": {
+    "destacar": "Feature",
+    "mensajes": "Messages"
+  },
+  "validation": {
+    "publication": "Select a publication.",
+    "minBudget": "The minimum budget is Q{amount}.",
+    "creditInsufficient": "Your credit ({credit}) does not cover the budget. Choose another method."
+  },
+  "toast": {
+    "created": "Campaign created.",
+    "createError": "Could not create",
+    "finished": "Campaign finished.",
+    "updateError": "Could not update"
+  },
+  "explain": {
+    "title": "How do ads work?",
+    "body": "Promote one of your publications so it appears in Featured, segmented by location and age. You choose an objective, a budget and how long it runs.",
+    "reach": "A higher budget means more reach and priority: campaigns with more balance are shown first. When the balance runs out, the campaign ends automatically. Minimum {minBudget}. Real card charging will be enabled with the payment gateway; for now it activates without charge.",
+    "creditReturn": "If your campaign ends before spending everything, the unspent balance is returned as reusable credit for future campaigns.",
+    "refundPolicy": "Important: we do not issue card or cash refunds. Returns are made only as internal reusable ad credit for future campaigns. Credit does not expire, is not transferable and cannot be exchanged for money."
+  },
+  "objectives": {
+    "destacar": {
+      "title": "Feature - {cost} / impression",
+      "description": "It is shown near the top with the Sponsored label. Each time it is shown to someone in the target audience, {cost} is deducted. Example: Q10 ~= {small} views, Q1000 ~= {large} views."
+    },
+    "mensajes": {
+      "title": "Messages - {cost} / click",
+      "description": "Shows a Send message button. It is only deducted when someone clicks. Example: Q10 ~= {small} contacts, Q1000 ~= {large} contacts."
+    }
+  },
+  "credit": {
+    "label": "My ad credit",
+    "available": "Available for your next campaign. It cannot be exchanged for money.",
+    "empty": "You do not have credit yet. It is generated from unspent budget when campaigns end."
+  },
+  "form": {
+    "title": "New campaign",
+    "publication": "Publication",
+    "noPublications": "You have no active publications to promote.",
+    "lockedOne": "1 publication already has an active campaign and is not shown here.",
+    "lockedMany": "{count} publications already have an active campaign and are not shown here.",
+    "finishCurrent": "End the current one from My campaigns if you want to create another.",
+    "objective": "Objective",
+    "budget": "Budget (Q, min. {min})",
+    "estimateReach": "Estimated reach: ~{count} people will see your ad (impressions).",
+    "estimateContacts": "Estimated: ~{count} contacts (Send message clicks).",
+    "starts": "Starts",
+    "ends": "Ends",
+    "segmentation": "Segmentation (optional)",
+    "department": "Department",
+    "municipality": "Municipality",
+    "ageMin": "Min. age",
+    "ageMax": "Max. age",
+    "creating": "Creating...",
+    "create": "Create campaign"
+  },
+  "payment": {
+    "title": "How do you pay for this campaign?",
+    "creditOnly": "Only my credit",
+    "creditCovers": "Deducts {budget} from your credit ({credit} available).",
+    "creditInsufficient": "Your credit ({credit}) does not cover the budget.",
+    "creditPlusCard": "Credit + card",
+    "creditPlusCardDetail": "Uses {credit} from credit and charges {card} to your card.",
+    "noCredit": "You have no available credit.",
+    "cardOnly": "Only with card",
+    "cardOnlyDetail": "Charges {budget} to your card and keeps your credit for later.",
+    "summaryBudget": "Budget",
+    "summaryCredit": "From your credit",
+    "summaryCard": "To charge to card",
+    "stub": "Card charging will be enabled when the payment gateway is integrated. For now the campaign activates without charge."
+  },
+  "campaigns": {
+    "title": "My campaigns",
+    "empty": "You do not have campaigns yet.",
+    "remaining": "Remaining {amount}",
+    "noEndDate": "No end date",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish"
+  }
+}

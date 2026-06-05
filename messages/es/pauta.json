@@ -1,1 +1,99 @@
-{}
+{
+  "breadcrumbs": {
+    "title": "Pauta",
+    "subtitle": "Promociona tus publicaciones"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "select": "Selecciona...",
+    "all": "Todos"
+  },
+  "campaignStatus": {
+    "active": "Activa",
+    "paused": "Pausada",
+    "finished": "Finalizada"
+  },
+  "objectiveLabel": {
+    "destacar": "Destacar",
+    "mensajes": "Mensajes"
+  },
+  "validation": {
+    "publication": "Selecciona una publicacion.",
+    "minBudget": "El presupuesto minimo es Q{amount}.",
+    "creditInsufficient": "Tu credito ({credit}) no cubre el presupuesto. Elige otro metodo."
+  },
+  "toast": {
+    "created": "Campana creada.",
+    "createError": "No se pudo crear",
+    "finished": "Campana finalizada.",
+    "updateError": "No se pudo actualizar"
+  },
+  "explain": {
+    "title": "¿Como funciona la pauta?",
+    "body": "Promociona una de tus publicaciones para que aparezca en Destacados, segmentada por ubicacion y edad. Eliges un objetivo, un presupuesto y por cuanto tiempo corre.",
+    "reach": "A mas presupuesto, mas alcance y prioridad: las campanas con mas saldo se muestran primero. Al agotarse, la campana finaliza sola. Minimo {minBudget}. El cobro real se habilitara con la pasarela; por ahora se activa sin cobro.",
+    "creditReturn": "Si tu campana termina antes de gastar todo, el saldo no gastado se devuelve como credito reutilizable en proximas campanas.",
+    "refundPolicy": "Importante: no realizamos reembolsos a tarjeta ni efectivo. Las devoluciones se hacen unicamente como credito interno reutilizable en futuras campanas. El credito no caduca, no es transferible y no es canjeable por dinero."
+  },
+  "objectives": {
+    "destacar": {
+      "title": "Destacar - {cost} / impresion",
+      "description": "Se muestra arriba con el sello Patrocinado. Cada vez que se muestra a alguien del publico objetivo se descuenta {cost}. Ej: Q10 ~= {small} vistas, Q1000 ~= {large} vistas."
+    },
+    "mensajes": {
+      "title": "Mensajes - {cost} / clic",
+      "description": "Muestra un boton Enviar mensaje. Solo se descuenta cuando alguien hace clic. Ej: Q10 ~= {small} contactos, Q1000 ~= {large} contactos."
+    }
+  },
+  "credit": {
+    "label": "Mi saldo de pauta",
+    "available": "Disponible para usar en tu proxima campana. No es canjeable por dinero.",
+    "empty": "Aun no tienes saldo. Se genera del presupuesto no gastado al finalizar campanas."
+  },
+  "form": {
+    "title": "Nueva campana",
+    "publication": "Publicacion",
+    "noPublications": "No tienes publicaciones activas para promocionar.",
+    "lockedOne": "1 publicacion ya tiene una campana activa y no aparece aqui.",
+    "lockedMany": "{count} publicaciones ya tienen una campana activa y no aparecen aqui.",
+    "finishCurrent": "Finaliza la actual desde Mis campanas si quieres crear otra.",
+    "objective": "Objetivo",
+    "budget": "Presupuesto (Q, min. {min})",
+    "estimateReach": "Alcance estimado: ~{count} personas veran tu anuncio (impresiones).",
+    "estimateContacts": "Estimado: ~{count} contactos (clics en Enviar mensaje).",
+    "starts": "Inicia",
+    "ends": "Finaliza",
+    "segmentation": "Segmentacion (opcional)",
+    "department": "Departamento",
+    "municipality": "Municipio",
+    "ageMin": "Edad min.",
+    "ageMax": "Edad max.",
+    "creating": "Creando...",
+    "create": "Crear campana"
+  },
+  "payment": {
+    "title": "¿Como pagas esta campana?",
+    "creditOnly": "Solo mi saldo",
+    "creditCovers": "Descuenta {budget} de tu saldo ({credit} disponibles).",
+    "creditInsufficient": "Tu saldo ({credit}) no cubre el presupuesto.",
+    "creditPlusCard": "Saldo + tarjeta",
+    "creditPlusCardDetail": "Usa {credit} de saldo y cobra {card} a tu tarjeta.",
+    "noCredit": "No tienes saldo disponible.",
+    "cardOnly": "Solo con tarjeta",
+    "cardOnlyDetail": "Cobra {budget} a tu tarjeta y conserva tu saldo para despues.",
+    "summaryBudget": "Presupuesto",
+    "summaryCredit": "Desde tu saldo",
+    "summaryCard": "A cobrar con tarjeta",
+    "stub": "El cobro con tarjeta se habilitara al integrar la pasarela. Por ahora la campana se activa sin cobro."
+  },
+  "campaigns": {
+    "title": "Mis campanas",
+    "empty": "Aun no tienes campanas.",
+    "remaining": "Resta {amount}",
+    "noEndDate": "Sin fecha de fin",
+    "days": "{count, plural, one {# dia} other {# dias}}",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "finish": "Finalizar"
+  }
+}

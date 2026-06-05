@@ -73,7 +73,7 @@ export const EMPTY_FORM_VALUES: PublicationFormValues = {
 function formatPriceDisplay(raw: string): string {
   if (!raw) return '';
   const [intPart, decPart] = raw.split('.');
-  const intFormatted = intPart ? Number(intPart).toLocaleString('en-US') : '0';
+  const intFormatted = intPart ? intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0';
   if (decPart === undefined) return intFormatted;
   return `${intFormatted}.${decPart}`;
 }
