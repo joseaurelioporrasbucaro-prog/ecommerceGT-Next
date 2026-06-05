@@ -370,6 +370,7 @@ export interface RegisterPayload extends Record<string, unknown> {
   busId?: number | string;
   busTName?: string;
   busName?: string;
+  locale?: string;
 }
 
 // ============================================================================
@@ -961,6 +962,7 @@ export interface AddEmployeePayload extends Record<string, unknown> {
   firstName: string;
   lastName: string;
   email: string;
+  locale?: string;
 }
 
 /** Miembro del equipo — `POST /company-team` (campo members[]). */

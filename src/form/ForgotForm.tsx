@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useFormik, type FormikProps } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
@@ -37,6 +37,7 @@ const ForgotForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations("auth");
+  const locale = useLocale();
   const token = searchParams.get("token") || "";
   const genericRecoveryMessage = t("forgot.genericMessage");
 
@@ -52,7 +53,7 @@ const ForgotForm = () => {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       setSubmitting(true);
       try {
-        const res = await ApiFetch.post<RecoveryResponse>("/recoverypass", { email: values.email });
+        const res = await ApiFetch.post<RecoveryResponse>("/recoverypass", { email: values.email, locale });
         toast.success(res.message || genericRecoveryMessage);
         resetForm();
       } catch (error) {

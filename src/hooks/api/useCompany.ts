@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocale } from 'next-intl';
 import { toast } from 'react-toastify';
 import { ApiFetch } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
@@ -96,9 +97,10 @@ export function useUpdateCompany() {
  */
 export function useAddEmployee(busid: number | undefined) {
   const queryClient = useQueryClient();
+  const locale = useLocale();
   return useMutation<{ message: string }, Error, AddEmployeePayload>({
     mutationFn: (payload) =>
-      ApiFetch.post<{ message: string }>('/add-employee', payload),
+      ApiFetch.post<{ message: string }>('/add-employee', { ...payload, locale }),
     onSuccess: (data) => {
       toast.success(data.message || 'Empleado agregado');
       void queryClient.invalidateQueries({ queryKey: [...EMPLOYEES_QUERY_KEY, busid] });
@@ -117,9 +119,10 @@ export function useAddEmployee(busid: number | undefined) {
  */
 export function useInviteExistingUser() {
   const queryClient = useQueryClient();
+  const locale = useLocale();
   return useMutation<{ message: string }, Error, number>({
     mutationFn: (cusId) =>
-      ApiFetch.post<{ message: string }>('/invite-existing-user', { cusId }),
+      ApiFetch.post<{ message: string }>('/invite-existing-user', { cusId, locale }),
     onSuccess: (data) => {
       toast.success(data.message || 'Invitación enviada');
       void queryClient.invalidateQueries({ queryKey: COMPANY_TEAM_QUERY_KEY });

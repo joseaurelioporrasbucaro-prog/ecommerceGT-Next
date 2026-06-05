@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
@@ -47,6 +47,7 @@ function getSuggestionsFromError(error: unknown): string[] {
 const RegisterForm = () => {
   const router = useRouter();
   const t = useTranslations("auth");
+  const locale = useLocale();
 
   // 1. Esquema de Validación Dinámico (Usa 't' para los idiomas en tiempo real)
   const registerSchema = Yup.object().shape({
@@ -123,6 +124,7 @@ const RegisterForm = () => {
           password: values.password,
           isEmployee: false,
           isBusiness: values.isBusiness,
+          locale,
         };
         const normalizedHandle = values.handle.trim().toLowerCase();
         if (normalizedHandle) {
