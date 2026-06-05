@@ -182,8 +182,7 @@
 }
 
 .place-bid {
-	background-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff);
-	background-size: 200% 100%;
+	background: var(--green-500);
 	height: 35px;
 	border-radius: 5px;
 	color: var(--clr-common-white);
@@ -194,7 +193,7 @@
 	padding: 0 10px;
 
 	&:hover {
-		background-position: 100% 100%;
+		background: var(--green-600);
 		color: var(--clr-common-white);
 	}
 }
@@ -469,9 +468,8 @@
 	transition: 0.3s;
 
 	&:hover {
-		background-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff);
-		background-size: 200% 100%;
-		border-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff);
+		background: var(--green-500);
+		border-color: var(--green-500);
 
 		.resource-created,
 		.resource-meta-type {

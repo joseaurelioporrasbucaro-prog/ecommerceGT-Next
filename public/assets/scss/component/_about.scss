@@ -170,8 +170,7 @@
 	font-size: 16px !important;
 	color: var(--clr-common-white) !important;
 	font-weight: 600 !important;
-	background-image: linear-gradient(to right, #2b81ff, #7237ff, #2b81ff) !important;
-	background-size: 200% 100% !important;
+	background: var(--green-500) !important;
 	height: 50px !important;
 	display: inline-block !important;
 	line-height: 50px !important;
@@ -186,7 +185,7 @@
 
 	&:hover {
 		color: var(--clr-common-white) !important;
-		background-position: 100% 100% !important;
+		background: var(--green-600) !important;
 	}
 }
 
