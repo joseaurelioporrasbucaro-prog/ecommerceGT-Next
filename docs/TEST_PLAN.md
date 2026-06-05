@@ -611,6 +611,37 @@ Captura: `/tmp/kiosqui-fase14-2-en-login.png`.
 `Send link`; no aparece `MISSING_MESSAGE`. Captura:
 `/tmp/kiosqui-fase14-2-en-forgot.png`.
 
+## i18n / next-intl (Fase 14.3)
+
+> No hay runner frontend instalado todavía; la automatización de estos smoke
+> queda diferida a Fase 21. En Hito 14.3 se ejecutan contra `next dev`
+> local después de `npx next build`.
+
+### T-112 — Soporte renderiza idiomas distintos — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local sobre `/es/soporte/tickets` y
+`/en/soporte/tickets`.
+
+**Esperado:** La página en español muestra labels/copy de soporte en español
+y la página en inglés muestra labels/copy equivalentes en inglés; no aparece
+`MISSING_MESSAGE`. Capturas:
+`/tmp/kiosqui-fase14-3-es-support.png`,
+`/tmp/kiosqui-fase14-3-en-support.png`.
+
+### T-113 — Fechas y números respetan locale activo — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local en una vista con fechas migradas (por ejemplo
+mensajes, soporte o comentarios) comparando `/es/...` y `/en/...`.
+
+**Esperado:** La misma fecha se formatea según locale activo (ej.
+`13 jun 2026` vs `Jun 13, 2026`) y los contadores usan `useFormatter`.
+
+### T-114 — Sweep de locale hardcoded queda limpio — 🧪 SMOKE MANUAL
+**Ejecución:**
+`grep -rn "toLocaleDateString\\|toLocaleString\\|toLocaleTimeString" src/`
+y `grep -rn "'es-GT'\\|'es-ES'\\|'en-US'" src/`.
+
+**Esperado:** Ambos comandos devuelven 0 ocurrencias, salvo futuras
+excepciones documentadas explícitamente en el PR.
+
 ---
 
 ## Roadmap de automatización
@@ -648,4 +679,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-06-04 (Fase 14.2 — T-109..T-111 smoke manual)
+**Última actualización:** 2026-06-04 (Fase 14.3 — T-112..T-114 smoke manual)

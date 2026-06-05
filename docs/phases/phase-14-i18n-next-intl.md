@@ -693,11 +693,11 @@ Reemplazar los **~50 hits** de `toLocaleDateString('es-GT', ...)` en `src/` por 
 
 ### Criterios de aceptación 14.3
 
-- [ ] Los 10 namespaces creados con sus pares `es/` `en/`.
-- [ ] **0 strings hardcoded en español** en componentes de Fases 5–11 (criterio de revisión, no de grep — Codex documenta en el PR si quedó alguno con justificación).
-- [ ] **0 `toLocaleDateString` con locale literal** — todos via `useDateFmt` o `getFormatter`.
-- [ ] Build pasa.
-- [ ] Backend tests siguen verdes.
+- [x] Los 10 namespaces creados con sus pares `es/` `en/`.
+- [x] **0 strings hardcoded en español** en componentes de Fases 5–11 cubiertos por los 10 namespaces del hito. Excepción técnica documentada: `PublicationJsonLd` conserva labels estáticos dentro de JSON-LD no visible.
+- [x] **0 `toLocaleDateString` con locale literal** — todos via `useDateFmt` o `getFormatter`.
+- [x] Build pasa.
+- [x] Backend tests siguen verdes.
 
 ---
 

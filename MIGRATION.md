@@ -3109,19 +3109,39 @@ extranjeros y expats con poder de compra alto).
   `react-i18next` y quedan para el barrido amplio de Hito 14.3.
 - **Notas del revisor:** _por completar_
 
-##### Hito 14.3 — Contenido nuevo (Fases 5–11) + fechas con `useFormatter` — ⬜ Pendiente
+##### Hito 14.3 — Contenido nuevo (Fases 5–11) + fechas con `useFormatter` — ✅ Completado
 
-- **SHA Codex:** _por completar_
-- **Tests añadidos:** T-112..T-114
-- **Decisiones aplicadas:** D-7, D-10
+- **SHA Codex:** `514f52e` (último commit de código; cierre documental en
+  `docs(fase14.3): cerrar hito contenido nuevo`). Commits del hito:
+  `21e89a0`, `462694b`, `6590871`, `dc46568`, `34cd062`, `456a24d`,
+  `bbf0a03`, `89a494b`, `af84bbd`, `58a5942`, `b6a62b6`, `b49d9b6`,
+  `ec37a83`, `514f52e`.
+- **Tests añadidos/documentados:** T-112..T-114 en `docs/TEST_PLAN.md`
+  como smoke manual (runner frontend queda para Fase 21).
+- **Decisiones aplicadas:** D-7 (namespaces en `messages/<locale>/<ns>.json`),
+  D-10 (fechas/números vía `useFormatter` mediante helper).
 - **Namespaces creados** (en `messages/es/` y `messages/en/`):
   `messages`, `support`, `pauta`, `profile`, `notifications`, `admin`,
-  `home`, `publications`, `legal`, `danger`
+  `home`, `publications`, `legal`, `danger`.
+- **Namespaces registrados:** `src/i18n/request.ts` carga y mergea los 10
+  namespaces nuevos junto con `common` y `auth`.
 - **Helper creado:** `src/utils/datetime.ts` con `useDateFmt()` (client) y
-  re-exports de `getFormatter()` para server components.
-- **Sweep `toLocaleDateString`:** ~50 hits reemplazados. Codex documenta
-  excepciones aceptables (si las hay) en el PR.
-- **Bloqueos resueltos:** _por completar_
+  `src/utils/datetime.server.ts` con `getDateFmt()` para server components.
+- **Sweep `toLocaleDateString`:**
+  - `grep -rn "toLocaleDateString\|toLocaleString\|toLocaleTimeString" src/`
+    → 0 hits.
+  - `grep -rn "'es-GT'\|'es-ES'\|'en-US'" src/` → 0 hits.
+  - Excepción técnica no visible: `PublicationJsonLd` conserva labels
+    estáticos dentro del JSON-LD estructurado.
+- **Follow-ups del 14.2 cerrados:** `LoginMain`, `LoginContent`,
+  `SignUpMain`, `SignUpContent` y `LoginFrom` consumen `next-intl`; se removió
+  el `any` de `LoginFrom` al tipar/narrowear `ApiError.body`.
+- **Validación ejecutada:**
+  - `npx tsc --noEmit` ✅
+  - `npx next build` ✅
+  - `npm test` backend ✅ 17/17
+  - Smoke manual T-112..T-114 ✅
+- **Bloqueos resueltos:** ninguno.
 - **Notas del revisor:** _por completar_
 
 ##### Hito 14.4 — Backend (errores + emails) + SEO bilingüe — ⬜ Pendiente
