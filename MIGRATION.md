@@ -3147,9 +3147,9 @@ bilingüe con sitemap/robots localizados.
 
 - **SHA Codex (backend):** `04c735d` (docs backend). Commits del hito backend:
   `b66f010`, `611f513`, `9252bdc`, `909ddd6`, `28df9f4`, `04c735d`.
-- **SHA Codex (frontend):** `956d1c6` (último commit de código; cierre
-  documental en `docs(fase14.4): cierre completo Fase 14`). Commits de código
-  frontend: `7061487`, `b8af9b5`, `956d1c6`.
+- **SHA Codex (frontend):** `7725e02` (fix final de middleware para sitemap/robots;
+  cierre documental en `docs(fase14.4): cierre completo Fase 14`). Commits de
+  código frontend: `7061487`, `b8af9b5`, `956d1c6`, `7725e02`.
 - **Tests añadidos/documentados:** T-115..T-117 automatizados en backend
   (`tests/api/emails/recovery-locale.spec.js`) y documentados en
   `docs/TEST_PLAN.md`.
@@ -3175,6 +3175,8 @@ bilingüe con sitemap/robots localizados.
   - `src/app/sitemap.ts` — emite variantes `/es/...` y `/en/...` con
     `alternates.languages`.
   - `src/app/robots.ts` — `allow`/`disallow` localizados por prefijo.
+  - `src/middleware.ts` — excluye `sitemap.xml` y `robots.txt` del middleware
+    i18n para que queden disponibles en raíz.
 - **Docs §13 actualizadas:**
   - Backend: `docs/API_REFERENCE.md`, `docs/GLOSSARY.md`.
   - Frontend: `docs/FRONTEND_STRUCTURE.md`, `docs/ARCHITECTURE.md`,
@@ -3184,7 +3186,9 @@ bilingüe con sitemap/robots localizados.
   - Frontend `npx tsc --noEmit` ✅
   - Frontend `npm run build` ✅
   - Sitemap smoke con `hreflang` ✅
-- **Bloqueos resueltos:** ninguno.
+- **Bloqueos resueltos:** el primer smoke de `/sitemap.xml` mostró redirect
+  307 a `/es/sitemap.xml`; se excluyeron `sitemap.xml` y `robots.txt` del
+  matcher de `src/middleware.ts` y el smoke con `hreflang` quedó verde.
 - **Notas del revisor:** _por completar_
 
 ##### Cierre Fase 14 — ✅ Completada
