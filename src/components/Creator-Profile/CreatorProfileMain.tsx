@@ -34,7 +34,7 @@ const Stars = ({ value, size = 16 }: { value: number; size?: number }) => {
         <i
           key={i}
           className={i <= Math.round(value) ? 'fas fa-star' : 'far fa-star'}
-          style={{ fontSize: size, color: i <= Math.round(value) ? '#f59e0b' : 'rgba(128,128,128,0.35)', marginRight: 2 }}
+          style={{ fontSize: size, color: i <= Math.round(value) ? 'var(--rating)' : 'rgba(128,128,128,0.35)', marginRight: 2 }}
         />
       ))}
     </span>
@@ -552,7 +552,7 @@ const CreatorProfileMain = ({ id }: CreatorProfileMainProps) => {
         .reviews-summary-score {
           font-size: 48px;
           font-weight: 800;
-          color: #f59e0b;
+          color: var(--rating);
           line-height: 1;
         }
         .reviews-summary-count {

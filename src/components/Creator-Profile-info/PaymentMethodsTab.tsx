@@ -610,12 +610,12 @@ const PaymentMethodsTab: React.FC = () => {
           gap: 7px;
         }
         .pm-type-chip:hover {
-          border-color: var(--clr-theme-1, #2785ff);
+          border-color: var(--lav-500);
         }
         .pm-type-chip.is-active {
-          border-color: var(--clr-theme-1, #2785ff);
-          background: rgba(39, 133, 255, 0.08);
-          color: var(--clr-theme-1, #2785ff);
+          border-color: var(--lav-500);
+          background: var(--lav-200);
+          color: var(--navy-900);
         }
         .pm-field {
           display: block;

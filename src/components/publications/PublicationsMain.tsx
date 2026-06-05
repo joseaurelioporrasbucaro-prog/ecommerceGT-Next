@@ -414,11 +414,11 @@ const PublicationsMain = () => {
           border-left: 1px solid var(--clr-common-border, #e0e2e5);
         }
         .view-toggle-btn:hover {
-          background: rgba(39, 133, 255, 0.06);
-          color: var(--clr-theme-1, #2785ff);
+          background: var(--green-100);
+          color: var(--green-600);
         }
         .view-toggle-btn.is-active {
-          background: var(--clr-theme-1, #2785ff);
+          background: var(--green-600);
           color: #fff;
         }
 

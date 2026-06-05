@@ -387,7 +387,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           color: var(--clr-common-heading);
         }
         .amenities-title :global(i) {
-          color: #f59e0b;
+          color: var(--rating);
           font-size: 15px;
         }
         .amenities-grid {
