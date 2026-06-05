@@ -1,6 +1,7 @@
 import RegisterForm from "@/form/RegisterForm";
 import Link from "next/link";
 import React from "react";
+import { useTranslations } from "next-intl";
 import bgImg from "../../../public/assets/img/bg/sign-up-social-bg.jpg"
 import gmail from "../../../public/assets/img/svg-icon/gmail.svg"
 import facebook from "../../../public/assets/img/svg-icon/facebook.svg"
@@ -8,6 +9,7 @@ import twitter from "../../../public/assets/img/svg-icon/twitter.svg"
 import Image from "next/image";
 
 const SignUpContent = () => {
+  const t = useTranslations("auth");
   return (
     <>
       <section
@@ -20,11 +22,9 @@ const SignUpContent = () => {
               <div className="sign-up-wrapper pos-rel mb-40 wow fadeInUp">
                 <div className="sign-up-inner">
                   <div className="sign-up-content">
-                    <h4>Create Account</h4>
+                    <h4>{t("register.title")}</h4>
                     <p className="mb-35">
-                      {`It's`} easy to create an account for Non-fungible tokens and
-                      sale your any items independently online securely in the
-                      world.
+                      {t("register.subtitle")}
                     </p>
                     <RegisterForm/>
                   </div>
@@ -35,7 +35,7 @@ const SignUpContent = () => {
                     style={{ backgroundImage: `url(${bgImg.src})`}}
                   ></div>
                   <div className="sign-up-with-social-content">
-                    <div className="text-or">Or</div>
+                    <div className="text-or">{t("register.or")}</div>
                     <div className="sign-up-media">
                       <a href="#" className="sign-up-media-single">
                         <Image
@@ -43,7 +43,7 @@ const SignUpContent = () => {
                           alt="media-img"
                           style={{ width: "auto", height: "auto" }}
                         />{" "}
-                        Signup with Email
+                        {t("register.signupEmail")}
                       </a>
                       <a href="#" className="sign-up-media-single">
                         <Image
@@ -51,7 +51,7 @@ const SignUpContent = () => {
                           alt="media-img"
                           style={{ width: "auto", height: "auto" }}
                         />{" "}
-                        Signup with Facebook
+                        {t("register.signupFacebook")}
                       </a>
                       <a href="#" className="sign-up-media-single">
                         <Image
@@ -59,7 +59,7 @@ const SignUpContent = () => {
                           src={twitter}
                           alt="media-img"
                         />{" "}
-                        Signup with Twitter
+                        {t("register.signupTwitter")}
                       </a>
                     </div>
                   </div>

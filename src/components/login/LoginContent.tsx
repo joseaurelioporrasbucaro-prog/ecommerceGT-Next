@@ -1,7 +1,9 @@
 import LoginFrom from "@/form/LoginFrom";
 import React from "react";
+import { useTranslations } from "next-intl";
 
 const LoginContent = () => {
+  const t = useTranslations("auth");
   return (
     <>
       <section
@@ -14,7 +16,7 @@ const LoginContent = () => {
               <div className="login-wrapper pos-rel mb-40 wow fadeInUp">
                 <div className=" login-inner">
                   <div className="login-content">
-                    <h4>Sign in Account</h4>
+                    <h4>{t("login.title")}</h4>
                         <LoginFrom/>
                   </div>
                 </div>
