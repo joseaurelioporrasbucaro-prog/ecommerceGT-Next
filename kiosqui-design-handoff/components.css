@@ -1,0 +1,69 @@
+/* ============================================================
+   KIOSQUI — Component primitives (cosmetic, reusable)
+   Requires colors_and_type.css to be loaded first.
+   ============================================================ */
+
+/* ---------- BUTTONS ---------- */
+.kq-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--font-display);font-weight:600;font-size:0.9375rem;line-height:1;
+  padding:12px 20px;border-radius:var(--r-pill);border:1.5px solid transparent;
+  cursor:pointer;text-decoration:none;white-space:nowrap;
+  transition:background .16s ease,color .16s ease,border-color .16s ease,transform .08s ease,box-shadow .16s ease;
+}
+.kq-btn:active{transform:translateY(1px)}
+.kq-btn:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
+
+.kq-btn--action{background:var(--action);color:var(--on-action);}
+.kq-btn--action:hover{background:var(--action-hover)}
+.kq-btn--action:active{background:var(--action-press)}
+
+.kq-btn--primary{background:var(--primary);color:var(--on-primary)}
+.kq-btn--primary:hover{background:var(--primary-hover)}
+.kq-btn--primary:active{background:var(--primary-press)}
+
+.kq-btn--accent{background:var(--accent);color:var(--on-accent)}
+.kq-btn--accent:hover{background:var(--accent-hover);color:#fff}
+
+.kq-btn--outline{background:transparent;color:var(--primary);border-color:var(--border-strong)}
+.kq-btn--outline:hover{border-color:var(--primary);background:var(--sand-100)}
+
+.kq-btn--ghost{background:transparent;color:var(--primary)}
+.kq-btn--ghost:hover{background:var(--sand-100)}
+
+.kq-btn--sm{padding:8px 14px;font-size:0.8125rem}
+.kq-btn--lg{padding:15px 26px;font-size:1.0625rem}
+.kq-btn[disabled],.kq-btn--disabled{opacity:.45;pointer-events:none}
+
+/* ---------- INPUTS ---------- */
+.kq-field{display:flex;flex-direction:column;gap:6px}
+.kq-field > label{font:var(--text-label);color:var(--fg-strong)}
+.kq-input{
+  font-family:var(--font-body);font-size:1rem;color:var(--fg-strong);
+  background:var(--surface);border:1.5px solid var(--border-strong);
+  border-radius:var(--r-sm);padding:11px 14px;width:100%;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.kq-input::placeholder{color:var(--fg-subtle)}
+.kq-input:focus{outline:none;border-color:var(--accent);box-shadow:var(--shadow-focus)}
+.kq-input--error{border-color:var(--danger)}
+
+/* ---------- BADGES / CHIPS ---------- */
+.kq-badge{display:inline-flex;align-items:center;gap:6px;font:var(--text-label);
+  padding:4px 11px;border-radius:var(--r-pill);white-space:nowrap;}
+.kq-badge--green{background:var(--green-100);color:var(--green-800)}
+.kq-badge--lav{background:var(--lav-200);color:var(--lav-700)}
+.kq-badge--navy{background:var(--navy-100);color:var(--navy-700)}
+.kq-badge--solid{background:var(--green-500);color:var(--navy-900)}
+.kq-badge--warn{background:var(--warning-bg);color:#9a5a12}
+
+.kq-chip{display:inline-flex;align-items:center;gap:6px;font:var(--text-body-sm);font-weight:500;
+  padding:7px 14px;border-radius:var(--r-pill);background:var(--surface);
+  border:1.5px solid var(--border-strong);color:var(--fg);cursor:pointer;transition:all .14s}
+.kq-chip:hover{border-color:var(--navy-400)}
+.kq-chip--active{background:var(--navy-800);color:var(--cream);border-color:var(--navy-800)}
+
+/* ---------- CARDS ---------- */
+.kq-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .2s ease,transform .2s ease}
+.kq-card--hover:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}

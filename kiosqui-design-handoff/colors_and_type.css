@@ -1,0 +1,295 @@
+/* ============================================================
+   KIOSQUI — Colors & Type
+   Plataforma digital para compra y venta de inmuebles.
+   Brand voice: profesional, amigable y moderna.
+   ============================================================ */
+
+/* Same-family web sources so the system is self-contained:
+   Encode Sans (body) + JetBrains Mono (code). NOT substitutes —
+   these are the exact families the tokens point at. If you upload
+   self-hosted files, the local @font-face below will take priority. */
+@import url('https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ---------- FONTS ----------
+   Encode Sans Expanded = brand display / headings / wordmark.
+   Encode Sans (normal width) = body & dense UI.
+   JetBrains Mono = monospace (code, token values).
+   All cohesive by design.                                         */
+
+@font-face {
+  font-family: "Encode Sans Expanded";
+  src: url("fonts/EncodeSansExpanded-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Encode Sans Expanded";
+  src: url("fonts/EncodeSansExpanded-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Encode Sans Expanded";
+  src: url("fonts/EncodeSansExpanded-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Encode Sans Expanded";
+  src: url("fonts/EncodeSansExpanded-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Body companion — import in HTML <head> for guaranteed load:
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+*/
+
+:root {
+  /* ===== BRAND ANCHORS (exact values from brand sheet) ===== */
+  --kq-navy:     #1e2d4a;  /* primary brand */
+  --kq-cream:    #f8f4ee;  /* canvas / paper */
+  --kq-lavender: #b5acef;  /* accent device (the "Q" lens) */
+  --kq-green:    #9bc64a;  /* action / CTA / positive */
+  --kq-ink:      #22252a;  /* deepest ink / near-black */
+
+  /* ===== NAVY SCALE (primary) ===== */
+  --navy-950: #11182a;
+  --navy-900: #161f33;
+  --navy-800: #1e2d4a; /* BRAND */
+  --navy-700: #283a5c;
+  --navy-600: #344a72;
+  --navy-500: #45598a;
+  --navy-400: #6b7da8;
+  --navy-300: #9aa8c6;
+  --navy-200: #c8d0e0;
+  --navy-100: #e7ebf2;
+
+  /* ===== GREEN SCALE (action) ===== */
+  --green-800: #5c7c28;
+  --green-700: #6f9433;
+  --green-600: #84ad3f;
+  --green-500: #9bc64a; /* BRAND */
+  --green-400: #b0d56e;
+  --green-300: #c8e297;
+  --green-200: #ddeebf;
+  --green-100: #eef6df;
+
+  /* ===== LAVENDER SCALE (accent) ===== */
+  --lav-700: #6d62cf;
+  --lav-600: #8a7fe3;
+  --lav-500: #b5acef; /* BRAND */
+  --lav-400: #c8c1f3;
+  --lav-300: #ddd8f8;
+  --lav-200: #ebe8fb;
+  --lav-100: #f4f2fd;
+
+  /* ===== WARM NEUTRALS (cream-tinted) ===== */
+  --paper:    #fffdf9;
+  --cream:    #f8f4ee; /* BRAND */
+  --sand-100: #f1ebe1;
+  --sand-200: #e6ddcf;
+  --sand-300: #d4c8b6;
+  --ink-900:  #22252a; /* BRAND */
+  --ink-800:  #2f333a;
+  --ink-700:  #43474f;
+  --ink-600:  #5c616a;
+  --ink-500:  #767c86;
+  --ink-400:  #9aa0a8;
+  --ink-300:  #c2c6cd;
+
+  /* ===== SEMANTIC: SURFACES & TEXT ===== */
+  --bg:            var(--cream);
+  --bg-elevated:   var(--paper);
+  --surface:       #ffffff;
+  --surface-sunk:  var(--sand-100);
+  --fg:            var(--navy-800);
+  --fg-strong:     var(--ink-900);
+  --fg-muted:      var(--ink-600);
+  --fg-subtle:     var(--ink-400);
+  --fg-on-dark:    var(--cream);
+  --fg-on-dark-muted: #b6c0d4;
+
+  /* ===== SEMANTIC: ROLES ===== */
+  --primary:        var(--navy-800);
+  --primary-hover:  var(--navy-700);
+  --primary-press:  var(--navy-900);
+  --on-primary:     var(--cream);
+
+  --action:         var(--green-500);   /* main CTA */
+  --action-hover:   var(--green-600);
+  --action-press:   var(--green-700);
+  --on-action:      var(--navy-900);    /* dark text on green for contrast */
+
+  --accent:         var(--lav-500);
+  --accent-hover:   var(--lav-600);
+  --accent-soft:    var(--lav-200);
+  --on-accent:      var(--navy-900);
+
+  /* ===== SEMANTIC: FEEDBACK ===== */
+  --success:     #4f9d4f;
+  --success-bg:  #e7f3e7;
+  --warning:     #d98a2b;
+  --warning-bg:  #fbeed8;
+  --danger:      #cf4a4a;
+  --danger-bg:   #f8e4e4;
+  --info:        var(--lav-700);
+  --info-bg:     var(--lav-200);
+
+  /* ===== BORDERS ===== */
+  --border:        #e6ddcf;        /* warm hairline on cream */
+  --border-strong: #d4c8b6;
+  --border-on-dark: rgba(248,244,238,0.16);
+  --ring:          var(--lav-500); /* focus ring */
+
+  /* ===== TYPE FAMILIES ===== */
+  --font-display: "Encode Sans Expanded", "Encode Sans", system-ui, sans-serif;
+  --font-body:    "Encode Sans", "Encode Sans Expanded", system-ui, -apple-system, sans-serif;
+  --font-mono:    "SF Mono", "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+
+  /* ===== TYPE SCALE (1.25 major-third-ish, tuned) ===== */
+  --text-display: 600 3.5rem/1.04 var(--font-display);   /* 56px hero */
+  --text-h1:      600 2.5rem/1.1  var(--font-display);   /* 40px */
+  --text-h2:      600 2rem/1.15   var(--font-display);   /* 32px */
+  --text-h3:      600 1.5rem/1.2  var(--font-display);   /* 24px */
+  --text-h4:      600 1.25rem/1.3 var(--font-display);   /* 20px */
+  --text-lead:    400 1.25rem/1.55 var(--font-body);     /* 20px intro */
+  --text-body:    400 1rem/1.6    var(--font-body);      /* 16px */
+  --text-body-sm: 400 0.875rem/1.55 var(--font-body);    /* 14px */
+  --text-label:   600 0.8125rem/1.2 var(--font-body);    /* 13px */
+  --text-caption: 500 0.75rem/1.4 var(--font-body);      /* 12px */
+  --text-overline: 700 0.6875rem/1.2 var(--font-display);/* 11px, tracked */
+
+  --tracking-tight:   -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-overline: 0.14em;
+
+  /* ===== RADII ===== */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* ===== SPACING (4px base) ===== */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* ===== SHADOWS (soft, warm-tinted, never harsh) ===== */
+  --shadow-xs: 0 1px 2px rgba(30,45,74,0.06);
+  --shadow-sm: 0 2px 6px rgba(30,45,74,0.08);
+  --shadow-md: 0 8px 24px rgba(30,45,74,0.10);
+  --shadow-lg: 0 18px 48px rgba(30,45,74,0.14);
+  --shadow-focus: 0 0 0 3px rgba(181,172,239,0.55);
+}
+
+/* ============================================================
+   DARK THEME — activado con [data-theme="dark"] en <html> o <body>.
+   Compatible con next-themes (attribute="data-theme").
+   Solo cambian las variables semánticas (bg, fg, surface, border,
+   shadows). Los anchors de marca (--kq-navy/--kq-cream/--kq-lavender/
+   --kq-green) y las escalas crudas NO cambian — siguen siendo la
+   identidad de marca; el dark mode las recolorea según rol.
+   ============================================================ */
+[data-theme="dark"] {
+  /* Superficies — navys muy profundos con un toque cálido */
+  --bg:            #0e1422;
+  --bg-elevated:   #131a2d;
+  --surface:       #182238;
+  --surface-sunk:  #0b1120;
+  --paper:         #131a2d;
+  --cream:         #f8f4ee;   /* la marca cream sigue siendo cream para acentos */
+
+  /* Texto */
+  --fg:            #e7ebf2;   /* navy-100 */
+  --fg-strong:     #f8f4ee;   /* cream */
+  --fg-muted:      #9aa8c6;   /* navy-300 */
+  --fg-subtle:     #6b7da8;   /* navy-400 */
+  --fg-on-dark:    var(--cream);
+  --fg-on-dark-muted: #b6c0d4;
+
+  /* Roles — el navy ya no funciona como primary "oscuro sobre claro"
+     en dark mode; ahora primary es cream y action sigue siendo verde. */
+  --primary:        var(--cream);
+  --primary-hover:  #ffffff;
+  --primary-press:  #e6ddcf;
+  --on-primary:     var(--navy-900);
+
+  --action:         var(--green-500);
+  --action-hover:   var(--green-400);
+  --action-press:   var(--green-300);
+  --on-action:      #0e1422;
+
+  --accent:         var(--lav-500);
+  --accent-hover:   var(--lav-400);
+  --accent-soft:    rgba(181,172,239,0.18);
+  --on-accent:      var(--navy-900);
+
+  /* Feedback en dark — más saturados para mantener legibilidad */
+  --success:     #66c266;
+  --success-bg:  rgba(102,194,102,0.18);
+  --warning:     #f0a851;
+  --warning-bg:  rgba(240,168,81,0.18);
+  --danger:      #e57373;
+  --danger-bg:   rgba(229,115,115,0.18);
+  --info:        var(--lav-400);
+  --info-bg:     rgba(181,172,239,0.18);
+
+  /* Bordes */
+  --border:        rgba(248,244,238,0.08);
+  --border-strong: rgba(248,244,238,0.16);
+  --border-on-dark: rgba(248,244,238,0.16);
+  --ring:          var(--lav-500);
+
+  /* Shadows — más profundas y sin tinte (en dark el "tinte navy" no se ve) */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.40);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-lg: 0 18px 48px rgba(0,0,0,0.55);
+  --shadow-focus: 0 0 0 3px rgba(181,172,239,0.45);
+}
+
+/* Respeta la preferencia del SO si el sitio no fija un data-theme */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    color-scheme: dark;
+  }
+}
+
+/* ============================================================
+   SEMANTIC ELEMENT DEFAULTS (opt-in via .kq scope)
+   ============================================================ */
+.kq, .kq-scope {
+  font: var(--text-body);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.kq h1, .kq-h1 { font: var(--text-h1); letter-spacing: var(--tracking-tight); color: var(--fg-strong); margin: 0; }
+.kq h2, .kq-h2 { font: var(--text-h2); letter-spacing: var(--tracking-tight); color: var(--fg-strong); margin: 0; }
+.kq h3, .kq-h3 { font: var(--text-h3); color: var(--fg-strong); margin: 0; }
+.kq h4, .kq-h4 { font: var(--text-h4); color: var(--fg-strong); margin: 0; }
+.kq-display    { font: var(--text-display); letter-spacing: var(--tracking-tight); color: var(--fg-strong); margin: 0; }
+.kq-lead       { font: var(--text-lead); color: var(--fg-muted); margin: 0; }
+.kq p, .kq-p   { font: var(--text-body); color: var(--fg); margin: 0; text-wrap: pretty; }
+.kq-small      { font: var(--text-body-sm); color: var(--fg-muted); }
+.kq-label      { font: var(--text-label); color: var(--fg-strong); }
+.kq-caption    { font: var(--text-caption); color: var(--fg-subtle); }
+.kq-overline   { font: var(--text-overline); letter-spacing: var(--tracking-overline); text-transform: uppercase; color: var(--accent-hover); }
+.kq code, .kq-code { font-family: var(--font-mono); font-size: 0.9em; background: var(--surface-sunk); padding: 0.1em 0.35em; border-radius: var(--r-xs); }
