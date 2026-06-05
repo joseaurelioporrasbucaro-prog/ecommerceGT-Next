@@ -1,17 +1,17 @@
+"use client";
+
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import type { SellerRankingItem } from '@/types/api';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { resolveAvatarSrc } from '@/utils/avatarUtils';
+import { useDateFmt } from '@/utils/datetime';
 
 interface SingleArtRankingProps {
   seller: SellerRankingItem;
   position: number;
-}
-
-function formatCount(value: number): string {
-  return new Intl.NumberFormat('es-GT').format(value);
 }
 
 function renderStars(value: number): string {
@@ -20,7 +20,9 @@ function renderStars(value: number): string {
 }
 
 const SingleArtRanking = ({ seller, position }: SingleArtRankingProps) => {
-  const fullName = `${seller.firstName} ${seller.lastName}`.trim() || 'Vendedor';
+  const t = useTranslations('profile');
+  const dateFmt = useDateFmt();
+  const fullName = `${seller.firstName} ${seller.lastName}`.trim() || t('seller.fallback');
   const avatarSrc = resolveAvatarSrc(seller.avatar, fullName, 64, getBackendUrl);
   const profileHref = `/creator-profile/${seller.cusId}`;
 
@@ -58,13 +60,13 @@ const SingleArtRanking = ({ seller, position }: SingleArtRankingProps) => {
         <strong>{seller.averageRating.toFixed(1)}</strong>
       </div>
       <div className="rank-list-cell rank-list-cell-hours">
-        {formatCount(seller.totalReviews)} reseñas
+        {t('seller.reviewCount', { count: seller.totalReviews })}
       </div>
       <div className="rank-list-cell rank-list-cell-days">
-        {formatCount(seller.followers)}
+        {dateFmt.number(seller.followers)}
       </div>
       <div className="rank-list-cell rank-list-cell-assets">
-        {formatCount(seller.totalpublis)}
+        {dateFmt.number(seller.totalpublis)}
       </div>
     </div>
   );
