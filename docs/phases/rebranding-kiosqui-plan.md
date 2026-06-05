@@ -312,6 +312,30 @@ pantallas tocadas en **light y dark** (toggle del header). Cards y pricing
 necesitan backend levantado para datos reales; sin backend, verificar que no
 rompe layout y que cargan los estilos.
 
+## 8bis. Revisión por mini-fase (gate de calidad — NO saltar)
+
+Cada paquete (F0, WP-1..7) **no se da por cerrado** hasta pasar revisión:
+1. La IA ejecutora abre **PR de su sub-rama → `design/kiosqui-system`** (nunca a
+   main). En el PR: qué archivos del prototipo usó de referencia + captura
+   light/dark.
+2. **Revisión por Claude** (sesión aparte, patrón AGENTS.md §10.2): leer el diff,
+   validar reglas (NO backend, NO lógica, NO `any`, tokens semánticos, voseo),
+   correr `tsc --noEmit` + `next build`, revisar la pantalla en light y dark.
+3. **Solo con visto bueno** se mergea la sub-rama a `design/kiosqui-system`.
+4. Hallazgos de diseño → `docs/phases/kiosqui-feedback-claude-design.md`.
+
+Prompt de revisión (pegar en una sesión Claude por cada PR):
+```
+Otra IA trabajó el paquete <F0/WP-N> en la sub-rama <nombre> hacia
+design/kiosqui-system. Leé AGENTS.md y docs/phases/rebranding-kiosqui-plan.md.
+Corré `git diff design/kiosqui-system...<sub-rama>`. Validá: NO toca backend ni
+lógica (hooks/AuthContext/middleware); usa tokens semánticos (dark OK); voseo; sin
+`any`; `tsc --noEmit` + `next build` limpios; pantalla(s) OK en light y dark.
+Reportá: qué está bien, qué ajustar, y si está listo para mergear a
+design/kiosqui-system o necesita correcciones. Anotá gaps en
+docs/phases/kiosqui-feedback-claude-design.md.
+```
+
 ## 9. Orden sugerido con presupuesto acotado
 
 1. **F0** (obligatorio, desbloquea todo) — Codex o un Claude Code con ventana.
