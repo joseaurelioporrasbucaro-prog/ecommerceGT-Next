@@ -27,17 +27,17 @@ src/
 
 Next.js App Router. Desde Fase 14.1, las páginas viven bajo `src/app/[locale]/`
 para soportar sub-paths `/es` y `/en`. En la raíz de `src/app/` solo quedan
-`layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.ts`, `robots.ts`,
-`[...not_found]/` y `[locale]/`.
+`layout.tsx`, `globals.css`, `favicon.ico`, `sitemap.xml/route.ts`,
+`robots.ts`, `[...not_found]/` y `[locale]/`.
 
 - `page.tsx` monta el componente principal.
 - Rutas dinámicas usan `[id]`, `[token]`, `[...not_found]`.
 - `src/app/layout.tsx` solo importa estilos globales y retorna `children`.
 - `src/app/[locale]/layout.tsx` configura `<html lang={locale}>`,
   `NextIntlClientProvider`, providers globales y metadata localizada.
-- `sitemap.ts` emite variantes `/es/...` y `/en/...` con
-  `alternates.languages`; `robots.ts` bloquea rutas privadas con prefijo de
-  locale.
+- `sitemap.xml/route.ts` emite XML explícito con variantes `/es/...` y
+  `/en/...` + `xhtml:link hreflang`; `robots.ts` bloquea rutas privadas con
+  prefijo de locale.
 
 Ejemplos:
 

@@ -13,7 +13,7 @@ import { locales } from "@/i18n/routing";
  *   - /creator-profile-info* — paneles de configuración del perfil
  *   - /verify, /forgot, /invite — flujos transaccionales
  *
- * Apuntamos al sitemap dinámico generado por sitemap.ts.
+ * Apuntamos al sitemap dinámico generado por src/app/sitemap.xml/route.ts.
  */
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://kiosqui.gt";

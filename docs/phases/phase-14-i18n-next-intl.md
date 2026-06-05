@@ -789,9 +789,11 @@ Endpoints que reciben el cambio:
 - `POST /companies/:id/employees/invite` (o el endpoint real de invitación)
 - Los endpoints donde Codex identifique que el backend manda email.
 
-#### 4. SEO bilingüe — `sitemap.ts` y `robots.ts`
+#### 4. SEO bilingüe — `sitemap.xml` y `robots.ts`
 
-`src/app/sitemap.ts` debe emitir **ambas variantes** por ruta:
+En Next 13.4, `src/app/sitemap.ts` no serializa `alternates.languages` como
+`hreflang` en el XML. Para Hito 14.4 se usa `src/app/sitemap.xml/route.ts`
+con XML explícito. Debe emitir **ambas variantes** por ruta:
 
 ```ts
 import { MetadataRoute } from 'next';
@@ -835,7 +837,7 @@ Backend (vitest + supertest):
 - [x] Las 6 llamadas a `transp.sendMail` usan `renderEmail()`.
 - [x] Endpoints clave devuelven `{ code, message, params }` (al menos los 20 más visibles).
 - [x] Frontend pasa `locale` al body de los endpoints que disparan emails.
-- [x] `sitemap.ts` emite `/es/...` y `/en/...` con `hreflang`.
+- [x] `sitemap.xml/route.ts` emite `/es/...` y `/en/...` con `hreflang`.
 - [x] `robots.ts` actualizado con disallow por locale.
 - [x] T-115..T-117 verdes.
 - [x] Tests previos siguen verdes (17 + nuevos del hito).
