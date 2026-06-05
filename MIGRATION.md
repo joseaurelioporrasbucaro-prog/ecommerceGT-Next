@@ -144,7 +144,7 @@ El backend está estable y se comparte. La regla:
 | **12** | Panel de administración / soporte (rol admin, dashboard de alertas, métricas, gestión usuarios) | ⬜ Pendiente | 2–3 días |
 | **13** | Soporte al cliente (usuario "Soporte" especial vía mensajería de Fase 6, replies por email vía nodemailer, tickets) | ⬜ Pendiente | 1–2 días |
 | **13.docs** | Documentación técnica completa de la plataforma | ✅ Completada | 1 día |
-| **14** | i18n bilingüe es/en con `next-intl` + sub-paths `/es` `/en` + emails bilingües + SEO bilingüe — plan ejecutable [`docs/phases/phase-14-i18n-next-intl.md`](docs/phases/phase-14-i18n-next-intl.md) | 🟡 En plan, lista para ejecutar | 3–4 días |
+| **14** | i18n bilingüe es/en con `next-intl` + sub-paths `/es` `/en` + emails bilingües + SEO bilingüe — plan ejecutable [`docs/phases/phase-14-i18n-next-intl.md`](docs/phases/phase-14-i18n-next-intl.md) | ✅ Completada | 3–4 días |
 | **20** | Automatización de tests backend con Vitest/Supertest + CI | ✅ Completada | 0.5–1 día |
 
 **Total estimado:** 23–31 días de trabajo enfocado.
@@ -2928,7 +2928,7 @@ el UI sin valor.
 
 ---
 
-### Fase 14 (en plan, lista para ejecutar) — Internacionalización (i18n) con `next-intl` y sub-paths `/es` `/en`
+### Fase 14 ✅ — Internacionalización (i18n) con `next-intl` y sub-paths `/es` `/en`
 
 > **Plan ejecutable:** [`docs/phases/phase-14-i18n-next-intl.md`](docs/phases/phase-14-i18n-next-intl.md)
 > **Checklist de review:** [`docs/phases/phase-14-review-checklist.md`](docs/phases/phase-14-review-checklist.md)
@@ -3005,10 +3005,9 @@ locale vive en cookie `NEXT_LOCALE` (per D-5).
 | URLs viejas sin locale rompen backlinks externos | Middleware redirige `/publications/123` → `/es/publications/123` |
 | Fase 11.2 (pasarela) corre en paralelo | Fase 14 cierra **antes** de abrir 11.2 |
 
-**Trigger:** ya está habilitada — el plan está cerrado y Codex puede
-arrancar por el Hito 14.1 cuando Aurelio dé el visto. Lo óptimo es
-ejecutarla **antes** del lanzamiento público (D-1 atrae inversionistas
-extranjeros y expats con poder de compra alto).
+**Estado:** cerrada el 2026-06-05. La fase deja rutas `/es` y `/en`,
+contenido visible migrado a `next-intl`, emails bilingües en backend y SEO
+bilingüe con sitemap/robots localizados.
 
 ---
 
@@ -3144,35 +3143,62 @@ extranjeros y expats con poder de compra alto).
 - **Bloqueos resueltos:** ninguno.
 - **Notas del revisor:** _por completar_
 
-##### Hito 14.4 — Backend (errores + emails) + SEO bilingüe — ⬜ Pendiente
+##### Hito 14.4 — Backend (errores + emails) + SEO bilingüe — ✅ Completado
 
-- **SHA Codex (backend):** _por completar_
-- **SHA Codex (frontend):** _por completar_
-- **Tests añadidos (backend):** T-115..T-117
-- **Decisiones aplicadas:** D-8, D-9
-- **Archivos backend creados:** `utils/emailTemplates.js` (6 plantillas
-  bilingües: recovery, verificationConfirm, verificationConfirmWithTemp,
-  reviewSeller, addedToCompany, invitedToCompany).
-- **Archivos backend modificados:** `config/connPostgresDB.js`
-  - Las 6 llamadas a `transp.sendMail` pasan por `renderEmail()`.
-  - ≥20 respuestas de error con shape `{ code, message, params }`.
+- **SHA Codex (backend):** `04c735d` (docs backend). Commits del hito backend:
+  `b66f010`, `611f513`, `9252bdc`, `909ddd6`, `28df9f4`, `04c735d`.
+- **SHA Codex (frontend):** `956d1c6` (último commit de código; cierre
+  documental en `docs(fase14.4): cierre completo Fase 14`). Commits de código
+  frontend: `7061487`, `b8af9b5`, `956d1c6`.
+- **Tests añadidos/documentados:** T-115..T-117 automatizados en backend
+  (`tests/api/emails/recovery-locale.spec.js`) y documentados en
+  `docs/TEST_PLAN.md`.
+- **Decisiones aplicadas:** D-8 (`{ code, message, params }`) y D-9
+  (`renderEmail(name, locale, params)` con `locale` por body).
+- **Archivos backend creados:** `utils/emailTemplates.js` con 6 plantillas
+  bilingües: `recovery`, `verificationConfirm`,
+  `verificationConfirmWithTemp`, `reviewSeller`, `addedToCompany`,
+  `invitedToCompany`.
+- **Archivos backend modificados:**
+  - `config/connPostgresDB.js` — las 6 llamadas a `transp.sendMail` pasan por
+    `renderEmail()`; links de email salen localizados (`/es/...`, `/en/...`).
+  - `config/connPostgresDB.js` — 21 endpoints visibles migrados a errores
+    `{ code, message, params }`, preservando flags legacy donde aplicaba.
+  - `docs/API_REFERENCE.md`, `docs/GLOSSARY.md` — convención de errores,
+    `locale` en body y términos nuevos.
 - **Archivos frontend modificados:**
-  - `src/utils/Api.ts` o equivalente — `locale` en body de endpoints con email.
-  - `src/app/sitemap.ts` — emite `/es/...` y `/en/...` con `hreflang`.
-  - `src/app/robots.ts` — `disallow` por locale.
+  - `src/form/ForgotForm.tsx`, `src/form/RegisterForm.tsx` — mandan `locale`
+    en `/recoverypass` y `/register`.
+  - `src/hooks/api/useCompany.ts`, `src/hooks/api/useCloseSale.ts` — mandan
+    `locale` en invitaciones/alta de empleados y cierre de venta.
+  - `src/types/api.ts` — payloads aceptan `locale`.
+  - `src/app/sitemap.ts` — emite variantes `/es/...` y `/en/...` con
+    `alternates.languages`.
+  - `src/app/robots.ts` — `allow`/`disallow` localizados por prefijo.
 - **Docs §13 actualizadas:**
-  - Backend: `docs/API_REFERENCE.md`, `docs/GLOSSARY.md`
+  - Backend: `docs/API_REFERENCE.md`, `docs/GLOSSARY.md`.
   - Frontend: `docs/FRONTEND_STRUCTURE.md`, `docs/ARCHITECTURE.md`,
-    `docs/ONBOARDING.md`, `docs/TEST_PLAN.md`
-- **Bloqueos resueltos:** _por completar_
+    `docs/ONBOARDING.md`, `docs/TEST_PLAN.md`.
+- **Validación ejecutada:**
+  - Backend `npm test` ✅ 20/20.
+  - Frontend `npx tsc --noEmit` ✅
+  - Frontend `npm run build` ✅
+  - Sitemap smoke con `hreflang` ✅
+- **Bloqueos resueltos:** ninguno.
 - **Notas del revisor:** _por completar_
 
-##### Cierre Fase 14 — ⬜ Pendiente
+##### Cierre Fase 14 — ✅ Completada
 
-- **Verdict global:** _por completar_ (✅ APROBADA / ⚠️ APROBADA CON OBSERVACIONES / ❌ RECHAZADA)
-- **Follow-ups que quedaron fuera de scope** (lista vacía hasta que cierre):
-  - _por completar_
-- **Fecha de cierre:** _por completar_
+- **Verdict global:** ✅ Completada por Codex, lista para revisión final.
+- **Follow-ups que quedaron fuera de scope:**
+  - Persistir preferencia de idioma en BD (`cus_locale`) sigue fuera de scope
+    por D-5; hoy vive en cookie `NEXT_LOCALE` y body por request.
+  - Traducir cada `error.code` en frontend con namespaces de errores puede
+    hacerse en una fase de pulido; hoy el backend entrega `code/params` y el
+    fallback `message` en español mantiene compatibilidad.
+  - Completar el sweep de `{ code, message, params }` en endpoints legacy de
+    perfil, comentarios, mensajería, denuncias internas y assets.
+- **Fecha de cierre:** 2026-06-05.
 
 ---
 

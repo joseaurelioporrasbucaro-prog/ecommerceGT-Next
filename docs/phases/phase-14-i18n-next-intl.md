@@ -831,14 +831,14 @@ Backend (vitest + supertest):
 
 ### Criterios de aceptación 14.4
 
-- [ ] `utils/emailTemplates.js` creado con 6 plantillas bilingües.
-- [ ] Las 6 llamadas a `transp.sendMail` usan `renderEmail()`.
-- [ ] Endpoints clave devuelven `{ code, message, params }` (al menos los 20 más visibles).
-- [ ] Frontend pasa `locale` al body de los endpoints que disparan emails.
-- [ ] `sitemap.ts` emite `/es/...` y `/en/...` con `hreflang`.
-- [ ] `robots.ts` actualizado con disallow por locale.
-- [ ] T-115..T-117 verdes.
-- [ ] Tests previos siguen verdes (17 + nuevos del hito).
+- [x] `utils/emailTemplates.js` creado con 6 plantillas bilingües.
+- [x] Las 6 llamadas a `transp.sendMail` usan `renderEmail()`.
+- [x] Endpoints clave devuelven `{ code, message, params }` (al menos los 20 más visibles).
+- [x] Frontend pasa `locale` al body de los endpoints que disparan emails.
+- [x] `sitemap.ts` emite `/es/...` y `/en/...` con `hreflang`.
+- [x] `robots.ts` actualizado con disallow por locale.
+- [x] T-115..T-117 verdes.
+- [x] Tests previos siguen verdes (17 + nuevos del hito).
 
 ---
 

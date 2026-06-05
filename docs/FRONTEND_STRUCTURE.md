@@ -34,8 +34,10 @@ para soportar sub-paths `/es` y `/en`. En la raíz de `src/app/` solo quedan
 - Rutas dinámicas usan `[id]`, `[token]`, `[...not_found]`.
 - `src/app/layout.tsx` solo importa estilos globales y retorna `children`.
 - `src/app/[locale]/layout.tsx` configura `<html lang={locale}>`,
-  `NextIntlClientProvider`, providers globales y metadata.
-- `robots.ts` y `sitemap.ts` generan SEO técnico.
+  `NextIntlClientProvider`, providers globales y metadata localizada.
+- `sitemap.ts` emite variantes `/es/...` y `/en/...` con
+  `alternates.languages`; `robots.ts` bloquea rutas privadas con prefijo de
+  locale.
 
 Ejemplos:
 
@@ -122,6 +124,8 @@ Reglas:
 - `QueryProvider.tsx` — React Query provider y devtools en desarrollo.
 - `backendUrl.ts` — resuelve rutas `/uploads/...` contra `NEXT_PUBLIC_API_URL`.
 - `stripLocalePath.ts` — normaliza paths `/es/...` y `/en/...` a paths internos sin locale.
+- `datetime.ts` / `datetime.server.ts` — helpers de fecha/número basados en
+  `next-intl`.
 - `publicationUtils.ts`, `imageVariants.ts`, `publicationSeo.ts` — helpers de dominio/imagen/SEO.
 - `gtMunicipalityCoords.ts` — centroides de municipios para mapa.
 
@@ -132,8 +136,11 @@ Setup de `next-intl` introducido en Fase 14.1:
 - `src/i18n/routing.ts` — locales soportados (`es`, `en`), default `es` y `localePrefix: 'always'`.
 - `src/i18n/request.ts` — carga namespaces JSON desde `messages/<locale>/`.
 - `src/i18n/navigation.ts` — wrappers `Link`, `useRouter`, `usePathname`, `redirect`.
-- `messages/es/common.json` y `messages/en/common.json` — claves comunes iniciales.
-- `messages/es/auth.json` y `messages/en/auth.json` — claves auth sembradas desde el bundle legacy.
+- Namespaces activos en `messages/<locale>/`: `common`, `auth`, `messages`,
+  `support`, `pauta`, `profile`, `notifications`, `admin`, `home`,
+  `publications`, `legal`, `danger`.
+- `src/i18n/request.ts` carga todos los namespaces y los expone como objeto
+  namespaced para `useTranslations('<namespace>')`.
 
 ### `src/layout/`
 
@@ -232,8 +239,6 @@ El gate visual no reemplaza la seguridad: el backend valida `requireSupport` o `
 
 ## i18n
 
-i18n está en migración gradual desde Fase 14.1.
-
 Estado actual:
 
 - `next-intl` está activo con sub-paths `/es` y `/en`.
@@ -241,9 +246,15 @@ Estado actual:
 - `NEXT_LOCALE` persiste la elección del usuario.
 - El selector de idioma vive en `HeaderOne` y `HeaderTwo`.
 - La convivencia con `react-i18next` terminó en Hito 14.2: `react-i18next`, `i18next` y `src/i18n.js` fueron eliminados.
-- La mayoría del contenido nuevo sigue hardcodeado en español hasta Hito 14.3.
+- Hito 14.3 extrajo contenido visible de Fases 5-11 a namespaces JSON y
+  reemplazó fechas hardcoded por helpers basados en `useFormatter`.
+- Hito 14.4 pasa `locale` a endpoints que disparan emails y genera sitemap /
+  robots bilingües.
 
-Regla práctica durante Fase 14: texto nuevo visible en pantallas migradas debe ir a `messages/`; texto fuera de alcance del hito queda en español claro hasta su migración.
+Regla práctica: texto nuevo visible debe ir a `messages/<locale>/<namespace>.json`
+en ambos idiomas. Si el backend devuelve `{ code, message, params }`, el
+frontend debe preferir traducir `code` cuando exista una clave y usar `message`
+como fallback.
 
 ## Páginas que todavía son referencia del template
 

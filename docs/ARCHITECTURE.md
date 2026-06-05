@@ -81,12 +81,38 @@ sequenceDiagram
   M-->>L: request localizado
   L->>R: getMessages(locale)
   R->>Msg: common.json + auth.json
-  Msg-->>L: mensajes namespaced
-  L-->>P: NextIntlClientProvider
+    Msg-->>L: mensajes namespaced
+    L-->>P: NextIntlClientProvider
 ```
 
-Durante 14.1 y 14.2 conviven `next-intl` y el bundle legacy
-`react-i18next`. El cleanup del bundle viejo queda para el cierre de 14.2.
+Desde el cierre de 14.2, `react-i18next`, `i18next` y `src/i18n.js` ya no
+existen. El contenido visible vive en `messages/<locale>/<namespace>.json` y
+las fechas usan `useFormatter` / helpers de `src/utils/datetime*`.
+
+#### Request bilingüe
+
+```mermaid
+sequenceDiagram
+  participant U as Usuario
+  participant Next as Next.js /en
+  participant Api as ApiFetch
+  participant B as Express
+  participant Email as renderEmail
+  participant SMTP as SMTP
+
+  U->>Next: Submit /en/forgot
+  Next->>Api: POST /recoverypass {email, locale:"en"}
+  Api->>B: JSON + cookie si existe
+  B->>Email: renderEmail("recovery", "en", params)
+  Email-->>B: subject + html en EN
+  B->>SMTP: sendMail
+  B-->>Api: 200 o {code,message,params}
+  Api-->>Next: ApiError conserva status/body/message
+  Next-->>U: UI usa traducción de code o fallback message
+```
+
+La Fase 14.4 no persiste locale en BD. Los emails bilingües dependen del
+`locale` enviado por el frontend; si falta o no es `en`, el backend usa `es`.
 
 ### Backend — `ecommerceGTBackEnd`
 

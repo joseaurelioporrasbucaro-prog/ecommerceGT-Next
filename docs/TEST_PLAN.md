@@ -642,6 +642,39 @@ y `grep -rn "'es-GT'\\|'es-ES'\\|'en-US'" src/`.
 **Esperado:** Ambos comandos devuelven 0 ocurrencias, salvo futuras
 excepciones documentadas explícitamente en el PR.
 
+## i18n / next-intl (Fase 14.4)
+
+### T-115 — Recovery con locale inglés manda email EN — 🤖 AUTOMATED
+**Runner:** Backend Vitest + Supertest.
+
+**Spec:** `ecommerceGTBackEnd/tests/api/emails/recovery-locale.spec.js`.
+
+**Ejecución:** `npm test` en backend.
+
+**Esperado:** `POST /recoverypass { email, locale: "en" }` llama
+`transp.sendMail` con subject que contiene `Reset` y link `/en/forgot?token=`.
+
+### T-116 — Recovery sin locale cae a email ES — 🤖 AUTOMATED
+**Runner:** Backend Vitest + Supertest.
+
+**Spec:** `ecommerceGTBackEnd/tests/api/emails/recovery-locale.spec.js`.
+
+**Ejecución:** `npm test` en backend.
+
+**Esperado:** `POST /recoverypass { email }` llama `transp.sendMail` con
+subject que contiene `Restablecer` y link `/es/forgot?token=`.
+
+### T-117 — Error backend devuelve `{ code, message, params }` — 🤖 AUTOMATED
+**Runner:** Backend Vitest + Supertest.
+
+**Spec:** `ecommerceGTBackEnd/tests/api/emails/recovery-locale.spec.js`.
+
+**Ejecución:** `npm test` en backend.
+
+**Esperado:** Login con password incorrecta responde `400` con
+`code: "auth.password_incorrect"`, `message` fallback en español y
+`params: {}`.
+
 ---
 
 ## Roadmap de automatización
@@ -679,4 +712,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-06-04 (Fase 14.3 — T-112..T-114 smoke manual)
+**Última actualización:** 2026-06-05 (Fase 14.4 — T-115..T-117 automated backend)
