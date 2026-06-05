@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   page: number;          // 1-based
@@ -10,17 +11,18 @@ interface Props {
 
 /** Paginación client-side simple para las tablas de soporte (Fase 8.5). */
 const Pagination: React.FC<Props> = ({ page, pageSize, total, onPage }) => {
+  const t = useTranslations('support');
   const pages = Math.ceil(total / pageSize);
   if (pages <= 1) return null;
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
   return (
     <div className="pg">
-      <span className="pg-info">{from}–{to} de {total}</span>
+      <span className="pg-info">{t('pagination.summary', { from, to, total })}</span>
       <div className="pg-controls">
-        <button onClick={() => onPage(page - 1)} disabled={page <= 1}><i className="fas fa-chevron-left" /></button>
+        <button onClick={() => onPage(page - 1)} disabled={page <= 1} aria-label={t('pagination.previous')}><i className="fas fa-chevron-left" /></button>
         <span className="pg-cur">{page} / {pages}</span>
-        <button onClick={() => onPage(page + 1)} disabled={page >= pages}><i className="fas fa-chevron-right" /></button>
+        <button onClick={() => onPage(page + 1)} disabled={page >= pages} aria-label={t('pagination.next')}><i className="fas fa-chevron-right" /></button>
       </div>
       <style jsx>{`
         .pg { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
@@ -7,6 +8,7 @@ import { getBackendUrl } from '@/utils/backendUrl';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useVerificationRequests, useResolveVerification } from '@/hooks/api/useVerification';
+import { useDateFmt } from '@/utils/datetime';
 import type { VerificationRequestRow } from '@/types/api';
 
 const docUrl = (verId: number, side: 'front' | 'back') =>
@@ -15,6 +17,8 @@ const docUrl = (verId: number, side: 'front' | 'back') =>
 type StatusFilter = 'pending' | 'verified' | 'rejected';
 
 const SupportVerificationsMain = () => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { user } = useAuth();
   const [status, setStatus] = useState<StatusFilter>('pending');
   const { data, isLoading } = useVerificationRequests(status);
@@ -30,26 +34,26 @@ const SupportVerificationsMain = () => {
     resolve.mutate(
       { verId: req.ver_id, action: 'approve' },
       {
-        onSuccess: (r) => toast.success(r.message || 'Aprobada.'),
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo aprobar'),
+        onSuccess: (r) => toast.success(r.message || t('verifications.approved')),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('verifications.approveError')),
       },
     );
 
   const confirmReject = () => {
     if (!rejectTarget) return;
     if (reason.trim().length < 4) {
-      toast.error('Escribe un motivo de rechazo.');
+      toast.error(t('verifications.rejectReasonRequired'));
       return;
     }
     resolve.mutate(
       { verId: rejectTarget.ver_id, action: 'reject', reason: reason.trim() },
       {
         onSuccess: (r) => {
-          toast.success(r.message || 'Rechazada.');
+          toast.success(r.message || t('verifications.rejected'));
           setRejectTarget(null);
           setReason('');
         },
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo rechazar'),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('verifications.rejectError')),
       },
     );
   };
@@ -59,26 +63,26 @@ const SupportVerificationsMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Verificaciones" />
+      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.verifications')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           {!isSupport ? (
-            <div className="alert alert-danger">Acceso restringido. Solo el equipo de soporte puede ver esta página.</div>
+            <div className="alert alert-danger">{t('common.restricted')}</div>
           ) : (
             <>
               <div className="sv-filter">
                 {(['pending', 'verified', 'rejected'] as const).map((s) => (
                   <button key={s} className={`sv-tab ${status === s ? 'active' : ''}`} onClick={() => setStatus(s)}>
-                    {s === 'pending' ? 'Pendientes' : s === 'verified' ? 'Aprobadas' : 'Rechazadas'}
+                    {t(`verifications.status.${s}`)}
                   </button>
                 ))}
               </div>
 
-              {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
+              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
               {!isLoading && rows.length === 0 && (
                 <p style={{ opacity: 0.6 }}>
-                  No hay solicitudes {status === 'pending' ? 'pendientes' : status === 'verified' ? 'aprobadas' : 'rechazadas'}.
+                  {t(`verifications.empty.${status}`)}
                 </p>
               )}
 
@@ -87,19 +91,19 @@ const SupportVerificationsMain = () => {
                   <table className="sv-table">
                     <thead>
                       <tr>
-                        <th>Tipo</th>
-                        <th>Solicitante</th>
-                        <th>Documento</th>
-                        <th>Archivos</th>
-                        <th>Fecha</th>
-                        {status === 'pending' && <th className="sv-th-actions">Acciones</th>}
-                        {status === 'rejected' && <th>Motivo</th>}
+                        <th>{t('table.type')}</th>
+                        <th>{t('table.requester')}</th>
+                        <th>{t('table.document')}</th>
+                        <th>{t('table.files')}</th>
+                        <th>{t('table.date')}</th>
+                        {status === 'pending' && <th className="sv-th-actions">{t('table.actions')}</th>}
+                        {status === 'rejected' && <th>{t('table.reason')}</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((req: VerificationRequestRow) => {
                         const isPersonal = req.ver_type === 'personal';
-                        const name = `${req.firstname ?? ''} ${req.lastname ?? ''}`.trim() || 'Usuario';
+                        const name = `${req.firstname ?? ''} ${req.lastname ?? ''}`.trim() || t('common.user');
                         return (
                           <tr key={req.ver_id}>
                             <td>
@@ -108,7 +112,7 @@ const SupportVerificationsMain = () => {
                               </span>
                             </td>
                             <td>
-                              <div className="sv-name">{isPersonal ? name : (req.companyname || 'Empresa')}</div>
+                              <div className="sv-name">{isPersonal ? name : (req.companyname || t('common.company'))}</div>
                               {req.handle && <div className="sv-handle">@{req.handle}</div>}
                             </td>
                             <td className="sv-mono">{req.ver_document}</td>
@@ -116,8 +120,8 @@ const SupportVerificationsMain = () => {
                               <div className="sv-files">
                                 {isPersonal ? (
                                   <>
-                                    <a href={docUrl(req.ver_id, 'front')} target="_blank" rel="noopener noreferrer">Frente</a>
-                                    <a href={docUrl(req.ver_id, 'back')} target="_blank" rel="noopener noreferrer">Reverso</a>
+                                    <a href={docUrl(req.ver_id, 'front')} target="_blank" rel="noopener noreferrer">{t('verifications.front')}</a>
+                                    <a href={docUrl(req.ver_id, 'back')} target="_blank" rel="noopener noreferrer">{t('verifications.back')}</a>
                                   </>
                                 ) : (
                                   <a href={docUrl(req.ver_id, 'front')} target="_blank" rel="noopener noreferrer">
@@ -126,20 +130,20 @@ const SupportVerificationsMain = () => {
                                 )}
                               </div>
                             </td>
-                            <td className="sv-date">{new Date(req.created_at).toLocaleDateString('es-GT')}</td>
+                            <td className="sv-date">{dateFmt.short(req.created_at)}</td>
                             {status === 'pending' && (
                               <td>
                                 <div className="sv-row-actions">
-                                  <button className="sv-btn sv-approve" onClick={() => approve(req)} disabled={resolve.isPending} title="Aprobar">
+                                  <button className="sv-btn sv-approve" onClick={() => approve(req)} disabled={resolve.isPending} title={t('verifications.approve')}>
                                     <i className="fas fa-check" />
                                   </button>
-                                  <button className="sv-btn sv-reject" onClick={() => { setRejectTarget(req); setReason(''); }} disabled={resolve.isPending} title="Rechazar">
+                                  <button className="sv-btn sv-reject" onClick={() => { setRejectTarget(req); setReason(''); }} disabled={resolve.isPending} title={t('verifications.reject')}>
                                     <i className="fas fa-times" />
                                   </button>
                                 </div>
                               </td>
                             )}
-                            {status === 'rejected' && <td className="sv-reason">{req.ver_reject_reason || '—'}</td>}
+                            {status === 'rejected' && <td className="sv-reason">{req.ver_reject_reason || '-'}</td>}
                           </tr>
                         );
                       })}
@@ -156,23 +160,23 @@ const SupportVerificationsMain = () => {
       {rejectTarget && (
         <div className="sv-overlay" role="dialog" aria-modal="true">
           <div className="sv-modal">
-            <h5>Rechazar solicitud</h5>
+            <h5>{t('verifications.rejectRequest')}</h5>
             <p className="sv-modal-sub">
               {rejectTarget.ver_type === 'personal'
                 ? `${rejectTarget.firstname ?? ''} ${rejectTarget.lastname ?? ''}`.trim()
-                : (rejectTarget.companyname || 'Empresa')}
+                : (rejectTarget.companyname || t('common.company'))}
             </p>
             <textarea
-              placeholder="Motivo del rechazo (lo verá el usuario)"
+              placeholder={t('verifications.rejectPlaceholder')}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               autoFocus
             />
             <div className="sv-modal-actions">
-              <button className="sv-btn sv-ghost" onClick={() => { setRejectTarget(null); setReason(''); }}>Cancelar</button>
+              <button className="sv-btn sv-ghost" onClick={() => { setRejectTarget(null); setReason(''); }}>{t('common.cancel')}</button>
               <button className="sv-btn sv-reject-full" onClick={confirmReject} disabled={resolve.isPending}>
-                {resolve.isPending ? 'Rechazando…' : 'Confirmar rechazo'}
+                {resolve.isPending ? t('verifications.rejecting') : t('verifications.confirmReject')}
               </button>
             </div>
           </div>

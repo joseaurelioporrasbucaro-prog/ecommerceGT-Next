@@ -1,22 +1,21 @@
 "use client";
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useSupportUsers, useBanUser, useUnbanUser, useUnlockPassword } from '@/hooks/api/useSupportUsers';
+import { useDateFmt } from '@/utils/datetime';
 import Pagination from './Pagination';
 import type { SupportUserRow, AccountStatus } from '@/types/api';
 
-const STATUS_LABEL: Record<AccountStatus, string> = {
-  active: 'Activo',
-  suspended: 'Suspendido',
-  banned: 'Baneado',
-};
 const PAGE_SIZE = 15;
 
 const SupportUsersMain = () => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { user } = useAuth();
   const [search, setSearchRaw] = useState('');
   const [statusFilter, setStatusFilterRaw] = useState<'' | AccountStatus>('');
@@ -45,31 +44,31 @@ const SupportUsersMain = () => {
   const confirmBan = () => {
     if (!banTarget) return;
     if (reason.trim().length < 4) {
-      toast.error('Escribe un motivo.');
+      toast.error(t('common.reasonRequired'));
       return;
     }
     banUser.mutate(
       { cusId: banTarget.cus_id, status: banStatus, reason: reason.trim(), days: banStatus === 'suspended' ? banDays : undefined },
       {
         onSuccess: (r) => {
-          toast.success(r.message || 'Hecho.');
+          toast.success(r.message || t('common.done'));
           setBanTarget(null);
         },
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo sancionar'),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('common.sanctionError')),
       },
     );
   };
 
   const reactivate = (u: SupportUserRow) =>
     unbanUser.mutate(u.cus_id, {
-      onSuccess: (r) => toast.success(r.message || 'Reactivado.'),
-      onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo reactivar'),
+      onSuccess: (r) => toast.success(r.message || t('users.reactivated')),
+      onError: (e) => toast.error(e instanceof ApiError ? e.message : t('users.reactivateError')),
     });
 
   const unlockPwd = (u: SupportUserRow) =>
     unlockPassword.mutate(u.cus_id, {
-      onSuccess: (r) => toast.success(r.message || 'Contraseña desbloqueada.'),
-      onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo desbloquear'),
+      onSuccess: (r) => toast.success(r.message || t('users.passwordUnlocked')),
+      onError: (e) => toast.error(e instanceof ApiError ? e.message : t('users.unlockError')),
     });
 
   const rows = data ?? [];
@@ -78,48 +77,48 @@ const SupportUsersMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Usuarios" />
+      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.users')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           {!isSupport ? (
-            <div className="alert alert-danger">Acceso restringido. Solo el equipo de soporte puede ver esta página.</div>
+            <div className="alert alert-danger">{t('common.restricted')}</div>
           ) : (
             <>
               <div className="su-toolbar">
                 <input
                   className="su-search"
-                  placeholder="Buscar por nombre, @handle o email…"
+                  placeholder={t('users.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 <div className="su-filter">
-                  {([['', 'Todos'], ['active', 'Activos'], ['suspended', 'Suspendidos'], ['banned', 'Baneados']] as const).map(([v, label]) => (
+                  {(['', 'active', 'suspended', 'banned'] as const).map((v) => (
                     <button key={v} className={`su-tab ${statusFilter === v ? 'active' : ''}`} onClick={() => setStatusFilter(v)}>
-                      {label}
+                      {v ? t(`users.statusFilter.${v}`) : t('filters.all')}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
-              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>No hay usuarios que coincidan.</p>}
+              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
+              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('users.empty')}</p>}
 
               {rows.length > 0 && (
                 <div className="su-table-wrap">
                   <table className="su-table">
                     <thead>
                       <tr>
-                        <th>Usuario</th>
-                        <th>Email</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th className="su-th-actions">Acciones</th>
+                        <th>{t('table.user')}</th>
+                        <th>{t('table.email')}</th>
+                        <th>{t('table.role')}</th>
+                        <th>{t('table.status')}</th>
+                        <th className="su-th-actions">{t('table.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {paged.map((u: SupportUserRow) => {
-                        const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || 'Usuario';
+                        const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || t('common.user');
                         const isStaff = u.role === 'support' || u.role === 'admin';
                         // Fase 8.3.3 — bloqueo por intentos fallidos (passta_id=2).
                         // Ortogonal a `status`: puede coexistir con 'active'.
@@ -145,21 +144,21 @@ const SupportUsersMain = () => {
                               <div className="su-status-stack">
                                 {!(pwLocked && u.status === 'active') && (
                                   <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
-                                    {STATUS_LABEL[u.status]}
+                                    {t(`accountStatus.${u.status}`)}
                                   </span>
                                 )}
                                 {u.status === 'suspended' && u.banneduntil && (
-                                  <span className="su-until">hasta {new Date(u.banneduntil).toLocaleDateString('es-GT')}</span>
+                                  <span className="su-until">{t('users.until', { date: dateFmt.short(u.banneduntil) })}</span>
                                 )}
                                 {pwLocked && (
                                   <>
-                                    <span className="su-chip su-chip-pwlocked" title={`Intentos fallidos: ${u.failcount}`}>
-                                      <i className="fas fa-lock" /> Bloqueo por contraseña
+                                    <span className="su-chip su-chip-pwlocked" title={t('users.failedAttempts', { count: u.failcount })}>
+                                      <i className="fas fa-lock" /> {t('users.passwordLock')}
                                     </span>
                                     <span className="su-until">
                                       {pwInWindow
-                                        ? `Espera hasta ${pwBannedUntil!.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })}`
-                                        : 'Requiere restablecer contraseña'}
+                                        ? t('users.waitUntil', { time: dateFmt.time(pwBannedUntil) })
+                                        : t('users.requiresReset')}
                                     </span>
                                   </>
                                 )}
@@ -170,12 +169,12 @@ const SupportUsersMain = () => {
                                 {/* Sanciones de soporte solo aplican a usuarios no-staff. */}
                                 {!isStaff && u.status === 'active' && (
                                   <button className="su-btn su-ban" onClick={() => openBan(u)} disabled={banUser.isPending}>
-                                    <i className="fas fa-ban" /> Sancionar
+                                    <i className="fas fa-ban" /> {t('common.sanction')}
                                   </button>
                                 )}
                                 {!isStaff && u.status !== 'active' && (
                                   <button className="su-btn su-unban" onClick={() => reactivate(u)} disabled={unbanUser.isPending}>
-                                    <i className="fas fa-undo" /> Reactivar
+                                    <i className="fas fa-undo" /> {t('users.reactivate')}
                                   </button>
                                 )}
                                 {/* Fase 8.3.3 fix: bloqueo por contraseña aplica también
@@ -183,7 +182,7 @@ const SupportUsersMain = () => {
                                     el rol. */}
                                 {pwLocked && (
                                   <button className="su-btn su-unlock" onClick={() => unlockPwd(u)} disabled={unlockPassword.isPending}>
-                                    <i className="fas fa-key" /> Desbloquear contraseña
+                                    <i className="fas fa-key" /> {t('users.unlockPassword')}
                                   </button>
                                 )}
                                 {/* Placeholder "—" solo si no hay ninguna acción disponible. */}
@@ -208,41 +207,41 @@ const SupportUsersMain = () => {
       {banTarget && (
         <div className="su-overlay" role="dialog" aria-modal="true">
           <div className="su-modal">
-            <h5>Sancionar usuario</h5>
+            <h5>{t('users.sanctionUser')}</h5>
             <p className="su-modal-sub">{`${banTarget.firstname ?? ''} ${banTarget.lastname ?? ''}`.trim()}{banTarget.handle ? ` · @${banTarget.handle}` : ''}</p>
 
             <div className="su-radio-row">
               <label className={banStatus === 'suspended' ? 'active' : ''}>
                 <input type="radio" name="banstatus" checked={banStatus === 'suspended'} onChange={() => setBanStatus('suspended')} />
-                Suspender (temporal)
+                {t('common.suspendTemporary')}
               </label>
               <label className={banStatus === 'banned' ? 'active' : ''}>
                 <input type="radio" name="banstatus" checked={banStatus === 'banned'} onChange={() => setBanStatus('banned')} />
-                Banear (permanente)
+                {t('common.banPermanent')}
               </label>
             </div>
 
             {banStatus === 'suspended' && (
               <div className="su-days">
-                <label>Duración:</label>
+                <label>{t('common.duration')}</label>
                 {[7, 15, 30].map((d) => (
-                  <button key={d} type="button" className={`su-day ${banDays === d ? 'active' : ''}`} onClick={() => setBanDays(d)}>{d} días</button>
+                  <button key={d} type="button" className={`su-day ${banDays === d ? 'active' : ''}`} onClick={() => setBanDays(d)}>{t('common.days', { count: d })}</button>
                 ))}
                 <input type="number" min={1} max={3650} value={banDays} onChange={(e) => setBanDays(Math.max(1, Number(e.target.value) || 1))} />
               </div>
             )}
 
             <textarea
-              placeholder="Motivo (el usuario lo verá al intentar iniciar sesión)"
+              placeholder={t('users.sanctionReasonPlaceholder')}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               autoFocus
             />
             <div className="su-modal-actions">
-              <button className="su-btn su-ghost" onClick={() => setBanTarget(null)}>Cancelar</button>
+              <button className="su-btn su-ghost" onClick={() => setBanTarget(null)}>{t('common.cancel')}</button>
               <button className="su-btn su-ban-full" onClick={confirmBan} disabled={banUser.isPending}>
-                {banUser.isPending ? 'Aplicando…' : (banStatus === 'banned' ? 'Banear' : 'Suspender')}
+                {banUser.isPending ? t('common.applying') : (banStatus === 'banned' ? t('common.ban') : t('common.suspend'))}
               </button>
             </div>
           </div>

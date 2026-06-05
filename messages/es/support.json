@@ -1,1 +1,201 @@
-{}
+{
+  "breadcrumbs": {
+    "support": "Soporte",
+    "myTickets": "Mis tickets",
+    "tickets": "Tickets",
+    "reports": "Denuncias",
+    "users": "Usuarios",
+    "verifications": "Verificaciones"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "restricted": "Acceso restringido. Solo el equipo de soporte puede ver esta pagina.",
+    "user": "Usuario",
+    "company": "Empresa",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "back": "Volver",
+    "view": "ver",
+    "done": "Listo.",
+    "reasonRequired": "Escribe un motivo.",
+    "sanctionError": "No se pudo sancionar",
+    "sanction": "Sancionar",
+    "suspendTemporary": "Suspender (temporal)",
+    "banPermanent": "Banear (permanente)",
+    "duration": "Duracion:",
+    "days": "{count} dias",
+    "sanctionReasonPlaceholder": "Motivo (lo vera el usuario al iniciar sesion)",
+    "applying": "Aplicando...",
+    "ban": "Banear",
+    "suspend": "Suspender"
+  },
+  "status": {
+    "open": "Abierto",
+    "in_progress": "En progreso",
+    "resolved": "Resuelto",
+    "closed": "Cerrado"
+  },
+  "statusFilter": {
+    "open": "Abiertos",
+    "in_progress": "En progreso",
+    "resolved": "Resueltos",
+    "closed": "Cerrados"
+  },
+  "accountStatus": {
+    "active": "Activo",
+    "suspended": "Suspendido",
+    "banned": "Baneado"
+  },
+  "filters": {
+    "all": "Todos"
+  },
+  "assignee": {
+    "all": "Todos los agentes",
+    "me": "Asignados a mi",
+    "unassigned": "Sin asignar"
+  },
+  "categories": {
+    "cuenta": "Cuenta",
+    "pago": "Pago",
+    "denuncia": "Denuncia",
+    "verificacion": "Verificacion",
+    "otro": "Otro"
+  },
+  "table": {
+    "subject": "Asunto",
+    "requester": "Solicitante",
+    "category": "Categoria",
+    "status": "Estado",
+    "agent": "Agente",
+    "updated": "Actualizado",
+    "type": "Tipo",
+    "content": "Contenido",
+    "author": "Autor",
+    "reason": "Motivo",
+    "date": "Fecha",
+    "actions": "Acciones",
+    "user": "Usuario",
+    "email": "Email",
+    "role": "Rol",
+    "document": "Documento",
+    "files": "Archivos"
+  },
+  "pagination": {
+    "summary": "{from}-{to} de {total}",
+    "previous": "Pagina anterior",
+    "next": "Pagina siguiente"
+  },
+  "myTickets": {
+    "title": "Mis tickets de soporte",
+    "newTicket": "Nuevo ticket",
+    "empty": "No tienes tickets. Crea uno si necesitas ayuda.",
+    "modalTitle": "Nuevo ticket",
+    "subject": "Asunto",
+    "subjectPlaceholder": "Resumen de tu solicitud",
+    "category": "Categoria",
+    "description": "Descripcion",
+    "descriptionPlaceholder": "Cuentanos en detalle...",
+    "create": "Crear ticket",
+    "creating": "Creando...",
+    "created": "Ticket creado.",
+    "createError": "No se pudo crear",
+    "validation": {
+      "subject": "Escribe un asunto.",
+      "body": "Describe tu solicitud."
+    }
+  },
+  "tickets": {
+    "empty": "No hay tickets que coincidan."
+  },
+  "ticketDetail": {
+    "breadcrumb": "Ticket #{id}",
+    "loading": "Cargando ticket...",
+    "loadError": "No se pudo cargar el ticket.",
+    "sendError": "No se pudo enviar",
+    "from": "de {owner}",
+    "statusError": "No se pudo cambiar el estado",
+    "reassigned": "Reasignado",
+    "assignError": "No se pudo reasignar",
+    "assignPlaceholder": "Asignar a...",
+    "internalNote": "Nota interna",
+    "replyPlaceholder": "Escribe una respuesta...",
+    "internalToggle": "Nota interna (no la ve el usuario)",
+    "closed": "Este ticket esta cerrado."
+  },
+  "reports": {
+    "status": {
+      "pending": "Pendientes",
+      "resolved": "Resueltas",
+      "dismissed": "Descartadas"
+    },
+    "type": {
+      "comment": "Comentario",
+      "message": "Mensaje",
+      "publication": "Publicacion"
+    },
+    "conversation": "Conversacion",
+    "reportedMessage": "Mensaje denunciado",
+    "confirmDelete": "¿Eliminar el contenido denunciado? Esta accion no se puede deshacer.",
+    "confirmDeleteCampaign": "\n\nEsta publicacion tiene una campana activa. Al eliminarla:\n- Se finalizara la campana.\n- Se reembolsaran Q{amount} al credito del anunciante.",
+    "resolveError": "No se pudo resolver",
+    "userSanctioned": "Usuario sancionado.",
+    "empty": "No hay denuncias en este estado.",
+    "activeCampaignTitle": "Campana activa con Q{amount} de saldo restante",
+    "promoted": "Pautada Q{amount}",
+    "noText": "(sin texto)",
+    "viewConversation": "ver conversacion",
+    "dismiss": "Descartar",
+    "deleteContent": "Eliminar contenido",
+    "delete": "Eliminar",
+    "sanctionAuthor": "Sancionar autor"
+  },
+  "users": {
+    "searchPlaceholder": "Buscar por nombre, @handle o email...",
+    "empty": "No hay usuarios que coincidan.",
+    "statusFilter": {
+      "active": "Activos",
+      "suspended": "Suspendidos",
+      "banned": "Baneados"
+    },
+    "until": "hasta {date}",
+    "failedAttempts": "Intentos fallidos: {count}",
+    "passwordLock": "Bloqueo por contrasena",
+    "waitUntil": "Espera hasta {time}",
+    "requiresReset": "Requiere restablecer contrasena",
+    "reactivate": "Reactivar",
+    "reactivated": "Reactivado.",
+    "reactivateError": "No se pudo reactivar",
+    "unlockPassword": "Desbloquear contrasena",
+    "passwordUnlocked": "Contrasena desbloqueada.",
+    "unlockError": "No se pudo desbloquear",
+    "sanctionUser": "Sancionar usuario",
+    "sanctionReasonPlaceholder": "Motivo (el usuario lo vera al intentar iniciar sesion)"
+  },
+  "verifications": {
+    "status": {
+      "pending": "Pendientes",
+      "verified": "Aprobadas",
+      "rejected": "Rechazadas"
+    },
+    "empty": {
+      "pending": "No hay solicitudes pendientes.",
+      "verified": "No hay solicitudes aprobadas.",
+      "rejected": "No hay solicitudes rechazadas."
+    },
+    "approved": "Aprobada.",
+    "approveError": "No se pudo aprobar",
+    "rejected": "Rechazada.",
+    "rejectError": "No se pudo rechazar",
+    "rejectReasonRequired": "Escribe un motivo de rechazo.",
+    "front": "Frente",
+    "back": "Reverso",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "rejectRequest": "Rechazar solicitud",
+    "rejectPlaceholder": "Motivo del rechazo (lo vera el usuario)",
+    "rejecting": "Rechazando...",
+    "confirmReject": "Confirmar rechazo"
+  }
+}

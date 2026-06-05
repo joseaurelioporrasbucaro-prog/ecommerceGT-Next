@@ -1,22 +1,26 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useMyTickets, useCreateTicket } from '@/hooks/api/useTickets';
+import { useDateFmt } from '@/utils/datetime';
 import type { TicketStatus, MyTicketRow } from '@/types/api';
 
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
-};
 const CATEGORIES = [
-  { v: 'cuenta', l: 'Cuenta' }, { v: 'pago', l: 'Pago' },
-  { v: 'denuncia', l: 'Denuncia' }, { v: 'verificacion', l: 'Verificación' }, { v: 'otro', l: 'Otro' },
-];
+  'cuenta',
+  'pago',
+  'denuncia',
+  'verificacion',
+  'otro',
+] as const;
 
 const MyTicketsMain = () => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { data, isLoading } = useMyTickets();
   const create = useCreateTicket();
   const [open, setOpen] = useState(false);
@@ -25,13 +29,13 @@ const MyTicketsMain = () => {
   const [body, setBody] = useState('');
 
   const submit = () => {
-    if (subject.trim().length < 4) { toast.error('Escribe un asunto.'); return; }
-    if (body.trim().length < 4) { toast.error('Describe tu solicitud.'); return; }
+    if (subject.trim().length < 4) { toast.error(t('myTickets.validation.subject')); return; }
+    if (body.trim().length < 4) { toast.error(t('myTickets.validation.body')); return; }
     create.mutate(
       { subject: subject.trim(), category, body: body.trim() },
       {
-        onSuccess: () => { toast.success('Ticket creado.'); setOpen(false); setSubject(''); setBody(''); setCategory('otro'); },
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo crear'),
+        onSuccess: () => { toast.success(t('myTickets.created')); setOpen(false); setSubject(''); setBody(''); setCategory('otro'); },
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('myTickets.createError')),
       },
     );
   };
@@ -41,29 +45,29 @@ const MyTicketsMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Mis tickets" />
+      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.myTickets')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           <div className="mt-toolbar">
-            <h4 style={{ margin: 0 }}>Mis tickets de soporte</h4>
-            <button className="mt-new" onClick={() => setOpen(true)}><i className="fas fa-plus" /> Nuevo ticket</button>
+            <h4 style={{ margin: 0 }}>{t('myTickets.title')}</h4>
+            <button className="mt-new" onClick={() => setOpen(true)}><i className="fas fa-plus" /> {t('myTickets.newTicket')}</button>
           </div>
 
-          {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
-          {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>No tienes tickets. Crea uno si necesitas ayuda.</p>}
+          {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
+          {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('myTickets.empty')}</p>}
 
           {rows.length > 0 && (
             <div className="mt-list">
-              {rows.map((t: MyTicketRow) => (
-                <Link key={t.ticket_id} href={`/soporte/tickets/${t.ticket_id}`} className="mt-card">
+              {rows.map((ticket: MyTicketRow) => (
+                <Link key={ticket.ticket_id} href={`/soporte/tickets/${ticket.ticket_id}`} className="mt-card">
                   <div className="mt-card-main">
-                    <span className={`mt-status mt-status-${t.status}`}>{STATUS_LABEL[t.status]}</span>
-                    <span className="mt-subject">{t.subject}</span>
+                    <span className={`mt-status mt-status-${ticket.status}`}>{t(`status.${ticket.status}`)}</span>
+                    <span className="mt-subject">{ticket.subject}</span>
                   </div>
                   <div className="mt-card-meta">
-                    <span className="mt-cat">{t.category}</span>
-                    <span className="mt-date">{new Date(t.updated_at).toLocaleDateString('es-GT')}</span>
+                    <span className="mt-cat">{ticket.category}</span>
+                    <span className="mt-date">{dateFmt.short(ticket.updated_at)}</span>
                   </div>
                 </Link>
               ))}
@@ -75,18 +79,20 @@ const MyTicketsMain = () => {
       {open && (
         <div className="mt-overlay" role="dialog" aria-modal="true">
           <div className="mt-modal">
-            <h5>Nuevo ticket</h5>
-            <label className="mt-label">Asunto</label>
-            <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Resumen de tu solicitud" />
-            <label className="mt-label">Categoría</label>
+            <h5>{t('myTickets.modalTitle')}</h5>
+            <label className="mt-label">{t('myTickets.subject')}</label>
+            <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={t('myTickets.subjectPlaceholder')} />
+            <label className="mt-label">{t('myTickets.category')}</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => <option key={c.v} value={c.v}>{c.l}</option>)}
+              {CATEGORIES.map((c) => <option key={c} value={c}>{t(`categories.${c}`)}</option>)}
             </select>
-            <label className="mt-label">Descripción</label>
-            <textarea rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Cuéntanos en detalle…" />
+            <label className="mt-label">{t('myTickets.description')}</label>
+            <textarea rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder={t('myTickets.descriptionPlaceholder')} />
             <div className="mt-modal-actions">
-              <button className="mt-ghost" onClick={() => setOpen(false)}>Cancelar</button>
-              <button className="mt-send" onClick={submit} disabled={create.isPending}>{create.isPending ? 'Creando…' : 'Crear ticket'}</button>
+              <button className="mt-ghost" onClick={() => setOpen(false)}>{t('common.cancel')}</button>
+              <button className="mt-send" onClick={submit} disabled={create.isPending}>
+                {create.isPending ? t('myTickets.creating') : t('myTickets.create')}
+              </button>
             </div>
           </div>
         </div>

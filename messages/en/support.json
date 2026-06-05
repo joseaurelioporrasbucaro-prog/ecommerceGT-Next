@@ -1,1 +1,201 @@
-{}
+{
+  "breadcrumbs": {
+    "support": "Support",
+    "myTickets": "My tickets",
+    "tickets": "Tickets",
+    "reports": "Reports",
+    "users": "Users",
+    "verifications": "Verifications"
+  },
+  "common": {
+    "loading": "Loading...",
+    "restricted": "Restricted access. Only the support team can view this page.",
+    "user": "User",
+    "company": "Company",
+    "cancel": "Cancel",
+    "close": "Close",
+    "send": "Send",
+    "sending": "Sending...",
+    "back": "Back",
+    "view": "view",
+    "done": "Done.",
+    "reasonRequired": "Write a reason.",
+    "sanctionError": "Could not apply the sanction",
+    "sanction": "Sanction",
+    "suspendTemporary": "Suspend (temporary)",
+    "banPermanent": "Ban (permanent)",
+    "duration": "Duration:",
+    "days": "{count} days",
+    "sanctionReasonPlaceholder": "Reason (the user will see it when signing in)",
+    "applying": "Applying...",
+    "ban": "Ban",
+    "suspend": "Suspend"
+  },
+  "status": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  },
+  "statusFilter": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  },
+  "accountStatus": {
+    "active": "Active",
+    "suspended": "Suspended",
+    "banned": "Banned"
+  },
+  "filters": {
+    "all": "All"
+  },
+  "assignee": {
+    "all": "All agents",
+    "me": "Assigned to me",
+    "unassigned": "Unassigned"
+  },
+  "categories": {
+    "cuenta": "Account",
+    "pago": "Payment",
+    "denuncia": "Report",
+    "verificacion": "Verification",
+    "otro": "Other"
+  },
+  "table": {
+    "subject": "Subject",
+    "requester": "Requester",
+    "category": "Category",
+    "status": "Status",
+    "agent": "Agent",
+    "updated": "Updated",
+    "type": "Type",
+    "content": "Content",
+    "author": "Author",
+    "reason": "Reason",
+    "date": "Date",
+    "actions": "Actions",
+    "user": "User",
+    "email": "Email",
+    "role": "Role",
+    "document": "Document",
+    "files": "Files"
+  },
+  "pagination": {
+    "summary": "{from}-{to} of {total}",
+    "previous": "Previous page",
+    "next": "Next page"
+  },
+  "myTickets": {
+    "title": "My support tickets",
+    "newTicket": "New ticket",
+    "empty": "You do not have tickets. Create one if you need help.",
+    "modalTitle": "New ticket",
+    "subject": "Subject",
+    "subjectPlaceholder": "Summary of your request",
+    "category": "Category",
+    "description": "Description",
+    "descriptionPlaceholder": "Tell us in detail...",
+    "create": "Create ticket",
+    "creating": "Creating...",
+    "created": "Ticket created.",
+    "createError": "Could not create",
+    "validation": {
+      "subject": "Write a subject.",
+      "body": "Describe your request."
+    }
+  },
+  "tickets": {
+    "empty": "No matching tickets."
+  },
+  "ticketDetail": {
+    "breadcrumb": "Ticket #{id}",
+    "loading": "Loading ticket...",
+    "loadError": "Could not load the ticket.",
+    "sendError": "Could not send",
+    "from": "from {owner}",
+    "statusError": "Could not change the status",
+    "reassigned": "Reassigned",
+    "assignError": "Could not reassign",
+    "assignPlaceholder": "Assign to...",
+    "internalNote": "Internal note",
+    "replyPlaceholder": "Write a reply...",
+    "internalToggle": "Internal note (the user will not see it)",
+    "closed": "This ticket is closed."
+  },
+  "reports": {
+    "status": {
+      "pending": "Pending",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "type": {
+      "comment": "Comment",
+      "message": "Message",
+      "publication": "Publication"
+    },
+    "conversation": "Conversation",
+    "reportedMessage": "Reported message",
+    "confirmDelete": "Delete the reported content? This action cannot be undone.",
+    "confirmDeleteCampaign": "\n\nThis publication has an active campaign. If you delete it:\n- The campaign will end.\n- Q{amount} will be refunded to the advertiser credit.",
+    "resolveError": "Could not resolve",
+    "userSanctioned": "User sanctioned.",
+    "empty": "There are no reports in this status.",
+    "activeCampaignTitle": "Active campaign with Q{amount} remaining balance",
+    "promoted": "Promoted Q{amount}",
+    "noText": "(no text)",
+    "viewConversation": "view conversation",
+    "dismiss": "Dismiss",
+    "deleteContent": "Delete content",
+    "delete": "Delete",
+    "sanctionAuthor": "Sanction author"
+  },
+  "users": {
+    "searchPlaceholder": "Search by name, @handle or email...",
+    "empty": "No matching users.",
+    "statusFilter": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "banned": "Banned"
+    },
+    "until": "until {date}",
+    "failedAttempts": "Failed attempts: {count}",
+    "passwordLock": "Password lock",
+    "waitUntil": "Wait until {time}",
+    "requiresReset": "Requires password reset",
+    "reactivate": "Reactivate",
+    "reactivated": "Reactivated.",
+    "reactivateError": "Could not reactivate",
+    "unlockPassword": "Unlock password",
+    "passwordUnlocked": "Password unlocked.",
+    "unlockError": "Could not unlock",
+    "sanctionUser": "Sanction user",
+    "sanctionReasonPlaceholder": "Reason (the user will see it when trying to sign in)"
+  },
+  "verifications": {
+    "status": {
+      "pending": "Pending",
+      "verified": "Approved",
+      "rejected": "Rejected"
+    },
+    "empty": {
+      "pending": "There are no pending requests.",
+      "verified": "There are no approved requests.",
+      "rejected": "There are no rejected requests."
+    },
+    "approved": "Approved.",
+    "approveError": "Could not approve",
+    "rejected": "Rejected.",
+    "rejectError": "Could not reject",
+    "rejectReasonRequired": "Write a rejection reason.",
+    "front": "Front",
+    "back": "Back",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectRequest": "Reject request",
+    "rejectPlaceholder": "Rejection reason (the user will see it)",
+    "rejecting": "Rejecting...",
+    "confirmReject": "Confirm rejection"
+  }
+}

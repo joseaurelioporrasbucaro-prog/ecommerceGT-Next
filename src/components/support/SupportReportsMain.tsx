@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
@@ -8,14 +9,11 @@ import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useSupportReports, useResolveReport, useMessageContext } from '@/hooks/api/useSupportReports';
 import { useBanUser } from '@/hooks/api/useSupportUsers';
+import { useDateFmt } from '@/utils/datetime';
 import Pagination from './Pagination';
-import type { SupportReportRow, ReportType, ConversationContextMessage } from '@/types/api';
+import type { SupportReportRow, ConversationContextMessage } from '@/types/api';
 
 const PAGE_SIZE = 15;
-
-const TYPE_LABEL: Record<ReportType, string> = {
-  comment: 'Comentario', message: 'Mensaje', publication: 'Publicación',
-};
 
 const contentHref = (r: SupportReportRow): string | null => {
   if (r.report_type === 'publication') return `/publications/${r.content_id}`;
@@ -25,25 +23,27 @@ const contentHref = (r: SupportReportRow): string | null => {
 
 // Modal del contexto de la conversación de un mensaje denunciado.
 const ConversationModal = ({ messageId, onClose }: { messageId: number; onClose: () => void }) => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { data, isLoading } = useMessageContext(messageId);
   return (
     <div className="sr-overlay" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="sr-convo" onClick={(e) => e.stopPropagation()}>
-        <h5>Conversación</h5>
-        {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
+        <h5>{t('reports.conversation')}</h5>
+        {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
         <div className="sr-convo-list">
           {data?.messages.map((m: ConversationContextMessage) => (
             <div key={m.message_id} className={`sr-bubble ${m.message_id === data.reportedMessageId ? 'reported' : ''}`}>
               <div className="sr-bubble-head">
-                <strong>{`${m.first ?? ''} ${m.last ?? ''}`.trim() || 'Usuario'}</strong>
-                <span>{new Date(m.created_at).toLocaleString('es-GT')}</span>
+                <strong>{`${m.first ?? ''} ${m.last ?? ''}`.trim() || t('common.user')}</strong>
+                <span>{dateFmt.dateTime(m.created_at)}</span>
               </div>
               <p>{m.content}</p>
-              {m.message_id === data?.reportedMessageId && <span className="sr-reported-tag">Mensaje denunciado</span>}
+              {m.message_id === data?.reportedMessageId && <span className="sr-reported-tag">{t('reports.reportedMessage')}</span>}
             </div>
           ))}
         </div>
-        <div className="sr-convo-actions"><button className="sr-btn sr-dismiss" onClick={onClose}>Cerrar</button></div>
+        <div className="sr-convo-actions"><button className="sr-btn sr-dismiss" onClick={onClose}>{t('common.close')}</button></div>
       </div>
       <style jsx>{`
         .sr-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -63,6 +63,8 @@ const ConversationModal = ({ messageId, onClose }: { messageId: number; onClose:
 };
 
 const SupportReportsMain = () => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { user } = useAuth();
   const [status, setStatusRaw] = useState<'pending' | 'resolved' | 'dismissed'>('pending');
   const [page, setPage] = useState(1);
@@ -86,29 +88,29 @@ const SupportReportsMain = () => {
       // la campaña y se reembolsa al anunciante.
       const remaining = r.active_camp_remaining != null ? Number(r.active_camp_remaining) : 0;
       const isPubPautada = r.report_type === 'publication' && remaining > 0;
-      const baseMsg = '¿Eliminar el contenido denunciado? Esta acción no se puede deshacer.';
+      const baseMsg = t('reports.confirmDelete');
       const extra = isPubPautada
-        ? `\n\nEsta publicación tiene una campaña activa. Al eliminarla:\n• Se finalizará la campaña.\n• Se reembolsarán Q${remaining.toFixed(2)} al crédito del anunciante.`
+        ? t('reports.confirmDeleteCampaign', { amount: remaining.toFixed(2) })
         : '';
       if (!window.confirm(baseMsg + extra)) return;
     }
     resolve.mutate(
       { type: r.report_type, reportId: r.report_id, contentId: r.content_id, action },
       {
-        onSuccess: (res) => toast.success(res.message || 'Listo.'),
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo resolver'),
+        onSuccess: (res) => toast.success(res.message || t('common.done')),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('reports.resolveError')),
       },
     );
   };
 
   const confirmBan = () => {
     if (!banRow) return;
-    if (banReason.trim().length < 4) { toast.error('Escribe un motivo.'); return; }
+    if (banReason.trim().length < 4) { toast.error(t('common.reasonRequired')); return; }
     ban.mutate(
       { cusId: banRow.author_id, status: banStatus, reason: banReason.trim(), days: banStatus === 'suspended' ? banDays : undefined },
       {
-        onSuccess: (r) => { toast.success(r.message || 'Usuario sancionado.'); setBanRow(null); setBanReason(''); },
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo sancionar'),
+        onSuccess: (r) => { toast.success(r.message || t('reports.userSanctioned')); setBanRow(null); setBanReason(''); },
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('common.sanctionError')),
       },
     );
   };
@@ -119,35 +121,35 @@ const SupportReportsMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Denuncias" />
+      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.reports')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           {!isSupport ? (
-            <div className="alert alert-danger">Acceso restringido. Solo el equipo de soporte puede ver esta página.</div>
+            <div className="alert alert-danger">{t('common.restricted')}</div>
           ) : (
             <>
               <div className="sr-filter">
-                {([['pending', 'Pendientes'], ['resolved', 'Resueltas'], ['dismissed', 'Descartadas']] as const).map(([v, label]) => (
-                  <button key={v} className={`sr-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>{label}</button>
+                {(['pending', 'resolved', 'dismissed'] as const).map((v) => (
+                  <button key={v} className={`sr-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>{t(`reports.status.${v}`)}</button>
                 ))}
               </div>
 
-              {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
-              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>No hay denuncias en este estado.</p>}
+              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
+              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('reports.empty')}</p>}
 
               {rows.length > 0 && (
                 <div className="sr-table-wrap">
                   <table className="sr-table">
                     <thead>
                       <tr>
-                        <th>Tipo</th><th>Contenido</th><th>Autor</th><th>Motivo</th><th>Fecha</th>
-                        {status === 'pending' && <th>Acciones</th>}
+                        <th>{t('table.type')}</th><th>{t('table.content')}</th><th>{t('table.author')}</th><th>{t('table.reason')}</th><th>{t('table.date')}</th>
+                        {status === 'pending' && <th>{t('table.actions')}</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {paged.map((r: SupportReportRow) => {
-                        const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || 'Usuario';
+                        const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || t('common.user');
                         const href = contentHref(r);
                         // Fase 10.6: la publicación asociada está pautada.
                         const remaining = r.active_camp_remaining != null ? Number(r.active_camp_remaining) : null;
@@ -155,19 +157,19 @@ const SupportReportsMain = () => {
                         return (
                           <tr key={`${r.report_type}-${r.report_id}`} className={isPautada ? 'sr-row-pautada' : ''}>
                             <td>
-                              <span className={`sr-chip sr-chip-${r.report_type}`}>{TYPE_LABEL[r.report_type]}</span>
+                              <span className={`sr-chip sr-chip-${r.report_type}`}>{t(`reports.type.${r.report_type}`)}</span>
                               {isPautada && (
-                                <span className="sr-chip sr-chip-pautada" title={`Campaña activa con Q${remaining!.toFixed(2)} de saldo restante`}>
-                                  <i className="fas fa-bolt" /> Pautada Q{remaining!.toFixed(2)}
+                                <span className="sr-chip sr-chip-pautada" title={t('reports.activeCampaignTitle', { amount: remaining!.toFixed(2) })}>
+                                  <i className="fas fa-bolt" /> {t('reports.promoted', { amount: remaining!.toFixed(2) })}
                                 </span>
                               )}
                             </td>
                             <td className="sr-content">
-                              <span className="sr-excerpt">{r.content_excerpt || '(sin texto)'}</span>
+                              <span className="sr-excerpt">{r.content_excerpt || t('reports.noText')}</span>
                               {r.report_type === 'message' ? (
-                                <button className="sr-view" onClick={() => setConvoMsgId(r.content_id)}>ver conversación</button>
+                                <button className="sr-view" onClick={() => setConvoMsgId(r.content_id)}>{t('reports.viewConversation')}</button>
                               ) : href ? (
-                                <Link className="sr-view" href={href} target="_blank">ver</Link>
+                                <Link className="sr-view" href={href} target="_blank">{t('common.view')}</Link>
                               ) : null}
                             </td>
                             <td>
@@ -179,18 +181,18 @@ const SupportReportsMain = () => {
                               <span className="sr-reason">{r.reason}</span>
                               {r.detail && <div className="sr-detail">{r.detail}</div>}
                             </td>
-                            <td className="sr-date">{new Date(r.created_at).toLocaleDateString('es-GT')}</td>
+                            <td className="sr-date">{dateFmt.short(r.created_at)}</td>
                             {status === 'pending' && (
                               <td>
                                 <div className="sr-actions">
-                                  <button className="sr-btn sr-dismiss" onClick={() => act(r, 'dismiss')} disabled={resolve.isPending} title="Descartar">
-                                    <i className="fas fa-check" /> Descartar
+                                  <button className="sr-btn sr-dismiss" onClick={() => act(r, 'dismiss')} disabled={resolve.isPending} title={t('reports.dismiss')}>
+                                    <i className="fas fa-check" /> {t('reports.dismiss')}
                                   </button>
-                                  <button className="sr-btn sr-delete" onClick={() => act(r, 'delete')} disabled={resolve.isPending} title="Eliminar contenido">
-                                    <i className="fas fa-trash" /> Eliminar
+                                  <button className="sr-btn sr-delete" onClick={() => act(r, 'delete')} disabled={resolve.isPending} title={t('reports.deleteContent')}>
+                                    <i className="fas fa-trash" /> {t('reports.delete')}
                                   </button>
-                                  <button className="sr-btn sr-sanction" onClick={() => { setBanRow(r); setBanStatus('suspended'); setBanReason(''); }} title="Sancionar autor">
-                                    <i className="fas fa-ban" /> Sancionar autor
+                                  <button className="sr-btn sr-sanction" onClick={() => { setBanRow(r); setBanStatus('suspended'); setBanReason(''); }} title={t('reports.sanctionAuthor')}>
+                                    <i className="fas fa-ban" /> {t('reports.sanctionAuthor')}
                                   </button>
                                 </div>
                               </td>
@@ -213,30 +215,30 @@ const SupportReportsMain = () => {
       {banRow && (
         <div className="sr-overlay" role="dialog" aria-modal="true">
           <div className="sr-modal">
-            <h5>Sancionar autor</h5>
+            <h5>{t('reports.sanctionAuthor')}</h5>
             <p className="sr-modal-sub">{`${banRow.author_first ?? ''} ${banRow.author_last ?? ''}`.trim()}{banRow.author_handle ? ` · @${banRow.author_handle}` : ''}</p>
             <div className="sr-radio-row">
               <label className={banStatus === 'suspended' ? 'active' : ''}>
-                <input type="radio" checked={banStatus === 'suspended'} onChange={() => setBanStatus('suspended')} /> Suspender (temporal)
+                <input type="radio" checked={banStatus === 'suspended'} onChange={() => setBanStatus('suspended')} /> {t('common.suspendTemporary')}
               </label>
               <label className={banStatus === 'banned' ? 'active' : ''}>
-                <input type="radio" checked={banStatus === 'banned'} onChange={() => setBanStatus('banned')} /> Banear (permanente)
+                <input type="radio" checked={banStatus === 'banned'} onChange={() => setBanStatus('banned')} /> {t('common.banPermanent')}
               </label>
             </div>
             {banStatus === 'suspended' && (
               <div className="sr-days">
-                <label>Duración:</label>
+                <label>{t('common.duration')}</label>
                 {[7, 15, 30].map((d) => (
-                  <button key={d} type="button" className={`sr-day ${banDays === d ? 'active' : ''}`} onClick={() => setBanDays(d)}>{d} días</button>
+                  <button key={d} type="button" className={`sr-day ${banDays === d ? 'active' : ''}`} onClick={() => setBanDays(d)}>{t('common.days', { count: d })}</button>
                 ))}
                 <input type="number" min={1} max={3650} value={banDays} onChange={(e) => setBanDays(Math.max(1, Number(e.target.value) || 1))} />
               </div>
             )}
-            <textarea rows={3} placeholder="Motivo (lo verá el usuario al iniciar sesión)" value={banReason} onChange={(e) => setBanReason(e.target.value)} autoFocus />
+            <textarea rows={3} placeholder={t('common.sanctionReasonPlaceholder')} value={banReason} onChange={(e) => setBanReason(e.target.value)} autoFocus />
             <div className="sr-modal-actions">
-              <button className="sr-btn sr-dismiss" onClick={() => setBanRow(null)}>Cancelar</button>
+              <button className="sr-btn sr-dismiss" onClick={() => setBanRow(null)}>{t('common.cancel')}</button>
               <button className="sr-btn sr-sanction-full" onClick={confirmBan} disabled={ban.isPending}>
-                {ban.isPending ? 'Aplicando…' : (banStatus === 'banned' ? 'Banear' : 'Suspender')}
+                {ban.isPending ? t('common.applying') : (banStatus === 'banned' ? t('common.ban') : t('common.suspend'))}
               </button>
             </div>
           </div>

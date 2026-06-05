@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { toast } from 'react-toastify';
@@ -8,13 +9,12 @@ import { ApiError } from '@/utils/Api';
 import {
   useTicket, useReplyTicket, useSupportAgents, useAssignTicket, useSetTicketStatus,
 } from '@/hooks/api/useTickets';
+import { useDateFmt } from '@/utils/datetime';
 import type { TicketStatus, SupportAgent, TicketMessage, TicketDetailResponse } from '@/types/api';
 
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
-};
-
 const TicketDetailMain = ({ id }: { id: string }) => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { data, isLoading, isError } = useTicket(id);
   const reply = useReplyTicket(id);
   const assign = useAssignTicket(id);
@@ -31,46 +31,46 @@ const TicketDetailMain = ({ id }: { id: string }) => {
       { body: body.trim(), isInternal: staff ? internal : undefined },
       {
         onSuccess: () => { setBody(''); setInternal(false); },
-        onError: (e) => toast.error(e instanceof ApiError ? e.message : 'No se pudo enviar'),
+        onError: (e) => toast.error(e instanceof ApiError ? e.message : t('ticketDetail.sendError')),
       },
     );
   };
 
-  if (isLoading) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><p style={{ opacity: 0.6 }}>Cargando ticket…</p></div></main>;
-  if (isError || !data) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><div className="alert alert-danger">No se pudo cargar el ticket.</div></div></main>;
+  if (isLoading) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><p style={{ opacity: 0.6 }}>{t('ticketDetail.loading')}</p></div></main>;
+  if (isError || !data) return <main><ThemeChanger /><div className="container pb-100" style={{ paddingTop: 40 }}><div className="alert alert-danger">{t('ticketDetail.loadError')}</div></div></main>;
 
   const { ticket, messages } = data as TicketDetailResponse;
-  const owner = `${ticket.owner_first ?? ''} ${ticket.owner_last ?? ''}`.trim() || 'Usuario';
+  const owner = `${ticket.owner_first ?? ''} ${ticket.owner_last ?? ''}`.trim() || t('common.user');
 
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle={`Ticket #${ticket.ticket_id}`} />
+      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('ticketDetail.breadcrumb', { id: ticket.ticket_id })} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
-          <Link href={staff ? '/soporte/tickets-admin' : '/soporte/tickets'} className="td-back">← Volver</Link>
+          <Link href={staff ? '/soporte/tickets-admin' : '/soporte/tickets'} className="td-back">{t('common.back')}</Link>
 
           <div className="td-head">
             <div>
               <h4 className="td-subject">{ticket.subject}</h4>
               <div className="td-meta">
-                <span className={`td-status td-status-${ticket.status}`}>{STATUS_LABEL[ticket.status]}</span>
+                <span className={`td-status td-status-${ticket.status}`}>{t(`status.${ticket.status}`)}</span>
                 <span className="td-cat">{ticket.category}</span>
-                {staff && <span className="td-owner">de {owner}{ticket.owner_handle ? ` @${ticket.owner_handle}` : ''}</span>}
+                {staff && <span className="td-owner">{t('ticketDetail.from', { owner })}{ticket.owner_handle ? ` @${ticket.owner_handle}` : ''}</span>}
               </div>
             </div>
 
             {staff && (
               <div className="td-controls">
-                <select value={ticket.status} onChange={(e) => setStatus.mutate(e.target.value as TicketStatus, { onError: () => toast.error('No se pudo cambiar el estado') })}>
-                  {(['open', 'in_progress', 'resolved', 'closed'] as const).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+                <select value={ticket.status} onChange={(e) => setStatus.mutate(e.target.value as TicketStatus, { onError: () => toast.error(t('ticketDetail.statusError')) })}>
+                  {(['open', 'in_progress', 'resolved', 'closed'] as const).map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
                 </select>
                 <select
                   value={ticket.assigned_to ?? ''}
-                  onChange={(e) => e.target.value && assign.mutate(Number(e.target.value), { onSuccess: () => toast.success('Reasignado'), onError: () => toast.error('No se pudo reasignar') })}
+                  onChange={(e) => e.target.value && assign.mutate(Number(e.target.value), { onSuccess: () => toast.success(t('ticketDetail.reassigned')), onError: () => toast.error(t('ticketDetail.assignError')) })}
                 >
-                  <option value="" disabled>Asignar a…</option>
+                  <option value="" disabled>{t('ticketDetail.assignPlaceholder')}</option>
                   {agents?.map((a: SupportAgent) => <option key={a.cus_id} value={a.cus_id}>{`${a.firstname ?? ''} ${a.lastname ?? ''}`.trim()}</option>)}
                 </select>
               </div>
@@ -79,15 +79,15 @@ const TicketDetailMain = ({ id }: { id: string }) => {
 
           <div className="td-thread">
             {messages.map((m: TicketMessage) => {
-              const who = `${m.first ?? ''} ${m.last ?? ''}`.trim() || 'Usuario';
+              const who = `${m.first ?? ''} ${m.last ?? ''}`.trim() || t('common.user');
               const isStaffMsg = m.role === 'support' || m.role === 'admin';
               return (
                 <div key={m.tmsg_id} className={`td-msg ${isStaffMsg ? 'is-staff' : ''} ${m.is_internal ? 'is-internal' : ''}`}>
                   <div className="td-msg-head">
                     <strong>{who}</strong>
-                    {isStaffMsg && <span className="td-badge">Soporte</span>}
-                    {m.is_internal && <span className="td-badge td-internal">Nota interna</span>}
-                    <span className="td-time">{new Date(m.created_at).toLocaleString('es-GT')}</span>
+                    {isStaffMsg && <span className="td-badge">{t('breadcrumbs.support')}</span>}
+                    {m.is_internal && <span className="td-badge td-internal">{t('ticketDetail.internalNote')}</span>}
+                    <span className="td-time">{dateFmt.dateTime(m.created_at)}</span>
                   </div>
                   <p className="td-body">{m.body}</p>
                 </div>
@@ -97,20 +97,20 @@ const TicketDetailMain = ({ id }: { id: string }) => {
 
           {ticket.status !== 'closed' ? (
             <div className="td-reply">
-              <textarea rows={3} placeholder="Escribe una respuesta…" value={body} onChange={(e) => setBody(e.target.value)} />
+              <textarea rows={3} placeholder={t('ticketDetail.replyPlaceholder')} value={body} onChange={(e) => setBody(e.target.value)} />
               <div className="td-reply-actions">
                 {staff && (
                   <label className="td-internal-toggle">
-                    <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} /> Nota interna (no la ve el usuario)
+                    <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} /> {t('ticketDetail.internalToggle')}
                   </label>
                 )}
                 <button className="td-send" onClick={send} disabled={reply.isPending || body.trim().length === 0}>
-                  {reply.isPending ? 'Enviando…' : 'Enviar'}
+                  {reply.isPending ? t('common.sending') : t('common.send')}
                 </button>
               </div>
             </div>
           ) : (
-            <p className="td-closed">Este ticket está cerrado.</p>
+            <p className="td-closed">{t('ticketDetail.closed')}</p>
           )}
         </div>
       </section>

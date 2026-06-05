@@ -1,19 +1,20 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { useSupportTickets } from '@/hooks/api/useTickets';
+import { useDateFmt } from '@/utils/datetime';
 import Pagination from './Pagination';
 import type { TicketStatus, SupportTicketRow } from '@/types/api';
 
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  open: 'Abierto', in_progress: 'En progreso', resolved: 'Resuelto', closed: 'Cerrado',
-};
 const PAGE_SIZE = 15;
 
 const SupportTicketsMain = () => {
+  const t = useTranslations('support');
+  const dateFmt = useDateFmt();
   const { user } = useAuth();
   const [status, setStatusRaw] = useState<'' | TicketStatus>('');
   const [assignee, setAssigneeRaw] = useState<'' | 'me' | 'unassigned'>('');
@@ -28,49 +29,53 @@ const SupportTicketsMain = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Soporte" breadcrumbSubTitle="Tickets" />
+      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.tickets')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
         <div className="container">
           {!isSupport ? (
-            <div className="alert alert-danger">Acceso restringido. Solo el equipo de soporte puede ver esta página.</div>
+            <div className="alert alert-danger">{t('common.restricted')}</div>
           ) : (
             <>
               <div className="st-filters">
-                {([['', 'Todos'], ['open', 'Abiertos'], ['in_progress', 'En progreso'], ['resolved', 'Resueltos'], ['closed', 'Cerrados']] as const).map(([v, l]) => (
-                  <button key={v} className={`st-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>{l}</button>
+                {(['', 'open', 'in_progress', 'resolved', 'closed'] as const).map((v) => (
+                  <button key={v} className={`st-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>
+                    {v ? t(`statusFilter.${v}`) : t('filters.all')}
+                  </button>
                 ))}
                 <span className="st-sep" />
-                {([['', 'Todos los agentes'], ['me', 'Asignados a mí'], ['unassigned', 'Sin asignar']] as const).map(([v, l]) => (
-                  <button key={v} className={`st-tab ${assignee === v ? 'active' : ''}`} onClick={() => setAssignee(v)}>{l}</button>
+                {(['', 'me', 'unassigned'] as const).map((v) => (
+                  <button key={v} className={`st-tab ${assignee === v ? 'active' : ''}`} onClick={() => setAssignee(v)}>
+                    {v ? t(`assignee.${v}`) : t('assignee.all')}
+                  </button>
                 ))}
               </div>
 
-              {isLoading && <p style={{ opacity: 0.6 }}>Cargando…</p>}
-              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>No hay tickets que coincidan.</p>}
+              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
+              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('tickets.empty')}</p>}
 
               {rows.length > 0 && (
                 <div className="st-table-wrap">
                   <table className="st-table">
                     <thead>
                       <tr>
-                        <th>#</th><th>Asunto</th><th>Solicitante</th><th>Categoría</th>
-                        <th>Estado</th><th>Agente</th><th>Actualizado</th>
+                        <th>#</th><th>{t('table.subject')}</th><th>{t('table.requester')}</th><th>{t('table.category')}</th>
+                        <th>{t('table.status')}</th><th>{t('table.agent')}</th><th>{t('table.updated')}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {paged.map((t: SupportTicketRow) => {
-                        const owner = `${t.owner_first ?? ''} ${t.owner_last ?? ''}`.trim() || 'Usuario';
-                        const agent = t.assigned_to ? `${t.agent_first ?? ''} ${t.agent_last ?? ''}`.trim() : '—';
+                      {paged.map((ticket: SupportTicketRow) => {
+                        const owner = `${ticket.owner_first ?? ''} ${ticket.owner_last ?? ''}`.trim() || t('common.user');
+                        const agent = ticket.assigned_to ? `${ticket.agent_first ?? ''} ${ticket.agent_last ?? ''}`.trim() : '-';
                         return (
-                          <tr key={t.ticket_id} onClick={() => { window.location.href = `/soporte/tickets/${t.ticket_id}`; }} className="st-row">
-                            <td>#{t.ticket_id}</td>
-                            <td className="st-subject"><Link href={`/soporte/tickets/${t.ticket_id}`}>{t.subject}</Link></td>
-                            <td>{owner}{t.owner_handle ? <span className="st-handle"> @{t.owner_handle}</span> : ''}</td>
-                            <td className="st-cat">{t.category}</td>
-                            <td><span className={`st-status st-status-${t.status}`}>{STATUS_LABEL[t.status]}</span></td>
+                          <tr key={ticket.ticket_id} onClick={() => { window.location.href = `/soporte/tickets/${ticket.ticket_id}`; }} className="st-row">
+                            <td>#{ticket.ticket_id}</td>
+                            <td className="st-subject"><Link href={`/soporte/tickets/${ticket.ticket_id}`}>{ticket.subject}</Link></td>
+                            <td>{owner}{ticket.owner_handle ? <span className="st-handle"> @{ticket.owner_handle}</span> : ''}</td>
+                            <td className="st-cat">{ticket.category}</td>
+                            <td><span className={`st-status st-status-${ticket.status}`}>{t(`status.${ticket.status}`)}</span></td>
                             <td>{agent}</td>
-                            <td className="st-date">{new Date(t.updated_at).toLocaleDateString('es-GT')}</td>
+                            <td className="st-date">{dateFmt.short(ticket.updated_at)}</td>
                           </tr>
                         );
                       })}
