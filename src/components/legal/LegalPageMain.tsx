@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 
 export interface LegalSection {
@@ -36,6 +37,8 @@ const LegalPageMain: React.FC<LegalPageMainProps> = ({
   intro,
   sections,
 }) => {
+  const t = useTranslations('legal.common');
+
   return (
     <>
       <Breadcrumbs breadcrumbTitle={pageTitle} breadcrumbSubTitle={breadcrumbSubTitle} />
@@ -47,8 +50,8 @@ const LegalPageMain: React.FC<LegalPageMainProps> = ({
                 porque el listado completo de secciones quedaría apretado;
                 el usuario puede hacer scroll natural. */}
             <div className="col-lg-3 d-none d-lg-block">
-              <nav className="legal-toc" aria-label="Tabla de contenido">
-                <h6>Contenido</h6>
+              <nav className="legal-toc" aria-label={t('tocAria')}>
+                <h6>{t('tocTitle')}</h6>
                 <ol>
                   {sections.map((s) => (
                     <li key={s.id}>
@@ -62,7 +65,7 @@ const LegalPageMain: React.FC<LegalPageMainProps> = ({
             <div className="col-lg-9">
               <div className="legal-content">
                 <p className="legal-last-updated">
-                  Última actualización: <strong>{lastUpdated}</strong>
+                  {t('lastUpdated')} <strong>{lastUpdated}</strong>
                 </p>
                 <div className="legal-intro">{intro}</div>
 
@@ -74,10 +77,10 @@ const LegalPageMain: React.FC<LegalPageMainProps> = ({
                 ))}
 
                 <div className="legal-footer-note">
-                  ¿Dudas sobre este documento? Contáctanos creando un{' '}
-                  <Link href="/soporte/tickets">ticket de soporte</Link> o
-                  escribiéndonos a{' '}
-                  <a href="mailto:soporte@kiosqui.gt">soporte@kiosqui.gt</a>.
+                  {t.rich('contactFooter', {
+                    support: (chunks) => <Link href="/soporte/tickets">{chunks}</Link>,
+                    email: (chunks) => <a href="mailto:soporte@kiosqui.gt">{chunks}</a>,
+                  })}
                 </div>
               </div>
             </div>

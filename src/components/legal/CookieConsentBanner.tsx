@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 const STORAGE_KEY = 'kiosqui_cookie_consent_v1';
 
@@ -21,6 +22,7 @@ const STORAGE_KEY = 'kiosqui_cookie_consent_v1';
  *   luego comprueba localStorage en useEffect.
  */
 const CookieConsentBanner: React.FC = () => {
+  const t = useTranslations('legal.cookies');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -52,18 +54,17 @@ const CookieConsentBanner: React.FC = () => {
   if (!visible) return null;
 
   return (
-    <div className="ccb-wrapper" role="dialog" aria-label="Aviso de cookies">
+    <div className="ccb-wrapper" role="dialog" aria-label={t('aria')}>
       <div className="ccb-card">
         <div className="ccb-icon" aria-hidden="true">
           <i className="fas fa-cookie-bite" />
         </div>
         <div className="ccb-text">
-          <p className="ccb-title">Esta web usa cookies</p>
+          <p className="ccb-title">{t('title')}</p>
           <p className="ccb-body">
-            Usamos cookies para mantener tu sesión, recordar tus
-            preferencias y mejorar la plataforma. Al continuar navegando
-            aceptás nuestro uso de cookies. Más detalles en nuestra{' '}
-            <Link href="/privacidad">Política de Privacidad</Link>.
+            {t.rich('body', {
+              privacy: (chunks) => <Link href="/privacidad">{chunks}</Link>,
+            })}
           </p>
         </div>
         <button
@@ -71,7 +72,7 @@ const CookieConsentBanner: React.FC = () => {
           className="ccb-accept fill-btn"
           onClick={accept}
         >
-          Aceptar
+          {t('accept')}
         </button>
       </div>
 

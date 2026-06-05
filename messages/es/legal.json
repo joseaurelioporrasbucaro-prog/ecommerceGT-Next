@@ -1,1 +1,336 @@
-{}
+{
+  "common": {
+    "contactFooter": "¿Dudas sobre este documento? Contáctanos creando un <support>ticket de soporte</support> o escribiéndonos a <email>soporte@kiosqui.gt</email>.",
+    "lastUpdated": "Última actualización:",
+    "tocAria": "Tabla de contenido",
+    "tocTitle": "Contenido"
+  },
+  "cookies": {
+    "accept": "Aceptar",
+    "aria": "Aviso de cookies",
+    "body": "Usamos cookies para mantener tu sesión, recordar tus preferencias y mejorar la plataforma. Al continuar navegando aceptás nuestro uso de cookies. Más detalles en nuestra <privacy>Política de Privacidad</privacy>.",
+    "title": "Esta web usa cookies"
+  },
+  "contentPolicy": {
+    "breadcrumb": "Contenido",
+    "intro": "Esta política establece las reglas sobre el contenido que circula en <strong>KIOSQUI</strong>: qué se puede publicar, qué está prohibido y cómo reaccionamos ante el incumplimiento. Está pensada para proteger a la comunidad de fraude, contenido engañoso y prácticas que afecten la confianza en la plataforma.",
+    "lastUpdated": "2 de junio de 2026",
+    "pageTitle": "Política de Contenido",
+    "sections": {
+      "summary": {
+        "title": "1. Resumen y propósito",
+        "body": "Esta política define qué tipo de contenido es <strong>aceptable</strong> en KIOSQUI y cuál está <strong>prohibido</strong>. Aplica a publicaciones de propiedades, fotos, descripciones, comentarios, mensajes y cualquier otro contenido subido a la plataforma. Su objetivo es proteger a los compradores y arrendatarios potenciales y mantener una comunidad confiable para todos los usuarios."
+      },
+      "allowed": {
+        "title": "2. Contenido permitido",
+        "intro": "Podés publicar:",
+        "items": {
+          "properties": "Casas, apartamentos y terrenos sobre los que tengás derecho legal de venta o renta.",
+          "photos": "Fotografías reales del inmueble, tomadas o producidas específicamente para esa propiedad.",
+          "renders": "Renders 3D <strong>siempre que se aclare</strong> en la descripción que el inmueble está en planos o construcción.",
+          "descriptions": "Descripciones honestas: características, materiales, ubicación general, vecindario, accesos, vistas.",
+          "glb": "Archivos 3D (GLB) del inmueble — para usuarios con plan pago."
+        }
+      },
+      "prohibited": {
+        "title": "3. Contenido prohibido",
+        "intro": "Las siguientes publicaciones serán retiradas y pueden derivar en sanciones a la cuenta:",
+        "items": {
+          "scams": "<strong>Estafas o publicaciones engañosas:</strong> propiedades inexistentes, precios deliberadamente falsos para captar interés, contratos en suelo no urbanizable presentado como urbanizado, etc.",
+          "noRights": "<strong>Publicaciones sin derecho:</strong> inmuebles que no pertenecen al anunciante ni cuenta con autorización del propietario.",
+          "discrimination": "<strong>Discriminación:</strong> excluir potenciales compradores o arrendatarios por raza, género, religión, nacionalidad, orientación sexual, estado civil, situación familiar o discapacidad.",
+          "illegal": "<strong>Contenido violento, sexual o ilegal</strong> en fotos, descripciones o mensajes.",
+          "crime": "Inmuebles destinados a actividades ilícitas (lavado de dinero, tráfico, etc.).",
+          "copyright": "Publicaciones que infrinjan derechos de autor (fotos copiadas sin permiso, planos protegidos)."
+        }
+      },
+      "photos": {
+        "title": "4. Requisitos sobre fotografías",
+        "items": {
+          "own": "Las fotos deben ser <strong>del propio inmueble</strong>; no son válidas imágenes de stock, capturas de internet ni fotos de otras propiedades.",
+          "resolution": "Resolución mínima recomendada: 800×600 px. Máximo 8 MB por archivo.",
+          "formats": "Formatos aceptados: JPG, JPEG, PNG, WEBP, GIF. Máximo 10 imágenes por publicación.",
+          "watermarks": "No incluir marcas de agua de otras inmobiliarias o portales sin autorización.",
+          "faces": "No mostrar rostros de personas sin su consentimiento (vecinos, inquilinos actuales). Si aparecen niños deben estar pixelados.",
+          "edits": "No usar imágenes sexualmente sugestivas, violentas o engañosamente editadas (composiciones con cielo falso, jardines pegados, áreas inexistentes)."
+        }
+      },
+      "contact": {
+        "title": "5. Información de contacto",
+        "intro": "KIOSQUI ofrece un sistema de mensajes interno y notificaciones para que compradores y vendedores se comuniquen sin salir de la plataforma. Por seguridad, queda <strong>prohibido</strong> en la descripción o las fotos:",
+        "items": {
+          "payments": "Pedir transferencias o pagos antes de validar la propiedad.",
+          "external": "Direccionar el contacto a portales o redes externas con el fin de evadir nuestras políticas o sistema de denuncias.",
+          "impersonation": "Suplantar a otro anunciante o usar nombre/foto de terceros sin autorización."
+        },
+        "note": "Compartir teléfono y correo en la descripción es permitido, pero recomendamos mantener la conversación en KIOSQUI para que el historial quede registrado en caso de disputa."
+      },
+      "manipulation": {
+        "title": "6. Manipulación de precio o disponibilidad",
+        "intro": "Quedan prohibidas las siguientes prácticas:",
+        "items": {
+          "duplicates": "Publicar varias veces la misma propiedad bajo distintos perfiles o títulos para inflar visibilidad.",
+          "unavailable": "Marcar como activas propiedades que ya se vendieron o arrendaron, para captar contactos.",
+          "clickbait": "Anunciar un precio mucho menor al real (clickbait) para luego informar uno superior al consultar.",
+          "automation": "Manipular fechas o estados de la publicación con automatización."
+        }
+      },
+      "impersonation": {
+        "title": "7. Suplantación de identidad",
+        "body": "Está prohibido crear cuentas que se hagan pasar por otra persona, empresa o entidad, así como usar nombres, logos o marcas de terceros sin autorización. El uso de identidades falsas en la verificación es causal de baneo permanente."
+      },
+      "spam": {
+        "title": "8. Spam y abuso",
+        "intro": "Mantenemos la plataforma libre de spam con las siguientes reglas:",
+        "items": {
+          "messages": "No enviar mensajes masivos no solicitados a usuarios.",
+          "comments": "No usar comentarios para promocionar servicios externos no relacionados con la propiedad.",
+          "links": "No publicar enlaces a sitios de phishing, descargas sospechosas o estafas conocidas.",
+          "bots": "No usar bots para crear cuentas o publicaciones."
+        }
+      },
+      "report": {
+        "title": "9. Cómo reportar contenido",
+        "body": "Si encontrás una publicación o un comentario que viola esta política, podés denunciarlo desde el botón <strong>“Reportar”</strong> disponible en cada publicación y comentario. La denuncia llega al panel de soporte y se revisa por orden de gravedad.",
+        "confidential": "Las denuncias se manejan en forma confidencial; tu identidad no se revela al usuario denunciado."
+      },
+      "sanctions": {
+        "title": "10. Sanciones",
+        "intro": "Según la gravedad y reincidencia, podemos aplicar:",
+        "items": {
+          "hide": "<strong>Ocultar la publicación</strong> hasta que la corrijas.",
+          "delete": "<strong>Eliminar la publicación</strong> sin opción a editar.",
+          "suspend": "<strong>Suspensión temporal</strong> de la cuenta (7 / 15 / 30 días o personalizada).",
+          "ban": "<strong>Baneo permanente</strong> en casos graves (fraude, suplantación, contenido ilegal).",
+          "refund": "<strong>Reembolso de pauta</strong> como crédito reutilizable si la sanción interrumpe una campaña activa."
+        },
+        "terms": "Las condiciones completas de sanciones se detallan en los <terms>Términos y Condiciones</terms>."
+      },
+      "appeals": {
+        "title": "11. Apelaciones",
+        "body": "Si considerás que una sanción fue injusta, podés apelarla desde la pantalla de login bloqueado. La apelación crea un ticket prioritario que será atendido por un agente distinto al que aplicó la sanción. Mientras la apelación esté abierta, la sanción se mantiene; si la apelación procede, restauraremos tu cuenta y publicaciones cuando sea posible."
+      }
+    }
+  },
+  "terms": {
+    "breadcrumb": "Términos",
+    "intro": "Bienvenido/a a <strong>KIOSQUI</strong>, plataforma digital de bienes raíces. Estos Términos regulan la relación entre vos como usuario/a y KIOSQUI cuando navegás, publicás o contactás a través del sitio. Te invitamos a leerlos con atención.",
+    "lastUpdated": "2 de junio de 2026",
+    "pageTitle": "Términos y Condiciones",
+    "sections": {
+      "acceptance": {
+        "title": "1. Aceptación de los Términos",
+        "p1": "Al crear una cuenta, publicar una propiedad o utilizar cualquier función de KIOSQUI aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no debes utilizar la plataforma.",
+        "p2": "Estos Términos forman un contrato vinculante entre vos y KIOSQUI. Te recomendamos leerlos junto con nuestra <privacy>Política de Privacidad</privacy> y <content>Política de Contenido</content>."
+      },
+      "about": {
+        "title": "2. Quiénes somos",
+        "p1": "KIOSQUI es una plataforma digital con sede en la República de Guatemala que permite a propietarios, agentes y empresas anunciar, buscar y conectar para la compraventa o renta de bienes inmuebles (casas, apartamentos y terrenos).",
+        "p2": "KIOSQUI <strong>no es propietario</strong> de los inmuebles listados ni interviene directamente en las transacciones entre usuarios. Funcionamos como intermediario tecnológico que facilita el contacto entre partes."
+      },
+      "account": {
+        "title": "3. Cuenta de usuario",
+        "intro": "Para publicar o contactar vendedores debes crear una cuenta. Al hacerlo declarás que:",
+        "items": {
+          "age": "Sos mayor de 18 años de edad.",
+          "truth": "La información proporcionada (nombre, correo, número de teléfono) es verídica y actualizada.",
+          "password": "Mantendrás la confidencialidad de tu contraseña; sos responsable de toda actividad realizada desde tu cuenta.",
+          "unauthorized": "Notificarás de inmediato cualquier acceso no autorizado por medio del <support>portal de soporte</support>."
+        },
+        "p2": "KIOSQUI puede suspender o eliminar tu cuenta si detecta uso fraudulento, suplantación de identidad o violación reiterada de estos Términos."
+      },
+      "verification": {
+        "title": "4. Verificación de identidad",
+        "intro": "Para acceder a ciertas funciones (como ser vendedor verificado, subir archivos 3D, recibir crédito de pauta o gestionar una empresa) deberás completar la verificación de identidad enviando:",
+        "items": {
+          "id": "DPI o pasaporte vigente (personas naturales) — solo se almacena el número, encriptado.",
+          "tax": "NIT y RTU vigente del SAT (empresas o negocios).",
+          "selfie": "Una fotografía sosteniendo el documento (selfie)."
+        },
+        "p2": "Estos documentos se procesan únicamente para validar identidad. Consultá nuestra <privacy>Política de Privacidad</privacy> sobre cómo los almacenamos y protegemos. Aprobar la verificación es discrecional de KIOSQUI; podemos solicitar información adicional."
+      },
+      "listings": {
+        "title": "5. Publicaciones de propiedades",
+        "intro": "Como anunciante, sos el único responsable del contenido y la veracidad de tus publicaciones. Te comprometés a:",
+        "items": {
+          "rights": "Publicar únicamente propiedades sobre las que tengás el derecho legal de venta o renta (titularidad, poder, mandato).",
+          "photos": "Subir fotografías reales del inmueble — no imágenes de stock, renders sin advertencia, ni fotos de otras propiedades.",
+          "truth": "Indicar de buena fe el precio, ubicación, área y características de la propiedad.",
+          "status": "Marcar como <code>Vendida</code> o <code>Pausada</code> la publicación cuando ya no esté disponible.",
+          "policy": "Cumplir con la <content>Política de Contenido</content> (prohibiciones de imágenes, contacto, lenguaje, etc.)."
+        },
+        "p2": "Las publicaciones con información falsa o que infringen la política pueden ser ocultadas o eliminadas sin previo aviso, y podrían derivar en sanciones a la cuenta."
+      },
+      "plans": {
+        "title": "6. Planes, pagos y suscripciones",
+        "p1": "KIOSQUI ofrece un plan gratuito con límite de publicaciones y planes pagos con mayores cuotas, gestión de equipo y acceso a archivos 3D (GLB). Los precios y términos de cada plan se muestran en la página de <plans>planes</plans>.",
+        "items": {
+          "providers": "Los pagos se procesan a través de proveedores de pago autorizados; KIOSQUI no almacena datos completos de tarjetas.",
+          "renewal": "Las suscripciones se renuevan automáticamente en el periodo contratado, salvo que las canceles antes del vencimiento.",
+          "refunds": "<strong>Reembolsos:</strong> los planes son no reembolsables una vez activados, salvo error técnico imputable a KIOSQUI o disposición legal."
+        }
+      },
+      "ads": {
+        "title": "7. Pauta y publicaciones destacadas",
+        "body": "Podés <pauta>pautar</pauta> una publicación para que aparezca destacada en listados y secciones de inicio. La pauta tiene precio dinámico según duración y segmentación. Si una pauta no se consume por sanción o suspensión, KIOSQUI puede reembolsarla como crédito interno reutilizable en futuras campañas."
+      },
+      "sanctions": {
+        "title": "8. Sanciones, suspensión y baneo",
+        "intro": "KIOSQUI puede aplicar las siguientes sanciones cuando se detecte incumplimiento de estos Términos o de la Política de Contenido:",
+        "items": {
+          "warning": "<strong>Advertencia</strong> — notificación al usuario con indicaciones.",
+          "hide": "<strong>Ocultar publicación</strong> — la publicación deja de ser visible hasta corregir.",
+          "suspend": "<strong>Suspensión temporal</strong> — bloqueo de la cuenta por 7, 15, 30 días o periodo personalizado.",
+          "ban": "<strong>Baneo permanente</strong> — bloqueo definitivo de la cuenta."
+        },
+        "p2": "Toda sanción puede <strong>apelarse</strong> desde la pantalla de login bloqueado, lo que genera un ticket de soporte con prioridad alta. El equipo de soporte revisará el caso y resolverá en plazo razonable."
+      },
+      "ip": {
+        "title": "9. Propiedad intelectual",
+        "p1": "El nombre, logotipo, código fuente, diseño, ilustraciones y demás elementos de KIOSQUI son propiedad de sus titulares y están protegidos por la legislación de derechos de autor y marcas de Guatemala y tratados internacionales aplicables.",
+        "p2": "Las fotografías y descripciones que subís a tus publicaciones son de tu propiedad o cuentas con autorización expresa. Al publicarlas en KIOSQUI nos otorgás una licencia <strong>no exclusiva</strong>, revocable, gratuita y mundial para mostrar, redimensionar y procesar dicho contenido únicamente con el fin de operar la plataforma."
+      },
+      "liability": {
+        "title": "10. Limitación de responsabilidad",
+        "intro": "KIOSQUI se ofrece <strong>“como está”</strong> y “según disponibilidad”. En la máxima medida permitida por la ley:",
+        "items": {
+          "availability": "No garantizamos que la plataforma esté libre de interrupciones, errores o vulnerabilidades.",
+          "transactions": "No somos parte ni avalamos transacciones de bienes inmuebles entre usuarios. Verificar la titularidad, condiciones legales, áreas, linderos y precios reales es responsabilidad de las partes.",
+          "damages": "No nos hacemos responsables por daños indirectos, lucro cesante, pérdida de oportunidades o reclamos derivados del contacto entre usuarios fuera de la plataforma."
+        }
+      },
+      "changes": {
+        "title": "11. Modificaciones a estos Términos",
+        "body": "Podemos actualizar estos Términos en cualquier momento. La nueva versión entrará en vigor desde su publicación en esta página. Si los cambios son significativos, notificaremos a los usuarios registrados por correo o mediante un aviso en la plataforma con al menos <strong>15 días</strong> de anticipación. El uso continuado de la plataforma luego de la entrada en vigor implica la aceptación de los nuevos Términos."
+      },
+      "law": {
+        "title": "12. Ley aplicable y jurisdicción",
+        "body": "Estos Términos se rigen por las leyes de la República de Guatemala. Cualquier controversia que surja en relación con la plataforma será sometida a los tribunales competentes de la Ciudad de Guatemala, salvo disposición legal en contrario."
+      }
+    }
+  },
+  "privacy": {
+    "breadcrumb": "Privacidad",
+    "intro": "En <strong>KIOSQUI</strong> tu privacidad nos importa. Este documento explica con claridad qué datos personales recolectamos, cómo los usamos, con quién los compartimos y los derechos que tenés para gestionarlos. Si tenés dudas, contactanos por los canales que encontrarás al final.",
+    "lastUpdated": "2 de junio de 2026",
+    "pageTitle": "Política de Privacidad",
+    "sections": {
+      "scope": {
+        "title": "1. Alcance de esta política",
+        "body": "Esta Política de Privacidad describe qué información recolecta KIOSQUI, cómo la usamos, con quién la compartimos y los derechos que tenés sobre ella. Aplica a todas las personas que usan la plataforma, ya sea como visitantes, anunciantes, agentes o empresas. Al usar KIOSQUI aceptás esta política, que debe leerse junto con nuestros <terms>Términos y Condiciones</terms>."
+      },
+      "data": {
+        "title": "2. Datos que recolectamos",
+        "accountTitle": "2.1 Datos de cuenta",
+        "account": "Cuando creás una cuenta nos brindás: nombre completo, dirección de correo electrónico, contraseña (almacenada como hash) y, de forma opcional, número de teléfono.",
+        "profileTitle": "2.2 Datos de perfil",
+        "profile": "Foto de avatar, foto de portada, biografía, ubicación general, enlaces a redes sociales — todos opcionales y modificables desde tu perfil.",
+        "sensitiveTitle": "2.3 Datos sensibles de verificación",
+        "sensitiveIntro": "Para verificar identidad: número de DPI o pasaporte (personas naturales), NIT y RTU vigente (empresas), y una fotografía con el documento. Estos datos:",
+        "sensitiveItems": {
+          "encrypted": "Se almacenan <strong>encriptados</strong> con AES-256-GCM en nuestra base de datos.",
+          "supportOnly": "Solo se exponen al equipo de soporte autorizado durante la revisión de la solicitud.",
+          "neverPublic": "<strong>Nunca</strong> se muestran en perfiles públicos ni en endpoints abiertos."
+        },
+        "listingsTitle": "2.4 Publicaciones",
+        "listings": "Contenido que subís voluntariamente: fotos del inmueble, archivos 3D (GLB), descripción, dirección, precio, características y ubicación geográfica.",
+        "paymentsTitle": "2.5 Datos de pago",
+        "payments": "Cuando contratás un plan o pauta procesamos el pago mediante proveedores autorizados. KIOSQUI <strong>no almacena</strong> números completos de tarjeta ni CVV — solo guardamos referencias tokenizadas e información de facturación necesaria por ley.",
+        "technicalTitle": "2.6 Datos técnicos y de uso",
+        "technical": "Dirección IP, agente de usuario (navegador y sistema operativo), páginas visitadas, búsquedas realizadas y eventos de interacción. Estos datos se usan en forma agregada para mejorar la plataforma.",
+        "communicationsTitle": "2.7 Comunicaciones",
+        "communications": "Mensajes que envías a otros usuarios desde la plataforma, comentarios en publicaciones y tickets de soporte. Estos contenidos se almacenan para entregar el servicio y resolver disputas."
+      },
+      "use": {
+        "title": "3. Cómo usamos tus datos",
+        "intro": "Tratamos tus datos para:",
+        "items": {
+          "operate": "Operar la plataforma y permitirte usar sus funcionalidades.",
+          "verify": "Verificar identidad de anunciantes y reducir riesgo de fraude.",
+          "payments": "Procesar pagos de planes y pautas a través de proveedores autorizados.",
+          "notifications": "Enviar notificaciones operativas (comentarios, mensajes, cambios de estado de tus publicaciones).",
+          "support": "Atender solicitudes de soporte y resolver disputas entre usuarios.",
+          "legal": "Cumplir con obligaciones legales (facturación, lavado de dinero, requerimientos judiciales).",
+          "analytics": "Mejorar el producto en forma agregada (analítica, métricas de uso)."
+        }
+      },
+      "sharing": {
+        "title": "4. Con quién compartimos tus datos",
+        "intro": "Tus datos <strong>no se venden</strong> a terceros. Compartimos información únicamente en estos escenarios:",
+        "items": {
+          "infrastructure": "<strong>Proveedores de infraestructura</strong> (hosting, correo transaccional, almacenamiento) que actúan como procesadores bajo contrato.",
+          "payments": "<strong>Proveedores de pago autorizados</strong> para procesar transacciones.",
+          "authorities": "<strong>Autoridades</strong> cuando exista requerimiento judicial o legal válido.",
+          "users": "<strong>Otros usuarios</strong> únicamente la información que elegiste exponer (nombre, avatar, publicaciones, comentarios)."
+        }
+      },
+      "cookies": {
+        "title": "5. Cookies y tecnologías similares",
+        "intro": "Usamos cookies y almacenamiento local del navegador para:",
+        "items": {
+          "session": "<strong>Mantener tu sesión iniciada</strong> (cookie de autenticación).",
+          "preferences": "Recordar tus preferencias (idioma, modo oscuro/claro).",
+          "banner": "Recordar tu aceptación del banner de cookies.",
+          "analytics": "Medir el uso de la plataforma en forma agregada (analítica)."
+        },
+        "note": "Podés borrar cookies desde la configuración de tu navegador, pero ciertas funciones (mantener sesión, preferencias) podrían dejar de funcionar."
+      },
+      "rights": {
+        "title": "6. Tus derechos sobre tus datos",
+        "intro": "Tenés derecho a:",
+        "items": {
+          "access": "<strong>Acceso:</strong> ver qué datos tuyos tenemos. Tu perfil ya muestra los principales; para datos sensibles podés solicitar un reporte por soporte.",
+          "rectification": "<strong>Rectificación:</strong> corregir datos inexactos desde tu perfil o pidiéndolo a soporte.",
+          "deactivate": "<strong>Desactivar cuenta (recuperable):</strong> desde <profile>tu perfil</profile>, sección “Zona sensible” → “Desactivar”. Tu cuenta queda pausada pero conservamos tus datos intactos. Cuando iniciás sesión nuevamente la cuenta se reactiva automáticamente. Sin límite de tiempo para regresar.",
+          "delete": "<strong>Eliminar cuenta (definitivo):</strong> desde <profile>tu perfil</profile>, sección “Zona sensible” → “Eliminar”. Inicia un <strong>período de gracia de 30 días</strong>. Durante ese plazo podés cancelar la eliminación iniciando sesión. Pasados los 30 días anonimizamos tus datos personales (nombre, correo, teléfono, DPI, fotos) de forma definitiva; el registro mínimo necesario para integridad referencial (FKs en mensajes, tickets, transacciones) se conserva pero queda imposible de asociar a vos.",
+          "objection": "<strong>Oposición:</strong> rechazar comunicaciones de marketing o ciertos tratamientos no esenciales.",
+          "portability": "<strong>Portabilidad:</strong> recibir tus datos en un formato común y estructurado."
+        },
+        "contact": "Para ejercer cualquiera de estos derechos creá un <support>ticket de soporte</support> o escribí a <privacyEmail>privacidad@kiosqui.gt</privacyEmail>."
+      },
+      "retention": {
+        "title": "7. Retención de datos",
+        "intro": "Conservamos tus datos por el tiempo necesario para:",
+        "items": {
+          "active": "Operar tu cuenta mientras esté activa.",
+          "accounting": "Cumplir obligaciones contables y tributarias (mínimo 4 años para facturación según legislación guatemalteca).",
+          "disputes": "Atender posibles reclamos o disputas (3 años desde la última interacción)."
+        },
+        "afterDelete": "Tras eliminar tu cuenta, los datos personales se anonimizan (nombre, correo, foto) mientras se preservan datos agregados necesarios para la integridad del sistema.",
+        "auditTitle": "7.1 Registro de auditoría (prevención de fraude)",
+        "auditIntro": "Como base legal de <strong>interés legítimo en la prevención de fraude</strong>, mantenemos un registro de auditoría que conserva, de manera <strong>indefinida</strong>, hashes criptográficos irreversibles (SHA-256) de los siguientes identificadores de cuentas eliminadas o sancionadas:",
+        "auditItems": {
+          "email": "Hash del correo electrónico utilizado.",
+          "id": "Hash del DPI / documento de identidad (si fue verificado).",
+          "phone": "Hash del número de teléfono (si lo proporcionaste).",
+          "reason": "Motivo de la baja y fecha en que ocurrió."
+        },
+        "auditNote": "Estos hashes <strong>no son datos personales legibles</strong> — no se pueden revertir al valor original. Sirven exclusivamente para detectar cuando un usuario previamente baneado por fraude intenta volver con datos distintos, en cuyo caso bloqueamos el nuevo registro. No los compartimos con terceros y no los utilizamos para perfilado ni marketing."
+      },
+      "security": {
+        "title": "8. Seguridad",
+        "intro": "Aplicamos medidas razonables para proteger tus datos:",
+        "items": {
+          "encryption": "Cifrado en tránsito (HTTPS) y en reposo para datos sensibles.",
+          "passwords": "Contraseñas almacenadas como hash con sal por usuario.",
+          "documents": "DPI, NIT y RTU encriptados con AES-256-GCM con clave secreta de servidor.",
+          "roles": "Control de acceso por roles: solo personal autorizado de soporte puede ver datos de verificación.",
+          "monitoring": "Monitoreo de actividad y rotación de claves cuando se detectan incidentes."
+        },
+        "report": "Ninguna medida es infalible. Si detectás un incidente de seguridad, reportalo de inmediato a <securityEmail>seguridad@kiosqui.gt</securityEmail>."
+      },
+      "minors": {
+        "title": "9. Menores de edad",
+        "body": "KIOSQUI no está dirigido a menores de 18 años y no recolectamos datos a sabiendas de personas menores de esa edad. Si detectamos una cuenta perteneciente a un menor procederemos a eliminarla."
+      },
+      "changes": {
+        "title": "10. Cambios a esta política",
+        "body": "Podemos actualizar esta política para reflejar cambios en la plataforma o en la legislación. Notificaremos cambios significativos por correo o aviso en la plataforma con al menos 15 días de anticipación. La versión vigente siempre estará disponible en esta página, con la fecha de última actualización al inicio."
+      },
+      "contact": {
+        "title": "11. Contacto",
+        "body": "Para cualquier consulta sobre esta Política de Privacidad o sobre tus datos personales:<br></br>Email: <privacyEmail>privacidad@kiosqui.gt</privacyEmail><br></br>Soporte: <support>portal de tickets</support>"
+      }
+    }
+  }
+}
