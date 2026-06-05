@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { routing } from "@/i18n/routing";
 
 /**
  * Fase 18 — sitemap.xml para Google Search Console.
@@ -33,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       | "yearly"
       | "never";
   }> = [
-    { path: "/", priority: 1.0, changeFrequency: "daily" },
+    { path: "", priority: 1.0, changeFrequency: "daily" },
     { path: "/publications", priority: 0.9, changeFrequency: "hourly" },
     { path: "/publications?propertie=1", priority: 0.8, changeFrequency: "daily" },
     { path: "/publications?propertie=2", priority: 0.8, changeFrequency: "daily" },
@@ -48,10 +49,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/register", priority: 0.3, changeFrequency: "monthly" },
   ];
 
-  return routes.map((r) => ({
-    url: `${SITE_URL}${r.path}`,
-    lastModified: now,
-    changeFrequency: r.changeFrequency,
-    priority: r.priority,
-  }));
+  return routes.flatMap((r) =>
+    routing.locales.map((locale) => ({
+      url: `${SITE_URL}/${locale}${r.path}`,
+      lastModified: now,
+      changeFrequency: r.changeFrequency,
+      priority: r.priority,
+      alternates: {
+        languages: {
+          ...Object.fromEntries(
+            routing.locales.map((alternateLocale) => [
+              alternateLocale,
+              `${SITE_URL}/${alternateLocale}${r.path}`,
+            ]),
+          ),
+          "x-default": `${SITE_URL}/${routing.defaultLocale}${r.path}`,
+        },
+      },
+    })),
+  );
 }
