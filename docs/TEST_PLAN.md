@@ -585,6 +585,32 @@ redirige a `/en`.
 
 **Esperado:** La cookie gana sobre `Accept-Language` en visitas posteriores.
 
+## i18n / next-intl (Fase 14.2)
+
+> No hay runner frontend instalado todavía; la automatización de estos smoke
+> queda diferida a Fase 21. En Hito 14.2 se ejecutaron contra `next dev`
+> local después de `npm run build`.
+
+### T-109 — Login renderiza claves localizadas en `/en/login` — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local sobre `/en/login`.
+
+**Esperado:** El label visible del email dice `Email` y no `Correo`.
+Captura: `/tmp/kiosqui-fase14-2-en-login.png`.
+
+### T-110 — Register renderiza claves localizadas en `/en/register` — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local sobre `/en/register`.
+
+**Esperado:** El formulario muestra claves auth en inglés: `Is it a company?`,
+`First name`, `Username`, `I have read and accept the...`; no aparece
+`MISSING_MESSAGE`. Captura: `/tmp/kiosqui-fase14-2-en-register.png`.
+
+### T-111 — Forgot renderiza claves localizadas en `/en/forgot` — 🧪 SMOKE MANUAL
+**Ejecución:** Browser local sobre `/en/forgot`.
+
+**Esperado:** El título y el formulario muestran `Recover password`, `Email`,
+`Send link`; no aparece `MISSING_MESSAGE`. Captura:
+`/tmp/kiosqui-fase14-2-en-forgot.png`.
+
 ---
 
 ## Roadmap de automatización
@@ -622,4 +648,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-06-04 (Fase 14.1 — T-104..T-108 smoke manual)
+**Última actualización:** 2026-06-04 (Fase 14.2 — T-109..T-111 smoke manual)

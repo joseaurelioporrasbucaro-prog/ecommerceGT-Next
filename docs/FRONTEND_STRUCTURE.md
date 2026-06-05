@@ -240,7 +240,7 @@ Estado actual:
 - `src/middleware.ts` combina resolución de locale con protección de rutas por cookie `token`.
 - `NEXT_LOCALE` persiste la elección del usuario.
 - El selector de idioma vive en `HeaderOne` y `HeaderTwo`.
-- `react-i18next`, `i18next` y `src/i18n.js` siguen presentes por convivencia hasta Hito 14.2.
+- La convivencia con `react-i18next` terminó en Hito 14.2: `react-i18next`, `i18next` y `src/i18n.js` fueron eliminados.
 - La mayoría del contenido nuevo sigue hardcodeado en español hasta Hito 14.3.
 
 Regla práctica durante Fase 14: texto nuevo visible en pantallas migradas debe ir a `messages/`; texto fuera de alcance del hito queda en español claro hasta su migración.

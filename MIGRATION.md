@@ -3062,21 +3062,51 @@ extranjeros y expats con poder de compra alto).
   sigan redirigiendo por middleware; Hito 14.3 migrará los links restantes
   de forma incremental.
 
-##### Hito 14.2 — Migración base (5 archivos) — ⬜ Pendiente
+##### Hito 14.2 — Migración base (5 archivos) — ✅ Completado
 
-- **SHA Codex:** _por completar_
-- **Tests añadidos:** T-109..T-111
-- **Decisiones aplicadas:** D-6, D-7
+- **SHA Codex:** `4106cc4` (cleanup final de código; cierre documental en
+  `docs(fase14.2): cerrar hito migración base`).
+- **Tests añadidos/documentados:** T-109..T-111 en `docs/TEST_PLAN.md`
+  como smoke manual (runner frontend queda para Fase 21).
+- **Decisiones aplicadas:** D-6 (termina convivencia; cleanup de deps y
+  bundle legacy), D-7 (claves en `messages/<locale>/auth.json`).
 - **Archivos migrados** (`react-i18next` → `next-intl`):
   - `src/form/ForgotForm.tsx`
   - `src/form/RegisterForm.tsx`
   - `src/layout/header/HeaderOne.tsx`
-  - `src/layout/header/HeaderTwo.tsx`
-  - `src/form/LoginForm.tsx` (si aplica — Codex confirma en el PR)
+- **Archivos auditados sin migración adicional:**
+  - `src/layout/header/HeaderTwo.tsx` — ya migrado en Hito 14.1.
+  - `src/form/LoginFrom.tsx` — no importaba `react-i18next`; T-109 confirma
+    `/en/login` con label `Email`.
+- **Archivos adicionales modificados:**
+  - `src/app/[locale]/forgot/page.tsx` — título/breadcrumb de recovery
+    conectados a `auth.forgot`.
+  - `src/utils/AuthContext.tsx` — removido import lateral `../i18n`.
+  - `messages/es/auth.json`, `messages/en/auth.json` — claves nuevas para
+    Forgot y Register, sin perder las claves del bundle viejo.
 - **Archivos eliminados:** `src/i18n.js`
-- **Deps eliminadas:** `react-i18next`, `i18next` (de `package.json`)
-- **Validación grep:** `grep -rn "react-i18next\|from.*i18next" src/` → 0 hits
-- **Bloqueos resueltos:** _por completar_
+- **Deps eliminadas:** `react-i18next`, `i18next` (de `package.json` y
+  `package-lock.json`).
+- **Validación grep ejecutada:** `grep -rn "react-i18next\|from.*['\"]i18next" src/`
+  → 0 hits.
+- **Validación ejecutada:**
+  - `npx tsc --noEmit` ✅
+  - `npm run build` ✅
+  - `npm test` backend ✅ 17/17
+  - Smoke manual T-109..T-111 ✅
+    (`/tmp/kiosqui-fase14-2-es-login.png`,
+    `/tmp/kiosqui-fase14-2-en-login.png`,
+    `/tmp/kiosqui-fase14-2-es-register.png`,
+    `/tmp/kiosqui-fase14-2-en-register.png`,
+    `/tmp/kiosqui-fase14-2-es-forgot.png`,
+    `/tmp/kiosqui-fase14-2-en-forgot.png`)
+- **Bloqueos resueltos:** al borrar `src/i18n.js`, `AuthContext` conservaba
+  un import lateral `../i18n`; se eliminó en el commit de cleanup. El dev
+  server local quedó con artefactos `.next` mezclados después del build y se
+  reinició antes del smoke final.
+- **Follow-ups detectados:** `LoginMain`/`LoginContent` y los breadcrumbs de
+  `SignUpMain` aún tienen copy del scaffold en inglés; no consumían
+  `react-i18next` y quedan para el barrido amplio de Hito 14.3.
 - **Notas del revisor:** _por completar_
 
 ##### Hito 14.3 — Contenido nuevo (Fases 5–11) + fechas con `useFormatter` — ⬜ Pendiente

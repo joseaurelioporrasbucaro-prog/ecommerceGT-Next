@@ -607,13 +607,16 @@ grep -rn "react-i18next\|from.*i18next" src/
 
 ### Criterios de aceptación 14.2
 
-- [ ] 5 archivos migrados a `useTranslations` de `next-intl`.
-- [ ] `package.json` ya **NO** declara `react-i18next` ni `i18next`.
-- [ ] `src/i18n.js` borrado.
-- [ ] `grep "react-i18next" src/` no devuelve nada.
-- [ ] `messages/es/auth.json` y `messages/en/auth.json` tienen todas las claves que existían en el bundle viejo (sin pérdida).
-- [ ] Build pasa: `npm run build` sin errores.
-- [ ] Backend tests siguen verdes (17/17).
+- [x] 5 archivos migrados/auditados a `useTranslations` de `next-intl`:
+  los 3 consumidores pendientes (`ForgotForm`, `RegisterForm`, `HeaderOne`)
+  migrados; `HeaderTwo` verificado como migrado en 14.1; `LoginFrom` verificado
+  sin `react-i18next`.
+- [x] `package.json` ya **NO** declara `react-i18next` ni `i18next`.
+- [x] `src/i18n.js` borrado.
+- [x] `grep "react-i18next" src/` no devuelve nada.
+- [x] `messages/es/auth.json` y `messages/en/auth.json` tienen todas las claves que existían en el bundle viejo (sin pérdida).
+- [x] Build pasa: `npm run build` sin errores.
+- [x] Backend tests siguen verdes (17/17).
 
 ---
 
