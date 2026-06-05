@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { locales } from "@/i18n/routing";
 
 /**
  * Fase 18 — robots.txt para Google y otros crawlers.
@@ -17,32 +18,42 @@ import type { MetadataRoute } from "next";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://kiosqui.gt";
 
+const withLocales = (paths: string[]) =>
+  locales.flatMap((locale) =>
+    paths.map((path) => `/${locale}${path}`),
+  );
+
 export default function robots(): MetadataRoute.Robots {
+  const publicPaths = [
+    "",
+    "/publications",
+    "/pricing-plan",
+    "/pauta",
+    "/faq",
+    "/terminos",
+    "/privacidad",
+    "/contenido",
+  ];
+  const privatePaths = [
+    "/soporte/",
+    "/admin/",
+    "/messages",
+    "/favorites",
+    "/my-publications",
+    "/creator-profile-info",
+    "/creator-profile-info-personal",
+    "/verify",
+    "/forgot",
+    "/invite",
+  ];
+
   return {
     rules: [
       {
         userAgent: "*",
-        allow: [
-          "/",
-          "/publications",
-          "/pricing-plan",
-          "/pauta",
-          "/faq",
-          "/terminos",
-          "/privacidad",
-          "/contenido",
-        ],
+        allow: ["/", ...withLocales(publicPaths)],
         disallow: [
-          "/soporte/",
-          "/admin/",
-          "/messages",
-          "/favorites",
-          "/my-publications",
-          "/creator-profile-info",
-          "/creator-profile-info-personal",
-          "/verify",
-          "/forgot",
-          "/invite",
+          ...withLocales(privatePaths),
           "/api/",
         ],
       },
