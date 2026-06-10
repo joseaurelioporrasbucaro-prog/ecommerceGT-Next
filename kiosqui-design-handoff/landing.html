@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kiosqui — Encontrá tu próximo hogar en Guatemala</title>
+<title>Kiosqui — La casa que buscás, en 3D y sin intermediarios</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -34,12 +34,17 @@
   /* ---------- HEADER (translucent sticky) ---------- */
   .nav{position:sticky;top:0;z-index:50;background:rgba(255,253,249,.85);
     backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
-  .nav-inner{display:flex;align-items:center;gap:32px;height:72px}
-  .nav-logo{height:30px}
-  .nav-links{display:flex;gap:26px;margin-left:16px}
-  .nav-links a{font:var(--text-body-sm);font-weight:600;color:var(--ink-700);
-    transition:color .15s}
-  .nav-links a:hover{color:var(--navy-800)}
+  .nav-inner{display:flex;align-items:center;gap:20px;height:80px}
+  .nav-logo{height:48px}
+  .nav-search{flex:1;max-width:440px;display:flex;align-items:center;gap:10px;
+    height:44px;padding:0 18px;margin-left:6px;
+    background:var(--surface);border:1.5px solid var(--border-strong);
+    border-radius:var(--r-pill);transition:border-color .15s,box-shadow .15s}
+  .nav-search:focus-within{border-color:var(--accent);box-shadow:var(--shadow-focus)}
+  .nav-search i{color:var(--fg-subtle);font-size:14px}
+  .nav-search input{flex:1;min-width:0;border:none;background:transparent;outline:none;
+    font:var(--text-body-sm);font-family:var(--font-body);color:var(--fg-strong)}
+  .nav-search input::placeholder{color:var(--fg-subtle)}
   .nav-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
 
   /* ---------- HERO ---------- */
@@ -63,9 +68,7 @@
     color:var(--fg-strong);margin:0 0 20px}
   .hero h1 .accent{
     color:var(--lav-700);
-    position:relative;white-space:nowrap;
-    background:linear-gradient(180deg, transparent 62%, rgba(181,172,239,.35) 62%);
-    padding:0 4px}
+    white-space:nowrap}
   .hero p.sub{font:var(--text-lead);color:var(--fg-muted);
     max-width:640px;margin:0 auto 36px;font-size:18px}
 
@@ -135,6 +138,12 @@
     box-shadow:var(--shadow-sm);cursor:pointer;
     transition:transform .2s,box-shadow .2s}
   .pub-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+  /* Tarjeta destacada: anillo lavanda sutil para resaltar en la grilla */
+  .pub-card.is-featured{border-color:var(--lav-400);
+    box-shadow:0 0 0 1.5px var(--lav-400), var(--shadow-sm)}
+  .pub-card.is-featured:hover{box-shadow:0 0 0 1.5px var(--lav-500), var(--shadow-md)}
+  [data-theme="dark"] .pub-card.is-featured{border-color:var(--lav-500);
+    box-shadow:0 0 0 1.5px var(--lav-500), var(--shadow-sm)}
   .pub-photo{position:relative;height:200px;
     display:flex;align-items:center;justify-content:center;
     color:rgba(255,255,255,.55);overflow:hidden}
@@ -142,12 +151,33 @@
     background:radial-gradient(circle at 25% 25%, rgba(255,255,255,.2), transparent 55%)}
   .pub-photo .fa-camera{font-size:30px;position:relative;z-index:1}
   .pub-tag{position:absolute;top:12px;left:12px;z-index:2;
-    display:inline-flex;align-items:center;gap:6px;
-    padding:5px 12px;border-radius:var(--r-pill);
+    display:inline-flex;align-items:center;gap:7px;
+    padding:6px 13px;border-radius:var(--r-pill);
     font:var(--text-label);font-size:12px;
-    background:var(--green-500);color:var(--navy-900)}
-  .pub-tag.feat{background:var(--lav-500);color:var(--navy-900)}
-  .pub-tag.feat i{font-size:11px}
+    background:rgba(255,255,255,.82);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    color:var(--navy-800);
+    border:1px solid rgba(255,255,255,.65);
+    box-shadow:0 2px 10px rgba(30,45,74,.14)}
+  .pub-tag:not(.feat)::before{content:"";width:7px;height:7px;border-radius:50%;
+    background:var(--green-600);flex-shrink:0}
+  /* DESTACADO: pastilla lavanda sólida con glow — salta de la foto */
+  .pub-tag.feat{
+    background:linear-gradient(135deg, var(--lav-500), var(--lav-600));
+    color:#fff;border:1px solid rgba(255,255,255,.35);
+    -webkit-backdrop-filter:none;backdrop-filter:none;
+    box-shadow:0 4px 16px rgba(109,98,207,.5), 0 0 0 3px rgba(181,172,239,.25);
+    font-weight:700;letter-spacing:.01em}
+  .pub-tag.feat i{font-size:11px;color:#fff}
+  /* Dark mode: estados sólidos verdes; destacado mantiene el glow */
+  [data-theme="dark"] .pub-tag{background:var(--green-500);color:var(--navy-900);
+    border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+  [data-theme="dark"] .pub-tag:not(.feat)::before{display:none}
+  [data-theme="dark"] .pub-tag.feat{
+    background:linear-gradient(135deg, var(--lav-400), var(--lav-500));
+    color:var(--navy-900);
+    box-shadow:0 4px 18px rgba(181,172,239,.55), 0 0 0 3px rgba(181,172,239,.22)}
+  [data-theme="dark"] .pub-tag.feat i{color:var(--navy-900)}
   .pub-fav{position:absolute;top:10px;right:10px;z-index:2;
     width:38px;height:38px;border-radius:var(--r-pill);border:none;cursor:pointer;
     background:rgba(255,255,255,.94);color:var(--navy-700);
@@ -343,7 +373,7 @@
   .footer{background:var(--ink-900);color:var(--cream);padding:64px 0 0}
   .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;
     gap:40px;margin-bottom:44px}
-  .footer-logo{height:36px;margin-bottom:16px}
+  .footer-logo{height:52px;margin-bottom:16px}
   .footer-tag{font:var(--text-body-sm);color:rgba(248,244,238,.65);max-width:280px;margin:0}
   .footer-col h5{font:var(--text-label);color:var(--cream);
     margin:0 0 16px}
@@ -371,9 +401,7 @@
       var(--bg);
   }
   [data-theme="dark"] .hero h1 .accent{
-    color:var(--lav-400);
-    background:linear-gradient(180deg, transparent 62%, rgba(181,172,239,.22) 62%);
-  }
+    color:var(--lav-400)}
   [data-theme="dark"] .featured{background:linear-gradient(180deg, var(--bg), var(--bg-elevated))}
   [data-theme="dark"] .cats{background:var(--bg-elevated)}
   [data-theme="dark"] .sellers{background:var(--bg)}
@@ -423,12 +451,118 @@
   [data-theme="dark"] .theme-toggle .fa-moon{display:none}
   [data-theme="dark"] .theme-toggle .fa-sun{display:block}
 
+  /* ---------- ICON BUTTONS (hamburguesa, campana) ---------- */
+  .icon-btn{width:40px;height:40px;border-radius:var(--r-pill);
+    border:1.5px solid var(--border-strong);background:var(--surface);
+    color:var(--fg-strong);cursor:pointer;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:16px;transition:all .15s;position:relative}
+  .icon-btn:hover{border-color:var(--lav-500);color:var(--lav-700)}
+  [data-theme="dark"] .icon-btn:hover{color:var(--lav-400)}
+  .hamburger{margin-left:2px}
+  .bell .bell-dot{position:absolute;top:8px;right:9px;width:8px;height:8px;
+    border-radius:var(--r-pill);background:var(--green-500);
+    border:2px solid var(--surface)}
+
+  /* ---------- PROFILE BUTTON (avatar) ---------- */
+  .profile-btn{width:40px;height:40px;border-radius:var(--r-pill);border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--navy-700),var(--navy-900));
+    color:var(--cream);font-family:var(--font-display);font-weight:700;font-size:14px;
+    display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+    margin-right:2px;
+    box-shadow:0 0 0 0 rgba(181,172,239,.5);transition:box-shadow .15s,transform .1s}
+  [data-theme="dark"] .profile-btn{background:linear-gradient(135deg,var(--lav-500),var(--lav-700));color:var(--navy-900)}
+  .profile-btn:hover{box-shadow:0 0 0 3px rgba(181,172,239,.45)}
+  .profile-btn:active{transform:scale(.96)}
+
+  /* Toggle de estado: oculta según sesión sin pisar el display natural
+     de cada componente (flex, inline-flex, etc.) */
+  body:not(.is-logged-in) .logged-in{display:none !important}
+  body.is-logged-in .logged-out{display:none !important}
+
+  /* ---------- DRAWERS (sidebars deslizables) ---------- */
+  .drawer-overlay{position:fixed;inset:0;z-index:90;
+    background:rgba(17,24,42,.42);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    opacity:0;pointer-events:none;transition:opacity .25s ease}
+  .drawer-overlay.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;bottom:0;z-index:95;width:320px;max-width:86vw;
+    background:var(--bg-elevated);box-shadow:var(--shadow-lg);
+    display:flex;flex-direction:column;padding:20px;gap:18px;overflow-y:auto;
+    transition:transform .28s cubic-bezier(.4,0,.2,1)}
+  .drawer-left{left:0;transform:translateX(-104%)}
+  .drawer-right{right:0;transform:translateX(104%)}
+  .drawer-left.open,.drawer-right.open{transform:translateX(0)}
+
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .drawer-logo{height:38px}
+  .drawer-head-title{font-family:var(--font-display);font-weight:700;font-size:18px;
+    color:var(--fg-strong)}
+  .drawer-close{width:36px;height:36px;font-size:15px}
+
+  .drawer-nav{display:flex;flex-direction:column;gap:3px}
+  .drawer-link{display:flex;align-items:center;gap:13px;padding:11px 13px;
+    border-radius:var(--r-sm);color:var(--fg-muted);font:var(--text-body-sm);
+    font-weight:600;transition:all .15s;cursor:pointer}
+  .drawer-link i{width:20px;font-size:16px;text-align:center;color:var(--fg-subtle);transition:color .15s}
+  .drawer-link:hover{background:var(--accent-soft);color:var(--lav-700)}
+  .drawer-link:hover i{color:var(--lav-700)}
+  [data-theme="dark"] .drawer-link:hover{color:var(--lav-300)}
+  [data-theme="dark"] .drawer-link:hover i{color:var(--lav-300)}
+  .drawer-link.is-active{background:var(--navy-800);color:var(--cream)}
+  .drawer-link.is-active i{color:var(--green-400)}
+  [data-theme="dark"] .drawer-link.is-active{background:var(--lav-500);color:var(--navy-900)}
+  [data-theme="dark"] .drawer-link.is-active i{color:var(--navy-900)}
+  .drawer-badge{margin-left:auto;background:var(--lav-200);color:var(--lav-700);
+    font:var(--text-caption);font-weight:700;padding:1px 8px;border-radius:var(--r-pill)}
+  [data-theme="dark"] .drawer-badge{background:rgba(181,172,239,.22);color:var(--lav-300)}
+
+  .drawer-section{border-top:1px solid var(--border);padding-top:16px;
+    display:flex;flex-direction:column;gap:4px}
+  .drawer-section-title{font:var(--text-overline);letter-spacing:var(--tracking-overline);
+    text-transform:uppercase;color:var(--fg-subtle);margin:0 0 8px}
+  .drawer-seller{display:flex;align-items:center;gap:11px;padding:7px 8px;
+    border-radius:var(--r-sm);transition:background .15s;cursor:pointer}
+  .drawer-seller:hover{background:var(--surface-sunk)}
+  .drawer-seller-av{width:38px;height:38px;border-radius:var(--r-pill);flex-shrink:0;
+    background:linear-gradient(135deg,var(--navy-700),var(--navy-900));color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:13px}
+  .drawer-seller-info{display:flex;flex-direction:column;min-width:0;flex:1}
+  .drawer-seller-name{font:var(--text-body-sm);font-weight:600;color:var(--fg-strong);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .drawer-seller-handle{font:var(--text-caption);color:var(--accent-hover)}
+  .drawer-seller-check{width:18px;height:18px;border-radius:var(--r-pill);flex-shrink:0;
+    background:var(--green-500);color:var(--navy-900);font-size:9px;
+    display:flex;align-items:center;justify-content:center}
+
+  .drawer-cta-card{margin-top:auto;padding:18px;border-radius:var(--r-lg);
+    background:var(--accent-soft);text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:10px}
+  .drawer-cta-icon{width:44px;height:44px;border-radius:var(--r-md);
+    background:var(--lav-500);color:#fff;font-size:18px;
+    display:flex;align-items:center;justify-content:center}
+  .drawer-cta-text{font:var(--text-label);color:var(--fg-strong)}
+
+  /* Account card (drawer derecho) */
+  .account-card{padding:22px 16px;border-radius:var(--r-lg);text-align:center;
+    background:var(--accent-soft);border:1px solid var(--lav-300)}
+  [data-theme="dark"] .account-card{border-color:rgba(181,172,239,.25)}
+  .account-av{width:64px;height:64px;border-radius:var(--r-pill);margin:0 auto 12px;
+    background:linear-gradient(135deg,var(--navy-700),var(--navy-900));color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:22px}
+  .account-name{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--fg-strong)}
+  .account-handle{font:var(--text-body-sm);color:var(--accent-hover);margin-top:2px}
+  .drawer-foot{margin-top:auto;border-top:1px solid var(--border);padding-top:14px}
+  .drawer-link.is-logout{color:var(--danger)}
+  .drawer-link.is-logout i{color:var(--danger)}
+  .drawer-link.is-logout:hover{background:var(--danger-bg)}
+
   @media (max-width: 1000px) {
     .pp-grid{grid-template-columns:repeat(2,1fr)}
   }
   @media (max-width: 900px) {
     .pub-grid{grid-template-columns:repeat(2,1fr)}
-    .nav-links{display:none}
     .featured-head{align-items:flex-start}
     .cta-card{flex-direction:column;text-align:center;padding:40px 28px}
     .cta-decor{display:none}
@@ -436,6 +570,8 @@
   }
   @media (max-width: 600px) {
     .pub-grid{grid-template-columns:1fr}
+    .nav-search{display:none}
+    .nav-logo{height:40px}
     .footer-grid{grid-template-columns:1fr}
     .search{flex-direction:column;border-radius:var(--r-lg);padding:14px}
     .search button{width:100%}
@@ -448,31 +584,105 @@
 <!-- ============ NAV ============ -->
 <header class="nav">
   <div class="container nav-inner">
-    <img class="nav-logo logo-light" src="assets/logo-cream-bg.png" alt="Kiosqui">
-    <img class="nav-logo logo-dark" src="assets/logo-navy-bg.png" alt="Kiosqui">
-    <nav class="nav-links">
-      <a href="#publications">Comprar</a>
-      <a href="#publications">Rentar</a>
-      <a href="#how">Cómo funciona</a>
-      <a href="#pricing">Precios</a>
-      <a href="#sellers">Vendedores</a>
-    </nav>
+    <!-- Perfil (logueado) — lado IZQUIERDO: abre "Mi cuenta" desde la izquierda -->
+    <button class="profile-btn logged-in" id="openAccount" aria-label="Mi cuenta">AR</button>
+    <img class="nav-logo logo-light" src="assets/logo-transparent.png" alt="Kiosqui">
+    <img class="nav-logo logo-dark" src="assets/logo-cream-transparent.png" alt="Kiosqui">
+    <!-- Buscador en el header (reemplaza los links de navegación; el menú vive en la hamburguesa) -->
+    <form class="nav-search" onsubmit="event.preventDefault()">
+      <i class="fas fa-search" aria-hidden="true"></i>
+      <input type="text" placeholder="Buscar por zona, ciudad, colonia…" aria-label="Buscar propiedad">
+    </form>
     <div class="nav-cta">
       <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
         <i class="fas fa-moon"></i><i class="fas fa-sun"></i>
       </button>
-      <a href="#" class="kq-btn kq-btn--ghost kq-btn--sm">Iniciar sesión</a>
+      <!-- Estado deslogueado -->
+      <a href="#" class="kq-btn kq-btn--ghost kq-btn--sm logged-out" id="fakeLogin">Iniciar sesión</a>
       <a href="#" class="kq-btn kq-btn--action kq-btn--sm"><i class="fas fa-plus" style="font-size:13px"></i>&nbsp; Publicar</a>
+      <!-- Estado logueado: campana de notificaciones -->
+      <button class="icon-btn bell logged-in" aria-label="Notificaciones"><i class="fas fa-bell"></i><span class="bell-dot"></span></button>
+      <!-- Menú hamburguesa — lado DERECHO: abre la navegación desde la derecha -->
+      <button class="icon-btn hamburger" id="openMenu" aria-label="Abrir menú"><i class="fas fa-bars"></i></button>
     </div>
   </div>
 </header>
+
+<!-- ============ SIDEBAR DERECHO (navegación — menú hamburguesa) ============ -->
+<div class="drawer-overlay" id="overlayMenu"></div>
+<aside class="drawer drawer-right" id="drawerMenu" aria-hidden="true">
+  <div class="drawer-head">
+    <img class="drawer-logo logo-light" src="assets/logo-transparent.png" alt="Kiosqui">
+    <img class="drawer-logo logo-dark" src="assets/logo-cream-transparent.png" alt="Kiosqui">
+    <button class="icon-btn drawer-close" data-close="menu" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+  </div>
+  <nav class="drawer-nav">
+    <a href="#" class="drawer-link is-active"><i class="fas fa-home"></i> Inicio</a>
+    <a href="#publications" class="drawer-link"><i class="fas fa-building"></i> Propiedades</a>
+    <a href="#sellers" class="drawer-link"><i class="fas fa-users"></i> Vendedores</a>
+    <a href="#" class="drawer-link"><i class="fas fa-trophy"></i> Ranking</a>
+    <a href="#" class="drawer-link logged-in"><i class="fas fa-bullhorn"></i> Pauta</a>
+    <a href="#pricing" class="drawer-link"><i class="fas fa-gem"></i> Planes</a>
+    <a href="#" class="drawer-link"><i class="fas fa-headset"></i> Contacto</a>
+  </nav>
+  <div class="drawer-section">
+    <h5 class="drawer-section-title">Top vendedores</h5>
+    <a href="#" class="drawer-seller">
+      <span class="drawer-seller-av">AM</span>
+      <span class="drawer-seller-info"><span class="drawer-seller-name">Andrea Móvil</span><span class="drawer-seller-handle">@andreamovil</span></span>
+      <span class="drawer-seller-check"><i class="fas fa-check"></i></span>
+    </a>
+    <a href="#" class="drawer-seller">
+      <span class="drawer-seller-av">CR</span>
+      <span class="drawer-seller-info"><span class="drawer-seller-name">Carlos Ramírez</span><span class="drawer-seller-handle">@carlosramirez</span></span>
+      <span class="drawer-seller-check"><i class="fas fa-check"></i></span>
+    </a>
+    <a href="#" class="drawer-seller">
+      <span class="drawer-seller-av">LM</span>
+      <span class="drawer-seller-info"><span class="drawer-seller-name">Lucía Martínez</span><span class="drawer-seller-handle">@luciamz</span></span>
+      <span class="drawer-seller-check"><i class="fas fa-check"></i></span>
+    </a>
+  </div>
+  <div class="drawer-cta-card">
+    <div class="drawer-cta-icon"><i class="fas fa-plus"></i></div>
+    <div class="drawer-cta-text logged-out">Sumate y publicá tu propiedad</div>
+    <div class="drawer-cta-text logged-in">Publicá tu propiedad en minutos</div>
+    <a href="#" class="kq-btn kq-btn--action kq-btn--sm logged-out" style="width:100%;justify-content:center">Iniciar sesión</a>
+    <a href="#" class="kq-btn kq-btn--action kq-btn--sm logged-in" style="width:100%;justify-content:center">Crear publicación</a>
+  </div>
+</aside>
+
+<!-- ============ SIDEBAR IZQUIERDO (Mi cuenta — botón de perfil) ============ -->
+<div class="drawer-overlay" id="overlayAccount"></div>
+<aside class="drawer drawer-left" id="drawerAccount" aria-hidden="true">
+  <div class="drawer-head">
+    <span class="drawer-head-title">Mi cuenta</span>
+    <button class="icon-btn drawer-close" data-close="account" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="account-card">
+    <div class="account-av">AR</div>
+    <div class="account-name">Ana Rodríguez</div>
+    <div class="account-handle">@anarodriguez</div>
+  </div>
+  <nav class="drawer-nav">
+    <a href="#" class="drawer-link"><i class="fas fa-user"></i> Mi perfil</a>
+    <a href="#" class="drawer-link"><i class="fas fa-th-large"></i> Mis publicaciones</a>
+    <a href="#" class="drawer-link"><i class="fas fa-heart"></i> Favoritos <span class="drawer-badge">3</span></a>
+    <a href="#" class="drawer-link"><i class="fas fa-comments"></i> Mensajes <span class="drawer-badge">2</span></a>
+    <a href="#" class="drawer-link"><i class="fas fa-cog"></i> Configuraciones</a>
+    <a href="#" class="drawer-link"><i class="fas fa-gem"></i> Planes</a>
+  </nav>
+  <div class="drawer-foot">
+    <a href="#" class="drawer-link is-logout" id="fakeLogout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+  </div>
+</aside>
 
 <!-- ============ HERO ============ -->
 <section class="hero">
   <div class="container hero-inner">
     <span class="hero-eyebrow"><i class="fas fa-shield-alt"></i> Vendedores verificados con DPI</span>
-    <h1>Encontrá tu próximo hogar<br>en <span class="accent">Guatemala</span></h1>
-    <p class="sub">Casas, apartamentos y terrenos publicados directamente por propietarios verificados. Sin intermediarios escondidos.</p>
+    <h1>La casa que buscás,<br>en <span class="accent">3D</span> y sin intermediarios</h1>
+    <p class="sub">Recorré el modelo 3D de cada inmueble y tratá directo con propietarios verificados con DPI. Sin intermediarios escondidos.</p>
 
     <form class="search" onsubmit="event.preventDefault()">
       <i class="fas fa-search" aria-hidden="true"></i>
@@ -489,7 +699,7 @@
 
     <div class="trust">
       <div class="trust-item"><i class="fas fa-shield-alt"></i> Vendedores verificados con DPI</div>
-      <div class="trust-item"><i class="fas fa-cube"></i> Visor 3D para recorrer la propiedad</div>
+      <div class="trust-item">Visor 3D para ver la propiedad</div>
       <div class="trust-item"><i class="fas fa-comments"></i> Mensajería directa con el propietario</div>
     </div>
   </div>
@@ -507,7 +717,7 @@
     </div>
 
     <div class="pub-grid">
-      <article class="pub-card">
+      <article class="pub-card is-featured">
         <div class="pub-photo photo-1">
           <span class="pub-tag feat"><i class="fas fa-star"></i> Destacado</span>
           <button class="pub-fav is-fav" aria-label="Guardar"><i class="fas fa-heart"></i></button>
@@ -525,9 +735,9 @@
         </div>
       </article>
 
-      <article class="pub-card">
+      <article class="pub-card is-featured">
         <div class="pub-photo photo-2">
-          <span class="pub-tag">En renta</span>
+          <span class="pub-tag feat"><i class="fas fa-star"></i> Nuevo</span>
           <button class="pub-fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
           <i class="fas fa-camera"></i>
         </div>
@@ -543,7 +753,7 @@
         </div>
       </article>
 
-      <article class="pub-card">
+      <article class="pub-card is-featured">
         <div class="pub-photo photo-3">
           <span class="pub-tag feat"><i class="fas fa-star"></i> Destacado</span>
           <button class="pub-fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
@@ -562,7 +772,6 @@
 
       <article class="pub-card">
         <div class="pub-photo photo-4">
-          <span class="pub-tag">Verificado</span>
           <button class="pub-fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
           <i class="fas fa-camera"></i>
         </div>
@@ -580,7 +789,6 @@
 
       <article class="pub-card">
         <div class="pub-photo photo-5">
-          <span class="pub-tag">En renta</span>
           <button class="pub-fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
           <i class="fas fa-camera"></i>
         </div>
@@ -596,7 +804,7 @@
         </div>
       </article>
 
-      <article class="pub-card">
+      <article class="pub-card is-featured">
         <div class="pub-photo photo-6">
           <span class="pub-tag feat"><i class="fas fa-star"></i> Nuevo</span>
           <button class="pub-fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
@@ -899,7 +1107,7 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <img class="footer-logo" src="assets/logo-navy-bg.png" alt="Kiosqui">
+        <img class="footer-logo" src="assets/logo-cream-transparent.png" alt="Kiosqui">
         <p class="footer-tag">La plataforma digital para comprar y vender inmuebles en Guatemala. Profesional, simple y confiable.</p>
       </div>
       <div class="footer-col">
@@ -968,6 +1176,48 @@
       card.querySelector('.pp-interval').textContent = interval;
     });
   }));
+
+  // ---------- Drawers (sidebars) ----------
+  // menu  → navegación, se abre con la hamburguesa (derecha)
+  // account → Mi cuenta, se abre con el avatar de perfil (izquierda)
+  const drawers = {
+    menu:    { d: document.getElementById('drawerMenu'),    o: document.getElementById('overlayMenu') },
+    account: { d: document.getElementById('drawerAccount'), o: document.getElementById('overlayAccount') },
+  };
+
+  function openDrawer(name){
+    const { d, o } = drawers[name];
+    d.classList.add('open'); o.classList.add('open');
+    d.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer(name){
+    const { d, o } = drawers[name];
+    d.classList.remove('open'); o.classList.remove('open');
+    d.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('openMenu').addEventListener('click', () => openDrawer('menu'));
+  document.getElementById('openAccount').addEventListener('click', () => openDrawer('account'));
+  drawers.menu.o.addEventListener('click', () => closeDrawer('menu'));
+  drawers.account.o.addEventListener('click', () => closeDrawer('account'));
+  document.querySelectorAll('.drawer-close').forEach(btn =>
+    btn.addEventListener('click', () => closeDrawer(btn.dataset.close)));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeDrawer('menu'); closeDrawer('account'); }
+  });
+
+  // ---------- Demo: alternar estado logueado/deslogueado ----------
+  // (En producción esto lo maneja AuthContext; acá es solo para previsualizar)
+  document.getElementById('fakeLogin').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.body.classList.add('is-logged-in');
+  });
+  document.getElementById('fakeLogout').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.body.classList.remove('is-logged-in');
+    closeDrawer('account');
+  });
 </script>
 
 </body>
