@@ -4,62 +4,71 @@ import logoOne from "../../../public/assets/img/logo/oction-logo.png";
 import logoTwo from "../../../public/assets/img/logo/oction-logo-bw.png";
 import Image from "next/image";
 
+// Fase 22 — Footer KIOSQUI (Aurelio 2026-06-05).
+//
+// Reescribimos las 3 columnas del template ("Marketplace", "Explore Artworks",
+// "Insight Community") porque tenían links a /forum, /explore-arts, /art-ranking
+// con copy del template original (NFT marketplace). Ahora son:
+//
+//   1. Marca + redes sociales (sin copy generado por IT placeholder).
+//   2. Legal (Términos, Privacidad, Contenido, Soporte, FAQ).
+//   3. Explorar (Propiedades, Vendedores, Ranking, Pauta, Planes, Contacto).
+//
+// Copyright/Subscribe se quitan los placeholders inventados del template
+// (teléfono ficticio, email subscribe sin endpoint detrás).
 const Footer = () => {
   return (
     <footer className="footer1-bg">
       <section className="footer-area footer-area1 footer-area1-bg pt-100 pb-50">
         <div className="container">
           <div className="row">
-            <div className="col-lg-3 col-md-6 col-sm-6">
+            {/* Columna 1 — Marca */}
+            <div className="col-lg-4 col-md-6 col-sm-6">
               <div className="footer-widget footer1-widget footer1-widget1 mb-40">
                 <div className="footer-logo mb-30">
                   <Link className="logo-bb" href="/">
-                    <Image src={logoOne} alt="logo-img" />
+                    <Image src={logoOne} alt="KIOSQUI" />
                   </Link>
                   <Link className="logo-bw" href="/">
-                    <Image
-                      src={logoTwo}
-                      alt="logo-img"
-                    />
+                    <Image src={logoTwo} alt="KIOSQUI" />
                   </Link>
                 </div>
                 <p className="mb-35">
-                  We provide one-stop solutions for all IT items; your bliss is
-                  just a click away. Star Tech trusts in quality client
+                  El marketplace inmobiliario de Guatemala. Casas, apartamentos
+                  y terrenos publicados directamente por propietarios verificados.
                 </p>
                 <div className="social__links footer__social">
                   <ul>
                     <li>
-                      <Link href="#">
+                      <Link href="https://facebook.com/kiosqui" aria-label="Facebook">
                         <i className="fab fa-facebook-f"></i>
                       </Link>
                     </li>
                     <li>
-                      <Link href="#">
-                        <i className="fab fa-twitter"></i>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#">
+                      <Link href="https://instagram.com/kiosqui" aria-label="Instagram">
                         <i className="fab fa-instagram"></i>
                       </Link>
                     </li>
                     <li>
-                      <Link href="#">
-                        <i className="fab fa-linkedin-in"></i>
+                      <Link href="https://twitter.com/kiosqui" aria-label="Twitter / X">
+                        <i className="fab fa-twitter"></i>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="https://wa.me/50200000000" aria-label="WhatsApp">
+                        <i className="fab fa-whatsapp"></i>
                       </Link>
                     </li>
                   </ul>
                 </div>
               </div>
             </div>
-            {/* Fase 12 — widget "Legal" reemplaza al placeholder "Marketplace"
-                del template (que tenía links inventados a /terms, /faq, etc.).
-                Apunta a las páginas de cumplimiento + soporte. */}
-            <div className="col-lg-3 col-md-6 col-sm-6">
+
+            {/* Columna 2 — Legal */}
+            <div className="col-lg-4 col-md-6 col-sm-6">
               <div className="footer-widget footer1-widget footer1-widget2 mb-40">
                 <div className="footer-widget-title">
-                  <h4>Legal</h4>
+                  <h4>Legal y ayuda</h4>
                 </div>
                 <ul>
                   <li>
@@ -72,78 +81,39 @@ const Footer = () => {
                     <Link href="/contenido">Política de Contenido</Link>
                   </li>
                   <li>
-                    <Link href="/soporte/tickets">Soporte</Link>
-                  </li>
-                  <li>
                     <Link href="/faq">Preguntas frecuentes</Link>
                   </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-3 col-md-6 col-sm-6">
-              <div className="footer-widget footer1-widget footer1-widget3 mb-40 ">
-                <div className="footer-widget-title">
-                  <h4>Explore Artworks</h4>
-                </div>
-                <ul>
                   <li>
-                    <Link href="/explore-arts">
-                      3D Artworks
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/explore-arts">
-                      Photography
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/explore-arts">
-                      Flat Illustration
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/explore-arts">
-                      Painting
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/explore-arts">
-                      Intro Videos
-                    </Link>
+                    <Link href="/soporte/tickets">Soporte</Link>
                   </li>
                 </ul>
               </div>
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-6">
-              <div className="footer-widget footer1-widget footer1-widget4 mb-40 ">
+
+            {/* Columna 3 — Explorar */}
+            <div className="col-lg-4 col-md-6 col-sm-6">
+              <div className="footer-widget footer1-widget footer1-widget3 mb-40">
                 <div className="footer-widget-title">
-                  <h4>Insight Community</h4>
+                  <h4>Explorar</h4>
                 </div>
                 <ul>
                   <li>
-                    <Link href="/forum">
-                      Global Partners
-                    </Link>
+                    <Link href="/publications">Propiedades</Link>
                   </li>
                   <li>
-                    <Link href="/forum">
-                      Forum
-                    </Link>
+                    {/* Fase 22 — "Directorio" en vez de "Vendedores" para
+                        distinguirlo de "Ranking" (ambos listan vendedores
+                        con criterios distintos). Ver menu-data.ts. */}
+                    <Link href="/creators">Directorio de vendedores</Link>
                   </li>
                   <li>
-                    <Link href="/explore-arts">
-                      Virtual World
-                    </Link>
+                    <Link href="/art-ranking">Ranking</Link>
                   </li>
                   <li>
-                    <Link href="/forum">
-                      Community
-                    </Link>
+                    <Link href="/pricing-plan">Planes</Link>
                   </li>
                   <li>
-                    <Link href="/explore-arts">
-                      Brand Assets
-                    </Link>
+                    <Link href="/contact">Contacto</Link>
                   </li>
                 </ul>
               </div>
@@ -155,30 +125,11 @@ const Footer = () => {
         <div className="container">
           <div className="copyright1-inner">
             <div className="row align-items-center">
-              <div className="col-lg-3 col-md-6">
+              <div className="col-lg-12 text-center">
                 <div className="copyright-text copyright1-text">
-                  © Copyrighted & Designed by{" "}
-                  <Link href="https://themeforest.net/user/bdevs">BDevs</Link>
+                  © {new Date().getFullYear()} KIOSQUI. Todos los derechos
+                  reservados.
                 </div>
-              </div>
-              <div className="col-lg-4 col-md-6">
-                <div className="irc-item copyright-support copyright1-support copyright-support-lines">
-                  <div className="irc-item-icon">
-                    <i className="flaticon-support"></i>
-                  </div>
-                  <div className="irc-item-content">
-                    <p>Have a question? Call us 24/7</p>
-                    <Link href="tel:(987)547587587">(987) 547587587</Link>
-                  </div>
-                </div>
-              </div>
-              <div className="col-lg-5 col-md-12">
-                <form className="subscribe-form subscribe-form-copyright1">
-                  <input type="text" placeholder="Enter email" />
-                  <button type="submit">
-                    Subscribe<i className="fas fa-paper-plane"></i>
-                  </button>
-                </form>
               </div>
             </div>
           </div>

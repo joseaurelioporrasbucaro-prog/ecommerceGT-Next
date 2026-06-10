@@ -4,6 +4,9 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import AppProvider from '@/contextApi/AppProvider';
 import CookieConsentBanner from '@/components/legal/CookieConsentBanner';
+// Fase 22 — FAB "Crear publicación" siempre visible para usuarios logueados.
+// El propio componente decide cuándo ocultarse (auth pages, viewer 3D, /upload).
+import CreatePublicationFAB from '@/components/common/CreatePublicationFAB';
 import { AuthProvider } from '@/utils/AuthContext';
 import QueryProvider from '@/utils/QueryProvider';
 import { isAppLocale, locales } from '@/i18n/routing';
@@ -109,7 +112,12 @@ export default async function LocaleLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppProvider>
             <QueryProvider>
-              <AuthProvider>{children}</AuthProvider>
+              <AuthProvider>
+              {children}
+              {/* FAB se monta DENTRO de AuthProvider para poder consumir
+                  useAuth y mostrarse solo a usuarios logueados. */}
+              <CreatePublicationFAB />
+            </AuthProvider>
             </QueryProvider>
           </AppProvider>
           <ToastContainer

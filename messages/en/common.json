@@ -4,16 +4,22 @@
     "services": "Services",
     "servicesRealState": "Real estate",
     "servicesProducts": "Products",
-    "publications": "Publications",
-    "myPublications": "My publications",
-    "myFavorites": "My favorites"
+    "publications": "Listings",
+    "myPublications": "My listings",
+    "myFavorites": "My favorites",
+    "sellers": "Directory",
+    "ranking": "Ranking",
+    "ads": "Ads",
+    "plans": "Plans",
+    "contact": "Contact"
   },
   "actions": {
     "next": "Next",
     "back": "Back",
     "goBack": "Go back",
     "backToHomePage": "Back to homepage",
-    "goHomePage": "Go homepage"
+    "goHomePage": "Go homepage",
+    "createPublication": "Create listing"
   },
   "search": {
     "products": "Search product"

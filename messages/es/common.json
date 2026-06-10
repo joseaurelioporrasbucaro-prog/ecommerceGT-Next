@@ -6,14 +6,20 @@
     "servicesProducts": "Productos",
     "publications": "Publicaciones",
     "myPublications": "Mis publicaciones",
-    "myFavorites": "Mis favoritas"
+    "myFavorites": "Mis favoritas",
+    "sellers": "Directorio",
+    "ranking": "Ranking",
+    "ads": "Pauta",
+    "plans": "Planes",
+    "contact": "Contacto"
   },
   "actions": {
     "next": "Siguiente",
     "back": "Anterior",
     "goBack": "Regresar",
     "backToHomePage": "Volver a la página de inicio",
-    "goHomePage": "Ir a la página de inicio"
+    "goHomePage": "Ir a la página de inicio",
+    "createPublication": "Crear publicación"
   },
   "search": {
     "products": "Buscar producto"
