@@ -28,6 +28,10 @@ export default function KiosquiLogo({ height = 32, variant = 'auto', className }
       className={className}
       style={{ height, width: 'auto' }}
       priority
+      // El optimizador de Next 13.4 falla con estos PNG exportados por diseño
+      // ("Unable to optimize image…", HTTP 400) — se sirven crudos; son
+      // wordmarks chicos, no hay ganancia real de optimización.
+      unoptimized
     />
   );
 }
