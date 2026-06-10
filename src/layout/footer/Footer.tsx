@@ -28,9 +28,13 @@ const Footer = () => {
     <footer className="kiosqui-footer footer1-bg">
       <section className="footer-area footer-area1 footer-area1-bg pt-60 pb-20">
         <div className="container">
-          <div className="row">
+          {/* Fase 24 (Aurelio eligió "juntar y centrar columnas"):
+              justify-content-center + columnas más angostas (4+3+3 = 10/12)
+              cluster las 3 columnas en el centro y elimina el gran hueco
+              horizontal que dejaba el layout 5+3+4 a ancho completo. */}
+          <div className="row justify-content-center">
             {/* Columna 1 — Marca */}
-            <div className="col-lg-5 col-md-6 col-sm-12">
+            <div className="col-lg-4 col-md-6 col-sm-12">
               <div className="footer-widget footer1-widget footer1-widget1 mb-30">
                 <div className="footer-logo mb-20">
                   <Link className="logo-bb" href="/">
@@ -73,7 +77,7 @@ const Footer = () => {
             </div>
 
             {/* Columna 2 — Legal */}
-            <div className="col-lg-3 col-md-6 col-sm-6">
+            <div className="col-lg-3 col-md-3 col-sm-6">
               <div className="footer-widget footer1-widget footer1-widget2 mb-30">
                 <div className="footer-widget-title">
                   <h4>Legal y ayuda</h4>
@@ -89,7 +93,7 @@ const Footer = () => {
             </div>
 
             {/* Columna 3 — Explorar */}
-            <div className="col-lg-4 col-md-6 col-sm-6">
+            <div className="col-lg-3 col-md-3 col-sm-6">
               <div className="footer-widget footer1-widget footer1-widget3 mb-30">
                 <div className="footer-widget-title">
                   <h4>Explorar</h4>
@@ -126,17 +130,32 @@ const Footer = () => {
       </div>
 
       <style jsx>{`
-        /* Fase 24 fix (2026-06-09): el approach previo con ::after { height:
-           100vh } extendía el bg pero también el área scrolleable → la
-           página tenía 100vh extra de scroll vacío. Lo quitamos. Si reaparece
-           el "escalón de color" debajo del footer, la solución correcta es
-           pintar el body con el mismo color del footer en globals.css en
-           lugar de hackear el footer mismo. */
-        /* Fase 24 polish (Aurelio reportó: "esta línea azul me disgusta"):
-           el border-top en rgba(255,255,255,0.06) rendereaba con una
-           tonalidad azulada por la mezcla con el navy del footer.
-           Sustituido por margen superior puro — la separación visual entre
-           las columnas y el copyright sigue siendo clara por el padding. */
+        /* Fase 24 (Aurelio eligió "cambiar el color del footer"):
+           El problema raíz era que en DARK el footer y el sidebar derecho
+           usaban EXACTAMENTE el mismo navy (#181f2d) → se entrelazaban, no
+           se veía dónde terminaba uno y empezaba el otro. En LIGHT pasaba
+           parecido (footer #f9f9f9 ≈ sidebar blanco).
+
+           Solución: redefinimos --clr-bg-footer SOLO dentro de .kiosqui-footer
+           con un tono que contrasta con el sidebar en cada tema. Como el
+           token se redefine en el scope del <footer>, tanto .footer1-bg como
+           .footer-area1-bg (que leen var(--clr-bg-footer)) toman el nuevo
+           valor sin necesidad de !important. No tocamos el SCSS del template
+           → 100% revertible borrando este bloque. */
+        :global(.kiosqui-footer) {
+          /* Light: sidebar es blanco. Footer un gris azulado claro
+             claramente distinguible. */
+          --clr-bg-footer: #e9edf3;
+        }
+        :global([data-theme='dark']) .kiosqui-footer {
+          /* Dark: sidebar es #181f2d. Footer MÁS oscuro (#111826, ya es el
+             token --clr-bg-dark de la paleta) → se lee como banda profunda
+             al fondo, separada del sidebar. */
+          --clr-bg-footer: #111826;
+        }
+
+        /* Fase 24 polish (Aurelio: "esta línea azul me disgusta"): el
+           border-top se sustituyó por margen superior puro. */
         .kiosqui-footer-copyright {
           padding: 18px 0;
           margin-top: 8px;
