@@ -11,6 +11,8 @@ import {
 import { getBackendUrl } from '@/utils/backendUrl';
 import { getImageVariant } from '@/utils/imageVariants';
 import { formatPrice } from './publicationUtils';
+// Fase 22 — URL canónica = slug.
+import { publicationPath } from '@/utils/publicationUrl';
 import Link from 'next/link';
 
 /**
@@ -126,7 +128,7 @@ const PropertiesMap: React.FC<Props> = ({ publications }) => {
                   <div className="pm-popup-loc">
                     <i className="fas fa-map-marker-alt" /> {first.town || first.city}
                   </div>
-                  <Link href={`/publications/${first.id}`} className="pm-popup-cta">
+                  <Link href={publicationPath(first)} className="pm-popup-cta">
                     {t('card.viewProperty')}
                   </Link>
                   {count > 1 && (

@@ -1,188 +1,57 @@
 import { MobileMenuItemType } from "@/interFace/interFace";
 
-export const MenuData = [
-  {
-    id: 1,
-    hasDropdown: true,
-    active: true,
-    title: "Home",
-    link: "/",
-    submenus: [
-      { title: "Home Style 1", link: "/" },
-      { title: "Home Style 2", link: "/home-two" },
-      { title: "Home Style 3", link: "/home-three" },
-    ],
-  },
+// ============================================================================
+// Fase 22 — Menús de navegación (Aurelio 2026-06-05).
+//
+// KIOSQUI tiene 3 puntos de entrada al menú principal:
+//
+//   - `desktopMenu`  → HeaderOneMenu (≥1200px, navbar superior en /messages).
+//   - `mobileMenu`   → MobileMenu (hamburguesa derecha de HeaderOne) y
+//                      SidebarMenuSection (sidebar derecho de HeaderTwo en
+//                      el resto de la app).
+//
+// Antes los 3 leían `MenuData` / `menuItems` con basura del template (Home
+// Style 1/2/3, Creator Profile, Wallet Connect, Activity, Forum, Pages con
+// FAQ/Login/Terms/404 sueltos, etc.). Se eliminaron los exports legacy
+// `menuItems` y `MenuData` (este último queda como alias retrocompatible
+// por si quedaron imports sueltos).
+//
+// Los 7 items son consistentes entre desktop y mobile, así que tienen el
+// mismo set:  Inicio · Propiedades · Vendedores · Ranking · Pauta · Planes
+// · Contacto.
+// ============================================================================
 
-  {
-    id: 2,
-    hasDropdown: false,
-    title: "Propiedades",
-    link: "/publications",
-    pluseInco: false,
-  },
-  {
-    id: 3,
-    hasDropdown: false,
-    title: "Creators",
-    link: "/creators",
-  },
-
-  {
-    id: 4,
-    title: "Pages",
-    hasDropdown: true,
-    megaMenu: true,
-    link: "",
-    pages: true,
-    mega_menus: [
-      {
-        id: 5,
-        title: "Creator",
-        link: "/creator-profile",
-        hasDropdown: true,
-        submenus: [
-          { id: 6, title: "Creator Profile", link: "/creator-profile" },
-          {
-            id: 7,
-            title: "Creator Personal Info",
-            link: "/creator-profile-info-personal",
-          },
-        ],
-      },
-      {
-        id: 8,
-        title: "Publicaciones",
-        link: "/publications",
-        hasDropdown: true,
-        submenus: [
-          { id: 9, title: "Catálogo público", link: "/publications" },
-          { id: 11, title: "Crear publicación", link: "/upload" },
-          { id: 12, title: "Mis publicaciones", link: "/my-publications" },
-        ],
-      },
-      {
-        id: 12,
-        hasDropdown: false,
-        title: "FAQ",
-        link: "/faq",
-      },
-      {
-        id: 13,
-        hasDropdown: false,
-        title: "Register",
-        link: "/register",
-      },
-      {
-        id: 14,
-        hasDropdown: false,
-        title: "Login",
-        link: "/login",
-      },
-      {
-        id: 15,
-        hasDropdown: false,
-        title: "Terms",
-        link: "/terms",
-      },
-      {
-        id: 16,
-        hasDropdown: false,
-        title: "Wallet Connect",
-        link: "/wallet-connect",
-      },
-      {
-        id: 17,
-        hasDropdown: false,
-        title: "Activity",
-        link: "/activity",
-      },
-      {
-        id: 18,
-        hasDropdown: false,
-        title: "Ranking",
-        link: "/art-ranking",
-      },
-      {
-        id: 19,
-        hasDropdown: false,
-        title: "404 page",
-        link: "/error-404",
-      },
-    ],
-  },
-
-  {
-    id: 20,
-    hasDropdown: false,
-    title: "Forum",
-    link: "/forum",
-  },
-
-  {
-    id: 21,
-    hasDropdown: false,
-    title: "Contact",
-    link: "/contact",
-  },
+// Forma usada por HeaderOneMenu (campo `title`/`link`).
+//
+// Notas (Aurelio):
+//   - Fase 22: "Pauta" salió del menú porque solo sirve para logueados
+//     (acceso desde /pricing-plan, /my-publications y el FAB).
+//   - Fase 24: "Directorio" (id=3) y "Ranking" (id=4) se unificaron en un
+//     solo ítem "Ranking" → /ranking con tabs internas. Las URLs viejas
+//     (/creators y /art-ranking) hacen redirect al nuevo path conservando
+//     SEO de los links indexados. Ver src/components/ranking/.
+export const desktopMenu = [
+  { id: 1, hasDropdown: false, active: true, title: "Inicio", link: "/" },
+  { id: 2, hasDropdown: false, title: "Propiedades", link: "/publications" },
+  { id: 4, hasDropdown: false, title: "Ranking", link: "/ranking" },
+  { id: 6, hasDropdown: false, title: "Planes", link: "/pricing-plan" },
+  { id: 7, hasDropdown: false, title: "Contacto", link: "/contact" },
 ];
 
-// mobile menu
-
-export const menuItems: MobileMenuItemType[] = [
-  {
-    id: 1,
-    label: "Home",
-    subMenu: true,
-    href: "",
-    subMenuItems: [
-      { label: "Home Style 1", href: "/" },
-      { label: "Home Style 2", href: "/home-two" },
-      { label: "Home Style 3", href: "/home-three" },
-    ],
-  },
+// Forma usada por MobileMenu y SidebarMenuSection (campo `label`/`href`).
+// Los `id` matchean entre las dos listas para que las claves de traducción
+// (TRANSLATION_KEY_BY_ID en cada consumidor) sirvan en ambas.
+//
+// IMPORTANTE: se conservan los huecos de ids 3 (sellers/Directorio) y 5 (ads
+// /Pauta) para que las claves de traducción puedan reactivarse pegando la
+// línea correspondiente — sin renumerar todo.
+export const mobileMenu: MobileMenuItemType[] = [
+  { id: 1, label: "Inicio", subMenu: false, href: "/" },
   { id: 2, label: "Propiedades", subMenu: false, href: "/publications" },
-  {
-    id: 3,
-    href: "",
-    label: "Creator",
-    subMenu: true,
-    subMenuItems: [
-      { label: "Creators", href: "/creators" },
-      { label: "Creator Profile", href: "/creator-profile" },
-      {
-        label: "Creator Personal Info",
-        href: "/creator-profile-info-personal",
-      },
-    ],
-  },
-  {
-    id: 4,
-    href: "",
-    label: "Publicaciones",
-    subMenu: true,
-    subMenuItems: [
-      { label: "Catálogo público", href: "/publications" },
-      { label: "Crear publicación", href: "/upload" },
-      { label: "Mis publicaciones", href: "/my-publications" },
-    ],
-  },
-  {
-    id: 5,
-    href: "",
-    subMenu: true,
-    label: "Pages",
-    subMenuItems: [
-      { label: "FAQ", href: "/faq" },
-      { label: "Register", href: "/register" },
-      { label: "Login", href: "/login" },
-      { label: "Terms", href: "/terms" },
-      { label: "Wallet Connect", href: "/wallet-connect" },
-      { label: "Activity", href: "/activity" },
-      { label: "Ranking", href: "/art-ranking" },
-      { label: "404 page", href: "/error-404" },
-    ],
-  },
-  { id: 6, label: "Forum", href: "/forum", subMenu: false },
-  { id: 7, label: "Contact", href: "/contact", subMenu: false },
+  { id: 4, label: "Ranking", subMenu: false, href: "/ranking" },
+  { id: 6, label: "Planes", subMenu: false, href: "/pricing-plan" },
+  { id: 7, label: "Contacto", subMenu: false, href: "/contact" },
 ];
+
+// Alias retrocompatible — cualquier import legacy de `MenuData` sigue funcionando.
+export const MenuData = desktopMenu;

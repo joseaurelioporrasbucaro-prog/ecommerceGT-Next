@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import logoOne from "../../../public/assets/img/logo/oction-logo.png";
 import logoTwo from "../../../public/assets/img/logo/oction-logo-bw.png";
@@ -9,7 +9,14 @@ import profile8 from "../../../public/assets/img/profile/profile8.jpg";
 import profile9 from "../../../public/assets/img/profile/profile9.jpg";
 import listIconTwo from "../../../public/assets/img/shape/list-icon-2.png";
 import Image from "next/image";
-import { menuItems } from "@/data/menu-data";
+// Fase 22 — Menú limpio (Aurelio 2026-06-05).
+// Antes leía `menuItems` con la basura del template (Home Style 1/2/3, Creator
+// Profile, Pages con FAQ/Login/Terms/404, Wallet Connect, Activity, Forum...).
+// Ahora reusa `mobileMenu` (lista plana de 7 items KIOSQUI: Inicio, Propiedades,
+// Vendedores, Ranking, Pauta, Planes, Contacto). El render se simplifica porque
+// la nueva lista NO tiene submenús, así que se elimina toda la lógica de
+// acordeón (activeMenu / menuId / openMobileMenu / sub-menu).
+import { mobileMenu } from "@/data/menu-data";
 import { useTranslations } from "next-intl";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
 import type { TopSellerRow } from "@/types/api";
@@ -30,6 +37,18 @@ const SUPPORT_LINKS = [
   { href: "/soporte/tickets", label: "Mis tickets", icon: "flaticon-account" },
 ];
 
+// Mapa id → clave de traducción del namespace `common.nav`.
+// Si la clave no existe, cae al `label` literal del menu-data.
+const TRANSLATION_KEY_BY_ID: Record<number, string> = {
+  1: "home",
+  2: "publications",
+  3: "sellers",
+  4: "ranking",
+  5: "ads",
+  6: "plans",
+  7: "contact",
+};
+
 interface propsType {
   menuOpen1: boolean;
   setMenuOpen1: React.Dispatch<React.SetStateAction<boolean>>;
@@ -37,9 +56,7 @@ interface propsType {
 
 const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
   const tNav = useTranslations("common.nav");
-  const [activeMenu, setActiveMenu] = useState(false);
-  const [sideMenuOpen2, setSideMenuOpen2] = useState(false);
-  const [menuId, setmenuId] = useState(0);
+  const tActions = useTranslations("common.actions");
   // Fase 9 — ranking real de vendedores (reemplaza la lista demo hardcodeada).
   const { data: topSellers } = useTopSellers(10);
   // Fase 8.5 — en rutas de soporte, el widget muestra el menú de soporte.
@@ -48,18 +65,8 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
   const inSupport = pathname?.startsWith('/soporte') ?? false;
   const isSupportUser = user?.role === 'support' || user?.role === 'admin';
   const showSupportNav = inSupport && isSupportUser;
-  const translatedMenuLabels: Record<number, string> = {
-    1: tNav("home"),
-    2: tNav("publications"),
-    4: tNav("publications"),
-  };
 
-
-
-  const openMobileMenu = (menuLabel: number) => {
-    setmenuId(menuLabel);
-    setActiveMenu(!activeMenu)
-  };
+  const closeSidebar = () => setMenuOpen1(false);
 
   return (
     <div>
@@ -76,54 +83,36 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                   <div className="col-9">
                     <div className="header-logo header1-logo">
                       <Link className="logo-bb" href="/">
-                        <Image src={logoOne} alt="logo-img" />
+                        <Image src={logoOne} alt="KIOSQUI" />
                       </Link>
                       <Link className="logo-bw" href="/">
-                        <Image src={logoTwo} alt="logo-img" />
+                        <Image src={logoTwo} alt="KIOSQUI" />
                       </Link>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="mm-menu mb-60">
-              <ul>
-                { menuItems.map((menuItem, index) => (
-                  <li
-                    key={index}
-                    className={menuId === menuItem.id && menuItem.subMenu === true && activeMenu  ? "has-droupdown active" : menuItem.subMenu === false ? "" : "has-droupdown" }>
-                    <Link
-                      href={menuItem.subMenu ? "" : menuItem.href }
-                      onClick={() => {
-                        if (menuItem.subMenu) {
-                          openMobileMenu(menuItem.id);
-                        }else{
-                          setSideMenuOpen2(!sideMenuOpen2)
-                        }
-                      }}                      
-                      >
-                      {translatedMenuLabels[menuItem.id] ?? menuItem.label}
-                    </Link>
-                    <ul
-                      className={
-                        menuId === menuItem.id
-                          ? "sub-menu active"
-                          : "sub-menu"
+                <ul>
+                  {mobileMenu.map((menuItem) => {
+                    const tKey = TRANSLATION_KEY_BY_ID[menuItem.id];
+                    let label = menuItem.label;
+                    if (tKey) {
+                      try {
+                        label = tNav(tKey);
+                      } catch {
+                        // Fallback al label literal si la clave no existe en este locale.
                       }
-                    >
-                      {menuItem.subMenuItems?.length &&
-                        menuItem.subMenuItems.map((subMenuItem, subIndex) => (
-                          <li key={subIndex}>
-                            <Link onClick={()=>setSideMenuOpen2(!sideMenuOpen2)} href={subMenuItem.href}>
-                              {subMenuItem.label}
-                            </Link>
-                          </li>
-                        ))}
-                    </ul>
-                  </li>
-                ))}
-
-                   
-              </ul>
+                    }
+                    return (
+                      <li key={menuItem.id}>
+                        <Link href={menuItem.href} onClick={closeSidebar}>
+                          {label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
               {showSupportNav && (
                 <div className="menu2-sidebar-widget">
@@ -201,6 +190,18 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                 </div>
               </div>
               )}
+              {/* CTA "Crear publicación" — Fase 22 + Fase 24 fix (2026-06-09).
+                  Reemplaza el placeholder del template "Create and sell your
+                  NFTs". El CTA cambia según auth:
+                    - logueado → "Crear publicación" → /upload
+                    - no logueado → "Iniciá sesión para publicar" → /login
+                      preservando el destino con ?from=/upload.
+
+                  Aurelio reportó (2026-06-10): el wrapper con bg + border
+                  generaba un "doble recuadro" porque el template ya pintaba
+                  .work-process-single con su propio estilo. Quitado el
+                  wrapper extra; la separación del footer la damos con un
+                  margin-top amplio puro. */}
               <div className="menu2-sidebar-widget mt-35">
                 <div className="work-process-single pos-rel">
                   <div className="work-process-content">
@@ -210,16 +211,28 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                         height={100}
                         style={{ width: "auto", height: "100%" }}
                         src={listIconTwo}
-                        alt="img"
+                        alt=""
                       />
                     </div>
                     <h4 className="process-title">
-                      <Link href="#">Create and sell your NFTs</Link>
+                      {user
+                        ? <Link href="/upload">Publicá tu propiedad en minutos</Link>
+                        : <Link href="/login?from=/upload">Sumate y publicá tu propiedad</Link>}
                     </h4>
                     <div className="work-process-btn">
-                      <Link className="fill-btn" href="/upload">
-                        Create Now
-                      </Link>
+                      {user ? (
+                        <Link className="fill-btn" href="/upload" onClick={closeSidebar}>
+                          {tActions("createPublication")}
+                        </Link>
+                      ) : (
+                        <Link
+                          className="fill-btn"
+                          href="/login?from=/upload"
+                          onClick={closeSidebar}
+                        >
+                          Iniciar sesión
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -228,8 +241,7 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
           </div>
         </div>
       </div>
-      <div className="offcanvas-overlay"onClick={() => {setMenuOpen1(!menuOpen1)}}
-      ></div>
+      <div className="offcanvas-overlay" onClick={closeSidebar}></div>
       <div className="offcanvas-overlay-white"></div>
     </div>
   );

@@ -99,6 +99,20 @@ const RankingMain = () => {
       </div>
 
       <style jsx>{`
+        /* Fase 22 fix (Aurelio 2026-06-05) — el SCSS del template inyecta
+           un counter CSS (counter-increment + ::before con
+           decimal-leading-zero) que se ve CONCATENADO con el {position}
+           que renderea el componente: "01" + "1" = "011", "02" + "2"
+           = "022", etc. Neutralizamos el ::before del template y
+           controlamos el número desde JS para que la posición sea
+           consistente con filtros/paginación futura. */
+        :global(.seller-ranking-row .rank-list-cell-sl span::before) {
+          content: none !important;
+        }
+        :global(.seller-ranking-row .rank-list-cell-sl span) {
+          font-weight: 700;
+          font-size: 18px;
+        }
         .seller-ranking-intro {
           max-width: 680px;
           margin: 10px 0 0;

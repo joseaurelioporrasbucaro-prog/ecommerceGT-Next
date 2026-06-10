@@ -13,6 +13,8 @@ import PublicationContent from './PublicationContent';
 import PublicationGallery from './PublicationGallery';
 import ReportPublicationButton from './ReportPublicationButton';
 import { getPublicationImagePath, getPublicationImagePathGlb } from './publicationUtils';
+// Fase 22 — URL canónica = slug. El viewer es público así que también va con slug.
+import { publicationIdentifier } from '@/utils/publicationUrl';
 import type { PublicationImage, PublicationImageGlb } from '@/types/api';
 
 interface PublicationDetailsMainProps {
@@ -48,48 +50,43 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
   }, [publication]);
   const hasGlb = galleryImagesGlb.length > 0;
 
+  // Fase 24 (2026-06-10): si no está cargando, no hay error explícito y no
+  // hay datos, igual mostramos un error controlado en vez de dejar la página
+  // vacía (que hacía que el footer flotara hasta arriba). Cubre el edge case
+  // de query deshabilitada / data nula.
+  const showControlledError =
+    !publicationQuery.isLoading && (publicationQuery.error || !publication);
+
   return (
     <>
       <ThemeChanger />
 
-      {/* Breadcrumb */}
-      <section className="page-title-area">
-        <div className="container">
-          <div className="row wow fadeInUp">
-            <div className="col-lg-12">
-              <div className="page-title">
-                <h2 className="breadcrumb-title mb-10">
-                  {publication?.pub_title ?? t('detail.breadcrumbTitle')}
-                </h2>
-                <div className="breadcrumb-menu">
-                  <nav className="breadcrumb-trail breadcrumbs">
-                    <ul className="trail-items">
-                      <li className="trail-item trail-begin"><Link href="/">{t('detail.home')}</Link></li>
-                      <li className="trail-item"><Link href="/publications">{t('listing.breadcrumbTitle')}</Link></li>
-                      <li className="trail-item trail-end">
-                        <span>{publication?.pub_title ?? t('detail.breadcrumbFallback')}</span>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Fase 24: el breadcrumb inline del template se removió para alinear
+          con la decisión global de no usar breadcrumbs (ocupaban mucho alto).
+          El título de la publicación ya lo muestra PublicationContent. */}
 
       {publicationQuery.isLoading && (
-        <section className="art-details-area pt-130 pb-90">
+        <section className="art-details-area pt-130 pb-90 kiosqui-detail-state">
           <div className="container">
             <div className="alert alert-info">{t('detail.loadingPublication')}</div>
           </div>
         </section>
       )}
 
-      {publicationQuery.error && (
-        <section className="art-details-area pt-130 pb-90">
+      {showControlledError && (
+        <section className="art-details-area pt-130 pb-90 kiosqui-detail-state">
           <div className="container">
-            <div className="alert alert-danger">{getErrorMessage(publicationQuery.error, t('common.unexpectedError'))}</div>
+            <div className="kiosqui-detail-error">
+              <i className="fas fa-exclamation-triangle" aria-hidden="true" />
+              <h3>{getErrorMessage(publicationQuery.error, t('common.unexpectedError'))}</h3>
+              <p>
+                La publicación que buscás puede haberse retirado o no existir.
+              </p>
+              <Link href="/publications" className="kiosqui-detail-error-btn">
+                <i className="fas fa-arrow-left" aria-hidden="true" />
+                {t('listing.breadcrumbTitle')}
+              </Link>
+            </div>
           </div>
         </section>
       )}
@@ -103,7 +100,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
               {hasGlb && (
                 <>
                   <div className="action-row">
-                    <Link href={`/publications/${publication.pub_id}/viewer`} className="action-btn action-btn-primary">
+                    <Link href={`/publications/${publicationIdentifier(publication)}/viewer`} className="action-btn action-btn-primary">
                       <i className="fas fa-cube"></i>
                       <span>{t('detail.explore3d')}</span>
                     </Link>
@@ -129,6 +126,45 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
         </>
       )}
       <style jsx>{`
+        /* ──────────────── Estados controlados (Fase 24) ────────────────
+           min-height para que el footer NO flote hasta arriba cuando solo
+           hay loading o el mensaje de error. Estos estilos van en el ÚNICO
+           <style jsx> del componente: styled-jsx (SWC) panickea si hay un
+           segundo bloque dentro de un condicional. */
+        :global(.kiosqui-detail-state) {
+          min-height: 60vh;
+        }
+        .kiosqui-detail-error {
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          text-align: center;
+          padding: 40px 20px;
+        }
+        .kiosqui-detail-error i {
+          color: var(--clr-theme-1, #2785ff);
+          font-size: 42px;
+        }
+        .kiosqui-detail-error h3 {
+          margin: 8px 0 0;
+        }
+        .kiosqui-detail-error p {
+          margin: 0;
+          opacity: 0.7;
+        }
+        .kiosqui-detail-error :global(.kiosqui-detail-error-btn) {
+          align-items: center;
+          background: var(--clr-theme-1, #2785ff);
+          border-radius: 10px;
+          color: #fff;
+          display: inline-flex;
+          gap: 8px;
+          margin-top: 10px;
+          padding: 11px 22px;
+          font-weight: 600;
+        }
+
         /* ──────────────── Acciones — los 3 botones alineados ────────────────
            Usamos :global() porque styled-jsx no scope clases en <Link> de Next.
            Sin :global el botón "Ver vendedor" pierde estilos y queda como texto plano. */

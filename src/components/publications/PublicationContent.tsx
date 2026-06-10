@@ -12,6 +12,8 @@ import type { PublicationDetail, Country, City, Municipality } from '@/types/api
 import { getBackendUrl } from '@/utils/backendUrl';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
 import { formatNumberValue, formatPrice, getPublicationStatusInfo } from './publicationUtils';
+// Fase 22 — slug en `from=` para que el login redirija a la URL canónica.
+import { publicationIdentifier } from '@/utils/publicationUrl';
 
 interface PublicationContentProps {
   publication: PublicationDetail;
@@ -32,7 +34,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
   // a /login con `from` para que tras autenticarse vuelva a esta página.
   const isOwnPublication = user?.id === publication.cus_id;
   const contactHref = !user
-    ? `/login?from=/publications/${publication.pub_id}`
+    ? `/login?from=/publications/${publicationIdentifier(publication)}`
     : `/messages?pub=${publication.pub_id}&with=${publication.cus_id}`;
 
   const seller = sellerQuery.data;

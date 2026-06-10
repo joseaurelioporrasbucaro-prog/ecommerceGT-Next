@@ -9,6 +9,8 @@ import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
 import { getImageVariant } from '@/utils/imageVariants';
 import { CARD_PLACEHOLDER, getPublicationListAllImages } from '@/components/publications/publicationUtils';
+// Fase 22 — URL canónica = slug (anti-enumeración + SEO).
+import { publicationPath } from '@/utils/publicationUrl';
 import type { AnyPublicationListItem, UserSearchResult } from '@/types/api';
 
 interface HeaderSearchProps {
@@ -131,7 +133,7 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
                 return (
                   <Link
                     key={`p-${p.id}`}
-                    href={`/publications/${p.id}`}
+                    href={publicationPath(p)}
                     className="hsd-item"
                     onClick={closeAfterSelect}
                   >

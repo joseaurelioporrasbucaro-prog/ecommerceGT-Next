@@ -470,6 +470,16 @@ export interface PublicationImageGlb {
  */
 export interface PublicationListItem {
   id: number;
+  /**
+   * Fase 22 — Slug SEO + sufijo random (`casa-zona-15-aBxYz9`). El frontend
+   * lo usa para construir URLs canónicas `/publications/<slug>` en lugar del
+   * id numérico (que era enumerable). Puede ser `null`/undefined para filas
+   * legacy pre-Fase 22 que aún no recibieron backfill; en ese caso usar `id`
+   * con fallback (el backend acepta ambos y responde 301 redirect del id al
+   * slug). Marcamos opcional para evitar tener que llenarlo en
+   * normalizadores que no tengan acceso a este dato (ej. favoriteToPublication).
+   */
+  slug?: string | null;
   /** Estado de la publicación (1=Creada, 2=Publicada, 3=Vendida, 4=Anulada). */
   pubstaId: number;
   title: string;
@@ -509,6 +519,12 @@ export type AnyPublicationListItem = PublicationListItem | PublicationListItemAu
  */
 export interface PublicationDetail {
   pub_id: number;
+  /**
+   * Fase 22 — Slug SEO canónico. Devuelto por `GET /publications/<slug>`.
+   * Nulo solo en filas legacy pre-Fase 22; el backend mantendrá retro-compat
+   * sirviendo el detalle aunque el slug no exista todavía.
+   */
+  pub_slug?: string | null;
   cus_id: number;
   pub_title: string;
   pub_description: string;
@@ -553,6 +569,11 @@ export interface PublicationDetail {
  */
 export interface MyPublicationItem {
   pub_id: number;
+  /**
+   * Fase 22 — Slug SEO (`casa-zona-15-aBxYz9`). Para construir URLs
+   * canónicas usar `publicationPath(item)` (helper acepta `pub_slug`).
+   */
+  pub_slug?: string | null;
   cus_id: number;
   pub_title: string;
   pub_description: string;

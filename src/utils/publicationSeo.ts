@@ -17,6 +17,11 @@ import { getImageVariant } from './imageVariants';
 
 export interface PublicationSeoData {
   id: number;
+  /**
+   * Fase 22 — slug SEO canónico. Si está presente, la URL canónica en
+   * metadata + JSON-LD debe usar este valor en lugar del id numérico.
+   */
+  slug: string | null;
   title: string;
   description: string;
   /** URLs ABSOLUTAS, listas para usar en og:image / JSON-LD. */
@@ -39,6 +44,8 @@ export interface PublicationSeoData {
 
 interface BackendPublication {
   pub_id: number;
+  /** Fase 22 — slug SEO canónico devuelto por el backend. */
+  pub_slug?: string | null;
   pub_title?: string;
   pub_description?: string;
   pub_address?: string;
@@ -113,6 +120,7 @@ export async function fetchPublicationForSEO(
 
     return {
       id: pub.pub_id,
+      slug: pub.pub_slug ?? null,
       title: (pub.pub_title || 'Propiedad').trim(),
       description: (pub.pub_description || '').trim(),
       images: imageUrls,
