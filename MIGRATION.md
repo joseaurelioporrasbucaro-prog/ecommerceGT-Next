@@ -148,6 +148,7 @@ El backend está estable y se comparte. La regla:
 | **20** | Automatización de tests backend con Vitest/Supertest + CI | ✅ Completada | 0.5–1 día |
 | **22** | UI cleanup pre-rediseño: menú KIOSQUI (header + hamburguesa + sidebar) · footer simplificado · FAB Crear publicación · URLs canónicas con slug SEO + anti-enumeración · backend redirect 301 de URLs legacy | ✅ Completada | 0.5–1 día |
 | **23** | Captcha Cloudflare Turnstile en `/contact` + reescritura del form en español + backend endpoint con verificación server-side | ✅ Completada | 0.5 día |
+| **24** | Ranking unificado en `/ranking` con tabs internas (Directorio + Mejor calificados) + bloque explicativo "cómo se calcula" en cada tab + redirects desde `/creators` y `/art-ranking` | ✅ Completada | 0.5 día |
 
 **Total estimado:** 23–31 días de trabajo enfocado.
 
@@ -2927,6 +2928,64 @@ componentes + página admin).
 **Importante:** mover SOLO las imágenes user-facing donde tiene sentido
 cambiar sin redeploy. Iconos SVG decorativos NO entran al portal — saturan
 el UI sin valor.
+
+---
+
+### Fase 24 ✅ — Ranking unificado con tabs internas
+
+**Por qué:** la app tenía dos páginas (`/creators` y `/art-ranking`) que
+parecían lo mismo desde afuera — ambas listaban vendedores. Pero internamente
+usaban endpoints distintos con algoritmos distintos:
+
+- `/creators` → `GET /top-sellers` con score compuesto
+  (`seguidores×2 + reseñas×5 + rating×10 + vistas×0.05`).
+  Cualquier vendedor con ≥1 publicación activa entra al ranking.
+- `/art-ranking` → `GET /sellers/ranking` con `AVG(rating_stars)` estricto.
+  Requiere ≥1 reseña completada para aparecer.
+
+El usuario terminaba viendo dos entradas en el menú principal sin entender
+la diferencia. Solución: una sola pantalla con tabs.
+
+**Cambios:**
+
+- **`src/app/[locale]/ranking/page.tsx`** (nuevo): página única canónica.
+  Envuelve `RankingUnifiedMain` con `<Suspense>` (requerido por Next 13.4
+  porque el componente usa `useSearchParams`).
+- **`src/components/ranking/RankingUnifiedMain.tsx`** (nuevo): controla el
+  estado de la tab activa, sincroniza con el query param `?tab=` y emite
+  `router.replace` (no `push`) para que el back del navegador NO vaya entre
+  tabs sino a la página anterior.
+- **`src/components/ranking/RankingExplainerBox.tsx`** (nuevo): bloque
+  reusable con icono + título + descripción + fórmula. Aparece arriba de
+  cada tab explicando cómo se calcula ese ranking.
+- **`src/components/ranking/RankingDirectoryPanel.tsx`** (nuevo): tab
+  Directorio. Reusa `CreatorSingle` (cards visuales con cover + avatar).
+- **`src/components/ranking/RankingRatedPanel.tsx`** (nuevo): tab Mejor
+  calificados. Reusa `RankingTableTitle` + `SingleArtRanking` (tabla con
+  columnas). Re-aplica el override CSS del Fase 22 que neutraliza el
+  counter `decimal-leading-zero` del template (bug "011/022").
+- **`src/app/[locale]/creators/page.tsx`** y **`art-ranking/page.tsx`**:
+  ahora solo hacen `redirect(/<locale>/ranking?tab=...)`. Esto preserva
+  el SEO de los links ya indexados por Google.
+- **`src/data/menu-data.ts`**: dos entradas (Directorio + Ranking) → una
+  sola entrada "Ranking" → `/ranking`. Los `id` huecos se conservan
+  documentados para reactivar la entrada si en el futuro se quiere
+  volver al patrón anterior sin renumerar todo.
+- **`src/layout/footer/Footer.tsx`**: ahora los links del footer usan los
+  query params correctos: `/ranking?tab=directorio` y `/ranking?tab=calificados`.
+
+**URLs canónicas:**
+- `/<locale>/ranking?tab=directorio` (default si no hay `?tab`)
+- `/<locale>/ranking?tab=calificados`
+
+**Redirects (legacy):**
+- `/<locale>/creators` → `/<locale>/ranking?tab=directorio`
+- `/<locale>/art-ranking` → `/<locale>/ranking?tab=calificados`
+
+**Out of scope:**
+- Tests automatizados de la UI del ranking (queda para Fase 21 / Playwright).
+- Sitemap dinámico no se modifica — las URLs viejas siguen siendo válidas
+  (redirect 307/308) y el nuevo `/ranking` es estático.
 
 ---
 

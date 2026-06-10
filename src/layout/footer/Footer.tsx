@@ -101,13 +101,13 @@ const Footer = () => {
                     <Link href="/publications">Propiedades</Link>
                   </li>
                   <li>
-                    {/* Fase 22 — "Directorio" en vez de "Vendedores" para
-                        distinguirlo de "Ranking" (ambos listan vendedores
-                        con criterios distintos). Ver menu-data.ts. */}
-                    <Link href="/creators">Directorio de vendedores</Link>
+                    {/* Fase 24 — Directorio + Ranking unificados en /ranking
+                        con tabs internas (?tab=directorio | ?tab=calificados).
+                        Las URLs viejas hacen redirect. */}
+                    <Link href="/ranking?tab=directorio">Directorio de vendedores</Link>
                   </li>
                   <li>
-                    <Link href="/art-ranking">Ranking</Link>
+                    <Link href="/ranking?tab=calificados">Mejor calificados</Link>
                   </li>
                   <li>
                     <Link href="/pricing-plan">Planes</Link>
