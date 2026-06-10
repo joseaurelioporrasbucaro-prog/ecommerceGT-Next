@@ -146,6 +146,8 @@ El backend está estable y se comparte. La regla:
 | **13.docs** | Documentación técnica completa de la plataforma | ✅ Completada | 1 día |
 | **14** | i18n bilingüe es/en con `next-intl` + sub-paths `/es` `/en` + emails bilingües + SEO bilingüe — plan ejecutable [`docs/phases/phase-14-i18n-next-intl.md`](docs/phases/phase-14-i18n-next-intl.md) | ✅ Completada | 3–4 días |
 | **20** | Automatización de tests backend con Vitest/Supertest + CI | ✅ Completada | 0.5–1 día |
+| **22** | UI cleanup pre-rediseño: menú KIOSQUI (header + hamburguesa + sidebar) · footer simplificado · FAB Crear publicación · URLs canónicas con slug SEO + anti-enumeración · backend redirect 301 de URLs legacy | ✅ Completada | 0.5–1 día |
+| **23** | Captcha Cloudflare Turnstile en `/contact` + reescritura del form en español + backend endpoint con verificación server-side | ✅ Completada | 0.5 día |
 
 **Total estimado:** 23–31 días de trabajo enfocado.
 
@@ -2925,6 +2927,188 @@ componentes + página admin).
 **Importante:** mover SOLO las imágenes user-facing donde tiene sentido
 cambiar sin redeploy. Iconos SVG decorativos NO entran al portal — saturan
 el UI sin valor.
+
+---
+
+### Fase 23 ✅ — Captcha Cloudflare Turnstile en `/contact`
+
+**Por qué:** el form de contacto del template original no enviaba nada
+(`console.log` y nada más) y no tenía protección anti-bot. Al exponerlo al
+público iba a recibir spam casi de inmediato. Elegimos **Cloudflare
+Turnstile** sobre reCAPTCHA porque (a) es gratis sin cuota dura, (b) NO
+trackea al usuario (sin cookies de Google), (c) drop-in con un solo script.
+
+**Cambios principales:**
+
+- **Frontend `src/components/common/TurnstileWidget.tsx`** (nuevo):
+  componente client que carga el script de Cloudflare on-demand y renderea
+  el widget. En dev sin sitekey muestra un placeholder claro en lugar de
+  fallar silencioso.
+- **Frontend `src/form/ContactFormSection.tsx`** (reescrito): el form del
+  template estaba en inglés con copy genérico y no enviaba nada. Ahora está
+  en español, valida con Yup, integra Turnstile, llama a `POST /contact` y
+  bloquea el submit hasta que el captcha esté completo.
+- **Backend `submitContactMessage`** en `config/connPostgresDB.js`: valida
+  Turnstile contra `https://challenges.cloudflare.com/turnstile/v0/siteverify`
+  con `TURNSTILE_SECRET_KEY` antes de aceptar el mensaje. Si la secret no
+  está configurada en producción → 503 (no acepta nada). En dev sin secret
+  → warning + paso libre. Envía email a `SUPPORT_EMAIL || EMAIL_USER` con
+  HTML escapado defensivamente.
+- **Backend `server.js`**: registra `POST /contact` (público, sin
+  `authMiddleware`).
+
+**Variables de entorno nuevas** (que el deploy debe configurar):
+
+| Variable | Dónde | Para qué |
+|---|---|---|
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Frontend (Vercel/Render) | Sitekey pública del widget |
+| `TURNSTILE_SECRET_KEY` | Backend (Render) | Secret server-side para validar |
+| `SUPPORT_EMAIL` (opcional) | Backend | Destinatario del email de contacto. Si no se setea, va al `EMAIL_USER` (sender). |
+
+Para testing local sin Cloudflare existe la sitekey "always pass":
+- Frontend: `NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA`
+- Backend: `TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA`
+
+**Out of scope (futuro):** persistir mensajes en BD (tabla `contact_messages`).
+Hoy solo se envían por email. Si el volumen crece, agregar la tabla antes
+del email para tener trazabilidad.
+
+---
+
+### Fase 22 ✅ — UI cleanup pre-rediseño + URLs canónicas con slug
+
+**Por qué:** dos cosas mezcladas porque ambas son "preparación previa al
+rediseño de UI" (Fase 17 todavía pendiente con Claude Design):
+
+1. **Limpieza de menús, footer y nav** — el template `oction` traía mucho
+   copy de NFT marketplace (Wallet Connect, Activity, Forum, Pages con
+   FAQ/Login/Terms sueltos, Home Style 1/2/3, Creator Profile, etc.).
+2. **URLs canónicas con slug SEO + anti-enumeración** — antes `/publications/123`
+   permitía cambiar el número y leer cualquier publicación. Ahora las URLs
+   son `/publications/casa-zona-15-aBxYz9` (slug + 6 chars random base62).
+
+#### 22.1 — Limpieza de menús, footer y FAB
+
+**Tres listas de menú independientes** en `src/data/menu-data.ts`:
+- `desktopMenu` → `HeaderOneMenu` (navbar superior en `/messages`)
+- `mobileMenu` → `MobileMenu` (hamburguesa derecha de `HeaderOne`) **y**
+  `SidebarMenuSection` (sidebar derecho de `HeaderTwo` en el resto)
+
+Antes los 3 leían el mismo bundle con basura del template. Ahora son **7
+items KIOSQUI**: Inicio · Propiedades · **Directorio** · Ranking · Planes
+· Contacto.
+
+> "Directorio" (id=3, ruta `/creators`) reemplaza al label "Vendedores"
+> porque ya existe "Ranking" (id=4, ruta `/art-ranking`) y ambos llevan a
+> listados de vendedores con criterios distintos:
+> - `/creators` → `getTopSellers` con score compuesto
+>   (`seguidores×2 + reviews×5 + rating×10 + vistas×0.05`).
+> - `/art-ranking` → `getSellerRanking` estricto solo por
+>   `AVG(rating_stars)`, requiere ≥1 reseña completada.
+
+**Quitados del menú principal:** Home Style 1/2, Creator Profile, Creator
+Personal Info, FAQ (queda en footer), Login, Terms (queda en footer),
+Wallet Connect, Activity, 404 page, Forum, submenús de Publicaciones,
+**Pauta** (solo útil para usuarios logueados; se accede desde
+`/pricing-plan`, `/my-publications` o el FAB).
+
+**Footer reescrito** (`src/layout/footer/Footer.tsx`): 3 columnas KIOSQUI
+(Marca con redes sociales reales, Legal + Ayuda, Explorar). Eliminados
+"Explore Artworks" e "Insight Community" del template. Copyright limpiado
+del placeholder "BDevs / (987) 547587587 / Subscribe sin endpoint".
+
+**FAB Crear publicación** (`src/components/common/CreatePublicationFAB.tsx`):
+botón flotante redondo bottom-right que solo aparece si hay sesión. Se
+oculta en `/upload`, `/login`, `/register`, `/forgot`, `/verify`, `/messages`
+y `/publications/<x>/viewer`. Z-index 1040.
+
+**Sidebar `SidebarMenuSection`** (`src/layout/sidebar/SidebarMenuSection.tsx`):
+ahora consume `mobileMenu` (lista plana), eliminada toda la lógica de
+acordeón / submenús. Reemplazado el CTA "Create and sell your NFTs" del
+template por "Publicá tu propiedad en minutos" → `/upload`. **Top Sellers,
+Support Links y todo lo demás del sidebar quedan intactos** (el cambio es
+solo en el bloque del menú interno).
+
+#### 22.2 — URLs canónicas con slug SEO + redirect 301 legacy
+
+**Cambio aplicado al `database.sql` (consolidado, sin `ALTER`):**
+
+`CREATE TABLE publications` (línea 599) ahora incluye:
+```sql
+pub_slug VARCHAR(160) UNIQUE,
+```
++ `CREATE INDEX IF NOT EXISTS idx_publications_pub_slug ON publications(pub_slug);`
+
+Producción nueva queda coherente desde cero.
+
+**Helper backend `utils/slugify.js`** (nuevo):
+- `slugify(text)`: lowercase + NFD (sin tildes) + `ñ → n` + `[^a-z0-9]+ → -`
+  + capeado a 60 chars.
+- `genSlugSuffix()`: 6 chars base62 (62⁶ ≈ 5.7 × 10¹⁰ → colisión despreciable).
+  Usa `crypto.randomBytes`, no `Math.random`.
+- `composeSlug(title)`: `<slug>-<6 chars>`. Si el título queda vacío,
+  fallback a `"publicacion-XXXXXX"`.
+- `looksLikeLegacyId(s)`: helper para detectar param numérico en endpoint.
+
+**Cambios en `config/connPostgresDB.js`:**
+- `getPublicationById`: ahora acepta **slug O id numérico**.
+  - Si el param es slug → lookup por `pub_slug`.
+  - Si el param es ID numérico → lookup por `pub_id` Y responde **301
+    redirect** al URL canónico con slug (para que crawlers de Google
+    indexen el slug y dejen de pegar al ID legacy).
+- `savePublication`: genera slug con `composeSlug(title)` y lo inserta en
+  `pub_slug`. Reintenta hasta 3 veces ante colisión UNIQUE (código `23505`).
+- `getPublications`, `getMyPublications`, `getPublicationEditById`,
+  `getPublicationsByCompanyId` etc.: añadido `p.pub_slug as slug` en el
+  SELECT para que los listados frontend tengan el slug disponible.
+
+**Cambios frontend:**
+- `src/utils/publicationUrl.ts` (nuevo): helper `publicationPath(pub)` que
+  resuelve URL canónica con fallback elegante. Slug > pub_slug > id > pub_id.
+- `src/types/api.ts`: campo opcional `slug` en `PublicationListItem`,
+  `pub_slug` en `PublicationDetail` y `MyPublicationItem`, `slug` en
+  `PublicationSeoData`.
+- **Sweep en componentes públicos**: `PublicationCard`, `HeaderSearch`
+  (búsqueda global), `MyPublicationsMain` (link al detalle, NO al edit),
+  `PublicationDetailsMain` (botón al viewer 3D), `PropertiesMap` (popup del
+  mapa), `PublicationContent` (redirect `?from=` al login), `PublicationJsonLd`
+  (Schema.org canonical url), `app/[locale]/publications/[id]/page.tsx`
+  (`generateMetadata` con `alternates.canonical` usando slug).
+- **Conservados con `pub_id`**: hooks de mutación (`useUpdatePublication`,
+  `useDeletePublication`, `useRegisterView`) porque son endpoints autenticados
+  que toman ID interno. Comentarios desde notificaciones y mensajes también
+  usan `pub_id` — el backend resuelve y emite 301 si corresponde.
+
+**SQL de migración para entornos ya poblados (dev/staging/prod):**
+
+```sql
+-- Fase 22 — Slug SEO + sufijo random anti-enumeración.
+-- Para entornos con publicaciones existentes sin slug. En producción nueva
+-- esto NO se ejecuta: database.sql ya contiene la columna.
+
+ALTER TABLE ecom.publications
+  ADD COLUMN IF NOT EXISTS pub_slug VARCHAR(160) UNIQUE;
+CREATE INDEX IF NOT EXISTS idx_publications_pub_slug
+  ON ecom.publications(pub_slug);
+
+-- Backfill: genera slug para filas existentes. Usa un sufijo random de 6
+-- chars base62 simulado con MD5 truncado (sin necesitar pgcrypto en
+-- entornos que no lo tengan instalado). El slugify es minimal: lowercase
+-- + reemplazar no-alnum por guion + capear largo. Para slugs "bonitos" el
+-- código JS de runtime es mejor; este backfill es solo para evitar nulls.
+UPDATE ecom.publications
+SET pub_slug = LOWER(
+    REGEXP_REPLACE(
+      LEFT(COALESCE(pub_title, 'publicacion'), 50),
+      '[^a-zA-Z0-9]+', '-', 'g'
+    )
+  ) || '-' || SUBSTRING(MD5(pub_id::text || NOW()::text) FOR 6)
+WHERE pub_slug IS NULL;
+```
+
+**Tests backend:** sin cambios funcionales en el shape de respuestas
+existentes (los listados solo ganan un campo nuevo `slug`). `npm test`
+sigue 20/20 verde.
 
 ---
 
