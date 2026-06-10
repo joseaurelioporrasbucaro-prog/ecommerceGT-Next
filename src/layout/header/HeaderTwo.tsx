@@ -1,117 +1,134 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import SidebarMenuSection from "../sidebar/SidebarMenuSection";
 import AccountRightSidebar from "../sidebar/AccountRightSidebar";
-import PublicCategoriesSidebar from "../sidebar/PublicCategoriesSidebar";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import HeaderSearch from "./component/HeaderSearch";
+import KiosquiLogo from "@/components/common/KiosquiLogo";
 import { useAuth } from "@/utils/AuthContext";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { Link } from "@/i18n/navigation";
 
+/**
+ * Handoff #3 §2 — header definitivo Kiosqui.
+ *
+ * Layout (izq → der): avatar de perfil (solo logueado, abre el drawer de
+ * cuenta IZQUIERDO) · logo transparente 48px · buscador pill (reemplaza los
+ * links de navegación) · idioma · theme toggle · "Iniciar sesión" ghost
+ * (deslogueado) · "Publicar" verde · campana (logueado) · hamburguesa
+ * (abre el drawer de navegación DERECHO).
+ *
+ * Regla UX: el botón de la izquierda abre el panel izquierdo; el de la
+ * derecha abre el panel derecho — en todos los anchos (ya no hay rieles
+ * fijos en xxl).
+ */
 const HeaderTwo = () => {
-  const { setTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
 
-  const [menuOpen1, setMenuOpen1] = useState(false);
-  const [menuOpen2, setMenuOpen2] = useState(false);
+  const [menuOpen1, setMenuOpen1] = useState(false); // drawer derecho: navegación
+  const [menuOpen2, setMenuOpen2] = useState(false); // drawer izquierdo: cuenta
 
-  // El sidebar derecho ahora SIEMPRE existe.
-  // - Si hay sesión → AccountRightSidebar (Mi cuenta).
-  // - Si NO hay sesión → PublicCategoriesSidebar (categorías + CTA login/registro).
-  const RightSidebar = user ? AccountRightSidebar : PublicCategoriesSidebar;
+  // Cierre con Esc + scroll lock del body mientras un drawer esté abierto.
+  useEffect(() => {
+    const anyOpen = menuOpen1 || menuOpen2;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen1(false);
+        setMenuOpen2(false);
+      }
+    };
+    if (anyOpen) {
+      document.addEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen1, menuOpen2]);
+
+  const initials = user
+    ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "K"
+    : "";
 
   return (
     <>
       <header className="header2">
-        <div className="header-main header-main2">
-          <div className="container c-container-1">
-            <div className="header-main2-content">
-              <div className="row align-items-center">
-                <div className="col-xl-7 col-lg-7 col-md-7 col-7">
-                  <div className="header-main-left">
-                    {/* Swap (2026-06-02): el botón "Mi cuenta / Categorías"
-                        vive ahora a la izquierda — abre el sidebar derecho
-                        del template que tras el swap experimental quedó
-                        del lado izquierdo. La hamburguesa de nav se mueve
-                        al borde derecho (ver header-main-right). */}
-                    <div
-                      className="product-filter-btn mr-20 d-xxl-none"
-                      onClick={() => {
-                        setMenuOpen2(!menuOpen2);
-                      }}
-                      title={user ? 'Mi cuenta' : 'Categorías'}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <i className={user ? 'fal fa-user-circle' : 'flaticon-filter'}></i>
-                    </div>
-                    <HeaderSearch className="d-none d-md-inline-block" />
-                  </div>
-                </div>
-                <div className="col-xl-5 col-lg-5 col-md-5 col-5">
-                  <div className="header-main-right">
-                    <LanguageSwitcher className="header-lang ml-20 d-inline-flex" />
+        <div className="kq-nav">
+          <div className="container">
+            <div className="kq-nav-inner">
+              {/* Avatar (solo logueado) — abre "Mi cuenta" desde la IZQUIERDA */}
+              {user && (
+                <button
+                  type="button"
+                  className="kq-profile-btn"
+                  onClick={() => setMenuOpen2(!menuOpen2)}
+                  aria-label="Mi cuenta"
+                  title="Mi cuenta"
+                >
+                  {initials}
+                </button>
+              )}
 
-                    {/* Si NO hay sesión, mostrar botón "Iniciar sesión"
-                        en el header (en lugar del avatar logueado). */}
-                    {!user && (
-                      <div className="header-btn ml-20 d-md-inline-block">
-                        <Link className="fill-btn" href="/login">
-                          Iniciar sesión
-                        </Link>
-                      </div>
-                    )}
+              <Link href="/" className="kq-nav-logo" aria-label="Inicio">
+                <KiosquiLogo height={48} />
+              </Link>
 
-                    {/* Bell de notificaciones (Fase 6.3) — solo para usuarios logueados */}
-                    {user && (
-                      <div className="ml-20">
-                        <NotificationBell />
-                      </div>
-                    )}
+              {/* Buscador pill — reemplaza los links de navegación */}
+              <HeaderSearch
+                className="kq-nav-search d-none d-md-block"
+                placeholder="Buscar por zona, ciudad, colonia…"
+              />
 
-                    <div className="mode-switch-wrapper my_switcher setting-option home3-mode-switch ml-25">
-                      <input type="checkbox" className="checkbox" id="chk" />
-                      <label className="label" htmlFor="chk">
-                        <i
-                          className="fas fa-moon setColor dark theme__switcher-btn"
-                          onClick={() => setTheme("dark")}
-                        ></i>
-                        <i
-                          className="fas fa-sun setColor light theme__switcher-btn"
-                          onClick={() => setTheme("light")}
-                        ></i>
-                        <span className="ball"></span>
-                      </label>
-                    </div>
+              <div className="kq-nav-cta">
+                <LanguageSwitcher className="header-lang d-none d-sm-inline-flex" />
 
-                    {/* Swap (2026-06-02): la hamburguesa de nav vive ahora
-                        en el borde derecho del header — donde está el sidebar
-                        de nav después del swap experimental. */}
-                    <div className="menu-bar ml-20 d-xxl-none">
-                      <a
-                        className="side-toggle"
-                        href="#!"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setMenuOpen1(!menuOpen1);
-                        }}
-                      >
-                        <div className="bar-icon left-bar-icon">
-                          <span></span>
-                          <span></span>
-                          <span></span>
-                        </div>
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                {/* Theme toggle — ambos íconos en DOM; CSS muestra uno por tema
+                    (evita mismatch de hidratación con resolvedTheme). */}
+                <button
+                  type="button"
+                  className="kq-icon-btn kq-theme-toggle"
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  aria-label="Cambiar tema"
+                >
+                  <i className="fas fa-moon" />
+                  <i className="fas fa-sun" />
+                </button>
+
+                {!user && (
+                  <Link className="kq-ghost-btn d-none d-sm-inline-flex" href="/login">
+                    Iniciar sesión
+                  </Link>
+                )}
+
+                <Link
+                  className="fill-btn fill-btn-sm kq-publish-btn d-none d-sm-inline-flex"
+                  href={user ? "/upload" : "/login?from=/upload"}
+                >
+                  <i className="fas fa-plus" aria-hidden="true" />
+                  Publicar
+                </Link>
+
+                {user && <NotificationBell />}
+
+                {/* Hamburguesa — abre la navegación desde la DERECHA */}
+                <button
+                  type="button"
+                  className="kq-icon-btn kq-hamburger"
+                  onClick={() => setMenuOpen1(!menuOpen1)}
+                  aria-label="Abrir menú"
+                >
+                  <i className="fas fa-bars" />
+                </button>
               </div>
             </div>
           </div>
         </div>
       </header>
 
+      {/* Drawer DERECHO — navegación */}
       <SidebarMenuSection menuOpen1={menuOpen1} setMenuOpen1={setMenuOpen1} />
       <div
         onClick={() => setMenuOpen1(false)}
@@ -120,14 +137,191 @@ const HeaderTwo = () => {
         }
       ></div>
 
-      {/* Sidebar derecho — SIEMPRE existe. Su contenido depende de la sesión. */}
-      <RightSidebar menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
-      <div
-        onClick={() => setMenuOpen2(false)}
-        className={
-          menuOpen2 ? "offcanvas-overlay overlay-open" : "offcanvas-overlay"
+      {/* Drawer IZQUIERDO — Mi cuenta (solo logueado; el avatar es su único
+          disparador, ver 03-HANDOFF.md §2). */}
+      {user && (
+        <>
+          <AccountRightSidebar menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />
+          <div
+            onClick={() => setMenuOpen2(false)}
+            className={
+              menuOpen2 ? "offcanvas-overlay overlay-open" : "offcanvas-overlay"
+            }
+          ></div>
+        </>
+      )}
+
+      <style jsx>{`
+        .kq-nav {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          background: rgba(255, 253, 249, 0.85);
+          -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
+          border-bottom: 1px solid var(--border, #e6ddcf);
         }
-      ></div>
+        :global([data-theme="dark"]) .kq-nav {
+          background: rgba(19, 26, 45, 0.85);
+        }
+        .kq-nav-inner {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          height: 80px;
+        }
+        .kq-nav :global(.kq-nav-logo) {
+          display: inline-flex;
+          align-items: center;
+          flex-shrink: 0;
+        }
+        .kq-profile-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          border: none;
+          cursor: pointer;
+          flex-shrink: 0;
+          background: linear-gradient(135deg, var(--navy-700), var(--navy-900));
+          color: var(--cream, #f8f4ee);
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 14px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 0 0 0 rgba(181, 172, 239, 0.5);
+          transition: box-shadow 0.15s, transform 0.1s;
+        }
+        :global([data-theme="dark"]) .kq-profile-btn {
+          background: linear-gradient(135deg, var(--lav-500), var(--lav-700));
+          color: var(--navy-900);
+        }
+        .kq-profile-btn:hover {
+          box-shadow: 0 0 0 3px rgba(181, 172, 239, 0.45);
+        }
+        .kq-profile-btn:active {
+          transform: scale(0.96);
+        }
+        /* Buscador pill (estiliza el HeaderSearch existente sin tocar su lógica) */
+        .kq-nav :global(.kq-nav-search) {
+          flex: 1;
+          max-width: 440px;
+        }
+        .kq-nav :global(.kq-nav-search form.header-search) {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          height: 44px;
+          padding: 0 18px;
+          background: var(--surface, #fff);
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          border-radius: 999px;
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .kq-nav :global(.kq-nav-search form.header-search:focus-within) {
+          border-color: var(--accent, #b5acef);
+          box-shadow: var(--shadow-focus, 0 0 0 3px rgba(181, 172, 239, 0.55));
+        }
+        .kq-nav :global(.kq-nav-search form.header-search input) {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          background: transparent;
+          outline: none;
+          font-size: 14px;
+          color: var(--fg-strong);
+          padding: 0;
+          height: auto;
+        }
+        .kq-nav :global(.kq-nav-search form.header-search input::placeholder) {
+          color: var(--fg-subtle, #9aa0a8);
+        }
+        .kq-nav :global(.kq-nav-search form.header-search button) {
+          border: none;
+          background: transparent;
+          color: var(--fg-subtle, #9aa0a8);
+          font-size: 14px;
+          padding: 0;
+          line-height: 1;
+          cursor: pointer;
+        }
+        .kq-nav-cta {
+          margin-left: auto;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .kq-icon-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          background: var(--surface, #fff);
+          color: var(--fg-strong);
+          cursor: pointer;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          transition: all 0.15s;
+        }
+        .kq-icon-btn:hover {
+          border-color: var(--lav-500);
+          color: var(--lav-700);
+        }
+        :global([data-theme="dark"]) .kq-icon-btn:hover {
+          color: var(--lav-400);
+        }
+        /* Theme toggle: un ícono por tema, sin JS de hidratación */
+        .kq-theme-toggle :global(.fa-sun) {
+          display: none;
+        }
+        :global([data-theme="dark"]) .kq-theme-toggle :global(.fa-moon) {
+          display: none;
+        }
+        :global([data-theme="dark"]) .kq-theme-toggle :global(.fa-sun) {
+          display: inline-block;
+        }
+        .kq-ghost-btn {
+          display: inline-flex;
+          align-items: center;
+          padding: 0 16px;
+          height: 40px;
+          border-radius: 999px;
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 13.5px;
+          color: var(--fg-strong);
+          text-decoration: none;
+          transition: background 0.15s;
+          white-space: nowrap;
+        }
+        .kq-ghost-btn:hover {
+          background: var(--surface-sunk, #f1ebe1);
+          color: var(--fg-strong);
+        }
+        .kq-nav :global(.kq-publish-btn) {
+          height: 40px;
+          padding: 0 18px;
+          font-size: 13.5px;
+          gap: 7px;
+          white-space: nowrap;
+        }
+        .kq-nav :global(.kq-publish-btn i) {
+          font-size: 12px;
+        }
+        @media (max-width: 991px) {
+          .kq-nav-inner {
+            height: 64px;
+            gap: 12px;
+          }
+          .kq-nav :global(.kq-nav-logo img) {
+            height: 40px !important;
+          }
+        }
+      `}</style>
     </>
   );
 };

@@ -98,27 +98,10 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           .app-layout.no-footer {
             overflow: hidden;
           }
-          /* Mismo bump de breakpoint que en la rama principal — ver comentario abajo. */
-          @media (min-width: 1400px) and (max-width: 1599px) {
-            .sidebar-category-filter-wrapper {
-              right: -300px !important;
-            }
-            .sidebar-category-filter-wrapper.open {
-              right: 0 !important;
-            }
-            .c-container-1 {
-              width: 100% !important;
-            }
-          }
-          @media (min-width: 1600px) {
-            .app-layout.has-right-sidebar {
-              padding-right: 275px;
-            }
-            /* Mismo override que la rama principal — ver comentario allá. */
-            .app-layout.has-right-sidebar .c-container-1 {
-              width: 100% !important;
-            }
-          }
+          /* Handoff #3: ya no hay rieles fijos — los sidebars son drawers
+             overlay en todos los anchos (ver _header.scss), así que no se
+             reserva espacio lateral. En /messages el drawer de cuenta queda
+             sin disparador (HeaderOne no tiene avatar): TODO(design). */
           /* HeaderOne en /messages — el menú horizontal de 4 ítems + búsqueda
              + idioma/bell/tema se parte en 2 filas si la búsqueda crece antes
              de que haya ancho. A 1600px entra el padding-right:275 (sidebar) y
@@ -159,107 +142,11 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
         {pathName === '/home-three' ? <FooterTwo /> : <Footer />}
       </div>
 
-      {/* Replica el mecanismo del template para los sidebars fijos. El template
-          corre el contenido con `.c-container-1 { width: calc(100% - 583px) }`
-          centrado, pero eso asume que TODO el contenido usa esa clase — acá la
-          mayoría de páginas usan `.container` normal. Por eso padeamos el
-          .app-layout 275px por lado (= ancho del sidebar) y neutralizamos el
-          calc del template a 100%: si no, el header restaría el ancho de los
-          sidebars DOS veces (padding + calc) y col-xl-5 quedaría tapado. Sin
-          hacks de proporción de columnas — el 58/42 del template alcanza. */}
-      <style jsx global>{`
-        /* El header de estas páginas (.header-main2) es position:fixed;top:0,
-           por lo que sale del flujo y NO reserva alto. Sin esto, el primer
-           bloque de cada página (el breadcrumb .page-title-area) queda DEBAJO
-           del header y se ve tapado. Reservamos el alto real del header
-           (padding 20+20 + input 50 = 90px) en el contenido en-flujo del
-           layout; el header, al ser fixed, se ancla al viewport y no se mueve.
-           En xs el header es un poco más bajo (sin buscador), basta con menos. */
-        .app-layout.has-left-sidebar {
-          padding-top: 90px;
-        }
-        @media (max-width: 767px) {
-          .app-layout.has-left-sidebar {
-            padding-top: 80px;
-          }
-        }
-        /* 1400-1599: sidebars off-canvas (hamburguesa) para no apretar el
-           contenido; desde 1600 se ven fijos siempre. */
-        @media (min-width: 1400px) and (max-width: 1599px) {
-          .menu2-side-bar-wrapper {
-            left: -300px !important;
-          }
-          .menu2-side-bar-wrapper.open {
-            left: 0 !important;
-          }
-          .sidebar-category-filter-wrapper {
-            right: -300px !important;
-          }
-          .sidebar-category-filter-wrapper.open {
-            right: 0 !important;
-          }
-          .c-container-1 {
-            width: 100% !important;
-          }
-          .menu-bar.d-xxl-none,
-          .product-filter-btn.d-xxl-none {
-            display: inline-block !important;
-          }
-        }
-        /* ────────── Swap experimental de sidebars (Aurelio, 2026-05-28) ──────────
-           Pasa el sidebar izquierdo (nav HOME/PROPIEDADES) a la derecha y el
-           derecho (Mi cuenta) a la izquierda. Solo para evaluar visualmente —
-           si no convence, basta con borrar este bloque para volver. Aplicamos
-           !important porque sobrescribimos las reglas del template. */
-        @media (min-width: 1600px) {
-          .menu2-side-bar-wrapper {
-            left: auto !important;
-            right: 0 !important;
-          }
-          .sidebar-category-filter-wrapper {
-            right: auto !important;
-            left: 0 !important;
-          }
-        }
-        @media (min-width: 1400px) and (max-width: 1599px) {
-          /* También en el rango off-canvas: el nav (izquierdo) se esconde por
-             la derecha; Mi cuenta (derecho) se esconde por la izquierda. */
-          .menu2-side-bar-wrapper {
-            left: auto !important;
-            right: -300px !important;
-          }
-          .menu2-side-bar-wrapper.open {
-            left: auto !important;
-            right: 0 !important;
-          }
-          .sidebar-category-filter-wrapper {
-            right: auto !important;
-            left: -300px !important;
-          }
-          .sidebar-category-filter-wrapper.open {
-            right: auto !important;
-            left: 0 !important;
-          }
-        }
-
-        @media (min-width: 1600px) {
-          /* Mecanismo EXACTO del template: en vez de padear el .app-layout
-             (que dejaba el borde del contenido pegado al sidebar y el ícono
-             de tema se metía debajo), encogemos el contenedor a
-             calc(100% - 583px) CENTRADO — 583 = los dos sidebars de 275px +
-             ~16px de aire a cada lado. El template lo hace solo con
-             .c-container-1; acá lo extendemos a .container porque la mayoría
-             de páginas lo usan, así todo (header, cards, footer) queda
-             librando los sidebars con el mismo aire que la plantilla. */
-          .app-layout.has-left-sidebar .container,
-          .app-layout.has-right-sidebar .container {
-            width: calc(100% - 583px) !important;
-            max-width: none !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-          }
-        }
-      `}</style>
+      {/* Handoff #3 — se eliminó toda la compensación de rieles fijos
+          (padding-top del header fixed, swap experimental 2026-05-28 y el
+          calc(100% - 583px) del template): el header nuevo es sticky (en
+          flujo) y los sidebars son drawers overlay en todos los anchos, así
+          que el contenido vuelve a ancho completo sin reservas laterales. */}
     </ThemeProvider>
   );
 };

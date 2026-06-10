@@ -446,19 +446,23 @@
 	width: 100%;
 }
 
+// Handoff #3 §4 — overlay de drawers: navy translúcido con blur suave.
 .offcanvas-overlay {
 	position: fixed;
 	height: 100%;
 	width: 100%;
-	background: #000;
+	background: rgba(17, 24, 42, 0.42);
+	-webkit-backdrop-filter: blur(2px);
+	backdrop-filter: blur(2px);
 	z-index: 900;
 	top: 0;
 	opacity: 0;
 	visibility: hidden;
+	transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .offcanvas-overlay.overlay-open {
-	opacity: 0.5;
+	opacity: 1;
 	visibility: visible;
 }
 
@@ -642,16 +646,18 @@ div.mean-container {
 }
 
 .menu2-side-bar {
-	width: 275px;
-	left: 0;
+	// Handoff #3 — el ancho lo fija el wrapper (320px / 86vw); el borde pasa
+	// al lado izquierdo porque ahora desliza desde la derecha.
+	width: 100%;
 	background: var(--clr-bg-white);
-	padding: 27px 27px;
-	border-right: 1px solid var(--clr-common-border);
-	right: auto;
+	padding: 22px 20px;
+	border-left: 1px solid var(--clr-common-border);
 	top: 0;
 	// Fase 8: el fondo blanco llega hasta abajo (el wrapper es 100vh; sin esto
 	// la tarjeta solo crecía al alto del contenido y dejaba un hueco gris).
 	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
 }
 
 .menu2-sidebar-widget-title {
@@ -904,40 +910,47 @@ div.mean-container {
 	}
 }
 
+// Handoff #3 §2/§4 — los drawers son SIEMPRE overlay (se elimina el riel
+// fijo ≥1400px del template), así que el contenido vuelve a ancho completo.
 .c-container-1 {
-	@media (min-width: 1400px) {
-		width: calc(100% - 583px);
-	}
+	width: 100%;
 }
 
+// Handoff #3 §3 — menú de navegación: drawer DERECHO (lo abre la hamburguesa
+// del borde derecho del header). Antes el template lo deslizaba desde la
+// izquierda y lo dejaba fijo en xxl.
 .menu2-side-bar-wrapper {
-	width: 275px;
+	width: 320px;
+	max-width: 86vw;
 	position: fixed;
 	top: 0;
-	left: -300px;
-	transition: 0.3s;
+	right: 0;
+	transform: translateX(104%);
+	transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 	z-index: 999;
 	height: 100vh;
 	min-height: 100vh;
 	overflow-y: auto;
 	overflow-x: hidden;
 	scrollbar-width: thin;
-
-	@media (min-width: 1400px) {
-		left: 0;
-	}
+	box-shadow: var(--shadow-lg);
 
 	&.open {
-		left: 0;
+		transform: translateX(0);
 	}
 }
 
+// Handoff #3 §4 — panel de cuenta: drawer IZQUIERDO (lo abre el avatar de
+// perfil, que vive a la izquierda del header). Antes deslizaba desde la
+// derecha y quedaba fijo en xxl.
 .sidebar-category-filter-wrapper {
-	width: 275px;
+	width: 320px;
+	max-width: 86vw;
 	position: fixed;
 	top: 0;
-	right: -300px;
-	transition: 0.3s;
+	left: 0;
+	transform: translateX(-104%);
+	transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 	z-index: 999;
 	height: 100vh;
 	min-height: 100vh;
@@ -945,13 +958,10 @@ div.mean-container {
 	overflow-x: hidden;
 	scrollbar-width: thin;
 	background: var(--clr-bg-white);
-
-	@media (min-width: 1400px) {
-		right: 0;
-	}
+	box-shadow: var(--shadow-lg);
 
 	&.open {
-		right: 0;
+		transform: translateX(0);
 	}
 }
 
