@@ -1,8 +1,8 @@
 {
   "hero": {
-    "titlePrefix": "Encontra tu proximo hogar en",
-    "titleAccent": "Guatemala",
-    "subtitle": "Casas, apartamentos y terrenos publicados directamente por propietarios verificados. Sin intermediarios escondidos.",
+    "titlePrefix": "La casa que buscás, en",
+    "titleAccent": "3D",
+    "subtitle": "Recorré el modelo 3D de cada inmueble y tratá directo con propietarios verificados con DPI. Sin intermediarios escondidos.",
     "searchPlaceholder": "Buscar por zona, departamento, direccion...",
     "searchAria": "Buscar propiedad",
     "search": "Buscar",
@@ -16,7 +16,8 @@
       "verified": "Vendedores verificados con DPI",
       "viewer": "Visor 3D para recorrer la propiedad",
       "messages": "Mensajeria directa con el propietario"
-    }
+    },
+    "titleSuffix": "y sin intermediarios"
   },
   "categories": {
     "title": "Explora por tipo de propiedad",

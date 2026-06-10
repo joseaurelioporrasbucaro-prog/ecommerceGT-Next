@@ -34,7 +34,8 @@ const KiosquiHero: React.FC = () => {
           <div className="kh-locale-pilot">{tNav('home')}</div>
           <h1 className="kh-title">
             {t('hero.titlePrefix')}{' '}
-            <span className="kh-accent">{t('hero.titleAccent')}</span>
+            <span className="kh-accent">{t('hero.titleAccent')}</span>{' '}
+            {t('hero.titleSuffix')}
           </h1>
           <p className="kh-subtitle">{t('hero.subtitle')}</p>
 
@@ -144,25 +145,14 @@ const KiosquiHero: React.FC = () => {
           color: var(--clr-common-heading);
           margin: 0 0 18px;
         }
-        /* Acento lavanda con subrayado translúcido (sello de marca). */
+        /* Acento lavanda — solo color de texto, sin highlight de fondo
+           (03-HANDOFF.md §1). */
         .kh-accent {
           color: var(--lav-700);
-          position: relative;
           white-space: nowrap;
-          background: linear-gradient(
-            180deg,
-            transparent 62%,
-            rgba(181, 172, 239, 0.35) 62%
-          );
-          padding: 0 4px;
         }
         :global([data-theme='dark']) .kh-accent {
           color: var(--lav-400);
-          background: linear-gradient(
-            180deg,
-            transparent 62%,
-            rgba(181, 172, 239, 0.22) 62%
-          );
         }
         .kh-subtitle {
           font-size: 17px;
