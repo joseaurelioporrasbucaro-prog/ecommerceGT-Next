@@ -88,19 +88,37 @@ export function usePublications() {
   });
 }
 
+/**
+ * Fase 24 fix (2026-06-10): el detalle se identifica por SLUG o id numérico.
+ * Antes usábamos parseId() que coercía a número → con un slug
+ * ("edificio-HjIS30") devolvía null → la query quedaba DESHABILITADA y la
+ * página no mostraba ni loading ni error ni data (solo breadcrumb + footer
+ * flotando). Ahora aceptamos el identificador tal cual (string no vacío);
+ * el backend resuelve slug o id indistintamente.
+ */
+function parsePublicationIdentifier(
+  value: number | string | null | undefined,
+): string | null {
+  if (value === null || value === undefined) return null;
+  const str = String(value).trim();
+  return str === '' ? null : str;
+}
+
 export function usePublicationDetail(id: number | string | null | undefined) {
-  const publicationId = parseId(id);
+  const identifier = parsePublicationIdentifier(id);
 
   return useQuery({
-    queryKey: [...PUBLICATION_DETAIL_QUERY_KEY, publicationId] as const,
+    queryKey: [...PUBLICATION_DETAIL_QUERY_KEY, identifier] as const,
     queryFn: () => {
-      if (publicationId === null) {
+      if (identifier === null) {
         return Promise.reject(new Error('Publicación inválida'));
       }
 
-      return ApiFetch.get<PublicationDetail>(`/publication/${publicationId}`);
+      return ApiFetch.get<PublicationDetail>(
+        `/publication/${encodeURIComponent(identifier)}`,
+      );
     },
-    enabled: publicationId !== null,
+    enabled: identifier !== null,
     retry: false,
     staleTime: 60_000,
   });
