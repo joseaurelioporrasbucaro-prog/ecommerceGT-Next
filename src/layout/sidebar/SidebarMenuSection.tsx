@@ -1,21 +1,14 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import logoOne from "../../../public/assets/img/logo/oction-logo.png";
-import logoTwo from "../../../public/assets/img/logo/oction-logo-bw.png";
 import profile6 from "../../../public/assets/img/profile/profile6.jpg";
 import profile7 from "../../../public/assets/img/profile/profile7.jpg";
 import profile8 from "../../../public/assets/img/profile/profile8.jpg";
 import profile9 from "../../../public/assets/img/profile/profile9.jpg";
-import listIconTwo from "../../../public/assets/img/shape/list-icon-2.png";
 import Image from "next/image";
-// Fase 22 — Menú limpio (Aurelio 2026-06-05).
-// Antes leía `menuItems` con la basura del template (Home Style 1/2/3, Creator
-// Profile, Pages con FAQ/Login/Terms/404, Wallet Connect, Activity, Forum...).
-// Ahora reusa `mobileMenu` (lista plana de 7 items KIOSQUI: Inicio, Propiedades,
-// Vendedores, Ranking, Pauta, Planes, Contacto). El render se simplifica porque
-// la nueva lista NO tiene submenús, así que se elimina toda la lógica de
-// acordeón (activeMenu / menuId / openMobileMenu / sub-menu).
+// Fase 22 — Menú limpio (lista plana, sin acordeón). Handoff #3 §3 — re-skin
+// Kiosqui: drawer derecho con head (logo + X), ítems con ícono FA, "Pauta"
+// visible solo con sesión, top vendedores y CTA card lavanda al fondo.
 import { mobileMenu } from "@/data/menu-data";
 import { useTranslations } from "next-intl";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
@@ -24,17 +17,18 @@ import { getBackendUrl } from "@/utils/backendUrl";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/utils/AuthContext";
 import { stripLocalePath } from "@/utils/stripLocalePath";
+import KiosquiLogo from "@/components/common/KiosquiLogo";
 
 // Imágenes de respaldo cuando el vendedor no tiene avatar.
 const FALLBACK_AVATARS = [profile6, profile7, profile8, profile9];
 
 // Fase 8.5 — navegación de soporte (reemplaza el Top Seller en rutas /soporte).
 const SUPPORT_LINKS = [
-  { href: "/soporte/tickets-admin", label: "Tickets", icon: "flaticon-settings" },
-  { href: "/soporte/verificaciones", label: "Verificaciones", icon: "flaticon-check-mark" },
-  { href: "/soporte/denuncias", label: "Denuncias", icon: "flaticon-notification" },
-  { href: "/soporte/usuarios", label: "Usuarios", icon: "flaticon-account" },
-  { href: "/soporte/tickets", label: "Mis tickets", icon: "flaticon-account" },
+  { href: "/soporte/tickets-admin", label: "Tickets", icon: "fas fa-ticket-alt" },
+  { href: "/soporte/verificaciones", label: "Verificaciones", icon: "fas fa-shield-alt" },
+  { href: "/soporte/denuncias", label: "Denuncias", icon: "fas fa-flag" },
+  { href: "/soporte/usuarios", label: "Usuarios", icon: "fas fa-users-cog" },
+  { href: "/soporte/tickets", label: "Mis tickets", icon: "fas fa-inbox" },
 ];
 
 // Mapa id → clave de traducción del namespace `common.nav`.
@@ -47,6 +41,17 @@ const TRANSLATION_KEY_BY_ID: Record<number, string> = {
   5: "ads",
   6: "plans",
   7: "contact",
+};
+
+// Handoff #3 §3 — íconos FA por ítem (20px, columna fija).
+const ICON_BY_ID: Record<number, string> = {
+  1: "fas fa-home",
+  2: "fas fa-building",
+  3: "fas fa-users",
+  4: "fas fa-trophy",
+  5: "fas fa-bullhorn",
+  6: "fas fa-gem",
+  7: "fas fa-headset",
 };
 
 interface propsType {
@@ -68,6 +73,15 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
 
   const closeSidebar = () => setMenuOpen1(false);
 
+  // Handoff #3 §3 — "Pauta" SOLO con sesión (un usuario deslogueado no debe
+  // verla). Se inyecta acá y no en menu-data para que MobileMenu (HeaderOne)
+  // no la muestre sin gate de auth. Va después de Ranking (id 4).
+  const navItems = mobileMenu.flatMap((item) =>
+    item.id === 4 && user
+      ? [item, { id: 5, label: "Pauta", subMenu: false, href: "/pauta" }]
+      : [item],
+  );
+
   return (
     <div>
       <div className="fix">
@@ -77,165 +91,132 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
           }
         >
           <div className="menu2-side-bar">
-            <div className="side-info-content">
-              <div className="offset-widget offset-logo mb-25">
-                <div className="row align-items-center">
-                  <div className="col-9">
-                    <div className="header-logo header1-logo">
-                      <Link className="logo-bb" href="/">
-                        <Image src={logoOne} alt="KIOSQUI" />
-                      </Link>
-                      <Link className="logo-bw" href="/">
-                        <Image src={logoTwo} alt="KIOSQUI" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+            <div className="side-info-content kq-drawer-content">
+              {/* Head: logo transparente 38px + cerrar */}
+              <div className="kq-drawer-head mb-25">
+                <Link href="/" onClick={closeSidebar} aria-label="Inicio">
+                  <KiosquiLogo height={38} />
+                </Link>
+                <button
+                  type="button"
+                  className="kq-drawer-close"
+                  onClick={closeSidebar}
+                  aria-label="Cerrar menú"
+                >
+                  <i className="fas fa-times" />
+                </button>
               </div>
-              <div className="mm-menu mb-60">
-                <ul>
-                  {mobileMenu.map((menuItem) => {
-                    const tKey = TRANSLATION_KEY_BY_ID[menuItem.id];
-                    let label = menuItem.label;
-                    if (tKey) {
-                      try {
-                        label = tNav(tKey);
-                      } catch {
-                        // Fallback al label literal si la clave no existe en este locale.
-                      }
-                    }
-                    return (
-                      <li key={menuItem.id}>
-                        <Link href={menuItem.href} onClick={closeSidebar}>
-                          {label}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-              {showSupportNav && (
-                <div className="menu2-sidebar-widget">
-                  <h5 className="menu2-sidebar-widget-title mb-35">Soporte</h5>
-                  <ul className="support-nav">
-                    {SUPPORT_LINKS.map((l) => (
-                      <li key={l.href} className={pathname === l.href ? "active" : ""}>
-                        <Link href={l.href}><i className={l.icon}></i>{l.label}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                  <style jsx>{`
-                    .support-nav { list-style: none; padding: 0; margin: 0; }
-                    .support-nav li { margin-bottom: 6px; }
-                    .support-nav li :global(a) { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: inherit; text-decoration: none; font-weight: 600; transition: 0.2s; }
-                    .support-nav li :global(a:hover) { background: rgba(108,92,231,0.08); }
-                    .support-nav li.active :global(a) { background: var(--clr-theme-1, #6c5ce7); color: #fff; }
-                  `}</style>
-                </div>
-              )}
-              {!showSupportNav && (
-              <div className="menu2-sidebar-widget">
-                <h5 className="menu2-sidebar-widget-title mb-35">Top Seller</h5>
-                <div className="sidebar-creators-list">
-                  {(topSellers ?? []).map((s: TopSellerRow, i: number) => {
-                    const name = `${s.firstname ?? ""} ${s.lastname ?? ""}`.trim() || "Vendedor";
-                    const avatar = s.imagenu ? getBackendUrl(s.imagenu) : null;
-                    return (
-                      <div className="creator-single creator-single-short" key={s.id}>
-                        <div className="creator-wraper">
-                          <div className="creator-inner">
-                            <div className="artist">
-                              <div className="profile-img pos-rel">
-                                <Link href={`/creator-profile/${s.id}`}>
-                                  {avatar ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                      width={45}
-                                      height={45}
-                                      style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }}
-                                      src={avatar}
-                                      alt={name}
-                                    />
-                                  ) : (
-                                    <Image
-                                      width={45}
-                                      height={45}
-                                      style={{ width: "45px", height: "45px", objectFit: "cover", borderRadius: "50%" }}
-                                      src={FALLBACK_AVATARS[i % FALLBACK_AVATARS.length]}
-                                      alt={name}
-                                    />
-                                  )}
-                                </Link>
-                                {s.verified && (
-                                  <div className="profile-verification verified">
-                                    <i className="fas fa-check"></i>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="creator-name-id">
-                                <h4 className="artist-name">
-                                  <Link href={`/creator-profile/${s.id}`}>{name}</Link>
-                                </h4>
-                                {s.handle && <div className="artist-id">@{s.handle}</div>}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {(!topSellers || topSellers.length === 0) && (
-                    <p style={{ opacity: 0.5, fontSize: 13 }}>Aún no hay vendedores destacados.</p>
-                  )}
-                </div>
-              </div>
-              )}
-              {/* CTA "Crear publicación" — Fase 22 + Fase 24 fix (2026-06-09).
-                  Reemplaza el placeholder del template "Create and sell your
-                  NFTs". El CTA cambia según auth:
-                    - logueado → "Crear publicación" → /upload
-                    - no logueado → "Iniciá sesión para publicar" → /login
-                      preservando el destino con ?from=/upload.
 
-                  Aurelio reportó (2026-06-10): el wrapper con bg + border
-                  generaba un "doble recuadro" porque el template ya pintaba
-                  .work-process-single con su propio estilo. Quitado el
-                  wrapper extra; la separación del footer la damos con un
-                  margin-top amplio puro. */}
-              <div className="menu2-sidebar-widget mt-35">
-                <div className="work-process-single pos-rel">
-                  <div className="work-process-content">
-                    <div className="process-icon">
-                      <Image
-                        width={100}
-                        height={100}
-                        style={{ width: "auto", height: "100%" }}
-                        src={listIconTwo}
-                        alt=""
-                      />
-                    </div>
-                    <h4 className="process-title">
-                      {user
-                        ? <Link href="/upload">Publicá tu propiedad en minutos</Link>
-                        : <Link href="/login?from=/upload">Sumate y publicá tu propiedad</Link>}
-                    </h4>
-                    <div className="work-process-btn">
-                      {user ? (
-                        <Link className="fill-btn" href="/upload" onClick={closeSidebar}>
-                          {tActions("createPublication")}
-                        </Link>
-                      ) : (
+              <nav className="kq-drawer-nav mb-30">
+                {navItems.map((menuItem) => {
+                  const tKey = TRANSLATION_KEY_BY_ID[menuItem.id];
+                  let label = menuItem.label;
+                  if (tKey) {
+                    try {
+                      label = tNav(tKey);
+                    } catch {
+                      // Fallback al label literal si la clave no existe en este locale.
+                    }
+                  }
+                  const isActive =
+                    menuItem.href === "/"
+                      ? pathname === "/"
+                      : pathname?.startsWith(menuItem.href) ?? false;
+                  return (
+                    <Link
+                      key={menuItem.id}
+                      href={menuItem.href}
+                      onClick={closeSidebar}
+                      className={`kq-drawer-link ${isActive ? "is-active" : ""}`}
+                    >
+                      <i className={ICON_BY_ID[menuItem.id] ?? "fas fa-circle"} />
+                      {label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {showSupportNav && (
+                <div className="kq-drawer-section mb-30">
+                  <h5 className="kq-drawer-section-title">Soporte</h5>
+                  {SUPPORT_LINKS.map((l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      onClick={closeSidebar}
+                      className={`kq-drawer-link ${pathname === l.href ? "is-active" : ""}`}
+                    >
+                      <i className={l.icon} />
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {!showSupportNav && (
+                <div className="kq-drawer-section mb-30">
+                  <h5 className="kq-drawer-section-title">Top vendedores</h5>
+                  <div className="kq-drawer-sellers">
+                    {(topSellers ?? []).map((s: TopSellerRow, i: number) => {
+                      const name = `${s.firstname ?? ""} ${s.lastname ?? ""}`.trim() || "Vendedor";
+                      const avatar = s.imagenu ? getBackendUrl(s.imagenu) : null;
+                      return (
                         <Link
-                          className="fill-btn"
-                          href="/login?from=/upload"
+                          href={`/creator-profile/${s.id}`}
+                          className="kq-drawer-seller"
+                          key={s.id}
                           onClick={closeSidebar}
                         >
-                          Iniciar sesión
+                          <span className="kq-seller-av">
+                            {avatar ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={avatar} alt={name} />
+                            ) : (
+                              <Image src={FALLBACK_AVATARS[i % FALLBACK_AVATARS.length]} alt={name} />
+                            )}
+                          </span>
+                          <span className="kq-seller-info">
+                            <span className="kq-seller-name">{name}</span>
+                            {s.handle && <span className="kq-seller-handle">@{s.handle}</span>}
+                          </span>
+                          {s.verified && (
+                            <span className="kq-seller-check" title="Verificado">
+                              <i className="fas fa-check" />
+                            </span>
+                          )}
                         </Link>
-                      )}
-                    </div>
+                      );
+                    })}
+                    {(!topSellers || topSellers.length === 0) && (
+                      <p className="kq-sellers-empty">Aún no hay vendedores destacados.</p>
+                    )}
                   </div>
                 </div>
+              )}
+
+              {/* CTA card lavanda — Fase 22/24: el contenido cambia según auth. */}
+              <div className="kq-drawer-cta">
+                <span className="kq-drawer-cta-icon">
+                  <i className="fas fa-home" />
+                </span>
+                <span className="kq-drawer-cta-text">
+                  {user
+                    ? "Publicá tu propiedad en minutos"
+                    : "Sumate y publicá tu propiedad"}
+                </span>
+                {user ? (
+                  <Link className="fill-btn kq-drawer-cta-btn" href="/upload" onClick={closeSidebar}>
+                    {tActions("createPublication")}
+                  </Link>
+                ) : (
+                  <Link
+                    className="fill-btn kq-drawer-cta-btn"
+                    href="/login?from=/upload"
+                    onClick={closeSidebar}
+                  >
+                    Iniciar sesión
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -243,6 +224,209 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
       </div>
       <div className="offcanvas-overlay" onClick={closeSidebar}></div>
       <div className="offcanvas-overlay-white"></div>
+
+      <style jsx>{`
+        .kq-drawer-content {
+          display: flex;
+          flex-direction: column;
+          min-height: calc(100vh - 44px);
+        }
+        .kq-drawer-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .kq-drawer-close {
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          background: var(--surface, #fff);
+          color: var(--fg-strong);
+          cursor: pointer;
+          font-size: 15px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+        }
+        .kq-drawer-close:hover {
+          border-color: var(--lav-500);
+          color: var(--lav-700);
+        }
+        .kq-drawer-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .kq-drawer-section :global(.kq-drawer-link),
+        .kq-drawer-nav :global(.kq-drawer-link) {
+          display: flex;
+          align-items: center;
+          gap: 13px;
+          padding: 11px 13px;
+          border-radius: 10px;
+          color: var(--fg-muted, #5c616a);
+          font-size: 14px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.15s;
+        }
+        .kq-drawer-section :global(.kq-drawer-link i),
+        .kq-drawer-nav :global(.kq-drawer-link i) {
+          width: 20px;
+          font-size: 16px;
+          text-align: center;
+          color: var(--fg-subtle, #9aa0a8);
+          transition: color 0.15s;
+        }
+        .kq-drawer-nav :global(.kq-drawer-link:hover),
+        .kq-drawer-section :global(.kq-drawer-link:hover) {
+          background: var(--accent-soft, #ebe8fb);
+          color: var(--lav-700, #6d62cf);
+        }
+        .kq-drawer-nav :global(.kq-drawer-link:hover i),
+        .kq-drawer-section :global(.kq-drawer-link:hover i) {
+          color: var(--lav-700, #6d62cf);
+        }
+        :global([data-theme="dark"]) .kq-drawer-nav :global(.kq-drawer-link:hover),
+        :global([data-theme="dark"]) .kq-drawer-section :global(.kq-drawer-link:hover) {
+          color: var(--lav-300, #ddd8f8);
+        }
+        .kq-drawer-nav :global(.kq-drawer-link.is-active),
+        .kq-drawer-section :global(.kq-drawer-link.is-active) {
+          background: var(--navy-800, #1e2d4a);
+          color: var(--cream, #f8f4ee);
+        }
+        .kq-drawer-nav :global(.kq-drawer-link.is-active i),
+        .kq-drawer-section :global(.kq-drawer-link.is-active i) {
+          color: var(--green-400, #b0d56e);
+        }
+        :global([data-theme="dark"]) .kq-drawer-nav :global(.kq-drawer-link.is-active),
+        :global([data-theme="dark"]) .kq-drawer-section :global(.kq-drawer-link.is-active) {
+          background: var(--lav-500, #b5acef);
+          color: var(--navy-900, #161f33);
+        }
+        :global([data-theme="dark"]) .kq-drawer-nav :global(.kq-drawer-link.is-active i),
+        :global([data-theme="dark"]) .kq-drawer-section :global(.kq-drawer-link.is-active i) {
+          color: var(--navy-900, #161f33);
+        }
+        .kq-drawer-section {
+          border-top: 1px solid var(--border, #e6ddcf);
+          padding-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .kq-drawer-section-title {
+          font-family: var(--font-display);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--fg-subtle, #9aa0a8);
+          margin: 0 0 8px;
+        }
+        .kq-drawer-sellers {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .kq-drawer-sellers :global(.kq-drawer-seller) {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 7px 8px;
+          border-radius: 10px;
+          text-decoration: none;
+          transition: background 0.15s;
+        }
+        .kq-drawer-sellers :global(.kq-drawer-seller:hover) {
+          background: var(--surface-sunk, #f1ebe1);
+        }
+        .kq-drawer-sellers :global(.kq-seller-av) {
+          width: 38px;
+          height: 38px;
+          border-radius: 999px;
+          overflow: hidden;
+          flex-shrink: 0;
+          display: block;
+        }
+        .kq-drawer-sellers :global(.kq-seller-av img) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 999px;
+        }
+        .kq-drawer-sellers :global(.kq-seller-info) {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          flex: 1;
+        }
+        .kq-drawer-sellers :global(.kq-seller-name) {
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--fg-strong);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .kq-drawer-sellers :global(.kq-seller-handle) {
+          font-size: 12px;
+          color: var(--accent-hover, #8a7fe3);
+        }
+        .kq-drawer-sellers :global(.kq-seller-check) {
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          flex-shrink: 0;
+          background: var(--green-500, #9bc64a);
+          color: var(--navy-900, #161f33);
+          font-size: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .kq-sellers-empty {
+          opacity: 0.5;
+          font-size: 13px;
+          margin: 0;
+        }
+        .kq-drawer-cta {
+          margin-top: auto;
+          padding: 18px;
+          border-radius: 20px;
+          background: var(--accent-soft, #ebe8fb);
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+        }
+        .kq-drawer-cta-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          background: var(--lav-500, #b5acef);
+          color: #fff;
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .kq-drawer-cta-text {
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--fg-strong);
+        }
+        .kq-drawer-cta :global(.kq-drawer-cta-btn) {
+          width: 100%;
+          height: 44px;
+          font-size: 14px;
+        }
+      `}</style>
     </div>
   );
 };
