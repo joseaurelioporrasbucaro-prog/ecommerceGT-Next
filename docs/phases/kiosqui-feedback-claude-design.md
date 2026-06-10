@@ -39,4 +39,29 @@
 > Las IA ejecutoras agregan acá. Formato:
 > `- [WP-N] <hueco> — dónde: <archivo/pantalla> — qué se necesita de diseño.`
 
-_(vacío — todavía no se encontraron gaps nuevos)_
+### Del handoff #3 (2026-06-10, Claude Code)
+
+- [H3] **El ítem "Vendedores" del §3 ya no existe como ruta**: la Fase 24
+  (producto) unificó Directorio+Ranking en `/ranking` con tabs. El drawer quedó
+  con 6 ítems (Inicio, Propiedades, Ranking, Pauta·auth, Planes, Contacto).
+  Si diseño quiere "Vendedores" como entrada aparte, hay que decidirlo con
+  producto.
+- [H3] **`PublicCategoriesSidebar` quedó sin disparador**: el handoff define el
+  avatar (solo logueado) como único botón izquierdo, así que el panel de
+  categorías para visitantes ya no se puede abrir (antes era riel fijo ≥1400px).
+  Su contenido (categorías + CTA registro) está cubierto por los chips del hero
+  y el CTA del drawer — pero si se quiere conservar, necesita diseño.
+- [H3] **/messages (HeaderOne) sin acceso al drawer de cuenta**: HeaderOne no
+  tiene avatar de perfil y perdió el riel derecho. Falta diseño de HeaderOne
+  (¿mismo patrón avatar + buscador?). TODO(design) en DefaultWrapper.
+- [H3] **Estados Vendida/Borrador/Anulada como badge de esquina**: no están en
+  el §6 (solo Destacado/Nuevo). Se aplicó el estilo "frosted" con punto de
+  color del estado (el que landing.html reserva para estados neutros), en ambos
+  temas (el "verde sólido en dark" de la referencia asume estados positivos
+  tipo "En renta", no aplica a "Vendida"). Validar con diseño.
+- [H3] **LanguageSwitcher no existe en el prototipo del header**: se mantuvo
+  (funcionalidad i18n de Fase 14), junto al theme toggle. Si molesta
+  visualmente, decidir dónde vive (¿drawer?).
+- [H3] **Footer**: solo se cambió el logo (transparente). El re-skin completo
+  del footer (fondo ink-900, 4 columnas, "Hecho en Guatemala") sigue pendiente
+  del handoff #2 §2.6 — el copy actual aún dice "Designed by BDevs".
