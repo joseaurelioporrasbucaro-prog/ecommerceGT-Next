@@ -126,22 +126,12 @@ const Footer = () => {
       </div>
 
       <style jsx>{`
-        /* Asegura que el footer pinta su color hasta el bottom del viewport
-           cuando la página es corta (faq, contacto, etc.). Antes el body bg
-           se veía por debajo del último elemento. */
-        .kiosqui-footer {
-          position: relative;
-        }
-        .kiosqui-footer::after {
-          background: inherit;
-          bottom: -100vh;
-          content: "";
-          height: 100vh;
-          left: 0;
-          position: absolute;
-          right: 0;
-          pointer-events: none;
-        }
+        /* Fase 24 fix (2026-06-09): el approach previo con ::after { height:
+           100vh } extendía el bg pero también el área scrolleable → la
+           página tenía 100vh extra de scroll vacío. Lo quitamos. Si reaparece
+           el "escalón de color" debajo del footer, la solución correcta es
+           pintar el body con el mismo color del footer en globals.css en
+           lugar de hackear el footer mismo. */
         .kiosqui-footer-copyright {
           border-top: 1px solid rgba(255, 255, 255, 0.06);
           padding: 18px 0;

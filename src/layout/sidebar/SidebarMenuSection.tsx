@@ -190,10 +190,18 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                 </div>
               </div>
               )}
-              {/* CTA "Crear publicación" — Fase 22.
-                  Reemplaza el placeholder del template "Create and sell your NFTs"
-                  que tenía copy de NFT marketplace y no aplica a KIOSQUI. */}
-              <div className="menu2-sidebar-widget mt-35">
+              {/* CTA "Crear publicación" — Fase 22 + Fase 24 fix (2026-06-09).
+                  Reemplaza el placeholder del template "Create and sell your
+                  NFTs". Si el usuario NO está logueado, el botón a /upload
+                  redirige al login (middleware), generando una mala UX.
+                  Ahora el CTA cambia según auth:
+                    - logueado → "Crear publicación" → /upload
+                    - no logueado → "Iniciá sesión para publicar" → /login
+                      preservando el destino con ?from=/upload.
+                  El wrapper tiene un bg propio + border-radius para no
+                  confundirse con el footer (que pinta el mismo navy oscuro
+                  abajo del sidebar). */}
+              <div className="menu2-sidebar-widget kiosqui-sidebar-cta mt-35">
                 <div className="work-process-single pos-rel">
                   <div className="work-process-content">
                     <div className="process-icon">
@@ -206,15 +214,44 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
                       />
                     </div>
                     <h4 className="process-title">
-                      <Link href="/upload">Publicá tu propiedad en minutos</Link>
+                      {user
+                        ? <Link href="/upload">Publicá tu propiedad en minutos</Link>
+                        : <Link href="/login?from=/upload">Sumate y publicá tu propiedad</Link>}
                     </h4>
                     <div className="work-process-btn">
-                      <Link className="fill-btn" href="/upload" onClick={closeSidebar}>
-                        {tActions("createPublication")}
-                      </Link>
+                      {user ? (
+                        <Link className="fill-btn" href="/upload" onClick={closeSidebar}>
+                          {tActions("createPublication")}
+                        </Link>
+                      ) : (
+                        <Link
+                          className="fill-btn"
+                          href="/login?from=/upload"
+                          onClick={closeSidebar}
+                        >
+                          Iniciar sesión
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
+                <style jsx>{`
+                  /* Separa visualmente el CTA del footer (que pinta el mismo
+                     navy oscuro debajo del sidebar). Le ponemos un bg
+                     ligeramente más claro y un radius para que se vea como
+                     una "tarjeta" propia. */
+                  :global(.kiosqui-sidebar-cta) {
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    border-radius: 12px;
+                    padding: 22px 18px;
+                  }
+                  :global(.kiosqui-sidebar-cta .process-title) {
+                    font-size: 17px;
+                    line-height: 1.4;
+                    margin-bottom: 16px;
+                  }
+                `}</style>
               </div>
             </div>
           </div>
