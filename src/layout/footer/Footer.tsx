@@ -132,9 +132,14 @@ const Footer = () => {
            el "escalón de color" debajo del footer, la solución correcta es
            pintar el body con el mismo color del footer en globals.css en
            lugar de hackear el footer mismo. */
+        /* Fase 24 polish (Aurelio reportó: "esta línea azul me disgusta"):
+           el border-top en rgba(255,255,255,0.06) rendereaba con una
+           tonalidad azulada por la mezcla con el navy del footer.
+           Sustituido por margen superior puro — la separación visual entre
+           las columnas y el copyright sigue siendo clara por el padding. */
         .kiosqui-footer-copyright {
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
           padding: 18px 0;
+          margin-top: 8px;
           font-size: 13.5px;
           opacity: 0.78;
         }
