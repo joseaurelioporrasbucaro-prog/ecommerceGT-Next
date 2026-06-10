@@ -6,6 +6,8 @@ import React, { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useToggleFavorite } from '@/hooks/api/useFavorites';
 import { getImageVariant } from '@/utils/imageVariants';
+// Fase 22 — URL canónica de publicación = slug (anti-enumeración + SEO).
+import { publicationPath } from '@/utils/publicationUrl';
 import type { AnyPublicationListItem } from '@/types/api';
 import PropertyFeatureIcon from './PropertyFeatureIcon';
 import {
@@ -131,7 +133,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
               </div>
 
               <Link
-                href={`/publications/${publication.id}`}
+                href={publicationPath(publication)}
                 style={{ position: 'absolute', inset: 0, display: 'block' }}
               >
                 <Image
@@ -176,7 +178,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
               </div>
 
               <h4 className="art-name publication-title">
-                <Link href={`/publications/${publication.id}`}>{publication.title}</Link>
+                <Link href={publicationPath(publication)}>{publication.title}</Link>
               </h4>
 
               {/* Precio + botón Ver propiedad */}
@@ -196,7 +198,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
                   </Link>
                 ) : (
                   <Link
-                    href={`/publications/${publication.id}`}
+                    href={publicationPath(publication)}
                     className="publication-view-btn"
                   >
                     {t('card.viewProperty')}

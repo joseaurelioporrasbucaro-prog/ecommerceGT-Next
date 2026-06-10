@@ -17,6 +17,9 @@ import { useMyCampaigns } from '@/hooks/api/useCampaigns'; // Fase 10.3
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { getImageVariant } from '@/utils/imageVariants';
+// Fase 22 — URL canónica = slug. Para acciones (edit) sigue usándose pub_id
+// porque son endpoints autenticados que toman ID interno.
+import { publicationPath } from '@/utils/publicationUrl';
 import type { MyPublicationItem, UserSearchResult, Campaign } from '@/types/api';
 import { CARD_PLACEHOLDER, formatPrice } from './publicationUtils';
 
@@ -325,7 +328,7 @@ const MyPublicationsMain = () => {
                       <article key={publication.pub_id} className="my-publication-row">
                         {/* Imagen — div con clases globales para que styled-jsx aplique a través del Link */}
                         <Link
-                          href={`/publications/${publication.pub_id}`}
+                          href={publicationPath(publication)}
                           className="my-publication-image-link"
                         >
                           <span className="my-publication-image-frame">
@@ -351,7 +354,7 @@ const MyPublicationsMain = () => {
 
                         <div className="my-publication-content">
                           <h4>
-                            <Link href={`/publications/${publication.pub_id}`}>
+                            <Link href={publicationPath(publication)}>
                               {publication.pub_title}
                             </Link>
                           </h4>

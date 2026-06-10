@@ -35,7 +35,11 @@ const CATEGORY_LABELS: Record<number, string> = {
 };
 
 const PublicationJsonLd: React.FC<Props> = ({ publication, siteUrl }) => {
-  const url = `${siteUrl}/publications/${publication.id}`;
+  // Fase 22 — URL canónica usa slug si está disponible, fallback al id.
+  // Schema.org JSON-LD lo lee Google: usar siempre la URL canónica del slug
+  // para que la indexación quede vinculada al URL final (no al numérico).
+  const segment = publication.slug || publication.id;
+  const url = `${siteUrl}/publications/${segment}`;
   const category =
     publication.categoryId != null
       ? CATEGORY_LABELS[publication.categoryId] ?? 'Propiedad'

@@ -13,6 +13,8 @@ import PublicationContent from './PublicationContent';
 import PublicationGallery from './PublicationGallery';
 import ReportPublicationButton from './ReportPublicationButton';
 import { getPublicationImagePath, getPublicationImagePathGlb } from './publicationUtils';
+// Fase 22 — URL canónica = slug. El viewer es público así que también va con slug.
+import { publicationIdentifier } from '@/utils/publicationUrl';
 import type { PublicationImage, PublicationImageGlb } from '@/types/api';
 
 interface PublicationDetailsMainProps {
@@ -103,7 +105,7 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
               {hasGlb && (
                 <>
                   <div className="action-row">
-                    <Link href={`/publications/${publication.pub_id}/viewer`} className="action-btn action-btn-primary">
+                    <Link href={`/publications/${publicationIdentifier(publication)}/viewer`} className="action-btn action-btn-primary">
                       <i className="fas fa-cube"></i>
                       <span>{t('detail.explore3d')}</span>
                     </Link>

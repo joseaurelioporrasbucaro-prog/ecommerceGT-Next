@@ -36,7 +36,12 @@ export async function generateMetadata(
   }
 
   const desc = (pub.description || '').slice(0, 160);
-  const url = `/publications/${pub.id}`;
+  // Fase 22 — canonical = URL con slug (no id numérico). El crawler de Google
+  // sigue el canonical para decidir qué URL indexa; queremos que indexe la
+  // versión seo-friendly. Si llegó por id legacy, el backend ya hizo 301 al
+  // slug, pero esta metadata refuerza el mensaje.
+  const canonicalSegment = pub.slug || pub.id;
+  const url = `/publications/${canonicalSegment}`;
 
   return {
     title: pub.title,
