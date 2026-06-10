@@ -17,29 +17,25 @@ const RankingDirectoryPanel: React.FC = () => {
   return (
     <div className="kiosqui-ranking-panel">
       <RankingExplainerBox
-        iconClass="fas fa-users"
-        title="Directorio de vendedores"
+        iconClass="fas fa-trophy"
+        title="Vendedores destacados"
         description={
           <>
-            Lista amplia ordenada por un{" "}
-            <strong>score compuesto</strong> que mezcla popularidad (seguidores,
-            vistas) con calidad (reseñas, calificación). Entra cualquier vendedor
-            que tenga al menos una publicación activa, incluso si todavía no
-            recibió reseñas. Útil para descubrir vendedores nuevos y consolidados
-            al mismo tiempo.
+            Top 20 vendedores <strong>ordenados del mejor al peor</strong> según
+            un score que mezcla popularidad (seguidores, vistas) con calidad
+            (reseñas, calificación). Entra cualquier vendedor con al menos una
+            publicación activa, incluso si todavía no recibió reseñas. La
+            posición de cada uno es su número en el ranking.
           </>
-        }
-        formula={
-          <>seguidores × 2 + reseñas × 5 + rating × 10 + vistas × 0.05</>
         }
       />
 
       {isLoading && (
-        <p style={{ opacity: 0.6 }}>Cargando directorio…</p>
+        <p style={{ opacity: 0.6 }}>Cargando vendedores destacados…</p>
       )}
       {!isLoading && sellers.length === 0 && (
         <p style={{ opacity: 0.6 }}>
-          Aún no hay vendedores en el directorio.
+          Aún no hay vendedores destacados.
         </p>
       )}
       <div className="row wow fadeInUp">

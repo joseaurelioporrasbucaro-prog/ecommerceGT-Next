@@ -14,7 +14,7 @@ import React from "react";
 // inicial. Google interpreta cualquiera como redirect y migra el sitio
 // canonical al destino.
 const CreatorsRedirect = ({ params }: { params: { locale: string } }) => {
-  redirect(`/${params.locale}/ranking?tab=directorio`);
+  redirect(`/${params.locale}/ranking?tab=destacados`);
 };
 
 export default CreatorsRedirect;

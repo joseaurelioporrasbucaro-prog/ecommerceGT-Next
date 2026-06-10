@@ -101,10 +101,11 @@ const Footer = () => {
                     <Link href="/publications">Propiedades</Link>
                   </li>
                   <li>
-                    {/* Fase 24 — Directorio + Ranking unificados en /ranking
-                        con tabs internas (?tab=directorio | ?tab=calificados).
-                        Las URLs viejas hacen redirect. */}
-                    <Link href="/ranking?tab=directorio">Directorio de vendedores</Link>
+                    {/* Fase 24 — Vendedores destacados + Mejor calificados
+                        unificados en /ranking con tabs internas
+                        (?tab=destacados | ?tab=calificados). Las URLs
+                        viejas hacen redirect. */}
+                    <Link href="/ranking?tab=destacados">Vendedores destacados</Link>
                   </li>
                   <li>
                     <Link href="/ranking?tab=calificados">Mejor calificados</Link>

@@ -28,12 +28,16 @@ import Breadcrumbs from "@/utils/Breadcrumbs";
 import RankingDirectoryPanel from "./RankingDirectoryPanel";
 import RankingRatedPanel from "./RankingRatedPanel";
 
-type TabKey = "directorio" | "calificados";
+type TabKey = "destacados" | "calificados";
 
-const DEFAULT_TAB: TabKey = "directorio";
-const VALID_TABS: ReadonlySet<TabKey> = new Set<TabKey>(["directorio", "calificados"]);
+const DEFAULT_TAB: TabKey = "destacados";
+const VALID_TABS: ReadonlySet<TabKey> = new Set<TabKey>(["destacados", "calificados"]);
 
+// Compat con la query-string anterior: ?tab=directorio (Fase 24 initial) sigue
+// siendo aceptada y mapea a destacados. Evita que un link viejo guardado en
+// algún lado abra la tab errónea.
 function parseTab(value: string | null): TabKey {
+  if (value === "directorio") return "destacados";
   if (value && VALID_TABS.has(value as TabKey)) return value as TabKey;
   return DEFAULT_TAB;
 }
@@ -76,7 +80,7 @@ const RankingUnifiedMain: React.FC = () => {
       <ThemeChanger />
       <Breadcrumbs
         breadcrumbTitle="Ranking de vendedores"
-        breadcrumbSubTitle="Directorio público + ranking por calificación"
+        breadcrumbSubTitle="Vendedores destacados + ranking por calificación"
       />
 
       <section className="kiosqui-ranking-section pt-90 pb-100">
@@ -86,12 +90,12 @@ const RankingUnifiedMain: React.FC = () => {
             <button
               role="tab"
               type="button"
-              aria-selected={activeTab === "directorio"}
-              className={`kiosqui-tab ${activeTab === "directorio" ? "is-active" : ""}`}
-              onClick={() => handleSelectTab("directorio")}
+              aria-selected={activeTab === "destacados"}
+              className={`kiosqui-tab ${activeTab === "destacados" ? "is-active" : ""}`}
+              onClick={() => handleSelectTab("destacados")}
             >
-              <i className="fas fa-users" aria-hidden="true" />
-              <span>Directorio</span>
+              <i className="fas fa-trophy" aria-hidden="true" />
+              <span>Vendedores destacados</span>
             </button>
             <button
               role="tab"
@@ -107,7 +111,7 @@ const RankingUnifiedMain: React.FC = () => {
 
           {/* Contenido de la tab activa */}
           <div className="kiosqui-ranking-tabpanels">
-            {activeTab === "directorio" && <RankingDirectoryPanel />}
+            {activeTab === "destacados" && <RankingDirectoryPanel />}
             {activeTab === "calificados" && <RankingRatedPanel />}
           </div>
         </div>

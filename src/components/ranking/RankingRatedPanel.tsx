@@ -34,9 +34,14 @@ const RankingSkeleton = () => (
   </>
 );
 
+// Fase 24 — top 20 para que ambas tabs muestren la misma cantidad. El backend
+// /sellers/ranking devuelve hasta 50, sliceamos client-side para no romper el
+// shape compartido entre /sellers/ranking público y otros consumidores del hook.
+const RATED_TOP_LIMIT = 20;
+
 const RankingRatedPanel: React.FC = () => {
   const rankingQuery = useSellerRanking();
-  const sellers = rankingQuery.data?.sellers ?? [];
+  const sellers = (rankingQuery.data?.sellers ?? []).slice(0, RATED_TOP_LIMIT);
 
   return (
     <div className="kiosqui-ranking-panel">
@@ -45,15 +50,15 @@ const RankingRatedPanel: React.FC = () => {
         title="Mejor calificados"
         description={
           <>
-            Podio <strong>estricto por calidad</strong>: solo aparecen vendedores
-            con <strong>al menos una reseña completada</strong> y se ordenan por{" "}
-            <strong>promedio de estrellas</strong>. Un vendedor con miles de
-            seguidores pero sin reseñas NO aparece acá — para verlo entrá a
-            "Directorio". Útil cuando querés decidir basándote 100% en feedback
-            verificado de compradores anteriores.
+            Top 20 vendedores <strong>ordenados estrictamente por
+            calificación</strong>: solo aparecen vendedores con al menos una
+            reseña completada y se ordenan por promedio de estrellas. Un
+            vendedor con muchos seguidores pero sin reseñas no aparece acá —
+            para verlo entrá a "Vendedores destacados". Útil cuando querés
+            decidir basándote 100% en feedback verificado de compradores
+            anteriores.
           </>
         }
-        formula={<>orden = AVG(rating_stars) DESC, requisito = reseñas ≥ 1</>}
       />
 
       <div className="rank-list-container wow fadeInUp">
