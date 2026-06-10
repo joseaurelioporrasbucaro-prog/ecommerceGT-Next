@@ -1,8 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import logoOne from "../../../public/assets/img/logo/oction-logo.png";
-import logoTwo from "../../../public/assets/img/logo/oction-logo-bw.png";
-import Image from "next/image";
+import KiosquiLogo from "@/components/common/KiosquiLogo";
 
 // Fase 22 — Footer KIOSQUI (Aurelio 2026-06-05).
 //
@@ -36,12 +34,11 @@ const Footer = () => {
             {/* Columna 1 — Marca */}
             <div className="col-lg-4 col-md-6 col-sm-12">
               <div className="footer-widget footer1-widget footer1-widget1 mb-30">
+                {/* Handoff #3 §5 — logo transparente 52px (swap por tema en
+                    KiosquiLogo; reemplaza el par logo-bb/logo-bw de Oction). */}
                 <div className="footer-logo mb-20">
-                  <Link className="logo-bb" href="/">
-                    <Image src={logoOne} alt="KIOSQUI" />
-                  </Link>
-                  <Link className="logo-bw" href="/">
-                    <Image src={logoTwo} alt="KIOSQUI" />
+                  <Link href="/">
+                    <KiosquiLogo height={52} />
                   </Link>
                 </div>
                 <p className="mb-25 kiosqui-footer-desc">
