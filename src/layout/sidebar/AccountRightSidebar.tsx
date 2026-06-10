@@ -8,6 +8,8 @@ import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
 import { stripLocalePath } from '@/utils/stripLocalePath';
+import { useMyFavorites } from '@/hooks/api/useFavorites';
+import { useUnreadMessagesCount } from '@/hooks/api/useMessages';
 
 interface AccountRightSidebarProps {
   menuOpen2: boolean;
@@ -20,6 +22,7 @@ interface AccountNavItem {
   icon: string;
   onClick?: () => void | Promise<void>;
   comingSoon?: boolean;
+  badge?: 'favorites' | 'messages';
 }
 
 /**
@@ -44,11 +47,27 @@ const ADMIN_ITEMS: AccountNavItem[] = [
   { href: '/admin/config', label: 'Configuración', icon: 'fal fa-cogs' },
 ];
 
+/** Pill contador (lavanda suave). Monta sus queries solo con el drawer
+ *  abierto — así no agregamos requests permanentes en cada página. */
+const FavoritesCountBadge = () => {
+  const { data } = useMyFavorites();
+  const count = data?.length ?? 0;
+  if (count === 0) return null;
+  return <span className="kq-acc-badge">{count}</span>;
+};
+
+const MessagesCountBadge = () => {
+  const { data } = useUnreadMessagesCount(true);
+  const count = data?.unreadCount ?? 0;
+  if (count === 0) return null;
+  return <span className="kq-acc-badge">{count}</span>;
+};
+
 /**
- * Sidebar derecho fijo para las páginas de cuenta (/favorites, /my-publications, etc.)
- * Reusa las clases `.sidebar-category-filter-wrapper` del scaffold:
- * en pantallas ≥1400px se queda visible permanentemente (right: 0).
- * En mobile se abre con el botón hamburguesa derecho del HeaderTwo.
+ * Handoff #3 §4 — drawer de cuenta. Desliza desde la IZQUIERDA (lo abre el
+ * avatar de perfil del header, que vive a la izquierda; el lado lo define
+ * `.sidebar-category-filter-wrapper` en _header.scss). El nombre del archivo
+ * se conserva por historia git — el "Right" ya no aplica.
  */
 const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarProps) => {
   const pathname = stripLocalePath(usePathname());
@@ -69,8 +88,8 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
       icon: 'fal fa-user',
     },
     { href: '/my-publications', label: 'Mis publicaciones', icon: 'fal fa-th-large' },
-    { href: '/favorites', label: 'Favoritos', icon: 'fal fa-heart' },
-    { href: '/messages', label: 'Mensajes', icon: 'fal fa-comments' },
+    { href: '/favorites', label: 'Favoritos', icon: 'fal fa-heart', badge: 'favorites' },
+    { href: '/messages', label: 'Mensajes', icon: 'fal fa-comments', badge: 'messages' },
     // "Configuraciones" → edición de info personal (privado)
     { href: '/creator-profile-info-personal', label: 'Configuraciones', icon: 'fal fa-cog' },
     // Fase 8 — planes (todos) y empresa (solo admins de empresa).
@@ -82,14 +101,6 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
         ]
       : []),
   ];
-
-  // "Cerrar sesión" va aparte al final para que las secciones de Soporte y
-  // Administración no lo entierren entre opciones de navegación.
-  const logoutItem: AccountNavItem = {
-    onClick: handleLogout,
-    label: 'Cerrar sesión',
-    icon: 'fal fa-sign-out',
-  };
 
   // Fase 19.7 — flags de visibilidad por rol.
   const isAdmin = user?.role === 'admin';
@@ -108,7 +119,7 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
         <li key={item.label}>
           <button
             type="button"
-            className="account-nav-link is-action"
+            className="account-nav-link is-logout"
             onClick={() => { void item.onClick?.(); }}
           >
             <i className={item.icon}></i>
@@ -122,9 +133,12 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
         <Link
           href={item.href ?? '#'}
           className={`account-nav-link ${isActive ? 'is-active' : ''}`}
+          onClick={() => setMenuOpen2(false)}
         >
           <i className={item.icon}></i>
           <span>{item.label}</span>
+          {menuOpen2 && item.badge === 'favorites' && <FavoritesCountBadge />}
+          {menuOpen2 && item.badge === 'messages' && <MessagesCountBadge />}
         </Link>
       </li>
     );
@@ -140,11 +154,12 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
         }
       >
         <div className="sidebar-category-filter account-right-sidebar">
-          {/* Botón cerrar (solo se ve en mobile cuando menuOpen2 está abierto) */}
-          <div className="filter-widget-close d-xxl-none mb-15">
+          {/* Head: título + cerrar (siempre visible — el drawer ya no es riel fijo) */}
+          <div className="kq-acc-head mb-20">
+            <h3 className="kq-acc-title">Mi cuenta</h3>
             <button
               type="button"
-              className="account-close-btn"
+              className="kq-acc-close"
               onClick={() => setMenuOpen2(false)}
               aria-label="Cerrar"
             >
@@ -181,7 +196,6 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           {/* Menú de cuenta */}
           <div className="filter-widget mb-20">
             <div className="filter-widget-content">
-              <h3 className="filter-widget-title">Mi cuenta</h3>
               <ul className="account-nav-list">
                 {items.map((item) => {
                   if (item.comingSoon) {
@@ -205,10 +219,7 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           {isSupport && (
             <div className="filter-widget mb-20">
               <div className="filter-widget-content">
-                <h3 className="filter-widget-title">
-                  <i className="fal fa-life-ring" style={{ marginRight: 6 }} />
-                  Soporte
-                </h3>
+                <h3 className="kq-acc-section-title">Soporte</h3>
                 <ul className="account-nav-list">
                   {SUPPORT_ITEMS.map(renderItem)}
                 </ul>
@@ -220,10 +231,7 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           {isAdmin && (
             <div className="filter-widget mb-20">
               <div className="filter-widget-content">
-                <h3 className="filter-widget-title">
-                  <i className="fal fa-tools" style={{ marginRight: 6 }} />
-                  Administración
-                </h3>
+                <h3 className="kq-acc-section-title">Administración</h3>
                 <ul className="account-nav-list">
                   {ADMIN_ITEMS.map(renderItem)}
                 </ul>
@@ -231,43 +239,73 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
             </div>
           )}
 
-          {/* Cerrar sesión — siempre al final, separado visualmente. */}
-          <div className="filter-widget">
-            <div className="filter-widget-content">
-              <ul className="account-nav-list">
-                {renderItem(logoutItem)}
-              </ul>
-            </div>
+          {/* Cerrar sesión — siempre al final, en rojo (handoff #3 §4). */}
+          <div className="kq-acc-foot">
+            <ul className="account-nav-list">
+              {renderItem({
+                onClick: handleLogout,
+                label: 'Cerrar sesión',
+                icon: 'fal fa-sign-out',
+              })}
+            </ul>
           </div>
         </div>
       </div>
 
       <style jsx>{`
-        .account-right-sidebar :global(.account-close-btn) {
-          background: transparent;
-          border: 0;
+        .account-right-sidebar {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          padding: 20px;
+        }
+        .account-right-sidebar :global(.kq-acc-head),
+        .kq-acc-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .kq-acc-title {
+          font-family: var(--font-display);
+          font-weight: 700;
           font-size: 18px;
+          color: var(--fg-strong);
+          margin: 0;
+        }
+        .account-right-sidebar :global(.kq-acc-close) {
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          background: var(--surface, #fff);
+          color: var(--fg-strong);
+          font-size: 15px;
           cursor: pointer;
-          color: inherit;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+        }
+        .account-right-sidebar :global(.kq-acc-close:hover) {
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
         .account-right-sidebar :global(.account-user-card) {
-          padding: 18px 14px;
-          background: rgba(108, 92, 231, 0.08);
-          border: 1px solid rgba(108, 92, 231, 0.2);
-          border-radius: 12px;
+          padding: 22px 16px;
+          background: var(--accent-soft, #ebe8fb);
+          border: 1px solid var(--lav-300, #ddd8f8);
+          border-radius: 20px;
           text-align: center;
+        }
+        :global([data-theme='dark']) .account-right-sidebar :global(.account-user-card) {
+          border-color: rgba(181, 172, 239, 0.25);
         }
         .account-right-sidebar :global(.account-user-avatar) {
           width: 64px;
           height: 64px;
           border-radius: 50%;
-          background: rgba(108, 92, 231, 0.18);
-          color: var(--tp-theme-1, #6c5ce7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 10px;
-          font-size: 26px;
+          margin: 0 auto 12px;
           overflow: hidden;
         }
         .account-right-sidebar :global(.account-user-avatar img) {
@@ -277,13 +315,26 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           border-radius: 50%;
         }
         .account-right-sidebar :global(.account-user-name) {
+          font-family: var(--font-display);
           font-weight: 700;
-          font-size: 15px;
+          font-size: 17px;
+          color: var(--fg-strong);
         }
         .account-right-sidebar :global(.account-user-handle) {
           font-size: 13px;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--accent-hover, #8a7fe3);
           margin-top: 2px;
+        }
+        .kq-acc-section-title {
+          font-family: var(--font-display);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--fg-subtle, #9aa0a8);
+          margin: 0 0 8px;
+          border-top: 1px solid var(--border, #e6ddcf);
+          padding-top: 16px;
         }
         .account-right-sidebar :global(.account-nav-list) {
           list-style: none;
@@ -291,40 +342,72 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 3px;
         }
         .account-right-sidebar :global(.account-nav-link) {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 10px 14px;
-          border-radius: 8px;
+          gap: 13px;
+          padding: 11px 13px;
+          border-radius: 10px;
           background: transparent;
-          color: inherit;
+          color: var(--fg-muted, #5c616a);
           text-decoration: none;
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
           border: 0;
-          transition: all 0.18s ease;
+          transition: all 0.15s;
           width: 100%;
           text-align: left;
         }
         .account-right-sidebar :global(.account-nav-link i) {
-          width: 18px;
+          width: 20px;
           font-size: 16px;
+          text-align: center;
           flex-shrink: 0;
+          color: var(--fg-subtle, #9aa0a8);
+          transition: color 0.15s;
         }
         .account-right-sidebar :global(.account-nav-link span) {
-          flex: 1;
+          flex: 0 1 auto;
         }
-        .account-right-sidebar :global(.account-nav-link:hover:not(.is-coming-soon)) {
-          background: rgba(108, 92, 231, 0.1);
-          color: var(--tp-theme-1, #6c5ce7);
+        .account-right-sidebar :global(.account-nav-link:hover:not(.is-coming-soon):not(.is-logout)) {
+          background: var(--accent-soft, #ebe8fb);
+          color: var(--lav-700, #6d62cf);
+        }
+        .account-right-sidebar :global(.account-nav-link:hover:not(.is-coming-soon):not(.is-logout) i) {
+          color: var(--lav-700, #6d62cf);
+        }
+        :global([data-theme='dark']) .account-right-sidebar :global(.account-nav-link:hover:not(.is-coming-soon):not(.is-logout)) {
+          color: var(--lav-300, #ddd8f8);
         }
         .account-right-sidebar :global(.account-nav-link.is-active) {
-          background: var(--tp-theme-1, #6c5ce7);
-          color: #fff !important;
+          background: var(--navy-800, #1e2d4a);
+          color: var(--cream, #f8f4ee);
+        }
+        .account-right-sidebar :global(.account-nav-link.is-active i) {
+          color: var(--green-400, #b0d56e);
+        }
+        :global([data-theme='dark']) .account-right-sidebar :global(.account-nav-link.is-active) {
+          background: var(--lav-500, #b5acef);
+          color: var(--navy-900, #161f33);
+        }
+        :global([data-theme='dark']) .account-right-sidebar :global(.account-nav-link.is-active i) {
+          color: var(--navy-900, #161f33);
+        }
+        .account-right-sidebar :global(.kq-acc-badge) {
+          margin-left: auto;
+          background: var(--lav-200, #ebe8fb);
+          color: var(--lav-700, #6d62cf);
+          font-size: 11.5px;
+          font-weight: 700;
+          padding: 1px 8px;
+          border-radius: 999px;
+        }
+        :global([data-theme='dark']) .account-right-sidebar :global(.kq-acc-badge) {
+          background: rgba(181, 172, 239, 0.22);
+          color: var(--lav-300, #ddd8f8);
         }
         .account-right-sidebar :global(.account-nav-link.is-coming-soon) {
           opacity: 0.55;
@@ -337,6 +420,20 @@ const AccountRightSidebar = ({ menuOpen2, setMenuOpen2 }: AccountRightSidebarPro
           border-radius: 10px;
           font-weight: 700;
           flex: 0 0 auto;
+        }
+        .kq-acc-foot {
+          margin-top: auto;
+          border-top: 1px solid var(--border, #e6ddcf);
+          padding-top: 14px;
+        }
+        .account-right-sidebar :global(.account-nav-link.is-logout) {
+          color: var(--danger, #cf4a4a);
+        }
+        .account-right-sidebar :global(.account-nav-link.is-logout i) {
+          color: var(--danger, #cf4a4a);
+        }
+        .account-right-sidebar :global(.account-nav-link.is-logout:hover) {
+          background: var(--danger-bg, #f8e4e4);
         }
       `}</style>
     </div>
