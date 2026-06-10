@@ -2,6 +2,7 @@ import PublicationDetailsMain from '@/components/publications/PublicationDetails
 import PublicationJsonLd from '@/components/publications/PublicationJsonLd';
 import Wrapper from '@/layout/DefaultWrapper';
 import { fetchPublicationForSEO } from '@/utils/publicationSeo';
+import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import React from 'react';
 
@@ -38,8 +39,8 @@ export async function generateMetadata(
   const desc = (pub.description || '').slice(0, 160);
   // Fase 22 — canonical = URL con slug (no id numérico). El crawler de Google
   // sigue el canonical para decidir qué URL indexa; queremos que indexe la
-  // versión seo-friendly. Si llegó por id legacy, el backend ya hizo 301 al
-  // slug, pero esta metadata refuerza el mensaje.
+  // versión seo-friendly. El redirect real al slug lo hace el page component
+  // (abajo) vía next/navigation redirect().
   const canonicalSegment = pub.slug || pub.id;
   const url = `/publications/${canonicalSegment}`;
 
@@ -66,13 +67,28 @@ export async function generateMetadata(
 }
 
 const PublicationDetailsPage = async (
-  { params }: { params: { id: string } },
+  { params }: { params: { id: string; locale: string } },
 ) => {
   // Fase 18.1 — re-fetch para JSON-LD. La cache de Next deduplica con la
   // llamada de generateMetadata (mismo URL, mismas opciones), así que NO
   // hace doble request. El JSON-LD viaja en SSR directamente al HTML
   // inicial — Google y otros crawlers lo ven sin necesidad de JS.
   const pub = await fetchPublicationForSEO(params.id);
+
+  // Fase 24 fix (2026-06-10): redirect a la URL canónica con slug.
+  // ANTES esto lo hacía el BACKEND con 301, pero eso rompía el fetch del SPA
+  // (el navegador seguía el redirect del API a otro origen → CORS blocked).
+  // Ahora el redirect lo hace Next acá: si el param de URL es un ID numérico
+  // legacy y la publicación tiene slug, redirigimos la NAVEGACIÓN del browser
+  // al slug. El fetch del API nunca redirige (devuelve 200 con los datos).
+  //
+  // redirect() de next/navigation lanza un error especial que Next convierte
+  // en redirect HTTP/cliente. No hay loop: tras redirigir, el param es el slug
+  // (no numérico) y esta condición ya no se cumple.
+  const isNumericId = /^\d+$/.test(params.id);
+  if (isNumericId && pub?.slug) {
+    redirect(`/${params.locale}/publications/${pub.slug}`);
+  }
 
   return (
     <Wrapper>
