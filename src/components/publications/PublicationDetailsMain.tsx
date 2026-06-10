@@ -88,43 +88,6 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
               </Link>
             </div>
           </div>
-          <style jsx>{`
-            /* min-height generoso para que el footer NO flote hasta arriba
-               cuando el contenido es solo el mensaje de error. */
-            :global(.kiosqui-detail-state) {
-              min-height: 60vh;
-            }
-            .kiosqui-detail-error {
-              align-items: center;
-              display: flex;
-              flex-direction: column;
-              gap: 12px;
-              text-align: center;
-              padding: 40px 20px;
-            }
-            .kiosqui-detail-error i {
-              color: var(--clr-theme-1, #2785ff);
-              font-size: 42px;
-            }
-            .kiosqui-detail-error h3 {
-              margin: 8px 0 0;
-            }
-            .kiosqui-detail-error p {
-              margin: 0;
-              opacity: 0.7;
-            }
-            .kiosqui-detail-error :global(.kiosqui-detail-error-btn) {
-              align-items: center;
-              background: var(--clr-theme-1, #2785ff);
-              border-radius: 10px;
-              color: #fff;
-              display: inline-flex;
-              gap: 8px;
-              margin-top: 10px;
-              padding: 11px 22px;
-              font-weight: 600;
-            }
-          `}</style>
         </section>
       )}
 
@@ -163,6 +126,45 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
         </>
       )}
       <style jsx>{`
+        /* ──────────────── Estados controlados (Fase 24) ────────────────
+           min-height para que el footer NO flote hasta arriba cuando solo
+           hay loading o el mensaje de error. Estos estilos van en el ÚNICO
+           <style jsx> del componente: styled-jsx (SWC) panickea si hay un
+           segundo bloque dentro de un condicional. */
+        :global(.kiosqui-detail-state) {
+          min-height: 60vh;
+        }
+        .kiosqui-detail-error {
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          text-align: center;
+          padding: 40px 20px;
+        }
+        .kiosqui-detail-error i {
+          color: var(--clr-theme-1, #2785ff);
+          font-size: 42px;
+        }
+        .kiosqui-detail-error h3 {
+          margin: 8px 0 0;
+        }
+        .kiosqui-detail-error p {
+          margin: 0;
+          opacity: 0.7;
+        }
+        .kiosqui-detail-error :global(.kiosqui-detail-error-btn) {
+          align-items: center;
+          background: var(--clr-theme-1, #2785ff);
+          border-radius: 10px;
+          color: #fff;
+          display: inline-flex;
+          gap: 8px;
+          margin-top: 10px;
+          padding: 11px 22px;
+          font-weight: 600;
+        }
+
         /* ──────────────── Acciones — los 3 botones alineados ────────────────
            Usamos :global() porque styled-jsx no scope clases en <Link> de Next.
            Sin :global el botón "Ver vendedor" pierde estilos y queda como texto plano. */
