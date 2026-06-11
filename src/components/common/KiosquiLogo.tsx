@@ -24,7 +24,7 @@ export default function KiosquiLogo({ height = 32, variant = 'auto', className }
       src={src}
       alt="Kiosqui"
       height={height}
-      width={Math.round(height * 3.4)}
+      width={Math.round(height * 5.29)}
       className={className}
       style={{ height, width: 'auto' }}
       priority

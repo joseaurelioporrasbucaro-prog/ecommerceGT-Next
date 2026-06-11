@@ -1,6 +1,6 @@
 {
   "hero": {
-    "titlePrefix": "The home you are looking for, in",
+    "titlePrefix": "The home you are looking for,",
     "titleAccent": "3D",
     "subtitle": "Explore the 3D model of each property and deal directly with DPI-verified owners. No hidden intermediaries.",
     "searchPlaceholder": "Search by zone, department, address...",
@@ -17,7 +17,8 @@
       "viewer": "3D viewer to tour the property",
       "messages": "Direct messaging with the owner"
     },
-    "titleSuffix": "and without middlemen"
+    "titleSuffix": "and without middlemen",
+    "titleMid": "in"
   },
   "categories": {
     "title": "Explore by property type",

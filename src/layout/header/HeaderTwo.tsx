@@ -23,7 +23,12 @@ import { Link } from "@/i18n/navigation";
  * derecha abre el panel derecho — en todos los anchos (ya no hay rieles
  * fijos en xxl).
  */
-const HeaderTwo = () => {
+interface HeaderTwoProps {
+  /** Handoff #5 §3 — variante densa para /messages: sin buscador, logo 32px. */
+  compact?: boolean;
+}
+
+const HeaderTwo = ({ compact = false }: HeaderTwoProps) => {
   const { setTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
 
@@ -73,14 +78,16 @@ const HeaderTwo = () => {
               )}
 
               <Link href="/" className="kq-nav-logo" aria-label="Inicio">
-                <KiosquiLogo height={48} />
+                <KiosquiLogo height={compact ? 32 : 40} />
               </Link>
 
               {/* Buscador pill — reemplaza los links de navegación */}
-              <HeaderSearch
-                className="kq-nav-search d-none d-md-block"
-                placeholder="Buscar por zona, ciudad, colonia…"
-              />
+              {!compact && (
+                <HeaderSearch
+                  className="kq-nav-search d-none d-md-block"
+                  placeholder="Buscar por zona, ciudad, colonia…"
+                />
+              )}
 
               <div className="kq-nav-cta">
                 <LanguageSwitcher className="header-lang d-none d-sm-inline-flex" />
@@ -167,8 +174,8 @@ const HeaderTwo = () => {
         .kq-nav-inner {
           display: flex;
           align-items: center;
-          gap: 16px;
-          height: 80px;
+          gap: 20px;
+          height: 84px;
         }
         .kq-nav :global(.kq-nav-logo) {
           display: inline-flex;
@@ -207,6 +214,7 @@ const HeaderTwo = () => {
         .kq-nav :global(.kq-nav-search) {
           flex: 1;
           max-width: 440px;
+          margin-left: 6px;
         }
         .kq-nav :global(.kq-nav-search form.header-search) {
           display: flex;
@@ -218,6 +226,9 @@ const HeaderTwo = () => {
           border: 1.5px solid var(--border-strong, #d4c8b6);
           border-radius: 999px;
           transition: border-color 0.15s, box-shadow 0.15s;
+          /* El template posiciona el botón-lupa absoluto y se traslapa con el
+             input — acá vuelve al flujo y pasa a la IZQUIERDA (como landing). */
+          position: relative;
         }
         .kq-nav :global(.kq-nav-search form.header-search:focus-within) {
           border-color: var(--accent, #b5acef);
@@ -238,6 +249,13 @@ const HeaderTwo = () => {
           color: var(--fg-subtle, #9aa0a8);
         }
         .kq-nav :global(.kq-nav-search form.header-search button) {
+          order: -1;
+          position: static !important;
+          top: auto;
+          right: auto;
+          transform: none;
+          width: auto;
+          height: auto;
           border: none;
           background: transparent;
           color: var(--fg-subtle, #9aa0a8);
@@ -245,6 +263,7 @@ const HeaderTwo = () => {
           padding: 0;
           line-height: 1;
           cursor: pointer;
+          flex-shrink: 0;
         }
         .kq-nav-cta {
           margin-left: auto;
@@ -314,11 +333,11 @@ const HeaderTwo = () => {
         }
         @media (max-width: 991px) {
           .kq-nav-inner {
-            height: 64px;
+            height: 60px;
             gap: 12px;
           }
           .kq-nav :global(.kq-nav-logo img) {
-            height: 40px !important;
+            height: 30px !important;
           }
         }
       `}</style>

@@ -5,15 +5,15 @@ import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 
-const LOCALES: Array<{ locale: AppLocale; label: string; title: string }> = [
-  { locale: 'es', label: 'ES', title: 'Cambiar a español' },
-  { locale: 'en', label: 'EN', title: 'Cambiar a inglés' },
-];
-
 interface LanguageSwitcherProps {
   className?: string;
 }
 
+/**
+ * Handoff #4 §1.5 — selector de idioma con el mismo lenguaje visual del theme
+ * toggle: botón circular con el código del locale ACTIVO; al clickearlo cambia
+ * al otro (solo hay es/en). La lógica de routing (next-intl) queda intacta.
+ */
 export default function LanguageSwitcher({
   className = '',
 }: LanguageSwitcherProps) {
@@ -22,76 +22,57 @@ export default function LanguageSwitcher({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const activeLocale: AppLocale = locale === 'en' ? 'en' : 'es';
+  const nextLocale: AppLocale = activeLocale === 'es' ? 'en' : 'es';
 
-  const changeLocale = (nextLocale: AppLocale) => {
-    if (nextLocale === activeLocale || isPending) return;
-
+  const toggleLocale = () => {
+    if (isPending) return;
     startTransition(() => {
       router.replace(pathname, { locale: nextLocale });
     });
   };
 
   return (
-    <div
-      className={`i18n-language-switcher ${className}`.trim()}
-      aria-label="Selector de idioma"
+    <button
+      type="button"
+      className={`kq-lang-switch ${className}`.trim()}
+      onClick={toggleLocale}
+      disabled={isPending}
+      title={nextLocale === 'en' ? 'Switch to English' : 'Cambiar a español'}
+      aria-label="Cambiar idioma"
     >
-      {LOCALES.map((item, index) => (
-        <span className="i18n-language-option" key={item.locale}>
-          {index > 0 && <span className="i18n-language-separator">|</span>}
-          <button
-            type="button"
-            className={activeLocale === item.locale ? 'is-active' : ''}
-            onClick={() => changeLocale(item.locale)}
-            disabled={isPending}
-            title={item.title}
-            aria-pressed={activeLocale === item.locale}
-          >
-            {item.label}
-          </button>
-        </span>
-      ))}
+      {activeLocale.toUpperCase()}
 
       <style jsx>{`
-        .i18n-language-switcher {
-          align-items: center;
-          font-size: 15px;
-          font-weight: 700;
-          line-height: 1;
-          white-space: nowrap;
-        }
-
-        .i18n-language-option {
-          align-items: center;
-          display: inline-flex;
-        }
-
-        .i18n-language-switcher :global(button) {
-          background: transparent;
-          border: 0;
-          color: inherit;
+        .kq-lang-switch {
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          background: var(--surface, #fff);
+          color: var(--fg-strong);
           cursor: pointer;
-          font: inherit;
-          padding: 0;
-          transition: color 0.2s ease, opacity 0.2s ease;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--font-display);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          transition: all 0.15s;
         }
-
-        .i18n-language-switcher :global(button:hover),
-        .i18n-language-switcher :global(button.is-active) {
-          color: var(--tp-theme-1, #5a5af2);
+        .kq-lang-switch:hover {
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
-
-        .i18n-language-switcher :global(button:disabled) {
+        :global([data-theme='dark']) .kq-lang-switch:hover {
+          color: var(--lav-400);
+        }
+        .kq-lang-switch:disabled {
+          opacity: 0.5;
           cursor: wait;
-          opacity: 0.72;
-        }
-
-        .i18n-language-separator {
-          color: rgba(128, 128, 128, 0.55);
-          display: inline-block;
-          margin: 0 8px;
         }
       `}</style>
-    </div>
+    </button>
   );
 }

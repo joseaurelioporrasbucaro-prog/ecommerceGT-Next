@@ -1,6 +1,6 @@
 {
   "hero": {
-    "titlePrefix": "La casa que buscás, en",
+    "titlePrefix": "La casa que buscás,",
     "titleAccent": "3D",
     "subtitle": "Recorré el modelo 3D de cada inmueble y tratá directo con propietarios verificados con DPI. Sin intermediarios escondidos.",
     "searchPlaceholder": "Buscar por zona, departamento, direccion...",
@@ -17,7 +17,8 @@
       "viewer": "Visor 3D para recorrer la propiedad",
       "messages": "Mensajeria directa con el propietario"
     },
-    "titleSuffix": "y sin intermediarios"
+    "titleSuffix": "y sin intermediarios",
+    "titleMid": "en"
   },
   "categories": {
     "title": "Explora por tipo de propiedad",

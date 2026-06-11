@@ -95,7 +95,7 @@ const SidebarMenuSection = ({ setMenuOpen1, menuOpen1 }: propsType) => {
               {/* Head: logo transparente 38px + cerrar */}
               <div className="kq-drawer-head mb-25">
                 <Link href="/" onClick={closeSidebar} aria-label="Inicio">
-                  <KiosquiLogo height={38} />
+                  <KiosquiLogo height={30} />
                 </Link>
                 <button
                   type="button"
