@@ -1,22 +1,10 @@
 import React from "react";
-import { useTranslations } from "next-intl";
-import ThemeChanger from "../home/ThemeChanger";
-import Breadcrumbs from "@/utils/Breadcrumbs";
 import SignUpContent from "./SignUpContent";
 
+// Handoff #5 — /register es AuthShell a pantalla completa: sin Breadcrumbs
+// ni ThemeChanger flotante del template.
 const SignUpMain = () => {
-  const t = useTranslations("auth");
-  return (
-    <>
-      <ThemeChanger />
-
-      <Breadcrumbs
-        breadcrumbTitle={t("register.title")}
-        breadcrumbSubTitle={t("register.title")}
-      />
-      <SignUpContent />
-    </>
-  );
+  return <SignUpContent />;
 };
 
 export default SignUpMain;
