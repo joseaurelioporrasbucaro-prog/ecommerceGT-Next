@@ -16,6 +16,11 @@ interface PublicCategoriesSidebarProps {
 }
 
 /**
+ * @deprecated Handoff #4 §1.2 (2026-06-10) — RETIRADO por decisión de diseño:
+ * su contenido lo cubren los chips del hero y el CTA del drawer de navegación.
+ * Se conserva el archivo por si analytics pide recuperar categorías visibles;
+ * ya no tiene ningún trigger en la app.
+ *
  * Sidebar derecho cuando el usuario NO está logueado.
  * Muestra las categorías de publicaciones (Casa, Apartamento, Terreno, etc.)
  * + CTAs para iniciar sesión / registrarse.

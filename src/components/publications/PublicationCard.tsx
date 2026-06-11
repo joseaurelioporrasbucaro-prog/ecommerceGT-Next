@@ -20,6 +20,9 @@ import {
   getPublicationListAllImagesGlb,
   getStatusBadge,
   isLandCategory,
+  PUBSTA_DRAFT,
+  PUBSTA_SOLD,
+  PUBSTA_VOID,
   isPublicationListItemAuth,
 } from './publicationUtils';
 
@@ -66,6 +69,12 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
     draft: t('status.draft'),
     void: t('status.void'),
   });
+  // Handoff #4 §1.4 — clase de estado para el punto de color del frosted.
+  const statusClass =
+    publication.pubstaId === PUBSTA_SOLD ? 'st-vendida'
+    : publication.pubstaId === PUBSTA_DRAFT ? 'st-borrador'
+    : publication.pubstaId === PUBSTA_VOID ? 'st-anulada'
+    : '';
 
   // Solo municipio (town). Si no hay, fallback a city.
   const locationLabel = publication.town || publication.city || t('card.noLocation');
@@ -111,10 +120,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
               {/* Stack vertical de badges: pueden mostrarse varios a la vez. */}
               <div className="publication-badges">
                 {statusBadge && (
-                  <div
-                    className="publication-status-badge"
-                    style={{ '--status-dot': statusBadge.color } as React.CSSProperties}
-                  >
+                  <div className={`publication-status-badge ${statusClass}`}>
                     {statusBadge.label}
                   </div>
                 )}
@@ -306,8 +312,29 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background: var(--status-dot, var(--green-600, #84ad3f));
+            background: var(--green-600, #84ad3f);
             flex-shrink: 0;
+          }
+          /* Handoff #4 §1.4 — punto por estado. */
+          .publication-card :global(.publication-status-badge.st-vendida)::before {
+            background: var(--navy-500, #45598a);
+          }
+          .publication-card :global(.publication-status-badge.st-borrador)::before {
+            background: var(--ink-400, #9aa0a8);
+          }
+          .publication-card :global(.publication-status-badge.st-anulada)::before {
+            background: var(--danger, #cf4a4a);
+          }
+          /* Dark: el frosted se vuelve vidrio oscuro (los únicos badges
+             "brillantes" siguen siendo Destacado/Nuevo). */
+          :global([data-theme='dark']) .publication-card :global(.publication-status-badge) {
+            background: rgba(19, 26, 45, 0.72);
+            color: var(--cream, #f8f4ee);
+            border: 1px solid rgba(248, 244, 238, 0.18);
+            box-shadow: none;
+          }
+          :global([data-theme='dark']) .publication-card :global(.publication-status-badge.st-vendida)::before {
+            background: var(--navy-300, #9aa8c6);
           }
           .publication-card :global(.publication-featured-badge),
           .publication-card :global(.publication-new-badge) {

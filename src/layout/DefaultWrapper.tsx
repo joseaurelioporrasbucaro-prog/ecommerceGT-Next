@@ -1,22 +1,18 @@
 //@refresh
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 if (typeof window !== "undefined") {
   require("bootstrap/dist/js/bootstrap");
 }
 import { usePathname } from "next/navigation";
 import Footer from "./footer/Footer";
 import FooterTwo from "../layout/footer/footerTwo";
-import HeaderOne from "./header/HeaderOne";
 import HeaderTwo from "./header/HeaderTwo";
-import AccountRightSidebar from "./sidebar/AccountRightSidebar";
-import PublicCategoriesSidebar from "./sidebar/PublicCategoriesSidebar";
 import { ThemeProvider } from "next-themes";
 import BacktoTop from "@/utils/BacktoTop";
 import useLoading from "@/hooks/useLoading";
 import { animationCreate } from "@/utils/utils";
 import Preloader from "@/utils/Preloader";
-import { useAuth } from "@/utils/AuthContext";
 import { stripLocalePath } from "@/utils/stripLocalePath";
 
 interface WrapperProps {
@@ -81,49 +77,21 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
     );
   }
 
-  // Rutas con navbar arriba (ej. /messages): HeaderOne + sidebar derecho,
-  // sin footer (la pantalla del chat ocupa todo el viewport, sin scroll).
-  // El sidebar izquierdo se omite para aprovechar el ancho completo.
+  // Handoff #4 §1.3 — un solo header en toda la app: /messages usa HeaderTwo
+  // en variante `compact` (sin buscador, logo 32px) y sin footer (el chat
+  // ocupa el viewport completo). HeaderOne y el riel derecho quedan retirados.
   if (usesTopNav) {
     return (
       <ThemeProvider defaultTheme="dark">
         <BacktoTop />
-        <div className={`app-layout no-footer ${showRightSidebar ? 'has-right-sidebar' : ''}`}>
-          <HeaderOne HeaderStatic="" />
+        <div className="app-layout no-footer">
+          <HeaderTwo compact />
           {children}
-          <RightSidebarSlot />
         </div>
 
         <style jsx global>{`
           .app-layout.no-footer {
             overflow: hidden;
-          }
-          /* Handoff #3: ya no hay rieles fijos — los sidebars son drawers
-             overlay en todos los anchos (ver _header.scss), así que no se
-             reserva espacio lateral. En /messages el drawer de cuenta queda
-             sin disparador (HeaderOne no tiene avatar): TODO(design). */
-          /* HeaderOne en /messages — el menú horizontal de 4 ítems + búsqueda
-             + idioma/bell/tema se parte en 2 filas si la búsqueda crece antes
-             de que haya ancho. A 1600px entra el padding-right:275 (sidebar) y
-             el área cae a ~1325px; mantenemos la búsqueda angosta (180px) hasta
-             1699 y recién a 1700+ —donde ya sobra espacio— la ensanchamos. */
-          @media (min-width: 1200px) and (max-width: 1699px) {
-            .header1 .filter-search-input.header-search {
-              width: 180px !important;
-              max-width: 180px !important;
-            }
-            .main-menu1 {
-              margin-right: 20px !important;
-            }
-          }
-          @media (min-width: 1700px) and (max-width: 1851px) {
-            .header1 .filter-search-input.header-search {
-              width: 220px !important;
-              max-width: 220px !important;
-            }
-            .main-menu1 {
-              margin-right: 30px !important;
-            }
           }
         `}</style>
       </ThemeProvider>
@@ -149,19 +117,6 @@ const Wrapper: React.FC<WrapperProps> = ({ children }) => {
           que el contenido vuelve a ancho completo sin reservas laterales. */}
     </ThemeProvider>
   );
-};
-
-/**
- * Renderiza el sidebar derecho cuando se usa HeaderOne (que no lo incluye).
- * Local state porque HeaderOne no tiene un toggle para él — en pantallas
- * ≥1400px se ve siempre; abajo de eso queda oculto (acceptable porque
- * la pantalla de mensajes prioriza el chat en móvil).
- */
-const RightSidebarSlot: React.FC = () => {
-  const { user } = useAuth();
-  const [menuOpen2, setMenuOpen2] = useState(false);
-  const SidebarComponent = user ? AccountRightSidebar : PublicCategoriesSidebar;
-  return <SidebarComponent menuOpen2={menuOpen2} setMenuOpen2={setMenuOpen2} />;
 };
 
 export default Wrapper;
