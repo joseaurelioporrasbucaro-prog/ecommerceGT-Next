@@ -34,8 +34,8 @@
   /* ---------- HEADER (translucent sticky) ---------- */
   .nav{position:sticky;top:0;z-index:50;background:rgba(255,253,249,.85);
     backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
-  .nav-inner{display:flex;align-items:center;gap:20px;height:80px}
-  .nav-logo{height:48px}
+  .nav-inner{display:flex;align-items:center;gap:20px;height:84px}
+  .nav-logo{height:40px}
   .nav-search{flex:1;max-width:440px;display:flex;align-items:center;gap:10px;
     height:44px;padding:0 18px;margin-left:6px;
     background:var(--surface);border:1.5px solid var(--border-strong);
@@ -373,7 +373,7 @@
   .footer{background:var(--ink-900);color:var(--cream);padding:64px 0 0}
   .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;
     gap:40px;margin-bottom:44px}
-  .footer-logo{height:52px;margin-bottom:16px}
+  .footer-logo{height:40px;margin-bottom:16px}
   .footer-tag{font:var(--text-body-sm);color:rgba(248,244,238,.65);max-width:280px;margin:0}
   .footer-col h5{font:var(--text-label);color:var(--cream);
     margin:0 0 16px}
@@ -450,6 +450,24 @@
   .theme-toggle .fa-sun{display:none}
   [data-theme="dark"] .theme-toggle .fa-moon{display:none}
   [data-theme="dark"] .theme-toggle .fa-sun{display:block}
+  .lang-switch{font-family:var(--font-display);font-weight:700;font-size:12px;
+    letter-spacing:.04em}
+
+  /* ---------- Badges de estado neutro/negativo (Vendida, Borrador, Anulada) ----------
+     Frosted + punto de color del estado. Mismo estilo en light y dark
+     (en dark el frosted se oscurece). Destacado/Nuevo NO usan esto. */
+  .pub-tag.st-vendida::before{background:var(--navy-500)}
+  .pub-tag.st-borrador::before{background:var(--ink-400)}
+  .pub-tag.st-anulada::before{background:var(--danger)}
+  [data-theme="dark"] .pub-tag.st-vendida,
+  [data-theme="dark"] .pub-tag.st-borrador,
+  [data-theme="dark"] .pub-tag.st-anulada{
+    background:rgba(19,26,45,.72);color:var(--cream);
+    border:1px solid rgba(248,244,238,.18);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:none}
+  [data-theme="dark"] .pub-tag.st-vendida::before{background:var(--navy-300)}
+  [data-theme="dark"] .pub-tag.st-borrador::before{background:var(--ink-400)}
+  [data-theme="dark"] .pub-tag.st-anulada::before{background:var(--danger)}
 
   /* ---------- ICON BUTTONS (hamburguesa, campana) ---------- */
   .icon-btn{width:40px;height:40px;border-radius:var(--r-pill);
@@ -494,7 +512,7 @@
   .drawer-left.open,.drawer-right.open{transform:translateX(0)}
 
   .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .drawer-logo{height:38px}
+  .drawer-logo{height:30px}
   .drawer-head-title{font-family:var(--font-display);font-weight:700;font-size:18px;
     color:var(--fg-strong)}
   .drawer-close{width:36px;height:36px;font-size:15px}
@@ -571,7 +589,7 @@
   @media (max-width: 600px) {
     .pub-grid{grid-template-columns:1fr}
     .nav-search{display:none}
-    .nav-logo{height:40px}
+    .nav-logo{height:30px}
     .footer-grid{grid-template-columns:1fr}
     .search{flex-direction:column;border-radius:var(--r-lg);padding:14px}
     .search button{width:100%}
@@ -597,6 +615,8 @@
       <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
         <i class="fas fa-moon"></i><i class="fas fa-sun"></i>
       </button>
+      <!-- Selector de idioma (i18n Fase 14) — mismo lenguaje visual que el theme toggle -->
+      <button class="theme-toggle lang-switch" id="langSwitch" aria-label="Cambiar idioma">ES</button>
       <!-- Estado deslogueado -->
       <a href="#" class="kq-btn kq-btn--ghost kq-btn--sm logged-out" id="fakeLogin">Iniciar sesión</a>
       <a href="#" class="kq-btn kq-btn--action kq-btn--sm"><i class="fas fa-plus" style="font-size:13px"></i>&nbsp; Publicar</a>
@@ -619,8 +639,7 @@
   <nav class="drawer-nav">
     <a href="#" class="drawer-link is-active"><i class="fas fa-home"></i> Inicio</a>
     <a href="#publications" class="drawer-link"><i class="fas fa-building"></i> Propiedades</a>
-    <a href="#sellers" class="drawer-link"><i class="fas fa-users"></i> Vendedores</a>
-    <a href="#" class="drawer-link"><i class="fas fa-trophy"></i> Ranking</a>
+    <a href="#sellers" class="drawer-link"><i class="fas fa-trophy"></i> Ranking</a>
     <a href="#" class="drawer-link logged-in"><i class="fas fa-bullhorn"></i> Pauta</a>
     <a href="#pricing" class="drawer-link"><i class="fas fa-gem"></i> Planes</a>
     <a href="#" class="drawer-link"><i class="fas fa-headset"></i> Contacto</a>
@@ -1205,6 +1224,11 @@
     btn.addEventListener('click', () => closeDrawer(btn.dataset.close)));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeDrawer('menu'); closeDrawer('account'); }
+  });
+
+  // Selector de idioma (demo — en producción lo maneja i18n)
+  document.getElementById('langSwitch').addEventListener('click', (e) => {
+    e.currentTarget.textContent = e.currentTarget.textContent === 'ES' ? 'EN' : 'ES';
   });
 
   // ---------- Demo: alternar estado logueado/deslogueado ----------
