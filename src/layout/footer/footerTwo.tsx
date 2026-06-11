@@ -18,7 +18,7 @@ const FooterTwo = () => {
                             </div>
                             <div className="col-lg-4 col-md-4 order-md-1">
                                 <div className="copyright-text copyright2-text text-center text-md-start">
-                                    © Copyrighted & Designed by <Link href="https://themeforest.net/user/bdevs">BDevs</Link>
+                                    © {new Date().getFullYear()} Kiosqui. Todos los derechos reservados.
                                 </div>
 
                             </div>

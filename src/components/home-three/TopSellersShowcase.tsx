@@ -95,7 +95,7 @@ const TopSellersShowcase: React.FC = () => {
            desproporcionadamente cuando hay pocos sellers. */
         .kts-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
           gap: 18px;
           justify-content: center;
           max-width: 1100px;
@@ -105,10 +105,10 @@ const TopSellersShowcase: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 14px;
-          padding: 16px;
+          padding: 18px;
           background: var(--clr-bg-white, #fff);
           border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 12px;
+          border-radius: 14px;
           text-decoration: none;
           color: inherit;
           transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;

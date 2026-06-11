@@ -113,10 +113,10 @@ const CategoriesShowcase: React.FC = () => {
         }
         .kcs-card {
           display: block;
-          padding: 32px 26px;
+          padding: 36px 30px;
           background: var(--clr-bg-white, #fff);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 14px;
+          border: 1.5px solid var(--clr-common-border, #e0e2e5);
+          border-radius: 20px;
           text-decoration: none;
           color: inherit;
           transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
@@ -146,15 +146,15 @@ const CategoriesShowcase: React.FC = () => {
           100% { background-position: -200% 0; }
         }
         .kcs-icon {
-          width: 64px;
-          height: 64px;
+          width: 68px;
+          height: 68px;
           border-radius: 14px;
           color: #fff;
           font-size: 28px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 20px;
+          margin-bottom: 22px;
         }
         /* Gradientes de marca por categoría (antes inline-style). */
         .kcs-icon--casa {

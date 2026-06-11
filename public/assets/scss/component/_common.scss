@@ -587,16 +587,22 @@ p {
 	&:disabled, &.disabled { opacity: .45; pointer-events: none; }
 }
 
+// Las variantes EXTIENDEN la base — el legacy las usa solas en el markup
+// (class="fill-btn-orange") y sin esto pierden alto/padding/pill (bug del
+// botón Cancelar reportado por Aurelio 2026-06-10).
 .fill-btn-orange {
+	@extend .fill-btn;
 	background: var(--warning);
 	color: var(--ink-900);
 }
 
 .fill-btn-orange:hover {
 	background: #c2741f;
+	color: var(--ink-900);
 }
 
 .fill-btn-lightblue {
+	@extend .fill-btn;
 	background: var(--lav-500);
 	color: var(--navy-900);
 }
@@ -607,15 +613,18 @@ p {
 }
 
 .fill-btn-lightred {
+	@extend .fill-btn;
 	background: var(--danger);
 	color: #fff;
 }
 
 .fill-btn-lightred:hover {
 	background: #b53d3d;
+	color: #fff;
 }
 
 .fill-btn-outline {
+	@extend .fill-btn;
 	background: transparent;
 	color: var(--primary);
 	border-color: var(--border-strong);
@@ -624,6 +633,7 @@ p {
 .fill-btn-outline:hover {
 	border-color: var(--primary);
 	background: var(--sand-100);
+	color: var(--primary);
 }
 
 .fill-btn-sm {
