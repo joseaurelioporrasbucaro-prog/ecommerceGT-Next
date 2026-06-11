@@ -65,3 +65,25 @@
 - [H3] **Footer**: solo se cambió el logo (transparente). El re-skin completo
   del footer (fondo ink-900, 4 columnas, "Hecho en Guatemala") sigue pendiente
   del handoff #2 §2.6 — el copy actual aún dice "Designed by BDevs".
+
+### Del handoff #4/#5 + pulido (2026-06-10, Claude Code)
+
+- [H5] **/verify es por LINK con token, no OTP**: el flujo real hace POST
+  /verify/:token automático al abrir el enlace del correo. La pantalla de
+  4 cajas de código de la referencia requeriría que backend emita códigos
+  cortos (fuera de alcance sin tocar backend). Se aplicó el AuthShell con
+  estados spinner/éxito/error. Decidir si se cambia el flujo a OTP a futuro.
+- [H5] **/register perdió el bloque "registrarse con redes"**: eran links
+  muertos del template (href="#", sin OAuth detrás). Si se quiere social
+  login real, es feature de backend + diseño.
+- [H5] **Auth sin theme toggle**: el ThemeChanger flotante del template se
+  retiró de /login y /register (el shell no lo contempla). El tema se cambia
+  desde el header del resto de la app.
+- [H5] **/messages**: re-skin aplicado sobre la estructura existente
+  (burbujas, composer, inbox). Pendiente del prototipo: barra de contexto de
+  propiedad arriba del hilo con thumb + botón "Modelo 3D" (la estructura
+  actual muestra el contexto de otra forma) y patrón lista→hilo apilado en
+  mobile. Iterar en el próximo batch si hace falta.
+- [Pulido] **La sección de precios de landing.html no está en la home real**:
+  el pricing vive en /pricing-plan (re-skineado en handoff #1). Confirmar si
+  diseño quiere ADEMÁS una sección de planes en la home.
