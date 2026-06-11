@@ -1,31 +1,19 @@
 import LoginFrom from "@/form/LoginFrom";
 import React from "react";
 import { useTranslations } from "next-intl";
+import AuthShell from "@/components/auth/AuthShell";
 
+// Handoff #5 §1/§2 — /login dentro del AuthShell (panel de marca navy +
+// formulario sin card). El form (Formik + apelación + lockout) no se toca.
 const LoginContent = () => {
   const t = useTranslations("auth");
+  const tShell = useTranslations("auth.shell");
   return (
-    <>
-      <section
-        className="login-area pt-130 pb-90"
-        style={{ background: "url(assets/img/bg/sign-up-bg.jpg)" }}
-      >
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-xxl-6 col-xl-7 col-lg-8">
-              <div className="login-wrapper pos-rel mb-40 wow fadeInUp">
-                <div className=" login-inner">
-                  <div className="login-content">
-                    <h4>{t("login.title")}</h4>
-                        <LoginFrom/>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
+    <AuthShell headline={tShell("headlineLogin")}>
+      <h4>{t("login.title")}</h4>
+      <p className="kq-auth-sub">{t("login.subtitle")}</p>
+      <LoginFrom />
+    </AuthShell>
   );
 };
 
