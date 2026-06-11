@@ -239,8 +239,11 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           type="submit"
           className="fill-btn conversation-send"
           disabled={sendMutation.isPending || draft.trim().length === 0}
+          title={sendMutation.isPending ? t('conversation.sending') : t('conversation.send')}
+          aria-label={sendMutation.isPending ? t('conversation.sending') : t('conversation.send')}
         >
-          {sendMutation.isPending ? t('conversation.sending') : t('conversation.send')}
+          {/* Handoff #5 §3 — send circular con ícono (el label vive en title/aria). */}
+          <i className={sendMutation.isPending ? 'fas fa-circle-notch fa-spin' : 'fas fa-paper-plane'} />
         </button>
       </form>
 
@@ -412,9 +415,9 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         .conversation-composer textarea {
           flex: 1;
           resize: none;
-          padding: 10px 14px;
-          border: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
-          border-radius: 8px;
+          padding: 11px 18px;
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          border-radius: 22px;
           background: var(--clr-bg-white, #fff);
           color: var(--clr-common-heading, #181818);
           font-family: inherit;
@@ -422,12 +425,15 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           outline: none;
         }
         .conversation-composer textarea:focus {
-          border-color: var(--clr-theme-1, #6c5ce7);
+          border-color: var(--accent, #b5acef);
+          box-shadow: var(--shadow-focus, 0 0 0 3px rgba(181, 172, 239, 0.55));
         }
         :global(.conversation-send) {
-          height: 44px;
-          padding: 0 22px;
-          font-size: 14px;
+          width: 46px;
+          height: 46px;
+          padding: 0;
+          border-radius: 999px;
+          font-size: 16px;
           flex-shrink: 0;
         }
       `}</style>
@@ -607,17 +613,21 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         /* Burbuja */
         .bubble {
           padding: 10px 14px;
-          border-radius: 18px;
-          background: rgba(128, 128, 128, 0.15);
-          color: var(--clr-common-heading, #181818);
+          /* Handoff #5 §3 — entrante: surface con borde, radio asimétrico. */
+          border-radius: 18px 18px 18px 4px;
+          background: var(--surface, #fff);
+          border: 1px solid var(--border, #e6ddcf);
+          color: var(--fg-strong, #22252a);
           font-size: 14px;
           line-height: 1.4;
           word-wrap: break-word;
           cursor: default;
         }
         .bubble-row.is-mine .bubble {
-          background: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
+          background: var(--navy-800, #1e2d4a);
+          border-color: transparent;
+          color: var(--cream, #f8f4ee);
+          border-radius: 18px 18px 4px 18px;
         }
         .bubble p,
         .bubble-row.is-mine .bubble p {

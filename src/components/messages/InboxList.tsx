@@ -160,7 +160,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           opacity: 0.5;
         }
         .inbox-search:focus {
-          background: rgba(108, 92, 231, 0.08);
+          background: var(--accent-soft, #ebe8fb);
         }
 
         /* Tabs */
@@ -185,8 +185,8 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           transition: background 0.15s, color 0.15s;
         }
         .inbox-tab.is-active {
-          background: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
+          background: var(--navy-800, #1e2d4a);
+          color: var(--cream, #f8f4ee);
         }
         .tab-badge {
           background: #ef4444;
@@ -302,10 +302,10 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           transition: background 0.15s;
         }
         :global(.inbox-row:hover) {
-          background: rgba(108, 92, 231, 0.05);
+          background: var(--surface-sunk, #f1ebe1);
         }
         :global(.inbox-row.is-active) {
-          background: rgba(108, 92, 231, 0.1);
+          background: var(--accent-soft, #ebe8fb);
         }
         :global(.inbox-avatar) {
           position: relative;
@@ -319,7 +319,7 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           right: 1px;
           width: 11px;
           height: 11px;
-          background: var(--clr-theme-1, #6c5ce7);
+          background: var(--green-500, #9bc64a);
           border: 2px solid var(--clr-bg-white, #fff);
           border-radius: 50%;
         }
@@ -352,7 +352,7 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           flex-shrink: 0;
         }
         :global(.inbox-row.has-unread .inbox-time) {
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700, #6d62cf);
           opacity: 1;
           font-weight: 700;
         }
@@ -364,15 +364,16 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
         }
         :global(.inbox-pub-title) {
           font-size: 12px;
-          opacity: 0.6;
+          color: var(--accent-hover, #8a7fe3);
+          font-weight: 600;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           flex: 1;
         }
         :global(.inbox-count) {
-          background: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
+          background: var(--green-500, #9bc64a);
+          color: var(--navy-900, #161f33);
           font-size: 10px;
           font-weight: 700;
           padding: 2px 6px;
