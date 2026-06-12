@@ -110,3 +110,33 @@
   quedaron con TODO(copy) — confirmar correos reales.
 - [B] **Mapa de Google del template retirado** de /contact (apuntaba a
   Nueva York; sin equivalente en el diseño).
+
+### Iteración de PublicationCard (2026-06-12, feedback de Aurelio tras ver datos reales)
+
+> Contexto: con fotos reales cargadas, la card re-skineada (WP-2) muestra estos
+> problemas. **Pedido concreto: una propuesta de card v2 donde la FOTO sea la
+> protagonista** — la gente tiene que poder ver la propiedad cómodamente desde
+> el listado.
+
+- [CARD-1] **La foto queda tapada/chica**: el badge de esquina (Destacado/
+  Patrocinado), el corazón de favorito y el stack de estados ocupan demasiado
+  de la imagen visible. Propuestas posibles a evaluar por diseño: badges más
+  compactos (solo punto+texto chico), overlay inferior en vez de superior,
+  o foto más alta dentro de la card.
+- [CARD-2] **Ratio de la foto — implica BACKEND**: hoy el variant `card` que
+  genera el backend (sharp, en POST /upload) es **800×800 cuadrado** (q72;
+  también existen thumb 200×150 y detail 1600×900). Si la propuesta cambia el
+  ratio (ej. 4:3 u 3:2 panorámico para ver mejor las propiedades), hay que:
+  (a) agregar un variant nuevo al pipeline del backend (requiere autorización
+  de Aurelio + bloque Codigo Aurelio), y (b) decidir el fallback para las
+  fotos ya subidas (usar `detail` 1600×900 recortado por CSS es una opción
+  sin backend). **Diseño decide el ratio primero; nosotros dimensionamos el
+  cambio después.**
+- [CARD-3] **CTA "Enviar mensaje" en cards patrocinadas se ve fuera de
+  sistema**: es el `ctaOverride` dorado de Fase 10.4 dentro de la card nueva
+  (ver screenshot de Aurelio). Falta diseño del estado "patrocinada con CTA":
+  ¿pill verde del sistema? ¿link lavanda? ¿solo el badge y el contacto vive
+  en el detalle?
+- [CARD-4] **Redundancia "Patrocinado"**: la sección de la home ya titula
+  "Patrocinado" y cada card repite el badge — definir jerarquía (¿badge solo
+  cuando la card aparece fuera de la sección patrocinada?).
