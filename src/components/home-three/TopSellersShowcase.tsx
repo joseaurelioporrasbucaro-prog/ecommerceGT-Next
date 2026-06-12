@@ -101,7 +101,8 @@ const TopSellersShowcase: React.FC = () => {
           max-width: 1100px;
           margin: 0 auto;
         }
-        .kts-card {
+        /* <Link> no recibe el hash de styled-jsx → :global scoped (AGENTS §6.5). */
+        .kts-grid :global(.kts-card) {
           display: flex;
           align-items: center;
           gap: 14px;
@@ -113,7 +114,7 @@ const TopSellersShowcase: React.FC = () => {
           color: inherit;
           transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
         }
-        .kts-card:hover {
+        .kts-grid :global(.kts-card:hover) {
           transform: translateY(-2px);
           box-shadow: 0 10px 22px rgba(30, 45, 74, 0.08);
           border-color: var(--lav-500);

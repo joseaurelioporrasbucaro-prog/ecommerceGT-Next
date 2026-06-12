@@ -303,7 +303,8 @@ const HeaderTwo = ({ compact = false }: HeaderTwoProps) => {
         :global([data-theme="dark"]) .kq-theme-toggle :global(.fa-sun) {
           display: inline-block;
         }
-        .kq-ghost-btn {
+        /* <Link> no recibe el hash de styled-jsx → :global scoped (AGENTS §6.5). */
+        .kq-nav-cta :global(.kq-ghost-btn) {
           display: inline-flex;
           align-items: center;
           padding: 0 16px;
@@ -317,7 +318,7 @@ const HeaderTwo = ({ compact = false }: HeaderTwoProps) => {
           transition: background 0.15s;
           white-space: nowrap;
         }
-        .kq-ghost-btn:hover {
+        .kq-nav-cta :global(.kq-ghost-btn:hover) {
           background: var(--surface-sunk, #f1ebe1);
           color: var(--fg-strong);
         }

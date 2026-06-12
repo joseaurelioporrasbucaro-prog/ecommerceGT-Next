@@ -3,7 +3,7 @@
     "titlePrefix": "La casa que buscás,",
     "titleAccent": "3D",
     "subtitle": "Recorré el modelo 3D de cada inmueble y tratá directo con propietarios verificados con DPI. Sin intermediarios escondidos.",
-    "searchPlaceholder": "Buscar por zona, departamento, direccion...",
+    "searchPlaceholder": "Buscar por zona, departamento, dirección...",
     "searchAria": "Buscar propiedad",
     "search": "Buscar",
     "searchByType": "Buscar por tipo:",
@@ -15,14 +15,14 @@
     "trust": {
       "verified": "Vendedores verificados con DPI",
       "viewer": "Visor 3D para recorrer la propiedad",
-      "messages": "Mensajeria directa con el propietario"
+      "messages": "Mensajería directa con el propietario"
     },
     "titleSuffix": "y sin intermediarios",
     "titleMid": "en"
   },
   "categories": {
-    "title": "Explora por tipo de propiedad",
-    "subtitle": "Filtra rapido el catalogo segun lo que estas buscando.",
+    "title": "Explorá por tipo de propiedad",
+    "subtitle": "Filtrá rápido el catálogo según lo que estás buscando.",
     "view": "Ver {category}",
     "names": {
       "houses": "Casas",
@@ -31,9 +31,9 @@
       "default": "Categoria"
     },
     "hints": {
-      "houses": "Casas con jardin, duplex y residencias en colonias seguras.",
+      "houses": "Casas con jardín, dúplex y residencias en colonias seguras.",
       "apartments": "Apartamentos amueblados, lofts y penthouses en zonas urbanas.",
-      "land": "Terrenos urbanos, agricolas y lotes para inversion.",
+      "land": "Terrenos urbanos, agrícolas y lotes para inversión.",
       "default": ""
     }
   },
@@ -66,7 +66,7 @@
   },
   "topSellers": {
     "title": "Vendedores destacados",
-    "subtitle": "Los propietarios y agentes mas activos de la plataforma.",
+    "subtitle": "Los propietarios y agentes más activos de la plataforma.",
     "fallback": "Vendedor",
     "verified": "Verificado",
     "publicationsCount": "{count, plural, one {# publicacion} other {# publicaciones}}"

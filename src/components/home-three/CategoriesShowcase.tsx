@@ -111,7 +111,8 @@ const CategoriesShowcase: React.FC = () => {
           max-width: 1100px;
           margin: 0 auto;
         }
-        .kcs-card {
+        /* <Link> no recibe el hash de styled-jsx → :global scoped (AGENTS §6.5). */
+        .kcs-grid :global(.kcs-card) {
           display: block;
           padding: 36px 30px;
           background: var(--clr-bg-white, #fff);
@@ -121,12 +122,12 @@ const CategoriesShowcase: React.FC = () => {
           color: inherit;
           transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
         }
-        .kcs-card:hover {
+        .kcs-grid :global(.kcs-card:hover) {
           transform: translateY(-4px);
           box-shadow: 0 16px 36px rgba(30, 45, 74, 0.1);
           border-color: var(--lav-500);
         }
-        .kcs-card:hover .kcs-cta {
+        .kcs-grid :global(.kcs-card:hover .kcs-cta) {
           gap: 12px;
           color: var(--lav-700);
         }
@@ -173,14 +174,14 @@ const CategoriesShowcase: React.FC = () => {
         :global([data-theme='dark']) .kcs-icon--casa {
           background: linear-gradient(135deg, var(--lav-600), var(--lav-500));
         }
-        .kcs-card h4 {
+        .kcs-grid :global(.kcs-card h4) {
           margin: 0 0 8px;
           font-family: var(--font-display);
           font-size: 22px;
           font-weight: 700;
           color: var(--clr-common-heading);
         }
-        .kcs-card p {
+        .kcs-grid :global(.kcs-card p) {
           margin: 0 0 18px;
           font-size: 14px;
           line-height: 1.5;

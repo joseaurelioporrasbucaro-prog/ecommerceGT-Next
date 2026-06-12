@@ -345,7 +345,8 @@ const PricingPlanMain = () => {
           justify-content: center;
         }
         /* CTA de marca verde con texto navy. */
-        .pp-btn {
+        /* pp-btn vive en <Link> y <button>; el Link no recibe el hash → :global. */
+        .pp-card :global(.pp-btn) {
           display: inline-block;
           width: 100%;
           text-align: center;
@@ -360,15 +361,15 @@ const PricingPlanMain = () => {
           transition: 0.3s;
           text-decoration: none;
         }
-        .pp-btn:hover:not(:disabled) {
+        .pp-card :global(.pp-btn:hover:not(:disabled)) {
           background: var(--action-hover);
         }
-        .pp-btn:disabled {
+        .pp-card :global(.pp-btn:disabled) {
           cursor: default;
           opacity: 0.7;
         }
         /* "Plan actual" (disabled) → outline atenuado, no el verde de acción. */
-        .pp-btn-current {
+        .pp-card :global(.pp-btn-current) {
           background: transparent;
           color: var(--fg-muted) !important;
           border: 1.5px solid var(--border-strong);

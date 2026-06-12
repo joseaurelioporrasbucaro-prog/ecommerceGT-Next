@@ -209,7 +209,8 @@ const KiosquiHero: React.FC = () => {
           color: var(--clr-common-body-text);
           margin-right: 4px;
         }
-        .kh-chip {
+        /* <Link> no recibe el hash de styled-jsx → :global scoped (AGENTS §6.5). */
+        .kh-quick-links :global(.kh-chip) {
           display: inline-flex;
           align-items: center;
           gap: 6px;
@@ -223,18 +224,18 @@ const KiosquiHero: React.FC = () => {
           text-decoration: none;
           transition: all 0.15s;
         }
-        .kh-chip:hover {
+        .kh-quick-links :global(.kh-chip:hover) {
           border-color: var(--lav-500);
           color: var(--lav-700);
           background: var(--lav-100);
           transform: translateY(-1px);
         }
-        .kh-chip :global(i) {
+        .kh-quick-links :global(.kh-chip i) {
           font-size: 12px;
           color: var(--lav-700);
           opacity: 0.85;
         }
-        .kh-chip:hover :global(i) {
+        .kh-quick-links :global(.kh-chip:hover i) {
           opacity: 1;
         }
         .kh-trust-row {
