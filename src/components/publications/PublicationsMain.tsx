@@ -3,7 +3,6 @@
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiError } from '@/utils/Api';
 import { usePublicationCategories } from '@/hooks/api/useCatalogs';
@@ -211,7 +210,6 @@ const PublicationsMain = () => {
 
   return (
     <main>
-      <ThemeChanger />
       <Breadcrumbs
         breadcrumbTitle={t('listing.breadcrumbTitle')}
         breadcrumbSubTitle={t('listing.breadcrumbTitle')}
@@ -228,7 +226,6 @@ const PublicationsMain = () => {
           <PublicationsBar
             key={categories.length}
             filters={filters}
-            categories={categories}
             onFiltersChange={setFilters}
           />
 

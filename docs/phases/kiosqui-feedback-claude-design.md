@@ -93,6 +93,11 @@
   cubre `/publications`, `/favorites` y la home vía `FeaturedPublicationsSection`;
   si `/my-publications` debe adoptar cards, hace falta un diseño específico para
   esas acciones. `TODO(design)`
+- [WP-3] **El chip "Oficina" no aparece si el catálogo no lo devuelve**:
+  los chips de `/publications` consumen `usePublicationCategories()` para no
+  hardcodear tipos. En el smoke local se renderizaron Todas/Casa/Apartamento/
+  Terreno. Confirmar si "Oficina" debe existir como categoría real o si diseño
+  lo trató solo como ejemplo visual. `TODO(design)`
 
 ### Del Batch B (2026-06-11, Claude Code)
 
