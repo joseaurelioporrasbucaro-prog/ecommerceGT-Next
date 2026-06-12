@@ -87,3 +87,9 @@
 - [Pulido] **La sección de precios de landing.html no está en la home real**:
   el pricing vive en /pricing-plan (re-skineado en handoff #1). Confirmar si
   diseño quiere ADEMÁS una sección de planes en la home.
+- [WP-2] **`/my-publications` no reutiliza `PublicationCard` en el código actual**:
+  la ruta monta `MyPublicationsMain`, que usa filas propias con acciones de
+  propietario (editar, pautar, cerrar venta, eliminar). El re-skin `.pub-card`
+  cubre `/publications`, `/favorites` y la home vía `FeaturedPublicationsSection`;
+  si `/my-publications` debe adoptar cards, hace falta un diseño específico para
+  esas acciones. `TODO(design)`
