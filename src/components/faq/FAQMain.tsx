@@ -315,7 +315,7 @@ const GROUPS: FAQGroup[] = [
             La forma más rápida es crear un ticket en{' '}
             <Link href="/soporte/tickets">/soporte/tickets</Link>. También
             podés escribir a{' '}
-            <a href="mailto:soporte@kiosqui.gt">soporte@kiosqui.gt</a>{' '}
+            <a href="mailto:soporte@kiosqui.com">soporte@kiosqui.com</a>{' '}
             (respuesta en horario laboral).
           </p>
         ),

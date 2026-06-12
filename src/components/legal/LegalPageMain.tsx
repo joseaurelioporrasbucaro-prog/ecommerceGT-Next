@@ -91,7 +91,7 @@ const LegalPageMain: React.FC<LegalPageMainProps> = ({
             <div className="kq-legal-foot">
               {t.rich('contactFooter', {
                 support: (chunks) => <Link href="/soporte/tickets">{chunks}</Link>,
-                email: (chunks) => <a href="mailto:soporte@kiosqui.gt">{chunks}</a>,
+                email: (chunks) => <a href="mailto:soporte@kiosqui.com">{chunks}</a>,
               })}
             </div>
           </div>

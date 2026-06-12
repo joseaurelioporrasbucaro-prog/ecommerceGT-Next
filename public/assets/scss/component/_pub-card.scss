@@ -1,3 +1,7 @@
+// Handoff #8 §1 — PublicationCard v2.1: foto 3:2 protagonista, badges compactos
+// translúcidos, cuerpo con aire (precio con switch animado Q⇄US$, título, ubicación,
+// specs con íconos sobre hairline). El CTA de pauta es ahora verde sólido (la
+// variante dorada de Fase 10.4 se retira).
 .pub-card {
 	width: 100%;
 	display: flex;
@@ -34,24 +38,21 @@
 	}
 }
 
+// Foto 3:2 (padding-top 66.67%). Fallback sin backend: variant `detail` 1600×900
+// recortado por object-fit:cover. Si luego se aprueba un variant `card32` en el
+// backend, se cambia el variant en PublicationCard.tsx (sin tocar esta SCSS).
 .pub-photo {
 	position: relative;
-	height: 200px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	width: 100%;
+	padding-top: 66.67%;
+	height: 0;
+	display: block;
 	color: rgba(255, 255, 255, .55);
 	overflow: hidden;
 	cursor: pointer;
-
-	&::after {
-		content: "";
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, .2), transparent 55%);
-		pointer-events: none;
-		z-index: 2;
-	}
+	background:
+		linear-gradient(160deg, rgba(255, 255, 255, .04), rgba(0, 0, 0, .15)),
+		var(--surface-sunk);
 }
 
 .pub-photo-link {
@@ -67,20 +68,25 @@
 }
 
 .single-image:hover .pub-image {
-	transform: scale(1.06);
+	transform: scale(1.04);
 }
 
 .pub-camera-fallback {
-	position: relative;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	z-index: 1;
-	font-size: 30px;
-	color: rgba(255, 255, 255, .65);
+	font-size: 26px;
+	color: rgba(255, 255, 255, .4);
 }
 
+// Badges compactos translúcidos (24px alto). Stack vertical para soportar
+// status (frosted) + destacado/nuevo (lavanda) al mismo tiempo.
 .publication-badges {
 	position: absolute;
-	top: 14px;
-	left: 14px;
+	top: 10px;
+	left: 10px;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
@@ -94,26 +100,45 @@
 .publication-status-badge {
 	display: inline-flex;
 	align-items: center;
-	gap: 7px;
-	padding: 6px 13px;
-	font-size: 12px;
+	gap: 6px;
+	height: 24px;
+	padding: 0 10px;
+	font-size: 11px;
 	font-weight: 700;
 	border-radius: 999px;
-	letter-spacing: 0;
+	letter-spacing: .02em;
+	font-family: var(--font-body);
 }
 
+// "Destacado/Nuevo" — lavanda translúcida (los Destacado/Nuevo conviven con la
+// nueva foto 3:2; el handoff usa rgba(109,98,207,.92), que es var(--lav-700).
+.publication-featured-badge,
+.publication-new-badge {
+	background: rgba(109, 98, 207, .92);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+	color: #fff;
+
+	i {
+		font-size: 9px;
+		color: #fff;
+	}
+}
+
+// Status frosted — solo aparece en /my-publications no-públicos: los estados
+// Vendida/Borrador/Anulada NO se ven en listados públicos. Se conserva por si
+// algún otro contexto autenticado los necesita.
 .publication-status-badge {
 	background: rgba(255, 255, 255, .82);
-	-webkit-backdrop-filter: blur(10px);
-	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
 	color: var(--navy-800);
-	border: 1px solid rgba(255, 255, 255, .65);
-	box-shadow: 0 2px 10px rgba(30, 45, 74, .14);
+	border: 1px solid rgba(255, 255, 255, .55);
 
 	&::before {
 		content: "";
-		width: 7px;
-		height: 7px;
+		width: 6px;
+		height: 6px;
 		border-radius: 50%;
 		background: var(--green-600);
 		flex-shrink: 0;
@@ -132,26 +157,11 @@
 	}
 }
 
-.publication-featured-badge,
-.publication-new-badge {
-	background: linear-gradient(135deg, var(--lav-500), var(--lav-600));
-	color: #fff;
-	border: 1px solid rgba(255, 255, 255, .35);
-	box-shadow: 0 4px 16px rgba(109, 98, 207, .5),
-		0 0 0 3px rgba(181, 172, 239, .25);
-
-	i {
-		font-size: 11px;
-		color: #fff;
-	}
-}
-
 [data-theme="dark"] {
 	.publication-status-badge {
 		background: rgba(19, 26, 45, .72);
 		color: var(--cream);
 		border: 1px solid rgba(248, 244, 238, .18);
-		box-shadow: none;
 
 		&.st-vendida::before {
 			background: var(--navy-300);
@@ -160,10 +170,8 @@
 
 	.publication-featured-badge,
 	.publication-new-badge {
-		background: linear-gradient(135deg, var(--lav-400), var(--lav-500));
+		background: rgba(181, 172, 239, .92);
 		color: var(--navy-900);
-		box-shadow: 0 4px 18px rgba(181, 172, 239, .55),
-			0 0 0 3px rgba(181, 172, 239, .22);
 
 		i {
 			color: var(--navy-900);
@@ -171,32 +179,36 @@
 	}
 }
 
+// Corazón translúcido sobre la foto (32px, ink overlay con blur).
 .pub-fav {
 	position: absolute;
-	top: 10px;
-	right: 10px;
+	top: 8px;
+	right: 8px;
 	z-index: 5;
-	width: 38px;
-	height: 38px;
-	border-radius: var(--r-pill);
+	width: 32px;
+	height: 32px;
+	border-radius: 999px;
 	border: none;
 	cursor: pointer;
-	background: rgba(255, 255, 255, .94);
-	color: var(--navy-700);
+	background: rgba(17, 24, 42, .4);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+	color: #fff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: color .15s ease, transform .15s ease, opacity .15s ease;
-	font-size: 15px;
+	transition: color .15s ease, transform .15s ease, opacity .15s ease, background .15s ease;
+	font-size: 13px;
 
 	&:hover {
-		color: var(--danger);
-		transform: scale(1.05);
+		background: rgba(17, 24, 42, .55);
+		color: #ff7a7a;
+		transform: scale(1.06);
 	}
 
 	&.is-fav,
 	&.is-active {
-		color: var(--danger);
+		color: #ff7a7a;
 	}
 
 	&:disabled {
@@ -234,6 +246,7 @@
 	opacity: 1;
 }
 
+// Cuerpo con aire — padding 16/18, bloques separados.
 .pub-body {
 	padding: 16px 18px 18px;
 	display: flex;
@@ -241,43 +254,73 @@
 	flex: 1;
 }
 
-.pub-row1 {
+// Precio con switch Q ⇄ US$. La animación se aplica con `key` en JSX para
+// re-montar el div interno; aquí solo defino el keyframe y los tamaños.
+.pub-price-row {
 	display: flex;
 	align-items: baseline;
-	justify-content: space-between;
-	gap: 8px;
+	gap: 7px;
+	overflow: hidden;
+	min-height: 28px;
 }
 
-.pub-price {
+.pub-price-swap {
+	display: flex;
+	align-items: baseline;
+	gap: 7px;
+	animation: kq-price-in .45s cubic-bezier(.2, .7, .3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pub-price-swap {
+		animation: none;
+	}
+}
+
+@keyframes kq-price-in {
+	from {
+		opacity: 0;
+		transform: translateY(60%);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.pub-price-symbol {
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: 14px;
+	color: var(--fg-subtle);
+	letter-spacing: 0;
+}
+
+.pub-price-amount {
 	font-family: var(--font-display);
 	font-weight: 700;
-	font-size: 20px;
-	line-height: 1.2;
+	font-size: 23px;
+	line-height: 1.15;
 	color: var(--fg-strong);
-	letter-spacing: 0;
+	letter-spacing: -.015em;
 	white-space: nowrap;
 }
 
-.pub-type {
-	font: var(--text-caption);
+.pub-price-per {
+	font: var(--text-body-sm);
 	color: var(--fg-subtle);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 42%;
 }
 
 .pub-title {
 	font: var(--text-body-sm);
 	font-weight: 600;
 	color: var(--fg-strong);
-	margin: 6px 0;
+	margin: 10px 0 5px;
 	line-height: 1.35;
-	min-height: 2.7em;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
+	white-space: nowrap;
 	overflow: hidden;
+	text-overflow: ellipsis;
 
 	a {
 		color: inherit;
@@ -292,13 +335,13 @@
 .pub-loc {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 7px;
 	color: var(--fg-muted);
 	font: var(--text-body-sm);
 	min-width: 0;
 
 	i {
-		font-size: 13px;
+		font-size: 12px;
 		color: var(--accent-hover);
 		flex-shrink: 0;
 	}
@@ -311,47 +354,13 @@
 	}
 }
 
-.pub-cta-row {
-	margin-top: 12px;
-}
-
-.publication-view-btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 7px;
-	padding: 9px 16px;
-	background: var(--green-500);
-	color: var(--navy-900) !important;
-	border-radius: var(--r-pill);
-	font-size: 13px;
-	font-weight: 700;
-	text-decoration: none;
-	white-space: nowrap;
-	transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
-
-	&:hover {
-		background: var(--green-600);
-		transform: translateY(-2px);
-		box-shadow: var(--shadow-sm);
-	}
-}
-
-.publication-view-btn-gold {
-	background: var(--warning);
-	color: var(--ink-900) !important;
-
-	&:hover {
-		background: #c2741f;
-	}
-}
-
+// Specs row con íconos espaciados sobre hairline.
 .pub-stats {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 18px;
+	gap: 22px;
 	margin-top: 14px;
-	padding-top: 13px;
+	padding-top: 14px;
 	border-top: 1px solid var(--border);
 	color: var(--fg-muted);
 	font: var(--text-body-sm);
@@ -360,11 +369,49 @@
 	span {
 		display: inline-flex;
 		align-items: center;
-		gap: 7px;
+		gap: 8px;
 	}
 
 	i {
-		font-size: 14px;
-		color: var(--fg-subtle);
+		font-size: 13px;
+		color: var(--navy-400);
+	}
+}
+
+[data-theme="dark"] .pub-stats i {
+	color: var(--navy-300);
+}
+
+// CTA de pauta — verde sólido (handoff #8 §1 [CARD-3]: se elimina el dorado).
+.pub-cta-row {
+	margin-top: 14px;
+}
+
+.publication-view-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	padding: 10px 16px;
+	background: var(--green-500);
+	color: var(--navy-900) !important;
+	border: none;
+	border-radius: var(--r-pill);
+	font-size: 13px;
+	font-weight: 700;
+	font-family: var(--font-display);
+	text-decoration: none;
+	white-space: nowrap;
+	transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+
+	i {
+		font-size: 12px;
+	}
+
+	&:hover {
+		background: var(--green-600);
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-sm);
 	}
 }

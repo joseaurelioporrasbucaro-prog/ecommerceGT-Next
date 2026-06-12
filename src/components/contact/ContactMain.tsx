@@ -9,13 +9,13 @@ import PageHead from "@/components/common/PageHead";
  * columna de tiles). El form (Formik + Turnstile) no se toca — se re-skinea
  * por CSS. El mapa de Google del template (apuntaba a Nueva York) se retira.
  */
-// TODO(copy): confirmar los correos reales del producto (soporte@/pauta@).
+// Handoff #8 §4 — correos confirmados por Aurelio.
 const CONTACT_TILES = [
   {
     icon: 'fas fa-envelope',
     title: 'Correo de soporte',
-    body: 'soporte@kiosqui.gt',
-    href: 'mailto:soporte@kiosqui.gt',
+    body: 'soporte@kiosqui.com',
+    href: 'mailto:soporte@kiosqui.com',
   },
   {
     icon: 'fas fa-headset',
@@ -25,9 +25,9 @@ const CONTACT_TILES = [
   },
   {
     icon: 'fas fa-bullhorn',
-    title: 'Pauta y publicidad',
-    body: 'pauta@kiosqui.gt',
-    href: 'mailto:pauta@kiosqui.gt',
+    title: 'Ventas y pauta',
+    body: 'ventas@kiosqui.com',
+    href: 'mailto:ventas@kiosqui.com',
   },
 ];
 

@@ -7,8 +7,13 @@ import type { AnyPublicationListItem } from '@/types/api';
 
 /** Fase 10 — grid de publicaciones destacadas (patrocinadas). Para campañas con
  *  objetivo 'mensajes' se sustituye el CTA "Ver propiedad" por "Enviar mensaje"
- *  dorado (Fase 10.4) usando el prop `ctaOverride` de PublicationCard. */
-const FeaturedPublicationsSection = ({ limit = 4 }: { limit?: number }) => {
+ *  (Handoff #8 [CARD-3]: ahora verde sólido del sistema, ya no dorado).
+ *  `inSponsoredSection`: cuando la sección padre ya rotula "Destacado"/"Patrocinado"
+ *  (ej. la home), suprime el badge en cada card (regla anti-redundancia [CARD-4]). */
+const FeaturedPublicationsSection = ({
+  limit = 4,
+  inSponsoredSection = false,
+}: { limit?: number; inSponsoredSection?: boolean }) => {
   const t = useTranslations('publications');
   const { data } = useFeaturedPublications(limit);
   const items = data ?? [];
@@ -26,11 +31,11 @@ const FeaturedPublicationsSection = ({ limit = 4 }: { limit?: number }) => {
                 <PublicationCard
                   publication={pub as unknown as AnyPublicationListItem}
                   isFeatured
+                  inSponsoredSection={inSponsoredSection}
                   ctaOverride={isMessages ? {
                     label: t('card.sendMessage'),
                     href: `/messages?pub=${pub.id}`,
-                    iconClass: 'fa-paper-plane',
-                    gold: true,
+                    iconClass: 'fa-comments',
                     onMouseDown: () => recordAdClick(pub.campId),
                   } : undefined}
                 />

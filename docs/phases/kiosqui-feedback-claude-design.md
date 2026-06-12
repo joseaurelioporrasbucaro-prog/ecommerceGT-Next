@@ -145,3 +145,48 @@
 - [CARD-4] **Redundancia "Patrocinado"**: la sección de la home ya titula
   "Patrocinado" y cada card repite el badge — definir jerarquía (¿badge solo
   cuando la card aparece fuera de la sección patrocinada?).
+
+### Del handoff #8 — PublicationCard v2.1 implementada (2026-06-12, Claude Code)
+
+> Aplicado en `design/kiosqui-system` siguiendo `kiosqui-design-handoff/08-HANDOFF-CARD-V21.md`
+> (canvas `Card v2 - Foto protagonista.html` §Card v2.1, CTA opción 1 verde).
+> Resueltos del feedback anterior: CARD-1/CARD-3/CARD-4. CARD-2 cerrado SIN
+> backend (variant `detail` 16:9 recortado a 3:2 con object-fit:cover).
+
+- [H8-1] **Tipo de cambio Q ⇄ US$ hardcodeado**: el handoff §2 pidió usar el
+  rate del backend si existe — no existe hoy en config ni endpoint. Quedó
+  `GTQ_TO_USD_RATE = 7.8` en `PublicationCard.tsx` con `// TODO(currency-rate)`.
+  **Decisión pedida**: ¿constante en `.env` (`NEXT_PUBLIC_GTQ_USD_RATE`), o
+  endpoint `/config/rates` con cache diario? Hoy nadie actualiza el 7.8.
+- [H8-2] **Métricas en /my-publications no existen en el endpoint**: el
+  handoff §3 pidió vistas/favoritos/consultas reales en cada `OwnerRow`. El
+  endpoint `GET /my-publications/:cus_id` devuelve solo `MyPublicationItem`
+  (sin contadores). Quedaron con `—` y `// TODO(metrics)`. **Decisión pedida**:
+  ¿extender el endpoint con contadores agregados, o agregar 3 endpoints
+  separados? Implica backend → autorización + `Codigo Aurelio`.
+- [H8-3] **Mobile del OwnerRow — no hice menú "⋯"**: el handoff §3 pidió
+  "colapsar secundarias en menú '⋯'" en mobile. Quedó como wrap normal (las
+  acciones se apilan abajo del body). Implementar dropdown ⋯ requiere otro
+  componente y semántica de accesibilidad — lo dejo para una iteración con
+  diseño explícito del estado abierto.
+- [H8-4] **Correos `privacidad@` y `seguridad@` siguen en `kiosqui.gt`**: el
+  handoff §4 confirmó `soporte@` y `ventas@` en `.com`, pero los correos
+  legales de `PrivacyMain.tsx` y `messages/*/legal.json` siguen en `.gt`.
+  Asumo que también van a `.com` pero NO lo cambié sin confirmación explícita
+  — **¿confirmás los 4 correos como `.com`?**
+- [H8-5] **Sufijo `/mes` en rentas no implementado**: el handoff §2 lo
+  describe (rentas muestran "Q 4,200 /mes"). Nuestro modelo de datos no
+  tiene un campo claro `is_rent` en `AnyPublicationListItem` — el
+  `pubtra_id` indica venta/renta pero no es trivial de mapear sin abrir el
+  catálogo. Quedó SIN sufijo. **Decisión pedida**: ¿cuál es el contrato del
+  campo de "tipo de transacción"? Si se confirma, lo cableamos.
+- [H8-6] **`ThemeChanger` flotante retirado de `MyPublicationsMain`** — el
+  header de Kiosqui ya tiene el toggle de tema, lo dejé fuera (consistente con
+  lo que se hizo en otras páginas re-skineadas del Batch B).
+- [H8-7] **`isFeatured`/"Destacado" + `inSponsoredSection`**: el badge ahora se
+  suprime en la home (sección rotulada). Para listados mezclados (/publications,
+  búsqueda) sigue apareciendo. Nuestro modelo de datos tiene un solo flag
+  (`/featured-publications` = paid pauta) — no distinguimos "Destacado" lavanda
+  vs "Patrocinado" navy del canvas v2.1. **¿Es correcto usar siempre el badge
+  lavanda, o querés que las cards de campañas de tipo "mensajes" usen el badge
+  navy "Patrocinado" en cambio?**

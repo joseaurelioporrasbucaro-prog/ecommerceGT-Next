@@ -6,8 +6,7 @@ import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Modal from 'react-responsive-modal';
 import { toast } from 'react-toastify';
-import ThemeChanger from '@/components/home/ThemeChanger';
-import Breadcrumbs from '@/utils/Breadcrumbs';
+import PageHead from '@/components/common/PageHead';
 import { ApiError } from '@/utils/Api';
 import { useMyPublications } from '@/hooks/api/useMyPublications';
 import { useDeletePublication } from '@/hooks/api/useDeletePublication';
@@ -34,10 +33,9 @@ interface PublicationRowImageProps {
 }
 
 /**
- * Imagen de la fila de "Mis publicaciones". 3 niveles de fallback:
- *  1. Variante optimizada `_card` (Fase 5.4) — la primera elección.
- *  2. Original — si la variante no existe (publicaciones viejas).
- *  3. Placeholder estático — si ni el original existe.
+ * Handoff #8 §3 — thumbnail 104×70 de la fila de OwnerRow. 3 niveles de
+ * fallback: variant thumb → original → placeholder. El dim (saturate .35
+ * brightness .85) para vendidas/anuladas lo aplica el padre via CSS.
  */
 const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) => {
   const [stage, setStage] = useState<'variant' | 'original' | 'placeholder'>('variant');
@@ -48,7 +46,7 @@ const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) =
   } else if (stage === 'original') {
     resolvedSrc = getBackendUrl(src);
   } else {
-    resolvedSrc = getBackendUrl(getImageVariant(src, 'card'));
+    resolvedSrc = getBackendUrl(getImageVariant(src, 'thumb'));
   }
   const isPlaceholder = resolvedSrc === CARD_PLACEHOLDER;
 
@@ -57,11 +55,10 @@ const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) =
       src={resolvedSrc}
       alt={alt}
       fill
-      sizes="120px"
+      sizes="104px"
       style={{ objectFit: 'cover' }}
       unoptimized={isPlaceholder}
       onError={() => {
-        // Bajar un escalón en la cadena de fallback.
         setStage((prev) =>
           prev === 'variant' ? 'original' : prev === 'original' ? 'placeholder' : 'placeholder',
         );
@@ -70,18 +67,31 @@ const PublicationRowImage: React.FC<PublicationRowImageProps> = ({ src, alt }) =
   );
 };
 
-function getStatusBadge(
-  pubstaId: number,
-  labels: { sold: string; draft: string; void: string },
-): { label: string; color: string } | null {
-  if (pubstaId === PUBSTA_SOLD) return { label: labels.sold, color: '#ef4444' };
-  if (pubstaId === PUBSTA_DRAFT) return { label: labels.draft, color: '#9ca3af' };
-  if (pubstaId === PUBSTA_VOID) return { label: labels.void, color: '#6b7280' };
-  return null;
-}
-
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
+}
+
+interface StatusMeta {
+  label: string;
+  /** Clase del dot (.dot-activa, .dot-borrador, .dot-vendida, .dot-anulada). */
+  dotClass: string;
+  /** Cuando true, la foto se ve desaturada (vendidas/anuladas). */
+  dim: boolean;
+}
+
+function getStatusMeta(pubstaId: number, labels: { sold: string; draft: string; void: string }): StatusMeta {
+  if (pubstaId === PUBSTA_SOLD) return { label: labels.sold, dotClass: 'dot-vendida', dim: true };
+  if (pubstaId === PUBSTA_DRAFT) return { label: labels.draft, dotClass: 'dot-borrador', dim: false };
+  if (pubstaId === PUBSTA_VOID) return { label: labels.void, dotClass: 'dot-anulada', dim: true };
+  // PUBSTA_ACTIVE (2).
+  return { label: 'Activa', dotClass: 'dot-activa', dim: false };
+}
+
+function formatRowDate(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-GT', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 // ─── Sub-componente: modal de "Cerrar venta" ──────────────────────────────────
@@ -138,7 +148,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
         <div style={{
           width: 64, height: 64, margin: '0 auto 18px', display: 'flex',
           alignItems: 'center', justifyContent: 'center',
-          borderRadius: '50%', background: 'rgba(34,197,94,0.12)', color: '#16a34a', fontSize: 26,
+          borderRadius: '50%', background: 'rgba(155,198,74,0.18)', color: 'var(--green-700)', fontSize: 26,
         }}>
           <i className="fas fa-handshake" />
         </div>
@@ -152,8 +162,8 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
           {selectedBuyer ? (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 14px', border: '2px solid var(--tp-theme-1,#6c5ce7)',
-              borderRadius: 8, background: 'rgba(108,92,231,0.06)',
+              padding: '10px 14px', border: '2px solid var(--accent)',
+              borderRadius: 10, background: 'var(--accent-soft)',
             }}>
               <span style={{ flex: 1, fontWeight: 600 }}>
                 {selectedBuyer.firstName} {selectedBuyer.lastName}
@@ -162,7 +172,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
               <button
                 type="button"
                 onClick={() => setSelectedBuyer(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 16 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: 16 }}
                 title={t('myPublications.changeBuyer')}
               >
                 <i className="fas fa-times" />
@@ -178,18 +188,18 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
                 onFocus={() => setDropdownOpen(true)}
                 onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
                 style={{
-                  width: '100%', padding: '10px 14px', border: '1px solid rgba(128,128,128,0.3)',
-                  borderRadius: 8, fontSize: 14, boxSizing: 'border-box',
-                  background: 'var(--clr-bg-white,#fff)', color: 'inherit',
+                  width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-strong)',
+                  borderRadius: 10, fontSize: 14, boxSizing: 'border-box',
+                  background: 'var(--bg-elevated)', color: 'var(--fg-strong)',
                   outline: 'none',
                 }}
               />
               {dropdownOpen && users.length > 0 && (
                 <ul style={{
                   position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                  background: 'var(--clr-bg-white,#fff)', border: '1px solid rgba(128,128,128,0.2)',
-                  borderRadius: 8, margin: 0, padding: '4px 0', listStyle: 'none',
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.12)',
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 10, margin: 0, padding: '4px 0', listStyle: 'none',
+                  boxShadow: 'var(--shadow-md)',
                 }}>
                   {users.map((u: UserSearchResult) => (
                     <li key={u.cusId}>
@@ -199,7 +209,7 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
                         style={{
                           width: '100%', textAlign: 'left', background: 'none', border: 'none',
                           padding: '9px 14px', cursor: 'pointer', display: 'flex',
-                          alignItems: 'center', gap: 10, fontSize: 14,
+                          alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--fg-strong)',
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{u.firstName} {u.lastName}</span>
@@ -212,9 +222,9 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
               {dropdownOpen && buyerQuery.length >= 2 && users.length === 0 && !searchQuery.isLoading && (
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, right: 0,
-                  background: 'var(--clr-bg-white,#fff)', border: '1px solid rgba(128,128,128,0.2)',
-                  borderRadius: 8, padding: '12px 14px', fontSize: 13, opacity: 0.65,
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.1)',
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: '12px 14px', fontSize: 13, opacity: 0.65,
+                  boxShadow: 'var(--shadow-md)', color: 'var(--fg-muted)',
                 }}>
                   {t('myPublications.noUsersFound')}
                 </div>
@@ -240,9 +250,9 @@ const CloseSaleModal = ({ publication, onClose }: CloseSaleModalProps) => {
             disabled={!selectedBuyer || closeSaleMutation.isPending}
             style={{
               height: 44, padding: '0 22px', fontSize: 14, minWidth: 150,
-              background: selectedBuyer && !closeSaleMutation.isPending ? '#16a34a' : undefined,
-              borderColor: selectedBuyer && !closeSaleMutation.isPending ? '#16a34a' : undefined,
-              color: selectedBuyer && !closeSaleMutation.isPending ? '#fff' : undefined,
+              background: selectedBuyer && !closeSaleMutation.isPending ? 'var(--green-500)' : undefined,
+              borderColor: selectedBuyer && !closeSaleMutation.isPending ? 'var(--green-500)' : undefined,
+              color: selectedBuyer && !closeSaleMutation.isPending ? 'var(--navy-900)' : undefined,
               cursor: !selectedBuyer || closeSaleMutation.isPending ? 'not-allowed' : 'pointer',
               opacity: !selectedBuyer || closeSaleMutation.isPending ? 0.6 : 1,
             }}
@@ -295,10 +305,13 @@ const MyPublicationsMain = () => {
 
   return (
     <main>
-      <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle={t('myPublications.breadcrumbTitle')} breadcrumbSubTitle={t('myPublications.breadcrumbTitle')} />
+      <PageHead
+        overline="Mis publicaciones"
+        title={t('myPublications.breadcrumbTitle')}
+        sub={t('myPublications.empty')}
+      />
 
-      <section className="artworks-area pt-80 pb-90">
+      <section className="pb-90">
         <div className="container c-container-1">
           {publicationsQuery.isLoading && (
             <div className="alert alert-info">{t('myPublications.loading')}</div>
@@ -317,142 +330,157 @@ const MyPublicationsMain = () => {
           {!publicationsQuery.isLoading && !publicationsQuery.error && publications.length > 0 && (
             <div className="my-publications-list">
                   {publications.map((publication: MyPublicationItem) => {
-                    const badge = getStatusBadge(publication.pubsta_id, {
+                    const statusMeta = getStatusMeta(publication.pubsta_id, {
                       sold: t('status.sold'),
                       draft: t('status.draft'),
                       void: t('status.void'),
                     });
                     const isPautada = pautadaCampaignByPub.has(Number(publication.pub_id)); // Fase 10.3
+                    const isVoid = publication.pubsta_id === PUBSTA_VOID;
+                    const isSold = publication.pubsta_id === PUBSTA_SOLD;
+                    const isDeleting =
+                      deleteMutation.isPending &&
+                      deleteMutation.variables === publication.pub_id;
+                    const editDisabled = isVoid || isSold;
+                    const editTitle = isVoid
+                      ? t('myPublications.editDisabledVoid')
+                      : isSold
+                        ? t('myPublications.editDisabledSold')
+                        : undefined;
+                    const deleteTitle = isSold
+                      ? t('myPublications.deleteDisabledSold')
+                      : isVoid
+                        ? t('myPublications.deleteDisabledVoid')
+                        : undefined;
 
                     return (
-                      <article key={publication.pub_id} className="my-publication-row">
-                        {/* Imagen — div con clases globales para que styled-jsx aplique a través del Link */}
+                      <article key={publication.pub_id} className={`owner-row ${statusMeta.dim ? 'is-dim' : ''}`}>
+                        {/* Thumb 104×70 — Link envolvente con :global() interno. */}
                         <Link
                           href={publicationPath(publication)}
-                          className="my-publication-image-link"
+                          className="owner-row-thumb-link"
+                          aria-label={publication.pub_title}
                         >
-                          <span className="my-publication-image-frame">
+                          <span className={`owner-row-thumb ${statusMeta.dim ? 'is-dim' : ''}`}>
                             <PublicationRowImage
                               src={publication.main_image}
                               alt={publication.pub_title}
                             />
-                            {badge && (
-                              <span
-                                className="my-publication-badge"
-                                style={{ background: badge.color }}
-                              >
-                                {badge.label}
-                              </span>
-                            )}
-                            {isPautada && !badge && (
-                              <span className="my-publication-badge pautada-badge">
-                                <i className="fas fa-bolt" /> {t('myPublications.promoted')}
-                              </span>
-                            )}
                           </span>
                         </Link>
 
-                        <div className="my-publication-content">
-                          <h4>
-                            <Link href={publicationPath(publication)}>
-                              {publication.pub_title}
-                            </Link>
-                          </h4>
-                          <p>{publication.pub_description}</p>
-                          <div className="my-publication-meta">
+                        <div className="owner-row-body">
+                          <div className="owner-row-headline">
+                            <h4 className="owner-row-title">
+                              <Link href={publicationPath(publication)}>
+                                {publication.pub_title}
+                              </Link>
+                            </h4>
+                            <span className={`owner-row-state ${statusMeta.dotClass}`}>
+                              <span className="owner-row-state-dot" />
+                              {statusMeta.label}
+                            </span>
+                            {isPautada && (
+                              <span className="owner-row-state owner-row-pautada">
+                                <i className="fas fa-bolt" />
+                                {t('myPublications.promoted')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="owner-row-meta">
                             <span>{formatPrice(publication.pubdet_price, publication.pubdet_currency, t('card.priceConsult'))}</span>
+                            <span className="owner-row-sep">·</span>
                             <span>{publication.pub_address}</span>
+                            <span className="owner-row-sep">·</span>
+                            <span>{formatRowDate(publication.pub_create_date)}</span>
+                          </div>
+                          {/* Métricas — TODO(metrics): el endpoint /my-publications no
+                              expone vistas/favs/consultas todavía. Reportado en feedback §2. */}
+                          <div className="owner-row-stats">
+                            <span><i className="far fa-eye" />—</span>
+                            <span><i className="far fa-heart" />—</span>
+                            <span><i className="far fa-comments" />—</span>
                           </div>
                         </div>
 
-                        <div className="my-publication-actions">
-                          {/* Fase 10.3 — botón Pautar (publicaciones activas no pautadas) */}
+                        <div className="owner-row-actions">
+                          {/* Acción primaria por estado: Activa → Pautar/Ver pauta, Borrador → Publicar */}
                           {publication.pubsta_id === PUBSTA_ACTIVE && !isPautada && (
                             <Link
                               href={`/pauta?pub=${publication.pub_id}`}
-                              className="border-btn pautar-btn"
+                              className="owner-btn owner-btn-action"
                               title={t('myPublications.promoteTitle')}
                             >
-                              <i className="fas fa-bolt" style={{ marginRight: 6 }} />
+                              <i className="fas fa-bullhorn" />
                               {t('myPublications.promote')}
                             </Link>
                           )}
                           {publication.pubsta_id === PUBSTA_ACTIVE && isPautada && (
                             <Link
                               href="/pauta"
-                              className="border-btn pautar-btn active"
+                              className="owner-btn owner-btn-outline"
                               title={t('myPublications.campaignActiveTitle')}
                             >
-                              <i className="fas fa-bolt" style={{ marginRight: 6 }} />
+                              <i className="fas fa-bolt" />
                               {t('myPublications.viewCampaign')}
                             </Link>
                           )}
-                          {/* Botón "Cerrar venta" — solo publicaciones activas */}
+                          {publication.pubsta_id === PUBSTA_DRAFT && (
+                            <Link
+                              href={`/publications/${publication.pub_id}/edit`}
+                              className="owner-btn owner-btn-action"
+                              title={t('myPublications.edit')}
+                            >
+                              <i className="fas fa-paper-plane" />
+                              {t('myPublications.edit')}
+                            </Link>
+                          )}
+
+                          {/* Secundarias outline. */}
+                          {!editDisabled && publication.pubsta_id !== PUBSTA_DRAFT && (
+                            <Link
+                              href={`/publications/${publication.pub_id}/edit`}
+                              className="owner-btn owner-btn-outline"
+                            >
+                              <i className="fas fa-pen" />
+                              {t('myPublications.edit')}
+                            </Link>
+                          )}
+                          {editDisabled && publication.pubsta_id !== PUBSTA_DRAFT && (
+                            <button
+                              type="button"
+                              className="owner-btn owner-btn-outline"
+                              disabled
+                              title={editTitle}
+                            >
+                              <i className="fas fa-pen" />
+                              {t('myPublications.edit')}
+                            </button>
+                          )}
+
                           {publication.pubsta_id === PUBSTA_ACTIVE && (
                             <button
                               type="button"
-                              className="border-btn close-sale-btn"
+                              className="owner-btn owner-btn-outline"
                               onClick={() => setPendingCloseSale(publication)}
                               title={t('myPublications.closeSaleTitle')}
                             >
-                              <i className="fas fa-handshake" style={{ marginRight: 6 }} />
+                              <i className="fas fa-handshake" />
                               {t('myPublications.closeSale')}
                             </button>
                           )}
-                          {(() => {
-                            const isVoid = publication.pubsta_id === PUBSTA_VOID;
-                            const isSold = publication.pubsta_id === PUBSTA_SOLD;
-                            const editDisabled = isVoid || isSold;
-                            const editTitle = isVoid
-                              ? t('myPublications.editDisabledVoid')
-                              : isSold
-                                ? t('myPublications.editDisabledSold')
-                                : undefined;
 
-                            return editDisabled ? (
-                              <button
-                                type="button"
-                                className="border-btn"
-                                disabled
-                                title={editTitle}
-                              >
-                                {t('myPublications.edit')}
-                              </button>
-                            ) : (
-                              <Link
-                                href={`/publications/${publication.pub_id}/edit`}
-                                className="border-btn"
-                              >
-                                {t('myPublications.edit')}
-                              </Link>
-                            );
-                          })()}
-                          {(() => {
-                            const isVoid = publication.pubsta_id === PUBSTA_VOID;
-                            const isSold = publication.pubsta_id === PUBSTA_SOLD;
-                            const isDeleting =
-                              deleteMutation.isPending &&
-                              deleteMutation.variables === publication.pub_id;
-
-                            const disabled = isVoid || isSold || isDeleting;
-                            const title = isSold
-                              ? t('myPublications.deleteDisabledSold')
-                              : isVoid
-                                ? t('myPublications.deleteDisabledVoid')
-                                : undefined;
-
-                            return (
-                              <button
-                                type="button"
-                                className="border-btn"
-                                disabled={disabled}
-                                title={title}
-                                onClick={() => setPendingDelete(publication)}
-                              >
-                                {isDeleting ? t('myPublications.deleteLoading') : t('myPublications.delete')}
-                              </button>
-                            );
-                          })()}
+                          {/* Eliminar danger outline. */}
+                          <button
+                            type="button"
+                            className="owner-btn owner-btn-danger"
+                            disabled={isVoid || isSold || isDeleting}
+                            title={deleteTitle}
+                            onClick={() => setPendingDelete(publication)}
+                          >
+                            <i className="fas fa-trash" />
+                            {isDeleting ? t('myPublications.deleteLoading') : t('myPublications.delete')}
+                          </button>
                         </div>
                       </article>
                     );
@@ -517,130 +545,215 @@ const MyPublicationsMain = () => {
         .my-publications-list {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
+          max-width: 980px;
+          margin: 0 auto;
         }
-        .my-publications-list :global(.my-publication-row) {
+        /* OwnerRow — fila propia del owner. styled-jsx no hashea componentes
+           custom (<Link> dentro): toda regla a clases hijas va con :global(). */
+        .my-publications-list :global(.owner-row) {
           display: grid;
-          grid-template-columns: 120px 1fr auto;
-          gap: 18px;
+          grid-template-columns: 104px 1fr auto;
+          gap: 16px;
           align-items: center;
-          padding: 16px;
-          border: 1px solid rgba(128, 128, 128, 0.18);
-          border-radius: 12px;
-          background: rgba(128, 128, 128, 0.04);
+          padding: 14px 16px;
+          border: 1px solid var(--border);
+          border-radius: var(--r-md);
+          background: var(--surface);
+          box-shadow: var(--shadow-xs);
         }
-        /* Wrapper interno con position:relative — recibe el estilo aunque
-           el padre sea un <Link> de Next.js. */
-        .my-publications-list :global(.my-publication-image-link) {
+        .my-publications-list :global(.owner-row-thumb-link) {
           display: block;
-          width: 120px;
-          height: 120px;
+          width: 104px;
+          height: 70px;
           flex-shrink: 0;
         }
-        .my-publications-list :global(.my-publication-image-frame) {
+        .my-publications-list :global(.owner-row-thumb) {
           position: relative;
           display: block;
-          width: 120px;
-          height: 120px;
+          width: 104px;
+          height: 70px;
           overflow: hidden;
-          border-radius: 8px;
-          background: rgba(128, 128, 128, 0.12);
+          border-radius: var(--r-sm);
+          background: var(--surface-sunk);
         }
-        .my-publications-list :global(.my-publication-badge) {
-          position: absolute;
-          top: 8px;
-          left: 8px;
-          padding: 3px 8px;
-          color: #fff;
-          font-size: 10px;
+        .my-publications-list :global(.owner-row-thumb.is-dim) {
+          filter: saturate(.35) brightness(.85);
+        }
+        .my-publications-list :global(.owner-row-body) {
+          min-width: 0;
+        }
+        .my-publications-list :global(.owner-row-headline) {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 3px;
+          flex-wrap: wrap;
+        }
+        .my-publications-list :global(.owner-row-title) {
+          margin: 0;
+          font-family: var(--font-display);
           font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          border-radius: 12px;
-          z-index: 2;
-        }
-        .my-publications-list :global(.my-publication-content h4) {
-          margin-bottom: 6px;
-          font-size: 18px;
-        }
-        .my-publications-list :global(.my-publication-content p) {
-          margin: 0 0 10px;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
+          font-size: 15px;
+          color: var(--fg-strong);
+          line-height: 1.3;
+          white-space: nowrap;
           overflow: hidden;
-          opacity: 0.75;
-          font-size: 14px;
+          text-overflow: ellipsis;
+          max-width: 100%;
         }
-        .my-publications-list :global(.my-publication-meta) {
+        .my-publications-list :global(.owner-row-title a) {
+          color: inherit;
+          text-decoration: none;
+        }
+        .my-publications-list :global(.owner-row-title a:hover) {
+          color: var(--accent-hover);
+        }
+        /* Badge frosted de estado (handoff #8 §3). */
+        .my-publications-list :global(.owner-row-state) {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          height: 22px;
+          padding: 0 10px;
+          border-radius: 999px;
+          background: var(--surface-sunk);
+          border: 1px solid var(--border);
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--fg-muted);
+          flex-shrink: 0;
+        }
+        .my-publications-list :global(.owner-row-state-dot) {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--green-600);
+        }
+        .my-publications-list :global(.owner-row-state.dot-activa .owner-row-state-dot) { background: var(--green-600); }
+        .my-publications-list :global(.owner-row-state.dot-borrador .owner-row-state-dot) { background: var(--ink-400); }
+        .my-publications-list :global(.owner-row-state.dot-vendida .owner-row-state-dot) { background: var(--navy-500); }
+        .my-publications-list :global(.owner-row-state.dot-anulada .owner-row-state-dot) { background: var(--danger); }
+        .my-publications-list :global(.owner-row-pautada) {
+          background: var(--accent-soft);
+          border-color: var(--lav-300);
+          color: var(--lav-700);
+        }
+        .my-publications-list :global(.owner-row-pautada i) {
+          font-size: 9px;
+        }
+        :global([data-theme='dark']) .my-publications-list :global(.owner-row-pautada) {
+          color: var(--lav-300);
+        }
+        .my-publications-list :global(.owner-row-meta) {
           display: flex;
           flex-wrap: wrap;
-          gap: 14px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--tp-theme-1, #6c5ce7);
+          align-items: center;
+          gap: 6px;
+          font: var(--text-body-sm);
+          color: var(--fg-muted);
         }
-        .my-publications-list :global(.my-publication-actions) {
+        .my-publications-list :global(.owner-row-sep) {
+          color: var(--fg-subtle);
+        }
+        .my-publications-list :global(.owner-row-stats) {
           display: flex;
-          gap: 10px;
+          gap: 16px;
+          margin-top: 4px;
+          font: var(--text-caption);
+          color: var(--fg-subtle);
+        }
+        .my-publications-list :global(.owner-row-stats i) {
+          margin-right: 5px;
+          font-size: 12px;
+        }
+        .my-publications-list :global(.owner-row-actions) {
+          display: flex;
+          gap: 8px;
+          flex-shrink: 0;
           flex-wrap: wrap;
           justify-content: flex-end;
         }
-        .my-publications-list :global(.my-publication-actions .border-btn) {
-          height: 38px;
-          padding: 0 14px;
-          font-size: 13px;
+        /* Botones del row (sm). */
+        .my-publications-list :global(.owner-btn) {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
+          gap: 7px;
+          height: 34px;
+          padding: 0 13px;
+          border-radius: var(--r-pill);
+          font-size: 12.5px;
+          font-weight: 700;
+          font-family: var(--font-display);
+          text-decoration: none;
+          transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+          cursor: pointer;
         }
-        .my-publications-list :global(.close-sale-btn) {
-          background: #16a34a;
-          border-color: #16a34a;
-          color: #fff;
+        .my-publications-list :global(.owner-btn i) {
+          font-size: 11px;
         }
-        .my-publications-list :global(.close-sale-btn:hover) {
-          background: #15803d;
-          border-color: #15803d;
-          color: #fff;
+        .my-publications-list :global(.owner-btn-action) {
+          background: var(--green-500);
+          color: var(--navy-900);
+          border: 1.5px solid var(--green-500);
         }
-        /* Fase 10.3 — botón Pautar */
-        .my-publications-list :global(.pautar-btn) {
-          background: var(--clr-theme-1, #6c5ce7);
-          border-color: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
+        .my-publications-list :global(.owner-btn-action:hover) {
+          background: var(--green-600);
+          border-color: var(--green-600);
+          transform: translateY(-1px);
         }
-        .my-publications-list :global(.pautar-btn:hover) {
-          background: #5a4dd1;
-          border-color: #5a4dd1;
-          color: #fff;
+        .my-publications-list :global(.owner-btn-outline) {
+          background: transparent;
+          color: var(--fg-strong);
+          border: 1.5px solid var(--border-strong);
         }
-        .my-publications-list :global(.pautar-btn.active) {
-          background: #f59e0b;
-          border-color: #f59e0b;
+        .my-publications-list :global(.owner-btn-outline:hover) {
+          background: var(--surface-sunk);
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
-        .my-publications-list :global(.pautar-btn.active:hover) {
-          background: #d97706;
-          border-color: #d97706;
+        .my-publications-list :global(.owner-btn-danger) {
+          background: transparent;
+          color: var(--danger);
+          border: 1.5px solid var(--danger-bg, rgba(239, 68, 68, 0.35));
         }
-        .my-publications-list :global(.pautada-badge) {
-          background: linear-gradient(135deg, #f59e0b, #f97316);
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
+        .my-publications-list :global(.owner-btn-danger:hover:not(:disabled)) {
+          background: rgba(239, 68, 68, 0.08);
+          border-color: var(--danger);
         }
-        .my-publications-list :global(.pautada-badge i) {
-          font-size: 9px;
-        }
-        .my-publications-list :global(button.border-btn:disabled) {
+        .my-publications-list :global(.owner-btn:disabled) {
           cursor: not-allowed;
           opacity: 0.55;
+          transform: none;
+        }
+        /* Mobile: la columna de acciones cae bajo el body. Secundarias colapsan
+           tipográficamente (más chico, sin ícono) — no es un menú "⋯" real,
+           reportado en feedback §2. */
+        @media (max-width: 768px) {
+          .my-publications-list :global(.owner-row) {
+            grid-template-columns: 80px 1fr;
+          }
+          .my-publications-list :global(.owner-row-thumb-link),
+          .my-publications-list :global(.owner-row-thumb) {
+            width: 80px;
+            height: 56px;
+          }
+          .my-publications-list :global(.owner-row-actions) {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+            margin-top: 4px;
+          }
+          .my-publications-list :global(.owner-btn) {
+            height: 32px;
+            padding: 0 11px;
+            font-size: 12px;
+          }
         }
         :global(.delete-publication-modal) {
-          background: var(--clr-bg-white, #fff) !important;
-          color: var(--clr-common-heading, #181818);
-          border: 1px solid var(--clr-common-border, transparent);
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+          background: var(--surface) !important;
+          color: var(--fg-strong);
+          border: 1px solid var(--border);
+          box-shadow: var(--shadow-lg, 0 24px 60px rgba(0, 0, 0, 0.45));
         }
         :global(.delete-modal-body) {
           text-align: center;
@@ -654,7 +767,7 @@ const MyPublicationsMain = () => {
           justify-content: center;
           border-radius: 50%;
           background: rgba(239, 68, 68, 0.12);
-          color: #ef4444;
+          color: var(--danger);
           font-size: 26px;
         }
         :global(.delete-modal-title) {
@@ -666,10 +779,10 @@ const MyPublicationsMain = () => {
           margin: 0 0 26px;
           font-size: 15px;
           line-height: 1.55;
-          color: var(--clr-common-body-text, #5b5b5b);
+          color: var(--fg-muted);
         }
         :global(.delete-modal-text strong) {
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
         :global(.delete-modal-actions) {
           display: flex;
@@ -686,8 +799,8 @@ const MyPublicationsMain = () => {
         }
         :global(.delete-modal-confirm) {
           color: #fff;
-          background: #ef4444;
-          border-color: #ef4444;
+          background: var(--danger);
+          border-color: var(--danger);
         }
         :global(.delete-modal-confirm:hover) {
           background: #dc2626;
@@ -698,20 +811,6 @@ const MyPublicationsMain = () => {
         :global(.delete-modal-cancel:disabled) {
           opacity: 0.6;
           cursor: not-allowed;
-        }
-        @media (max-width: 768px) {
-          .my-publications-list :global(.my-publication-row) {
-            grid-template-columns: 96px 1fr;
-          }
-          .my-publications-list :global(.my-publication-image-link),
-          .my-publications-list :global(.my-publication-image-frame) {
-            width: 96px;
-            height: 96px;
-          }
-          .my-publications-list :global(.my-publication-actions) {
-            grid-column: 1 / -1;
-            justify-content: flex-start;
-          }
         }
       `}</style>
     </main>

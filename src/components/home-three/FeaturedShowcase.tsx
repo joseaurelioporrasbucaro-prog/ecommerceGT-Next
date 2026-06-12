@@ -37,7 +37,9 @@ const FeaturedShowcase: React.FC = () => {
         {/* El componente ya muestra su propio título "⚡ Destacados".
             Para evitar duplicación lo neutralizamos por CSS. */}
         <div className="fsc-embed">
-          <FeaturedPublicationsSection limit={6} />
+          {/* Handoff #8 [CARD-4] — la home ya rotula la sección, así que
+              las cards no repiten el badge Destacado/Patrocinado. */}
+          <FeaturedPublicationsSection limit={6} inSponsoredSection />
         </div>
       </div>
 

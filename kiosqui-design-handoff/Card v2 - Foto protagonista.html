@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosqui — Card v2 · La foto protagonista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#e8e3da}
+  /* Switch de precio Q ⇄ US$: entra desde abajo con fade */
+  @media (prefers-reduced-motion: no-preference){
+    .kq-price-swap{animation:kq-price-in .45s cubic-bezier(.2,.7,.3,1)}
+  }
+  @keyframes kq-price-in{
+    from{opacity:0;transform:translateY(60%)}
+    to{opacity:1;transform:translateY(0)}
+  }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="batch_card/CardV2.jsx"></script>
+<script type="text/babel" src="batch_card/CardV21.jsx"></script>
+<script type="text/babel" src="batch_card/CardCtaOptions.jsx"></script>
+<script type="text/babel">
+function Pad({children, dark}) {
+  return <div data-theme={dark?"dark":undefined} style={{width:"100%", height:"100%",
+    background:"var(--bg)", display:"flex", alignItems:"center", justifyContent:"center",
+    gap:24, padding:30, flexWrap:"wrap"}}>{children}</div>;
+}
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="v21" title="⭐ Card v2.1 — ELEGIDA (Variante B refinada)" subtitle="Foto 3:2 limpia · cuerpo con aire (18px padding, bloques separados) · specs con íconos espaciados · precio con switch animado Q ⇄ US$ · versión pautada con CTA verde.">
+        <DCArtboard id="v21-main" label="Normal · destacada" width={840} height={500}>
+          <Pad><CardV21/><CardV21 feat saved i={1}/></Pad>
+        </DCArtboard>
+        <DCArtboard id="v21-cta" label="Pautada con CTA · renta (/mes)" width={840} height={540}>
+          <Pad><CardV21 sponsored i={0}/><CardV21Rent/></Pad>
+        </DCArtboard>
+        <DCArtboard id="v21-dark" label="v2.1 · dark" width={840} height={500}>
+          <Pad dark><CardV21/><CardV21 feat saved i={1}/></Pad>
+        </DCArtboard>
+      </DCSection>
+      <DCSection id="cta-explore" title="CTA 'Enviar mensaje' — 4 opciones (light y dark)" subtitle="Para cards pautadas. 1: verde sólido (máximo contraste, compite con el precio). 2: outline (presente, discreto). 3: pastilla lavanda suave (peso mínimo, lenguaje de link). 4: burbuja compacta en la fila de specs (cero altura extra — la foto y la descripción respiran más).">
+        <DCArtboard id="cta-light" label="Opciones · light" width={1480} height={560}>
+          <Pad><Cta1/><Cta2/><Cta3/><Cta4/></Pad>
+        </DCArtboard>
+        <DCArtboard id="cta-dark" label="Opciones · dark" width={1480} height={560}>
+          <Pad dark><Cta1/><Cta2/><Cta3/><Cta4/></Pad>
+        </DCArtboard>
+      </DCSection>
+      <DCSection id="variants" title="Exploración previa — A (overlay) y B (base de la elegida)" subtitle="Se conservan como referencia del proceso.">
+        <DCArtboard id="va" label="Variante A — precio en overlay" width={760} height={420}>
+          <Pad><CardA/><CardA feat saved/></Pad>
+        </DCArtboard>
+        <DCArtboard id="vb" label="Variante B — foto limpia" width={760} height={420}>
+          <Pad><CardB/><CardB feat saved/></Pad>
+        </DCArtboard>
+        <DCArtboard id="va-dark" label="Variante A · dark" width={760} height={420}>
+          <Pad dark><CardA/><CardA feat saved/></Pad>
+        </DCArtboard>
+      </DCSection>
+      <DCSection id="sponsored" title="Patrocinada — CTA dentro del sistema (CARD-3 y CARD-4)" subtitle="Badge 'Patrocinado' neutro translúcido (sin dorado). CTA 'Enviar mensaje' = pill verde del sistema, full-width bajo el cuerpo. Regla CARD-4: dentro de la sección 'Patrocinado' de la home, la card NO repite el badge.">
+        <DCArtboard id="sp" label="Card patrocinada (fuera de sección)" width={420} height={480}>
+          <Pad><CardSponsored/></Pad>
+        </DCArtboard>
+      </DCSection>
+      <DCSection id="mypubs" title="/my-publications — filas de propietario (WP-2)" subtitle="Fila con thumb 104×70, badge frosted de estado (Activa/Borrador/Vendida — vendida con foto desaturada), métricas reales (vistas/favoritos/consultas) y acciones: la primaria verde, secundarias outline, eliminar en danger.">
+        <DCArtboard id="rows" label="Estados: activa · borrador · vendida" width={980} height={360}>
+          <div style={{width:"100%", height:"100%", background:"var(--bg)", padding:26,
+            display:"flex", alignItems:"center"}}><MyPubsBoard/></div>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
