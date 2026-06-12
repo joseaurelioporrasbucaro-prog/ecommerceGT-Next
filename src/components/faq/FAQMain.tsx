@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import PageHead from "@/components/common/PageHead";
 
 /**
@@ -360,7 +361,12 @@ const FAQMain: React.FC = () => {
   // abierta a la vez en toda la página (no por grupo). Más simple.
   const [openId, setOpenId] = useState<string | null>(null);
   // Handoff #6 §2 — chips de categoría + búsqueda por texto de pregunta.
-  const [activeCat, setActiveCat] = useState<string>('todas');
+  // El portal /soporte linkea con ?cat=<id> para aterrizar filtrado.
+  const searchParams = useSearchParams();
+  const initialCat = searchParams.get('cat');
+  const [activeCat, setActiveCat] = useState<string>(
+    initialCat && GROUPS.some((g) => g.id === initialCat) ? initialCat : 'todas',
+  );
   const [query, setQuery] = useState('');
 
   const toggle = (id: string) => {
