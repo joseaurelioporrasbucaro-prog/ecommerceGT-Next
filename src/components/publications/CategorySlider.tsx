@@ -27,7 +27,7 @@ const CategoryButton = ({ label, iconPath, fallbackIcon, isActive, onClick }: Ca
   return (
     <button
       type="button"
-      className={`property-category-btn ${isActive ? 'is-active' : ''}`}
+      className={`kq-chip property-category-btn ${isActive ? 'is-active' : ''}`}
       onClick={onClick}
     >
       {showCustomIcon ? (
@@ -70,7 +70,7 @@ const CategorySlider = ({
   return (
     <div className="row wow fadeInUp">
       <div className="col-lg-12">
-        <div className="categories-bar pos-rel mb-30">
+        <div className="categories-bar kq-category-chips pos-rel mb-30">
           <Swiper
             modules={[Navigation, A11y]}
             spaceBetween={10}
@@ -113,37 +113,6 @@ const CategorySlider = ({
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        :global(.property-category-btn) {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 20px;
-          background: transparent;
-          border: 1px solid #3a3852;
-          border-radius: 8px;
-          color: inherit;
-          cursor: pointer;
-          font-weight: 500;
-          white-space: nowrap;
-          transition: all 0.25s ease;
-        }
-        :global(.property-category-btn i) {
-          font-size: 16px;
-        }
-        :global(.property-category-btn:hover) {
-          background: var(--tp-theme-1, #6c5ce7);
-          border-color: var(--tp-theme-1, #6c5ce7);
-          color: #fff;
-          transform: translateY(-2px);
-        }
-        :global(.property-category-btn.is-active) {
-          background: var(--tp-theme-1, #6c5ce7);
-          border-color: var(--tp-theme-1, #6c5ce7);
-          color: #fff;
-        }
-      `}</style>
     </div>
   );
 };
