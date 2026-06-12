@@ -93,3 +93,20 @@
   cubre `/publications`, `/favorites` y la home vía `FeaturedPublicationsSection`;
   si `/my-publications` debe adoptar cards, hace falta un diseño específico para
   esas acciones. `TODO(design)`
+
+### Del Batch B (2026-06-11, Claude Code)
+
+- [B] **Stat "Vendidas" del perfil**: el backend no expone vendidas por
+  vendedor (SellerInfo trae publicaciones/vistas/likes/followers/rating).
+  La card de identidad usa las stats reales. Si "Vendidas" importa, es
+  cambio de backend.
+- [B] **Tab Reseñas**: sin artboard — se aplicó el lenguaje de cards del
+  sistema (summary verde con score display + cards con avatar navy).
+  Validar si quieren diseño detallado.
+- [B] **/soporte "n guías"**: no existen guías como contenido; las topic
+  cards aterrizan en las categorías reales del FAQ (?cat=) y en
+  /pricing-plan. Si se quieren guías reales, es contenido nuevo.
+- [B] **/contact correos**: soporte@kiosqui.gt y pauta@kiosqui.gt del mock
+  quedaron con TODO(copy) — confirmar correos reales.
+- [B] **Mapa de Google del template retirado** de /contact (apuntaba a
+  Nueva York; sin equivalente en el diseño).

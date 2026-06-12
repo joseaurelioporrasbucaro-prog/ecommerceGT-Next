@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import ThemeChanger from "../home/ThemeChanger";
-import Breadcrumbs from "@/utils/Breadcrumbs";
+import { useSearchParams } from "next/navigation";
+import PageHead from "@/components/common/PageHead";
 
 /**
  * Fase 18 — FAQ con contenido real para marketplace de bienes raíces.
@@ -360,28 +360,82 @@ const FAQMain: React.FC = () => {
   // Acordeón con ID compuesto "<groupId>:<index>" para soportar una pregunta
   // abierta a la vez en toda la página (no por grupo). Más simple.
   const [openId, setOpenId] = useState<string | null>(null);
+  // Handoff #6 §2 — chips de categoría + búsqueda por texto de pregunta.
+  // El portal /soporte linkea con ?cat=<id> para aterrizar filtrado.
+  const searchParams = useSearchParams();
+  const initialCat = searchParams.get('cat');
+  const [activeCat, setActiveCat] = useState<string>(
+    initialCat && GROUPS.some((g) => g.id === initialCat) ? initialCat : 'todas',
+  );
+  const [query, setQuery] = useState('');
 
   const toggle = (id: string) => {
     setOpenId((current) => (current === id ? null : id));
   };
 
+  const normalized = query.trim().toLowerCase();
+  const visibleGroups = GROUPS
+    .filter((g) => activeCat === 'todas' || g.id === activeCat)
+    .map((g) => ({
+      ...g,
+      items: normalized
+        ? g.items.filter((it) => it.q.toLowerCase().includes(normalized))
+        : g.items,
+    }))
+    .filter((g) => g.items.length > 0);
+
   return (
     <>
-      <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle="Preguntas frecuentes" breadcrumbSubTitle="FAQ" />
-
-      <section className="faq-area-kiosqui pt-80 pb-100">
+      <section className="faq-area-kiosqui pb-100">
+        <PageHead
+          overline="Centro de ayuda"
+          title="Preguntas frecuentes"
+          sub="Respuestas a las dudas más comunes sobre cuenta, publicaciones, planes y soporte."
+        />
         <div className="container">
           <div className="row justify-content-center">
-            <div className="col-lg-9">
-              <p className="faq-intro">
-                Respuestas a las dudas más comunes sobre cuenta, publicaciones,
-                planes y soporte. Si no encontrás lo que buscás, escribinos a{' '}
-                <a href="mailto:soporte@kiosqui.gt">soporte@kiosqui.gt</a> o
-                creá un <Link href="/soporte/tickets">ticket de soporte</Link>.
-              </p>
+            <div className="col-lg-9 faq-col">
+              {/* Buscador pill */}
+              <div className="faq-search">
+                <i className="fas fa-search" aria-hidden="true" />
+                <input
+                  type="text"
+                  placeholder="Buscá tu pregunta…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  aria-label="Buscar pregunta"
+                />
+              </div>
 
-              {GROUPS.map((g) => (
+              {/* Chips de categoría */}
+              <div className="faq-chips">
+                <button
+                  type="button"
+                  className={`faq-chip ${activeCat === 'todas' ? 'is-active' : ''}`}
+                  onClick={() => setActiveCat('todas')}
+                >
+                  Todas
+                </button>
+                {GROUPS.map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    className={`faq-chip ${activeCat === g.id ? 'is-active' : ''}`}
+                    onClick={() => setActiveCat(g.id)}
+                  >
+                    {g.title}
+                  </button>
+                ))}
+              </div>
+
+              {visibleGroups.length === 0 && (
+                <p className="faq-no-results">
+                  No encontramos preguntas con ese texto. Probá con otra palabra
+                  o <Link href="/soporte/tickets">creá un ticket</Link>.
+                </p>
+              )}
+
+              {visibleGroups.map((g) => (
                 <div key={g.id} className="faq-group">
                   <h3 className="faq-group-title">
                     <i className={`fas ${g.icon}`} aria-hidden="true" /> {g.title}
@@ -423,20 +477,81 @@ const FAQMain: React.FC = () => {
         </div>
 
         <style jsx>{`
-          .faq-area-kiosqui {
-            background-color: var(--clr-bg-bodylight);
+          .faq-col {
+            max-width: 760px;
           }
-          .faq-intro {
-            text-align: center;
-            font-size: 15.5px;
-            line-height: 1.6;
-            max-width: 660px;
-            margin: 0 auto 50px;
-            color: var(--clr-common-body-text);
+          /* Buscador pill con sombra (handoff #6 §2). */
+          .faq-search {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 52px;
+            padding: 0 22px;
+            background: var(--surface, #fff);
+            border: 1.5px solid var(--border-strong, #d4c8b6);
+            border-radius: 999px;
+            box-shadow: var(--shadow-sm, 0 2px 6px rgba(30, 45, 74, 0.08));
+            margin-bottom: 18px;
+            transition: border-color 0.15s, box-shadow 0.15s;
           }
-          .faq-intro :global(a) {
-            color: var(--clr-theme-1, #2785ff);
+          .faq-search:focus-within {
+            border-color: var(--accent, #b5acef);
+            box-shadow: var(--shadow-focus, 0 0 0 3px rgba(181, 172, 239, 0.55));
+          }
+          .faq-search :global(i) {
+            color: var(--fg-subtle, #9aa0a8);
+            font-size: 14px;
+          }
+          .faq-search input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 15px;
+            color: var(--fg-strong, #22252a);
+            min-width: 0;
+          }
+          /* Chips de categoría. */
+          .faq-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 34px;
+          }
+          .faq-chip {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1.5px solid var(--border-strong, #d4c8b6);
+            background: var(--surface, #fff);
+            color: var(--fg-muted, #5c616a);
+            font-size: 13px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+          }
+          .faq-chip:hover {
+            border-color: var(--lav-500, #b5acef);
+            color: var(--lav-700, #6d62cf);
+          }
+          .faq-chip.is-active {
+            background: var(--navy-800, #1e2d4a);
+            border-color: var(--navy-800, #1e2d4a);
+            color: var(--cream, #f8f4ee);
+          }
+          :global([data-theme='dark']) .faq-chip.is-active {
+            background: var(--lav-500, #b5acef);
+            border-color: var(--lav-500, #b5acef);
+            color: var(--navy-900, #161f33);
+          }
+          .faq-no-results {
+            text-align: center;
+            color: var(--fg-muted, #5c616a);
+            font-size: 14.5px;
+            padding: 30px 0;
+          }
+          .faq-no-results :global(a) {
+            color: var(--accent-hover, #8a7fe3);
+            font-weight: 700;
           }
           .faq-group {
             margin-bottom: 40px;
@@ -445,16 +560,17 @@ const FAQMain: React.FC = () => {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 20px;
+            font-family: var(--font-display);
+            font-size: 19px;
             font-weight: 700;
-            color: var(--clr-common-heading);
+            color: var(--fg-strong, #22252a);
             margin-bottom: 14px;
             padding-bottom: 10px;
-            border-bottom: 1px solid var(--clr-common-border);
+            border-bottom: 1px solid var(--border, #e6ddcf);
           }
           .faq-group-title :global(i) {
-            color: var(--clr-theme-1, #2785ff);
-            font-size: 18px;
+            color: var(--lav-700, #6d62cf);
+            font-size: 17px;
           }
           .faq-items {
             display: flex;
@@ -462,15 +578,15 @@ const FAQMain: React.FC = () => {
             gap: 10px;
           }
           .faq-item {
-            background: var(--clr-bg-white, #fff);
-            border: 1px solid var(--clr-common-border);
-            border-radius: 10px;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e6ddcf);
+            border-radius: 14px;
             overflow: hidden;
             transition: border-color 0.15s, box-shadow 0.15s;
           }
           .faq-item.is-open {
-            border-color: var(--clr-theme-1, #2785ff);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            border-color: var(--lav-300, #ddd8f8);
+            box-shadow: var(--shadow-sm, 0 2px 6px rgba(30, 45, 74, 0.08));
           }
           .faq-q {
             width: 100%;
@@ -482,21 +598,34 @@ const FAQMain: React.FC = () => {
             background: transparent;
             border: none;
             font-size: 15px;
-            font-weight: 600;
+            font-weight: 700;
             text-align: left;
-            color: var(--clr-common-heading);
+            color: var(--fg-strong, #22252a);
             cursor: pointer;
           }
+          /* Botón circular +/− (cerrado: surface-sunk; abierto: lavanda). */
           .faq-q :global(i) {
-            font-size: 12px;
-            color: var(--clr-theme-1, #2785ff);
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: var(--surface-sunk, #f1ebe1);
+            color: var(--fg-muted, #5c616a);
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+            transition: background 0.15s, color 0.15s;
+          }
+          .faq-item.is-open .faq-q :global(i) {
+            background: var(--lav-500, #b5acef);
+            color: #fff;
           }
           .faq-a {
             padding: 0 20px 18px;
-            font-size: 14.5px;
-            line-height: 1.65;
-            color: var(--clr-common-body-text);
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--fg-muted, #5c616a);
           }
           .faq-a :global(p) {
             margin: 0 0 10px;
@@ -512,7 +641,7 @@ const FAQMain: React.FC = () => {
             margin-bottom: 6px;
           }
           .faq-a :global(a) {
-            color: var(--clr-theme-1, #2785ff);
+            color: var(--accent-hover, #8a7fe3);
             font-weight: 600;
           }
           .faq-a :global(code) {
@@ -525,13 +654,13 @@ const FAQMain: React.FC = () => {
             text-align: center;
             margin-top: 30px;
             padding: 22px;
-            background: var(--clr-bg-white, #fff);
-            border-radius: 10px;
+            background: var(--accent-soft, #ebe8fb);
+            border-radius: 14px;
             font-size: 14.5px;
-            color: var(--clr-common-body-text);
+            color: var(--fg-muted, #5c616a);
           }
           .faq-footer :global(a) {
-            color: var(--clr-theme-1, #2785ff);
+            color: var(--lav-700, #6d62cf);
             font-weight: 700;
           }
         `}</style>
