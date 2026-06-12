@@ -1,174 +1,174 @@
 import React from "react";
 import Link from "next/link";
-import logoOne from "../../../public/assets/img/logo/oction-logo.png";
-import logoTwo from "../../../public/assets/img/logo/oction-logo-bw.png";
-import Image from "next/image";
+import KiosquiLogo from "@/components/common/KiosquiLogo";
 
-// Fase 22 — Footer KIOSQUI (Aurelio 2026-06-05).
-//
-// Reescribimos las 3 columnas del template ("Marketplace", "Explore Artworks",
-// "Insight Community") porque tenían links a /forum, /explore-arts, /art-ranking
-// con copy del template original (NFT marketplace).
-//
-// Fase 24 polish (2026-06-09): el template usaba pt-100 pb-50 que generaba
-// ~150px de aire vertical innecesario con poco contenido. Compactamos a
-// pt-60 pb-20 sin perder respiración entre secciones. Copyright bg unificado
-// con el footer principal para que el color se extienda hasta el final del
-// viewport (antes se notaba un escalón sutil entre footer1-bg y
-// copyright1-area cuando el body bg era distinto).
-//
-// Estructura final del grid:
-//   - Marca: col-lg-5 (logo + descripción + redes) — la columna más ancha
-//     porque tiene texto largo y necesita aire.
-//   - Legal: col-lg-3
-//   - Explorar: col-lg-4
-//   Total 12 ✓. Antes 4+4+4 dejaba aire vacío a la derecha de la marca.
+// Handoff #4 §1.6 — footer Kiosqui definitivo (referencia: landing.html
+// .footer). Fondo --ink-900 SIEMPRE (no cambia con el tema), logo cream
+// transparente, grid 1.6fr 1fr 1fr 1fr (mobile 2 col → 1 col), links
+// cream translúcido con hover cream, bottom bar con copyright +
+// "Hecho en Guatemala 🇬🇹". Reemplaza el footer del template (Fase 22/24).
 const Footer = () => {
   return (
-    <footer className="kiosqui-footer footer1-bg">
-      <section className="footer-area footer-area1 footer-area1-bg pt-60 pb-20">
-        <div className="container">
-          {/* Fase 24 (Aurelio eligió "juntar y centrar columnas"):
-              justify-content-center + columnas más angostas (4+3+3 = 10/12)
-              cluster las 3 columnas en el centro y elimina el gran hueco
-              horizontal que dejaba el layout 5+3+4 a ancho completo. */}
-          <div className="row justify-content-center">
-            {/* Columna 1 — Marca */}
-            <div className="col-lg-4 col-md-6 col-sm-12">
-              <div className="footer-widget footer1-widget footer1-widget1 mb-30">
-                <div className="footer-logo mb-20">
-                  <Link className="logo-bb" href="/">
-                    <Image src={logoOne} alt="KIOSQUI" />
-                  </Link>
-                  <Link className="logo-bw" href="/">
-                    <Image src={logoTwo} alt="KIOSQUI" />
-                  </Link>
-                </div>
-                <p className="mb-25 kiosqui-footer-desc">
-                  El marketplace inmobiliario de Guatemala. Casas, apartamentos
-                  y terrenos publicados directamente por propietarios verificados —
-                  sin intermediarios escondidos.
-                </p>
-                <div className="social__links footer__social">
-                  <ul>
-                    <li>
-                      <Link href="https://facebook.com/kiosqui" aria-label="Facebook">
-                        <i className="fab fa-facebook-f"></i>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="https://instagram.com/kiosqui" aria-label="Instagram">
-                        <i className="fab fa-instagram"></i>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="https://twitter.com/kiosqui" aria-label="Twitter / X">
-                        <i className="fab fa-twitter"></i>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="https://wa.me/50200000000" aria-label="WhatsApp">
-                        <i className="fab fa-whatsapp"></i>
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+    <footer className="kq-footer">
+      <div className="container">
+        <div className="kq-footer-grid">
+          {/* Columna 1 — Marca */}
+          <div>
+            <div className="kq-footer-logo">
+              <Link href="/">
+                <KiosquiLogo height={40} variant="dark" />
+              </Link>
             </div>
+            <p className="kq-footer-tag">
+              El marketplace inmobiliario de Guatemala. Casas, apartamentos y
+              terrenos publicados directamente por propietarios verificados —
+              sin intermediarios escondidos.
+            </p>
+            <ul className="kq-footer-social">
+              <li>
+                <Link href="https://facebook.com/kiosqui" aria-label="Facebook">
+                  <i className="fab fa-facebook-f"></i>
+                </Link>
+              </li>
+              <li>
+                <Link href="https://instagram.com/kiosqui" aria-label="Instagram">
+                  <i className="fab fa-instagram"></i>
+                </Link>
+              </li>
+              <li>
+                <Link href="https://twitter.com/kiosqui" aria-label="Twitter / X">
+                  <i className="fab fa-twitter"></i>
+                </Link>
+              </li>
+              <li>
+                <Link href="https://wa.me/50200000000" aria-label="WhatsApp">
+                  <i className="fab fa-whatsapp"></i>
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-            {/* Columna 2 — Legal */}
-            <div className="col-lg-3 col-md-3 col-sm-6">
-              <div className="footer-widget footer1-widget footer1-widget2 mb-30">
-                <div className="footer-widget-title">
-                  <h4>Legal y ayuda</h4>
-                </div>
-                <ul>
-                  <li><Link href="/terminos">Términos y Condiciones</Link></li>
-                  <li><Link href="/privacidad">Política de Privacidad</Link></li>
-                  <li><Link href="/contenido">Política de Contenido</Link></li>
-                  <li><Link href="/faq">Preguntas frecuentes</Link></li>
-                  <li><Link href="/soporte/tickets">Soporte</Link></li>
-                </ul>
-              </div>
-            </div>
+          {/* Columna 2 — Explorar */}
+          <div className="kq-footer-col">
+            <h5>Explorar</h5>
+            <Link href="/publications">Propiedades</Link>
+            <Link href="/publications?propertie=1">Casas</Link>
+            <Link href="/publications?propertie=2">Apartamentos</Link>
+            <Link href="/publications?propertie=3">Terrenos</Link>
+          </div>
 
-            {/* Columna 3 — Explorar */}
-            <div className="col-lg-3 col-md-3 col-sm-6">
-              <div className="footer-widget footer1-widget footer1-widget3 mb-30">
-                <div className="footer-widget-title">
-                  <h4>Explorar</h4>
-                </div>
-                <ul>
-                  <li><Link href="/publications">Propiedades</Link></li>
-                  <li>
-                    {/* Fase 24 — Vendedores destacados + Mejor calificados
-                        unificados en /ranking con tabs internas. */}
-                    <Link href="/ranking?tab=destacados">Vendedores destacados</Link>
-                  </li>
-                  <li><Link href="/ranking?tab=calificados">Mejor calificados</Link></li>
-                  <li><Link href="/pricing-plan">Planes</Link></li>
-                  <li><Link href="/contact">Contacto</Link></li>
-                </ul>
-              </div>
-            </div>
+          {/* Columna 3 — Kiosqui */}
+          <div className="kq-footer-col">
+            <h5>Kiosqui</h5>
+            {/* Fase 24 — Vendedores destacados + Mejor calificados unificados
+                en /ranking con tabs internas. */}
+            <Link href="/ranking?tab=destacados">Vendedores destacados</Link>
+            <Link href="/ranking?tab=calificados">Mejor calificados</Link>
+            <Link href="/pricing-plan">Planes</Link>
+            <Link href="/contact">Contacto</Link>
+          </div>
+
+          {/* Columna 4 — Soporte */}
+          <div className="kq-footer-col">
+            <h5>Soporte</h5>
+            <Link href="/faq">Preguntas frecuentes</Link>
+            <Link href="/soporte/tickets">Centro de ayuda</Link>
+            <Link href="/terminos">Términos y Condiciones</Link>
+            <Link href="/privacidad">Política de Privacidad</Link>
+            <Link href="/contenido">Política de Contenido</Link>
           </div>
         </div>
-      </section>
 
-      {/* Copyright: centrado y unificado al mismo bg del footer.
-          Antes vivía en .copyright-area con clases que el template pintaba
-          con un tono ligeramente distinto → quedaba un escalón visible.
-          Acá lo dejamos como una banda final del mismo color. */}
-      <div className="kiosqui-footer-copyright">
-        <div className="container">
-          <div className="text-center">
-            <p className="mb-0">
-              © {new Date().getFullYear()} KIOSQUI. Todos los derechos reservados.
-            </p>
-          </div>
+        <div className="kq-footer-bottom">
+          <span>© {new Date().getFullYear()} Kiosqui. Todos los derechos reservados.</span>
+          <span>Hecho en Guatemala 🇬🇹</span>
         </div>
       </div>
 
       <style jsx>{`
-        /* Fase 24 (Aurelio eligió "cambiar el color del footer"):
-           El problema raíz era que en DARK el footer y el sidebar derecho
-           usaban EXACTAMENTE el mismo navy (#181f2d) → se entrelazaban, no
-           se veía dónde terminaba uno y empezaba el otro. En LIGHT pasaba
-           parecido (footer #f9f9f9 ≈ sidebar blanco).
-
-           Solución: redefinimos --clr-bg-footer SOLO dentro de .kiosqui-footer
-           con un tono que contrasta con el sidebar en cada tema. Como el
-           token se redefine en el scope del <footer>, tanto .footer1-bg como
-           .footer-area1-bg (que leen var(--clr-bg-footer)) toman el nuevo
-           valor sin necesidad de !important. No tocamos el SCSS del template
-           → 100% revertible borrando este bloque. */
-        :global(.kiosqui-footer) {
-          /* Light: sidebar es blanco. Footer un gris azulado claro
-             claramente distinguible. */
-          --clr-bg-footer: #e9edf3;
+        .kq-footer {
+          background: var(--ink-900, #22252a);
+          color: var(--cream, #f8f4ee);
+          padding: 64px 0 0;
         }
-        :global([data-theme='dark']) .kiosqui-footer {
-          /* Dark: sidebar es #181f2d. Footer MÁS oscuro (#111826, ya es el
-             token --clr-bg-dark de la paleta) → se lee como banda profunda
-             al fondo, separada del sidebar. */
-          --clr-bg-footer: #111826;
+        .kq-footer-grid {
+          display: grid;
+          grid-template-columns: 1.6fr 1fr 1fr 1fr;
+          gap: 40px;
+          margin-bottom: 44px;
         }
-
-        /* Fase 24 polish (Aurelio: "esta línea azul me disgusta"): el
-           border-top se sustituyó por margen superior puro. */
-        .kiosqui-footer-copyright {
-          padding: 18px 0;
-          margin-top: 8px;
+        .kq-footer-logo {
+          margin-bottom: 16px;
+        }
+        .kq-footer-tag {
           font-size: 13.5px;
-          opacity: 0.78;
+          line-height: 1.6;
+          color: rgba(248, 244, 238, 0.65);
+          max-width: 280px;
+          margin: 0 0 18px;
         }
-        .kiosqui-footer-copyright p {
+        .kq-footer-social {
+          list-style: none;
+          padding: 0;
           margin: 0;
+          display: flex;
+          gap: 10px;
         }
-        :global(.kiosqui-footer-desc) {
-          line-height: 1.7;
-          max-width: 480px;
-          opacity: 0.88;
+        .kq-footer-social :global(a) {
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          border: 1px solid rgba(248, 244, 238, 0.16);
+          color: rgba(248, 244, 238, 0.75);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          transition: all 0.15s;
+        }
+        .kq-footer-social :global(a:hover) {
+          color: var(--navy-900, #161f33);
+          background: var(--green-500, #9bc64a);
+          border-color: var(--green-500, #9bc64a);
+        }
+        .kq-footer-col h5 {
+          font-family: var(--font-display);
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--cream, #f8f4ee);
+          margin: 0 0 16px;
+        }
+        .kq-footer-col :global(a) {
+          display: block;
+          font-size: 13.5px;
+          color: rgba(248, 244, 238, 0.65);
+          margin-bottom: 10px;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .kq-footer-col :global(a:hover) {
+          color: var(--cream, #f8f4ee);
+        }
+        .kq-footer-bottom {
+          border-top: 1px solid rgba(248, 244, 238, 0.14);
+          padding: 18px 0;
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+          font-size: 12px;
+          color: rgba(248, 244, 238, 0.55);
+        }
+        @media (max-width: 900px) {
+          .kq-footer-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+          }
+        }
+        @media (max-width: 600px) {
+          .kq-footer-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </footer>

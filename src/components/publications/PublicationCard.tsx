@@ -20,6 +20,9 @@ import {
   getPublicationListAllImagesGlb,
   getStatusBadge,
   isLandCategory,
+  PUBSTA_DRAFT,
+  PUBSTA_SOLD,
+  PUBSTA_VOID,
   isPublicationListItemAuth,
 } from './publicationUtils';
 
@@ -66,6 +69,12 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
     draft: t('status.draft'),
     void: t('status.void'),
   });
+  // Handoff #4 §1.4 — clase de estado para el punto de color del frosted.
+  const statusClass =
+    publication.pubstaId === PUBSTA_SOLD ? 'st-vendida'
+    : publication.pubstaId === PUBSTA_DRAFT ? 'st-borrador'
+    : publication.pubstaId === PUBSTA_VOID ? 'st-anulada'
+    : '';
 
   // Solo municipio (town). Si no hay, fallback a city.
   const locationLabel = publication.town || publication.city || t('card.noLocation');
@@ -94,7 +103,7 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
 
   return (
     <div className="col-xl-4 col-lg-6 col-md-6 col-sm-12 d-flex">
-      <div className="art-item-single mb-30 publication-card">
+      <div className={`art-item-single mb-30 publication-card ${isFeatured ? 'is-featured' : ''}`}>
         <div className="art-item-wraper h-100">
           <div className="art-item-inner h-100 d-flex flex-column">
             {/* ───────── Imagen cuadrada con hover gallery ───────── */}
@@ -111,16 +120,13 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
               {/* Stack vertical de badges: pueden mostrarse varios a la vez. */}
               <div className="publication-badges">
                 {statusBadge && (
-                  <div
-                    className="publication-status-badge"
-                    style={{ background: statusBadge.color }}
-                  >
+                  <div className={`publication-status-badge ${statusClass}`}>
                     {statusBadge.label}
                   </div>
                 )}
                 {isFeatured && (
                   <div className="publication-featured-badge">
-                    <i className="fas fa-bolt"></i>
+                    <i className="fas fa-star"></i>
                     {t('card.featured')}
                   </div>
                 )}
@@ -277,31 +283,87 @@ const PublicationCard = ({ publication, isNew = false, isFeatured = false, ctaOv
             z-index: 3;
             align-items: flex-start;
           }
+          /* Handoff #3 §6 — Destacado/Nuevo: gradiente lavanda con glow.
+             Estados de plataforma (Vendida/Borrador/Anulada): pill "frosted"
+             neutra con punto del color del estado (estilo .pub-tag de
+             landing.html, reservado justo para estados neutros). */
           .publication-card :global(.publication-featured-badge),
           .publication-card :global(.publication-new-badge),
           .publication-card :global(.publication-status-badge) {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            color: #fff;
+            gap: 7px;
+            padding: 6px 13px;
             font-size: 12px;
             font-weight: 700;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-radius: 999px;
+            letter-spacing: 0.01em;
           }
           .publication-card :global(.publication-status-badge) {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.82);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            color: var(--navy-800, #1e2d4a);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 2px 10px rgba(30, 45, 74, 0.14);
           }
-          .publication-card :global(.publication-featured-badge) {
-            /* Fase 10.4: badge dorado para reforzar el sello de "patrocinado". */
-            background: linear-gradient(135deg, #fbbf24, #d97706);
-            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+          .publication-card :global(.publication-status-badge)::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green-600, #84ad3f);
+            flex-shrink: 0;
           }
+          /* Handoff #4 §1.4 — punto por estado. */
+          .publication-card :global(.publication-status-badge.st-vendida)::before {
+            background: var(--navy-500, #45598a);
+          }
+          .publication-card :global(.publication-status-badge.st-borrador)::before {
+            background: var(--ink-400, #9aa0a8);
+          }
+          .publication-card :global(.publication-status-badge.st-anulada)::before {
+            background: var(--danger, #cf4a4a);
+          }
+          /* Dark: el frosted se vuelve vidrio oscuro (los únicos badges
+             "brillantes" siguen siendo Destacado/Nuevo). */
+          :global([data-theme='dark']) .publication-card :global(.publication-status-badge) {
+            background: rgba(19, 26, 45, 0.72);
+            color: var(--cream, #f8f4ee);
+            border: 1px solid rgba(248, 244, 238, 0.18);
+            box-shadow: none;
+          }
+          :global([data-theme='dark']) .publication-card :global(.publication-status-badge.st-vendida)::before {
+            background: var(--navy-300, #9aa8c6);
+          }
+          .publication-card :global(.publication-featured-badge),
           .publication-card :global(.publication-new-badge) {
-            background: linear-gradient(135deg, #ff7e3d, #ff5e3a);
-            box-shadow: 0 4px 12px rgba(255, 94, 58, 0.4);
+            background: linear-gradient(135deg, var(--lav-500, #b5acef), var(--lav-600, #8a7fe3));
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 4px 16px rgba(109, 98, 207, 0.5),
+              0 0 0 3px rgba(181, 172, 239, 0.25);
+          }
+          .publication-card :global(.publication-featured-badge i),
+          .publication-card :global(.publication-new-badge i) {
+            font-size: 11px;
+            color: #fff;
+          }
+          :global([data-theme='dark']) .publication-card :global(.publication-featured-badge),
+          :global([data-theme='dark']) .publication-card :global(.publication-new-badge) {
+            background: linear-gradient(135deg, var(--lav-400, #c8c1f3), var(--lav-500, #b5acef));
+            color: var(--navy-900, #161f33);
+            box-shadow: 0 4px 18px rgba(181, 172, 239, 0.55),
+              0 0 0 3px rgba(181, 172, 239, 0.22);
+          }
+          :global([data-theme='dark']) .publication-card :global(.publication-featured-badge i),
+          :global([data-theme='dark']) .publication-card :global(.publication-new-badge i) {
+            color: var(--navy-900, #161f33);
+          }
+          /* Tarjeta destacada: anillo lavanda en el contenedor visual. */
+          .publication-card.is-featured :global(.art-item-wraper) {
+            box-shadow: 0 0 0 1.5px var(--lav-400, #c8c1f3),
+              var(--shadow-sm, 0 2px 6px rgba(30, 45, 74, 0.08));
           }
 
           /* ──────────────── Indicadores de gallery ──────────────── */

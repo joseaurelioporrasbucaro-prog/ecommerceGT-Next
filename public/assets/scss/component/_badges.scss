@@ -1,10 +1,69 @@
+// Handoff #3 §6 — badge destacado/nuevo: gradiente lavanda con glow.
+// (Reemplaza el lavanda sólido del handoff #2.)
 .badge-featured {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 13px;
+	border-radius: 999px;
+	background: linear-gradient(135deg, var(--lav-500), var(--lav-600));
+	color: #fff;
+	border: 1px solid rgba(255, 255, 255, 0.35);
+	box-shadow: 0 4px 16px rgba(109, 98, 207, 0.5), 0 0 0 3px rgba(181, 172, 239, 0.25);
+	font-family: var(--font-body);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+
+	i { font-size: 11px; color: #fff; }
+}
+
+[data-theme="dark"] .badge-featured {
+	background: linear-gradient(135deg, var(--lav-400), var(--lav-500));
+	color: var(--navy-900);
+	box-shadow: 0 4px 18px rgba(181, 172, 239, 0.55), 0 0 0 3px rgba(181, 172, 239, 0.22);
+
+	i { color: var(--navy-900); }
+}
+
+// Variante "frosted" — estados neutros sobre foto (Vendida/Borrador/etc.).
+// Punto de color del estado vía --status-dot.
+.badge-frosted {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 13px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.82);
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+	color: var(--navy-800);
+	border: 1px solid rgba(255, 255, 255, 0.65);
+	box-shadow: 0 2px 10px rgba(30, 45, 74, 0.14);
+	font-family: var(--font-body);
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+
+	&::before {
+		content: "";
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--status-dot, var(--green-600));
+		flex-shrink: 0;
+	}
+}
+
+// Variante "estado de venta" — verde sólido
+.badge-status {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	padding: 5px 12px;
 	border-radius: 999px;
-	background: var(--lav-500);
+	background: var(--green-500);
 	color: var(--navy-900);
 	font-family: var(--font-body);
 	font-size: 12px;
@@ -14,15 +73,9 @@
 	i { font-size: 11px; }
 }
 
-// Variante "estado de venta" — verde sólido
-.badge-status {
-	@extend .badge-featured;
-	background: var(--green-500);
-}
-
 // Variante "tipo/categoría" — navy ghost
 .badge-type {
-	@extend .badge-featured;
+	@extend .badge-status;
 	background: var(--navy-100);
 	color: var(--navy-700);
 }

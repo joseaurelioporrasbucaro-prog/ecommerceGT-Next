@@ -692,7 +692,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 {submitting ? submittingLabel : submitLabel}
               </button>
               {!hideCancel && (
-                <Link href={cancelHref} className="fill-btn-orange">
+                <Link href={cancelHref} className="fill-btn-outline">
                   Cancelar
                 </Link>
               )}
@@ -781,7 +781,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         :global(.upload-form input[type="number"]) {
           -moz-appearance: textfield;
         }
-        :global(.upload-form .upload-btn .fill-btn-orange) {
+        :global(.upload-form .upload-btn .fill-btn-outline) {
           margin-left: 14px;
         }
         :global(.upload-form .price-input-row) {

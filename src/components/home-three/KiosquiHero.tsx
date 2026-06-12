@@ -17,7 +17,6 @@ import { useTranslations } from 'next-intl';
  */
 const KiosquiHero: React.FC = () => {
   const t = useTranslations('home');
-  const tNav = useTranslations('common.nav');
   const router = useRouter();
   const [query, setQuery] = useState('');
 
@@ -31,10 +30,12 @@ const KiosquiHero: React.FC = () => {
     <section className="kiosqui-hero">
       <div className="container">
         <div className="kh-inner">
-          <div className="kh-locale-pilot">{tNav('home')}</div>
           <h1 className="kh-title">
-            {t('hero.titlePrefix')}{' '}
-            <span className="kh-accent">{t('hero.titleAccent')}</span>
+            {t('hero.titlePrefix')}
+            <br />
+            {t('hero.titleMid')}{' '}
+            <span className="kh-accent">{t('hero.titleAccent')}</span>{' '}
+            {t('hero.titleSuffix')}
           </h1>
           <p className="kh-subtitle">{t('hero.subtitle')}</p>
 
@@ -121,48 +122,23 @@ const KiosquiHero: React.FC = () => {
           margin: 0 auto;
           text-align: center;
         }
-        .kh-locale-pilot {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 28px;
-          margin-bottom: 16px;
-          padding: 0 14px;
-          border: 1px solid rgba(128, 128, 128, 0.24);
-          border-radius: 999px;
-          color: var(--clr-theme-1, #2785ff);
-          font-size: 13px;
-          font-weight: 700;
-          text-transform: uppercase;
-        }
         .kh-title {
           font-family: var(--font-display);
-          font-size: clamp(34px, 5vw, 54px);
+          font-size: clamp(38px, 5.6vw, 64px);
           font-weight: 800;
           letter-spacing: -0.02em;
-          line-height: 1.15;
+          line-height: 1.08;
           color: var(--clr-common-heading);
-          margin: 0 0 18px;
+          margin: 0 0 20px;
         }
-        /* Acento lavanda con subrayado translúcido (sello de marca). */
+        /* Acento lavanda — solo color de texto, sin highlight de fondo
+           (03-HANDOFF.md §1). */
         .kh-accent {
           color: var(--lav-700);
-          position: relative;
           white-space: nowrap;
-          background: linear-gradient(
-            180deg,
-            transparent 62%,
-            rgba(181, 172, 239, 0.35) 62%
-          );
-          padding: 0 4px;
         }
         :global([data-theme='dark']) .kh-accent {
           color: var(--lav-400);
-          background: linear-gradient(
-            180deg,
-            transparent 62%,
-            rgba(181, 172, 239, 0.22) 62%
-          );
         }
         .kh-subtitle {
           font-size: 17px;
@@ -233,7 +209,8 @@ const KiosquiHero: React.FC = () => {
           color: var(--clr-common-body-text);
           margin-right: 4px;
         }
-        .kh-chip {
+        /* <Link> no recibe el hash de styled-jsx → :global scoped (AGENTS §6.5). */
+        .kh-quick-links :global(.kh-chip) {
           display: inline-flex;
           align-items: center;
           gap: 6px;
@@ -247,18 +224,18 @@ const KiosquiHero: React.FC = () => {
           text-decoration: none;
           transition: all 0.15s;
         }
-        .kh-chip:hover {
+        .kh-quick-links :global(.kh-chip:hover) {
           border-color: var(--lav-500);
           color: var(--lav-700);
           background: var(--lav-100);
           transform: translateY(-1px);
         }
-        .kh-chip :global(i) {
+        .kh-quick-links :global(.kh-chip i) {
           font-size: 12px;
           color: var(--lav-700);
           opacity: 0.85;
         }
-        .kh-chip:hover :global(i) {
+        .kh-quick-links :global(.kh-chip:hover i) {
           opacity: 1;
         }
         .kh-trust-row {

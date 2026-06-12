@@ -54,7 +54,8 @@ const FeaturedShowcase: React.FC = () => {
           flex-wrap: wrap;
           margin-bottom: 24px;
         }
-        .fsc-link {
+        /* <Link> no recibe el hash de styled-jsx → :global scoped (AGENTS §6.5). */
+        .fsc-head :global(.fsc-link) {
           font-size: 14px;
           font-weight: 700;
           color: var(--lav-700);
@@ -64,9 +65,9 @@ const FeaturedShowcase: React.FC = () => {
           gap: 7px;
           transition: gap 0.15s, color 0.15s;
         }
-        :global([data-theme='dark']) .fsc-link { color: var(--lav-400); }
-        .fsc-link:hover { gap: 11px; color: var(--lav-600); }
-        .fsc-link :global(i) { font-size: 12px; }
+        :global([data-theme='dark']) .fsc-head :global(.fsc-link) { color: var(--lav-400); }
+        .fsc-head :global(.fsc-link:hover) { gap: 11px; color: var(--lav-600); }
+        .fsc-head :global(.fsc-link i) { font-size: 12px; }
         /* Oculto el título interno de FeaturedPublicationsSection — ya
            pusimos el nuestro arriba. */
         .fsc-embed :global(.featured-title) { display: none; }
