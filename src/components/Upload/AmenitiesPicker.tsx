@@ -79,32 +79,33 @@ const AmenitiesPicker: React.FC<Props> = ({ value, onChange, disabled = false })
 
       <style jsx>{`
         .amenities-picker {
-          background: var(--clr-bg-gray, #f9f9f9);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 12px;
+          background: var(--surface-sunk);
+          border: 1px solid var(--border);
+          border-radius: 16px;
           padding: 20px;
         }
         .amp-loading {
           padding: 16px;
           text-align: center;
-          opacity: 0.7;
+          color: var(--fg-muted);
           font-size: 14px;
         }
         .amp-intro {
           margin: 0 0 18px;
           font-size: 13.5px;
-          color: var(--clr-common-body-text);
+          color: var(--fg-muted);
           line-height: 1.5;
         }
         .amp-group + .amp-group {
           margin-top: 22px;
           padding-top: 18px;
-          border-top: 1px dashed var(--clr-common-border, #e0e2e5);
+          border-top: 1px dashed var(--border);
         }
         .amp-group-title {
+          font-family: var(--font-display);
           font-size: 13px;
           font-weight: 700;
-          color: var(--clr-common-heading);
+          color: var(--fg-strong);
           text-transform: uppercase;
           letter-spacing: 0.4px;
           margin: 0 0 12px;
@@ -119,31 +120,36 @@ const AmenitiesPicker: React.FC<Props> = ({ value, onChange, disabled = false })
           align-items: center;
           gap: 7px;
           padding: 8px 14px 8px 12px;
-          background: var(--clr-bg-white, #fff);
-          border: 1.5px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 22px;
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          border-radius: 999px;
           font-size: 13px;
           font-weight: 600;
-          color: var(--clr-common-heading);
+          color: var(--fg-strong);
           cursor: pointer;
           transition: all 0.15s;
           user-select: none;
         }
         .amp-chip:hover:not(:disabled) {
-          border-color: var(--clr-theme-1, #2785ff);
-          color: var(--clr-theme-1, #2785ff);
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
         .amp-chip:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
         .amp-chip.is-selected {
-          background: var(--clr-theme-1, #2785ff);
-          border-color: var(--clr-theme-1, #2785ff);
-          color: #fff;
+          background: var(--navy-800);
+          border-color: var(--navy-800);
+          color: var(--cream);
         }
         .amp-chip.is-selected:hover {
-          color: #fff;
+          color: var(--cream);
+        }
+        [data-theme='dark'] .amp-chip.is-selected {
+          background: var(--lav-500);
+          border-color: var(--lav-500);
+          color: var(--navy-900);
         }
         .amp-chip-icon {
           font-size: 13px;

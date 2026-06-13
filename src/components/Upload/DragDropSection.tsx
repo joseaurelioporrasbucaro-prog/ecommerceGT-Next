@@ -250,9 +250,9 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           display: block;
           width: 100%;
           margin-bottom: 20px;
-          border: 2px dashed var(--clr-theme-1, #6c5ce7);
-          border-radius: 12px;
-          background: rgba(108, 92, 231, 0.04);
+          border: 2px dashed var(--lav-400);
+          border-radius: 16px;
+          background: var(--accent-soft);
           padding: 28px 20px;
           text-align: center;
           cursor: pointer;
@@ -260,7 +260,9 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           /* La librería pone svg + label internos; los ocultamos para usar nuestro children. */
         }
         .upload-images-panel :global(.upload-dropzone:hover) {
-          background: rgba(108, 92, 231, 0.08);
+          border-color: var(--lav-500);
+          background: var(--accent-soft);
+          filter: brightness(0.98);
         }
         .upload-images-panel :global(.upload-dropzone.is-disabled) {
           opacity: 0.5;
@@ -280,25 +282,27 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
         }
         .upload-images-panel :global(.upload-dropzone .browse-file-icon) {
           font-size: 42px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700);
           margin-bottom: 4px;
         }
         .upload-images-panel :global(.upload-dropzone-title) {
           margin: 0;
+          font-family: var(--font-display);
           font-size: 16px;
           font-weight: 600;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
         .upload-images-panel :global(.upload-dropzone-button) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           padding: 10px 22px;
-          border-radius: 6px;
-          background: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
+          border-radius: 999px;
+          background: var(--navy-800);
+          color: var(--cream);
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 700;
+          font-family: var(--font-display);
         }
         .upload-images-panel :global(.upload-dropzone .browse-file-note) {
           font-size: 12px;
@@ -319,8 +323,8 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           aspect-ratio: 1;
           border-radius: 8px;
           overflow: hidden;
-          background: rgba(128, 128, 128, 0.12);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
+          background: var(--surface-sunk);
+          border: 1px solid var(--border);
         }
         .upload-thumbs :global(.upload-thumb img) {
           width: 100%;
@@ -331,7 +335,7 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           opacity: 0.8;
         }
         .upload-thumbs :global(.upload-thumb-pending.is-error) {
-          border-color: #ef4444;
+          border-color: var(--danger);
         }
         .upload-thumbs :global(.upload-thumb-overlay) {
           position: absolute;
@@ -344,7 +348,7 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           font-size: 22px;
         }
         .upload-thumbs :global(.upload-thumb-error) {
-          color: #ef4444;
+          color: var(--danger);
         }
         .upload-thumbs :global(.upload-thumb-remove) {
           position: absolute;
@@ -364,7 +368,7 @@ const DragDropSection: React.FC<DragDropSectionProps> = ({
           transition: background 0.15s;
         }
         .upload-thumbs :global(.upload-thumb-remove:hover) {
-          background: #ef4444;
+          background: var(--danger);
         }
         .upload-thumbs :global(.upload-thumb-remove:disabled) {
           cursor: not-allowed;
