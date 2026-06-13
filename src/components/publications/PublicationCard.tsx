@@ -116,8 +116,13 @@ const PriceSwitch: React.FC<PriceSwitchProps> = ({ prices, fallback }) => {
   return (
     <div className="pub-price-row">
       {/* `key` re-monta el bloque para disparar la animación de entrada solo
-          cuando efectivamente hay alternancia. */}
-      <div key={canSwitch ? active.symbol : 'static'} className={canSwitch ? 'pub-price-swap' : ''}>
+          cuando efectivamente hay alternancia. El wrapper SIEMPRE lleva flex+gap
+          (.pub-price-value) para separar símbolo y monto; .pub-price-swap solo
+          agrega la animación cuando hay dos monedas. */}
+      <div
+        key={canSwitch ? active.symbol : 'static'}
+        className={`pub-price-value${canSwitch ? ' pub-price-swap' : ''}`}
+      >
         <span className="pub-price-symbol">{active.symbol}</span>
         <span className="pub-price-amount">{active.amount}</span>
       </div>

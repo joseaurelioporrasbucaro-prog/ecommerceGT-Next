@@ -277,10 +277,15 @@
 	min-height: 28px;
 }
 
-.pub-price-swap {
+// Wrapper de símbolo+monto: SIEMPRE flex+gap para separar "Q"/"US$" del número
+// (haya una o dos monedas). .pub-price-swap solo agrega la animación de entrada.
+.pub-price-value {
 	display: flex;
 	align-items: baseline;
 	gap: 7px;
+}
+
+.pub-price-swap {
 	animation: kq-price-in .45s cubic-bezier(.2, .7, .3, 1) both;
 }
 
