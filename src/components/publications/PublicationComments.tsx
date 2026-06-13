@@ -137,9 +137,9 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
         .inline-reply-form {
           margin-top: 14px;
           padding: 16px;
-          background: rgba(108, 92, 231, 0.06);
-          border: 1.5px solid rgba(108, 92, 231, 0.25);
-          border-radius: 10px;
+          background: var(--surface-sunk);
+          border: 1.5px solid var(--border);
+          border-radius: var(--r-md);
         }
         .inline-reply-target {
           display: inline-flex;
@@ -147,25 +147,35 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           gap: 6px;
           margin-bottom: 10px;
           font-size: 13px;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--lav-700);
+        }
+        .inline-reply-target :global(strong) {
+          color: var(--fg-strong);
+          font-weight: 700;
+        }
+        :global([data-theme='dark']) .inline-reply-target {
+          color: var(--lav-400);
         }
         .inline-reply-form :global(textarea) {
           width: 100%;
           resize: vertical;
           min-height: 80px;
-          border: 1px solid rgba(128, 128, 128, 0.3);
-          border-radius: 6px;
+          background: var(--surface);
+          color: var(--fg-strong);
+          border: 1px solid var(--border-strong);
+          border-radius: var(--r-sm);
           padding: 10px 12px;
           font-size: 14px;
         }
         .inline-reply-form :global(textarea:focus) {
-          border-color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--lav-500);
           outline: 0;
+          box-shadow: var(--shadow-focus);
         }
         .inline-reply-error {
           margin-top: 6px;
           font-size: 13px;
-          color: #ef4444;
+          color: var(--danger);
         }
         .inline-reply-actions {
           display: flex;
@@ -176,36 +186,38 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
         .btn-cancel-reply {
           padding: 8px 16px;
           background: transparent;
-          color: inherit;
-          border: 1.5px solid rgba(128, 128, 128, 0.35);
-          border-radius: 8px;
+          color: var(--fg-strong);
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-pill);
           cursor: pointer;
           font-weight: 600;
           font-size: 13px;
           transition: all 0.18s ease;
         }
         .btn-cancel-reply:hover:not(:disabled) {
-          border-color: #ef4444;
-          color: #ef4444;
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
         .btn-submit-reply {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           padding: 8px 18px;
-          background: var(--tp-theme-1, #6c5ce7);
-          color: #fff;
-          border: 1.5px solid var(--tp-theme-1, #6c5ce7);
-          border-radius: 8px;
+          background: var(--green-500);
+          color: var(--navy-900);
+          border: 1.5px solid var(--green-500);
+          border-radius: var(--r-pill);
           cursor: pointer;
           font-weight: 700;
           font-size: 13px;
           transition: all 0.18s ease;
-          box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
+          box-shadow: var(--shadow-xs);
         }
         .btn-submit-reply:hover:not(:disabled) {
+          background: var(--green-600);
+          border-color: var(--green-600);
           transform: translateY(-1px);
-          box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4);
+          box-shadow: var(--shadow-sm);
         }
         .btn-submit-reply:disabled,
         .btn-cancel-reply:disabled {
@@ -494,6 +506,12 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
       </div>
 
       <style jsx>{`
+        /* Heading de sección */
+        .about-info-area :global(.section-main-title1) {
+          font-family: var(--font-display);
+          color: var(--fg-strong);
+        }
+
         /* Aviso de cierre */
         .closed-publication-notice {
           display: flex;
@@ -501,15 +519,21 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           gap: 10px;
           padding: 14px 18px;
           margin-bottom: 24px;
-          background: rgba(239, 68, 68, 0.08);
-          border: 1.5px solid rgba(239, 68, 68, 0.3);
-          border-radius: 10px;
-          color: #ef4444;
+          background: var(--danger-bg);
+          border: 1.5px solid var(--danger);
+          border-radius: var(--r-md);
+          color: var(--danger);
           font-weight: 600;
           font-size: 14px;
         }
         .closed-publication-notice :global(i) {
           font-size: 18px;
+        }
+
+        /* Avatares con anillo lavanda suave */
+        .cascade-tree :global(.publication-comment-item img),
+        .cascade-tree :global(.q-single-answer img) {
+          box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--lav-300);
         }
 
         /* Cascada — separador entre comentarios root */
@@ -522,19 +546,19 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
 
         /* Cierre de la caja del meta-content */
         :global(.cascade-tree .q-meta-content .q-meta-item) {
-          border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+          border-bottom: 1px solid var(--border);
         }
 
-        /* Hijos cascadeados — indentación + línea morada vertical */
+        /* Hijos cascadeados — indentación + línea lavanda vertical */
         :global(.cascade-tree .cascade-children) {
           margin-top: 20px;
           padding-left: 24px;
-          border-left: 2px solid rgba(108, 92, 231, 0.2);
+          border-left: 2px solid var(--lav-300);
         }
         :global(.cascade-tree .q-single-answer + .q-single-answer) {
           margin-top: 20px;
           padding-top: 20px;
-          border-top: 1px solid rgba(128, 128, 128, 0.15);
+          border-top: 1px solid var(--border);
         }
         :global(.cascade-tree .ans-meta-content) {
           display: flex;
@@ -542,7 +566,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           gap: 24px;
           padding: 14px 4px 4px;
           margin-top: 12px;
-          border-top: 1px solid rgba(128, 128, 128, 0.18);
+          border-top: 1px solid var(--border);
         }
         :global(.cascade-tree .ans-meta-content .q-meta-item) {
           padding: 0;
@@ -552,43 +576,56 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
         }
         :global(.cascade-tree .ans-meta-content .q-meta-item button) {
           background: transparent;
-          color: inherit;
+          color: var(--fg-muted);
           border: 0;
           cursor: pointer;
           padding: 0;
         }
         :global(.cascade-tree .ans-meta-content .q-meta-item button:hover) {
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--lav-700);
+        }
+        :global([data-theme='dark']) :global(.cascade-tree .ans-meta-content .q-meta-item button:hover) {
+          color: var(--lav-400);
         }
 
         /* ---------- Form de nuevo comentario root ---------- */
         .publication-comment-form {
           padding: 20px;
-          background: rgba(128, 128, 128, 0.04);
-          border: 1.5px solid rgba(108, 92, 231, 0.2);
-          border-radius: 12px;
+          background: var(--surface-sunk);
+          border: 1.5px solid var(--border);
+          border-radius: var(--r-lg);
         }
         .form-label-bold {
           display: inline-flex;
           align-items: center;
           gap: 8px;
+          font-family: var(--font-display);
           font-weight: 700;
           font-size: 15px;
           margin-bottom: 12px;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--fg-strong);
+        }
+        .form-label-bold :global(i) {
+          color: var(--lav-700);
+        }
+        :global([data-theme='dark']) .form-label-bold :global(i) {
+          color: var(--lav-400);
         }
         .publication-comment-form :global(textarea) {
           width: 100%;
           resize: vertical;
           min-height: 110px;
-          border: 1px solid rgba(128, 128, 128, 0.3);
-          border-radius: 8px;
+          background: var(--surface);
+          color: var(--fg-strong);
+          border: 1px solid var(--border-strong);
+          border-radius: var(--r-sm);
           padding: 12px 14px;
           font-size: 14px;
         }
         .publication-comment-form :global(textarea:focus) {
-          border-color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--lav-500);
           outline: 0;
+          box-shadow: var(--shadow-focus);
         }
         .form-actions {
           display: flex;
@@ -596,26 +633,28 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           margin-top: 14px;
         }
 
-        /* ---------- Botón principal de Comentar / Iniciar sesión ---------- */
+        /* ---------- Botón principal de Comentar / Iniciar sesión (pill verde) ---------- */
         :global(.btn-submit-comment) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           padding: 12px 28px;
-          background: var(--tp-theme-1, #6c5ce7);
-          color: #fff !important;
-          border: 2px solid var(--tp-theme-1, #6c5ce7);
-          border-radius: 10px;
+          background: var(--green-500);
+          color: var(--navy-900) !important;
+          border: 2px solid var(--green-500);
+          border-radius: var(--r-pill);
           cursor: pointer;
           font-weight: 700;
           font-size: 14px;
           text-decoration: none !important;
           transition: all 0.2s ease;
-          box-shadow: 0 6px 16px rgba(108, 92, 231, 0.3);
+          box-shadow: var(--shadow-sm);
         }
         :global(.btn-submit-comment:hover:not(:disabled)) {
+          background: var(--green-600);
+          border-color: var(--green-600);
           transform: translateY(-2px);
-          box-shadow: 0 8px 22px rgba(108, 92, 231, 0.45);
+          box-shadow: var(--shadow-md);
         }
         :global(.btn-submit-comment:disabled) {
           opacity: 0.65;
@@ -626,15 +665,27 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           flex-direction: column;
           align-items: flex-start;
         }
+        .login-comment-box :global(textarea) {
+          width: 100%;
+          background: var(--surface);
+          color: var(--fg-muted);
+          border: 1px solid var(--border-strong);
+          border-radius: var(--r-sm);
+          padding: 12px 14px;
+          font-size: 14px;
+        }
 
         /* Menciones @handle linkificadas dentro de los comentarios (Fase 6.3.3) */
         :global(.comment-mention) {
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--lav-700);
           font-weight: 600;
           text-decoration: none;
         }
         :global(.comment-mention:hover) {
           text-decoration: underline;
+        }
+        :global([data-theme='dark']) :global(.comment-mention) {
+          color: var(--lav-400);
         }
       `}</style>
     </section>

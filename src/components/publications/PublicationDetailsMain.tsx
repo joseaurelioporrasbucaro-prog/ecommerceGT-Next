@@ -143,26 +143,35 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           padding: 40px 20px;
         }
         .kiosqui-detail-error i {
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--lav-600);
           font-size: 42px;
         }
         .kiosqui-detail-error h3 {
           margin: 8px 0 0;
+          color: var(--fg-strong);
+          font-family: var(--font-display);
         }
         .kiosqui-detail-error p {
           margin: 0;
-          opacity: 0.7;
+          color: var(--fg-muted);
         }
         .kiosqui-detail-error :global(.kiosqui-detail-error-btn) {
           align-items: center;
-          background: var(--clr-theme-1, #2785ff);
-          border-radius: 10px;
-          color: #fff;
+          background: var(--navy-800);
+          border-radius: var(--r-pill);
+          color: var(--cream);
           display: inline-flex;
           gap: 8px;
           margin-top: 10px;
           padding: 11px 22px;
           font-weight: 600;
+          text-decoration: none !important;
+          transition: all 0.2s;
+        }
+        .kiosqui-detail-error :global(.kiosqui-detail-error-btn:hover) {
+          background: var(--navy-700);
+          transform: translateY(-1px);
+          box-shadow: var(--shadow-sm);
         }
 
         /* ──────────────── Acciones — los 3 botones alineados ────────────────
@@ -184,14 +193,14 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           padding: 0 24px;
           height: 48px;             /* misma altura para los 3 */
           min-width: 150px;
-          border-radius: 10px;
+          border-radius: var(--r-pill);
           font-weight: 600;
           font-size: 14px;
           line-height: 1;
           cursor: pointer;
-          border: 1.5px solid rgba(128, 128, 128, 0.35);  /* border en todos */
+          border: 1.5px solid var(--border-strong);  /* border en todos */
           background: transparent;
-          color: inherit;
+          color: var(--fg-strong);
           text-decoration: none !important;
           transition: all 0.2s;
           white-space: nowrap;
@@ -202,42 +211,28 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           display: inline-flex;
           align-items: center;
         }
-        /* Primary: filled con color tema, border del mismo color */
-
+        /* Primary ("Explorar en 3D"): pill on-brand navy + cream, ícono cubo.
+           Sin gradientes ni glow dorado — consistente con la card. */
         .action-row :global(.action-btn-primary) {
-          background: var(--tp-theme-1, #0b0b0c) !important;
-          border-color: var(--tp-theme-1, #060606) !important;
-          color: #C9A84C !important;
-
-          animation: goldGlow 2s ease-in-out infinite alternate;
+          background: var(--navy-800);
+          border-color: var(--navy-800);
+          color: var(--cream);
         }
-
-        @keyframes goldGlow {
-          from {
-            text-shadow:
-              0 0 4px rgba(201, 168, 76, 0.5),
-              0 0 8px rgba(201, 168, 76, 0.3);
-          }
-          to {
-            text-shadow:
-              0 0 8px rgba(201, 168, 76, 0.9),
-              0 0 16px rgba(201, 168, 76, 0.7),
-              0 0 24px rgba(201, 168, 76, 0.5);
-          }
-        }
-
         .action-row :global(.action-btn-primary:hover) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 18px rgba(108, 92, 231, 0.35);
+          background: var(--navy-700);
+          border-color: var(--navy-700);
+          transform: translateY(-1px);
+          box-shadow: var(--shadow-sm);
         }
-        /* Secondary: solo border gris neutro */
+        /* Secondary: outline neutro → hover lavanda */
         .action-row :global(.action-btn-secondary:hover) {
-          border-color: var(--tp-theme-1, #6c5ce7);
-          color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
-        /* Acciones en mobile: ocupan todo el ancho */
+        /* Acciones en mobile: ocupan todo el ancho.
+           :global porque .action-btn vive en un <Link> (AGENTS §6.5). */
         @media (max-width: 480px) {
-          .action-row .action-btn {
+          .action-row :global(.action-btn) {
             flex: 1 1 calc(50% - 6px);
             min-width: 0;
             padding: 0 12px;

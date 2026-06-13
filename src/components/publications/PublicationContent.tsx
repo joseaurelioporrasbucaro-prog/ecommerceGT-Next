@@ -272,6 +272,14 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
 
       <style jsx>{`
         /* ──────────────── Vendedor ──────────────── */
+        .created-by {
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--fg-subtle);
+          margin-bottom: 10px;
+        }
         .seller-row {
           display: flex;
           align-items: center;
@@ -287,7 +295,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           height: 64px !important;
           border-radius: 50%;
           object-fit: cover;
-          border: 3px solid rgba(108, 92, 231, 0.3);
+          border: 3px solid var(--lav-400);
         }
         .seller-verified {
           position: absolute;
@@ -295,44 +303,58 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           right: -2px;
           width: 22px;
           height: 22px;
-          background: #2ed573;
-          color: #fff;
+          background: var(--green-500);
+          color: var(--navy-900);
           font-size: 10px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 2px solid var(--tp-bg, #1a1828);
+          border: 2px solid var(--surface);
         }
         .seller-info { min-width: 0; }
         .seller-name {
+          font-family: var(--font-display);
           font-size: 18px;
           font-weight: 700;
           margin: 0 0 4px;
+          color: var(--fg-strong);
+        }
+        .seller-name :global(a) {
+          color: var(--fg-strong);
+          text-decoration: none;
         }
         .seller-handle {
           font-size: 14px;
-          color: var(--tp-theme-1, #6c5ce7);
+        }
+        .seller-handle :global(a) {
+          color: var(--lav-700);
+          text-decoration: none;
+        }
+        :global([data-theme='dark']) .seller-handle :global(a) {
+          color: var(--lav-400);
         }
 
         /* Separador neutral: visible en light y dark mode */
         .content-divider {
           height: 1px;
-          background: rgba(128, 128, 128, 0.25);
+          background: var(--border);
           margin: 28px 0;
         }
 
         /* ──────────────── Título y descripción ──────────────── */
         .publication-detail-title {
+          font-family: var(--font-display);
           font-size: 36px;
           font-weight: 700;
           line-height: 1.2;
           margin-bottom: 16px;
+          color: var(--fg-strong);
         }
         .publication-detail-description {
           font-size: 15px;
           line-height: 1.7;
-          opacity: 0.85;
+          color: var(--fg-muted);
           margin: 0;
         }
 
@@ -347,7 +369,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         }
         .meta-cell {
           padding: 0 28px;
-          border-right: 1px solid rgba(128, 128, 128, 0.25);
+          border-right: 1px solid var(--border);
           text-align: center;
         }
         .meta-cell:first-child { padding-left: 0; }
@@ -364,29 +386,32 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         }
         .meta-label {
           font-size: 12px;
-          opacity: 0.6;
+          color: var(--fg-subtle);
           margin-bottom: 6px;
         }
         .meta-value {
+          font-family: var(--font-display);
           font-size: 26px;
           font-weight: 700;
+          color: var(--fg-strong);
         }
-        .meta-price { color: var(--tp-theme-1, #6c5ce7); }
+        .meta-price { color: var(--fg-strong); }
 
         /* ──────────────── Fase 19.5 — Amenidades ──────────────── */
         .amenities-section {
           margin-top: 26px;
           padding-top: 22px;
-          border-top: 1px solid var(--clr-common-border, #e0e2e5);
+          border-top: 1px solid var(--border);
         }
         .amenities-title {
           display: flex;
           align-items: center;
           gap: 9px;
+          font-family: var(--font-display);
           font-size: 17px;
           font-weight: 700;
           margin: 0 0 14px;
-          color: var(--clr-common-heading);
+          color: var(--fg-strong);
         }
         .amenities-title :global(i) {
           color: var(--rating);
@@ -402,21 +427,23 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           align-items: center;
           gap: 7px;
           padding: 8px 14px;
-          background: var(--clr-bg-gray, #f9f9f9);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 22px;
+          background: var(--surface-sunk);
+          border: 1px solid var(--border);
+          border-radius: var(--r-pill);
           font-size: 13px;
           font-weight: 600;
-          color: var(--clr-common-heading);
+          color: var(--fg-strong);
         }
         .amenity-chip :global(i) {
-          color: var(--clr-theme-1, #2785ff);
+          color: var(--lav-700);
           font-size: 13px;
         }
-        .meta-state { color: #2ed573; }
+        :global([data-theme='dark']) .amenity-chip :global(i) {
+          color: var(--lav-400);
+        }
         .meta-sublabel {
           font-size: 12px;
-          opacity: 0.55;
+          color: var(--fg-subtle);
           margin-top: 4px;
         }
 
@@ -439,14 +466,14 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           padding: 0 24px;
           height: 48px;             /* misma altura para los 3 */
           min-width: 150px;
-          border-radius: 10px;
+          border-radius: var(--r-pill);
           font-weight: 600;
           font-size: 14px;
           line-height: 1;
           cursor: pointer;
-          border: 1.5px solid rgba(128, 128, 128, 0.35);  /* border en todos */
+          border: 1.5px solid var(--border-strong);  /* border en todos */
           background: transparent;
-          color: inherit;
+          color: var(--fg-strong);
           text-decoration: none !important;
           transition: all 0.2s;
           white-space: nowrap;
@@ -457,24 +484,25 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           display: inline-flex;
           align-items: center;
         }
-        /* Primary: filled con color tema, border del mismo color */
+        /* Primary: navy filled (consistencia con la card) */
         .action-row :global(.action-btn-primary) {
-          background: var(--tp-theme-1, #6c5ce7) !important;
-          border-color: var(--tp-theme-1, #6c5ce7) !important;
-          color: #fff !important;
+          background: var(--navy-800) !important;
+          border-color: var(--navy-800) !important;
+          color: var(--cream) !important;
         }
         .action-row :global(.action-btn-primary:hover) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 18px rgba(108, 92, 231, 0.35);
+          background: var(--navy-700) !important;
+          transform: translateY(-1px);
+          box-shadow: var(--shadow-sm);
         }
-        /* Secondary: solo border gris neutro */
+        /* Secondary: outline neutro → hover lavanda */
         .action-row :global(.action-btn-secondary:hover) {
-          border-color: var(--tp-theme-1, #6c5ce7);
-          color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--lav-500);
+          color: var(--lav-700);
         }
         .action-row :global(.action-btn-secondary.is-favorite) {
-          border-color: #ff4757;
-          color: #ff4757;
+          border-color: var(--danger);
+          color: var(--danger);
         }
         .action-row :global(.action-btn:disabled) {
           cursor: wait;
@@ -483,6 +511,27 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         .action-row :global(.favorites-count) {
           font-size: 14px;
           font-weight: 700;
+        }
+
+        /* ──────────────── Tabs Bootstrap ──────────────── */
+        .art-information-tab-nav :global(.nav-link) {
+          color: var(--fg-muted);
+          background: transparent;
+          border: none;
+          border-bottom: 2px solid transparent;
+          font-weight: 600;
+          transition: color 0.2s, border-color 0.2s;
+        }
+        .art-information-tab-nav :global(.nav-link:hover) {
+          color: var(--lav-700);
+        }
+        .art-information-tab-nav :global(.nav-link.active) {
+          color: var(--lav-700);
+          border-bottom-color: var(--lav-500);
+        }
+        :global([data-theme='dark']) .art-information-tab-nav :global(.nav-link:hover),
+        :global([data-theme='dark']) .art-information-tab-nav :global(.nav-link.active) {
+          color: var(--lav-400);
         }
 
         /* ──────────────── Info list ──────────────── */
@@ -496,23 +545,24 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
           align-items: center;
           gap: 12px;
           padding: 14px 0;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+          border-bottom: 1px solid var(--border);
         }
         .info-list :global(.info-row:last-child) { border-bottom: none; }
         .info-list :global(.info-row-label) {
           display: flex;
           align-items: center;
           gap: 10px;
-          opacity: 0.75;
+          color: var(--fg-muted);
           font-size: 14px;
         }
         .info-list :global(.info-row-separator) {
-          opacity: 0.3;
+          color: var(--fg-subtle);
           text-align: center;
         }
         .info-list :global(.info-row-value) {
           font-weight: 600;
           font-size: 14px;
+          color: var(--fg-strong);
         }
         /* Mobile: icono+label izquierda, valor derecha (sin saltos de línea) */
         @media (max-width: 768px) {
@@ -528,7 +578,7 @@ const PublicationContent = ({ publication }: PublicationContentProps) => {
         }
         /* Acciones en mobile: ocupan todo el ancho */
         @media (max-width: 480px) {
-          .action-row .action-btn {
+          .action-row :global(.action-btn) {
             flex: 1 1 calc(50% - 6px);
             min-width: 0;
             padding: 0 12px;
