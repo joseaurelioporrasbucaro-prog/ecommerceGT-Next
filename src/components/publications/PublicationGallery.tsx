@@ -117,8 +117,9 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
           position: relative;
           width: 100%;
           aspect-ratio: 16 / 9;
-          background: linear-gradient(135deg, #0e0d1a, #1a1828);
-          border-radius: 16px;
+          background: var(--surface-sunk);
+          border: 1px solid var(--border);
+          border-radius: var(--r-lg);
           overflow: hidden;
         }
         @media (max-width: 768px) {
@@ -135,19 +136,24 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(0, 0, 0, 0.55);
-          color: #fff;
-          border: none;
+          background: var(--navy-800);
+          color: var(--cream);
+          border: 1.5px solid var(--navy-800);
           border-radius: 50%;
           cursor: pointer;
           font-size: 20px;
           transition: all 0.2s;
-          backdrop-filter: blur(8px);
+          box-shadow: var(--shadow-sm);
           z-index: 2;
         }
         .gallery-arrow:hover {
-          background: rgba(0, 0, 0, 0.85);
+          background: var(--navy-700);
+          border-color: var(--navy-700);
           transform: translateY(-50%) scale(1.08);
+        }
+        .gallery-arrow:focus-visible {
+          outline: none;
+          box-shadow: var(--shadow-focus);
         }
         .gallery-arrow-prev { left: 18px; }
         .gallery-arrow-next { right: 18px; }
@@ -157,12 +163,13 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
           bottom: 18px;
           right: 18px;
           padding: 6px 12px;
-          background: rgba(0, 0, 0, 0.6);
-          color: #fff;
-          border-radius: 16px;
+          background: var(--navy-900);
+          color: var(--cream);
+          border-radius: var(--r-pill);
+          font-family: var(--font-display);
           font-size: 12px;
           font-weight: 600;
-          backdrop-filter: blur(8px);
+          box-shadow: var(--shadow-sm);
           z-index: 2;
         }
 
@@ -176,8 +183,8 @@ const PublicationGallery = ({ images, alt }: PublicationGalleryProps) => {
         }
         .gallery-thumbs::-webkit-scrollbar { height: 6px; }
         .gallery-thumbs::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 3px;
+          background: var(--border-strong);
+          border-radius: var(--r-pill);
         }
       `}</style>
     </div>
@@ -227,21 +234,27 @@ const ThumbnailButton = ({ image, isActive, alt, ariaLabel, onClick }: Thumbnail
           flex-shrink: 0;
           width: 120px;
           aspect-ratio: ${THUMB_IMAGE_DIMENSIONS.width} / ${THUMB_IMAGE_DIMENSIONS.height};
-          background: #0e0d1a;
-          border: 2px solid transparent;
-          border-radius: 8px;
+          background: var(--surface-sunk);
+          border: 2px solid var(--border);
+          border-radius: var(--r-md);
           overflow: hidden;
           cursor: pointer;
           padding: 0;
-          opacity: 0.55;
+          opacity: 0.6;
           transition: all 0.2s;
         }
         .gallery-thumb:hover {
-          opacity: 0.85;
+          opacity: 0.9;
+          border-color: var(--border-strong);
+        }
+        .gallery-thumb:focus-visible {
+          outline: none;
+          box-shadow: var(--shadow-focus);
         }
         .gallery-thumb.is-active {
           opacity: 1;
-          border-color: var(--tp-theme-1, #6c5ce7);
+          border-color: var(--lav-500);
+          box-shadow: 0 0 0 2px var(--lav-500);
         }
       `}</style>
     </button>

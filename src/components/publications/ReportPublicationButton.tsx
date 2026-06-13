@@ -63,19 +63,129 @@ const ReportPublicationButton = ({ pubId }: { pubId: number | string }) => {
       )}
 
       <style jsx>{`
-        .rp-trigger { background: transparent; border: 1px solid rgba(128,128,128,0.35); border-radius: 24px; padding: 8px 16px; cursor: pointer; font-weight: 600; color: inherit; display: inline-flex; align-items: center; gap: 7px; }
-        .rp-trigger:hover { border-color: #dc2626; color: #dc2626; }
-        .rp-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .rp-modal { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 24px; width: 100%; max-width: 440px; }
-        .rp-modal h5 { margin: 0 0 14px; }
-        .rp-label { display: block; font-weight: 600; margin: 12px 0 6px; font-size: 14px; }
-        .rp-modal select, .rp-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; }
-        .rp-consent { display: flex; gap: 9px; align-items: flex-start; margin-top: 14px; font-size: 13px; opacity: 0.85; cursor: pointer; line-height: 1.4; }
-        .rp-consent input { margin-top: 3px; flex-shrink: 0; }
-        .rp-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-        .rp-ghost { background: transparent; border: 1px solid rgba(128,128,128,0.4); padding: 9px 18px; border-radius: 24px; cursor: pointer; }
-        .rp-send { background: #dc2626; color: #fff; border: none; padding: 9px 18px; border-radius: 24px; cursor: pointer; font-weight: 600; }
-        .rp-send:disabled { opacity: 0.6; }
+        .rp-trigger {
+          background: transparent;
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-pill);
+          padding: 8px 16px;
+          cursor: pointer;
+          font-weight: 600;
+          font-family: var(--font-body);
+          color: var(--fg-subtle);
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          transition: border-color 0.18s ease, color 0.18s ease;
+        }
+        .rp-trigger:hover {
+          border-color: var(--danger);
+          color: var(--danger);
+        }
+        .rp-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          background: rgba(17, 24, 42, 0.55);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+        .rp-modal {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--r-lg);
+          box-shadow: var(--shadow-lg);
+          padding: 24px;
+          width: 100%;
+          max-width: 440px;
+        }
+        .rp-modal h5 {
+          margin: 0 0 14px;
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 1.25rem;
+          color: var(--fg-strong);
+        }
+        .rp-label {
+          display: block;
+          font-weight: 600;
+          margin: 12px 0 6px;
+          font-size: 14px;
+          color: var(--fg-subtle);
+        }
+        .rp-modal select,
+        .rp-modal textarea {
+          width: 100%;
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-md);
+          padding: 10px;
+          background: var(--surface);
+          color: var(--fg-strong);
+          font-family: var(--font-body);
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .rp-modal select:focus,
+        .rp-modal textarea:focus {
+          outline: none;
+          border-color: var(--lav-500);
+          box-shadow: var(--shadow-focus);
+        }
+        .rp-consent {
+          display: flex;
+          gap: 9px;
+          align-items: flex-start;
+          margin-top: 14px;
+          font-size: 13px;
+          color: var(--fg-muted);
+          cursor: pointer;
+          line-height: 1.4;
+        }
+        .rp-consent input {
+          margin-top: 3px;
+          flex-shrink: 0;
+          accent-color: var(--lav-600);
+        }
+        .rp-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 18px;
+        }
+        .rp-ghost {
+          background: transparent;
+          border: 1.5px solid var(--border-strong);
+          color: var(--fg-strong);
+          padding: 9px 18px;
+          border-radius: var(--r-pill);
+          cursor: pointer;
+          font-weight: 600;
+          font-family: var(--font-body);
+          transition: border-color 0.18s ease, color 0.18s ease;
+        }
+        .rp-ghost:hover {
+          border-color: var(--lav-500);
+          color: var(--lav-700);
+        }
+        .rp-send {
+          background: var(--danger);
+          color: #fff;
+          border: 1.5px solid var(--danger);
+          padding: 9px 18px;
+          border-radius: var(--r-pill);
+          cursor: pointer;
+          font-weight: 600;
+          font-family: var(--font-body);
+          transition: filter 0.18s ease, transform 0.18s ease;
+        }
+        .rp-send:hover:not(:disabled) {
+          filter: brightness(0.94);
+          transform: translateY(-1px);
+        }
+        .rp-send:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
       `}</style>
     </>
   );
