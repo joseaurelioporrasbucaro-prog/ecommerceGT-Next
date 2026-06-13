@@ -21,11 +21,6 @@ import {
   isPublicationListItemAuth,
 } from './publicationUtils';
 
-// Handoff #8 §2 — tipo de cambio temporal. Cuando el backend exponga la tasa
-// (config o endpoint), reemplazar por la lectura real (queda como gap en el
-// feedback doc §2). 7.8 GTQ/USD es el orden de magnitud.
-// TODO(currency-rate): leer del backend cuando exista.
-const GTQ_TO_USD_RATE = 7.8;
 const PRICE_SWITCH_INTERVAL_MS = 3200;
 
 interface PublicationCardProps {
@@ -61,23 +56,18 @@ function formatAmount(value: number): string {
   return decimalPart === '00' ? integerFormatted : `${integerFormatted}.${decimalPart}`;
 }
 
+// Formatea un valor REAL cargado (sin conversión: nunca inventamos una tasa).
 function buildPrice(
   rawPrice: number | string | null | undefined,
   currency: string | null | undefined,
-  target: 'GTQ' | 'USD',
 ): FormattedPrice | null {
   if (rawPrice === null || rawPrice === undefined || rawPrice === '') return null;
   const numeric = Number(rawPrice);
   if (!Number.isFinite(numeric)) return null;
 
-  const sourceIsUsd = currency === 'USD';
-  let amount = numeric;
-  if (sourceIsUsd && target === 'GTQ') amount = numeric * GTQ_TO_USD_RATE;
-  if (!sourceIsUsd && target === 'USD') amount = numeric / GTQ_TO_USD_RATE;
-
   return {
-    symbol: target === 'USD' ? 'US$' : 'Q',
-    amount: formatAmount(amount),
+    symbol: currency === 'USD' ? 'US$' : 'Q',
+    amount: formatAmount(numeric),
   };
 }
 
@@ -93,31 +83,27 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-// Switch animado Q ⇄ US$. Con prefers-reduced-motion: reduce muestra solo la
-// moneda nativa (sin animar, sin alternar).
+// Switch animado Q ⇄ US$. Solo alterna cuando la publicación trae AMBOS valores
+// REALES (Quetzales y Dólares) cargados por el dueño — nunca convertimos con una
+// tasa. Si hay una sola moneda, muestra ese precio estático. Con
+// prefers-reduced-motion: reduce no anima ni alterna (muestra el primero).
 interface PriceSwitchProps {
-  price: number | string | null | undefined;
-  currency: string | null | undefined;
+  prices: FormattedPrice[];
   fallback: string;
 }
 
-const PriceSwitch: React.FC<PriceSwitchProps> = ({ price, currency, fallback }) => {
+const PriceSwitch: React.FC<PriceSwitchProps> = ({ prices, fallback }) => {
   const reducedMotion = usePrefersReducedMotion();
-  const [showUsd, setShowUsd] = useState(false);
+  const [index, setIndex] = useState(0);
+  const canSwitch = prices.length > 1 && !reducedMotion;
 
   useEffect(() => {
-    if (reducedMotion) return;
-    const id = setInterval(() => setShowUsd((v) => !v), PRICE_SWITCH_INTERVAL_MS);
+    if (!canSwitch) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % prices.length), PRICE_SWITCH_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [reducedMotion]);
+  }, [canSwitch, prices.length]);
 
-  const nativeIsUsd = currency === 'USD';
-  const target: 'GTQ' | 'USD' = reducedMotion
-    ? (nativeIsUsd ? 'USD' : 'GTQ')
-    : (showUsd ? 'USD' : 'GTQ');
-
-  const formatted = buildPrice(price, currency, target);
-  if (!formatted) {
+  if (prices.length === 0) {
     return (
       <div className="pub-price-row">
         <span className="pub-price-amount">{fallback}</span>
@@ -125,11 +111,15 @@ const PriceSwitch: React.FC<PriceSwitchProps> = ({ price, currency, fallback }) 
     );
   }
 
+  const active = prices[index % prices.length];
+
   return (
     <div className="pub-price-row">
-      <div key={target} className="pub-price-swap">
-        <span className="pub-price-symbol">{formatted.symbol}</span>
-        <span className="pub-price-amount">{formatted.amount}</span>
+      {/* `key` re-monta el bloque para disparar la animación de entrada solo
+          cuando efectivamente hay alternancia. */}
+      <div key={canSwitch ? active.symbol : 'static'} className={canSwitch ? 'pub-price-swap' : ''}>
+        <span className="pub-price-symbol">{active.symbol}</span>
+        <span className="pub-price-amount">{active.amount}</span>
       </div>
     </div>
   );
@@ -197,6 +187,20 @@ const PublicationCard = ({
     publication.sizee !== null && publication.sizee !== undefined
       ? `${formatNumberValue(publication.sizee, '-')} m²`
       : '-';
+
+  // Switch de divisa: SOLO con valores reales. El precio primario siempre va;
+  // el alterno (otra moneda) solo si el backend lo provee (Fase 17 dual-divisa,
+  // pendiente — ver feedback §2). Mientras tanto cada card muestra una sola
+  // moneda estática (sin conversión inventada).
+  const prices = useMemo(() => {
+    const list: FormattedPrice[] = [];
+    const primary = buildPrice(publication.price, publication.currency);
+    if (primary) list.push(primary);
+    const alt = buildPrice(publication.priceAlt, publication.currencyAlt);
+    // Evita duplicar si por error vinieran ambos en la misma moneda.
+    if (alt && alt.symbol !== primary?.symbol) list.push(alt);
+    return list;
+  }, [publication.price, publication.currency, publication.priceAlt, publication.currencyAlt]);
 
   // Handoff #8 §1 [CARD-4] — el badge no se renderiza dentro de la sección
   // que ya rotula "Destacado/Patrocinado" (el ring lavanda sigue presente).
@@ -267,11 +271,7 @@ const PublicationCard = ({
         </div>
 
         <div className="pub-body">
-          <PriceSwitch
-            price={publication.price}
-            currency={publication.currency}
-            fallback={t('card.priceConsult')}
-          />
+          <PriceSwitch prices={prices} fallback={t('card.priceConsult')} />
 
           <h4 className="pub-title publication-title">
             <Link href={detailsHref}>{publication.title}</Link>

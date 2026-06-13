@@ -488,6 +488,15 @@ export interface PublicationListItem {
   price: number | string;
   /** ISO 4217 — 'GTQ' o 'USD'. Default 'GTQ' en backend para legacy. */
   currency?: string | null;
+  /**
+   * Fase 17 (dual-divisa, PENDIENTE BACKEND) — segundo precio opcional en la
+   * otra moneda, ingresado por el dueño al publicar. Cuando ambos existen, la
+   * card alterna Q ⇄ US$ con valores REALES (sin conversión). El backend aún no
+   * lo provee; queda opcional para no romper el contrato actual.
+   */
+  priceAlt?: number | string | null;
+  /** ISO 4217 del precio alterno ('GTQ' o 'USD'). */
+  currencyAlt?: string | null;
   rooms: number | null;
   bathrooms: number | null;
   parking: number | null;

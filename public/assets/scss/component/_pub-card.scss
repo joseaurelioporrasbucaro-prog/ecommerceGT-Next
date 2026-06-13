@@ -110,9 +110,7 @@
 	font-family: var(--font-body);
 }
 
-// "Destacado/Nuevo" — lavanda translúcida (los Destacado/Nuevo conviven con la
-// nueva foto 3:2; el handoff usa rgba(109,98,207,.92), que es var(--lav-700).
-.publication-featured-badge,
+// "Nuevo" — lavanda translúcida con estrella (handoff §1: rgba(109,98,207,.92)).
 .publication-new-badge {
 	background: rgba(109, 98, 207, .92);
 	-webkit-backdrop-filter: blur(8px);
@@ -123,6 +121,16 @@
 		font-size: 9px;
 		color: #fff;
 	}
+}
+
+// "Patrocinado" (pauta) — navy translúcido SIN estrella (handoff §1:
+// rgba(17,24,42,.55)). Solo aparece en listados mezclados; en secciones que ya
+// rotulan "Destacado/Patrocinado" se suprime (inSponsoredSection → [CARD-4]).
+.publication-featured-badge {
+	background: rgba(17, 24, 42, .55);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+	color: #fff;
 }
 
 // Status frosted — solo aparece en /my-publications no-públicos: los estados
@@ -168,7 +176,6 @@
 		}
 	}
 
-	.publication-featured-badge,
 	.publication-new-badge {
 		background: rgba(181, 172, 239, .92);
 		color: var(--navy-900);
@@ -176,6 +183,12 @@
 		i {
 			color: var(--navy-900);
 		}
+	}
+
+	// Patrocinado navy se mantiene sobre la foto (texto blanco legible).
+	.publication-featured-badge {
+		background: rgba(17, 24, 42, .68);
+		color: #fff;
 	}
 }
 

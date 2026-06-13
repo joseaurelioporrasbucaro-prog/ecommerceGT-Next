@@ -153,11 +153,18 @@
 > Resueltos del feedback anterior: CARD-1/CARD-3/CARD-4. CARD-2 cerrado SIN
 > backend (variant `detail` 16:9 recortado a 3:2 con object-fit:cover).
 
-- [H8-1] **Tipo de cambio Q ⇄ US$ hardcodeado**: el handoff §2 pidió usar el
-  rate del backend si existe — no existe hoy en config ni endpoint. Quedó
-  `GTQ_TO_USD_RATE = 7.8` en `PublicationCard.tsx` con `// TODO(currency-rate)`.
-  **Decisión pedida**: ¿constante en `.env` (`NEXT_PUBLIC_GTQ_USD_RATE`), o
-  endpoint `/config/rates` con cache diario? Hoy nadie actualiza el 7.8.
+- [H8-1] **Switch de divisa = doble valor REAL, NO conversión** (decisión de
+  Aurelio 2026-06-12): el switch Q ⇄ US$ NO debe inventar una tasa. Se quitó la
+  conversión con rate fijo (7.8) de mi v2.1. Ahora el switch **solo alterna si la
+  publicación trae los dos precios reales cargados** por el dueño; con una sola
+  moneda muestra ese precio estático. Esto **requiere BACKEND** (Fase 17
+  dual-divisa, pendiente autorización + `Codigo Aurelio`):
+  - Al publicar (`/upload`): dos campos de precio (Q y US$), **ambos opcionales
+    pero al menos uno obligatorio**.
+  - DB + `/savepubl` + `/publications`: persistir el segundo precio/moneda.
+  - Frontend YA listo: tipos `priceAlt`/`currencyAlt` en `PublicationListItem`
+    y la card los lee defensivamente (mientras el backend no los provea, cada
+    card muestra una sola moneda — comportamiento correcto y seguro).
 - [H8-2] **Métricas en /my-publications no existen en el endpoint**: el
   handoff §3 pidió vistas/favoritos/consultas reales en cada `OwnerRow`. El
   endpoint `GET /my-publications/:cus_id` devuelve solo `MyPublicationItem`
