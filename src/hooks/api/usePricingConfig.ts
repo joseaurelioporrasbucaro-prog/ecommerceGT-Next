@@ -14,20 +14,29 @@ export interface PricingConfig {
   adImpressionCost: number; // Q por impresión (destacar)
   adClickCost: number;      // Q por clic (mensajes)
   adMinBudget: number;      // mínimo de presupuesto por campaña
+  /**
+   * WP-7 — moneda en que se MUESTRAN los precios de los planes, configurable
+   * desde /admin/config. El backend la guarda en platform_config como número
+   * (0=USD, 1=GTQ) y la expone ya mapeada a 'GTQ'|'USD'. Default 'USD' mientras
+   * el backend no la provea (degrada sin romper).
+   */
+  plansCurrency: 'GTQ' | 'USD';
 }
 
 const DEFAULTS: PricingConfig = {
   adImpressionCost: 0.01,
   adClickCost: 0.50,
   adMinBudget: 10,
+  plansCurrency: 'USD',
 };
 
 export function usePricingConfig(): PricingConfig {
   const q = useQuery({
     queryKey: ['pricingConfig'] as const,
-    queryFn: () => ApiFetch.get<PricingConfig>('/pricing-config'),
+    queryFn: () => ApiFetch.get<Partial<PricingConfig>>('/pricing-config'),
     staleTime: 5 * 60_000,
     retry: false,
   });
-  return q.data ?? DEFAULTS;
+  // Merge con defaults: si el backend aún no expone plansCurrency, cae a 'USD'.
+  return { ...DEFAULTS, ...(q.data ?? {}) };
 }

@@ -110,6 +110,20 @@ const AdminConfigMain: React.FC = () => {
     setDraft((d) => ({ ...d, [field.key]: String(currentByKey[field.key]) }));
   };
 
+  // WP-7 — moneda de display de los planes. Se guarda en platform_config como
+  // número (0=US$, 1=Q) reusando el mismo endpoint numérico.
+  const handleSetPlansCurrency = async (cur: 'GTQ' | 'USD') => {
+    if (cur === current.plansCurrency) return;
+    try {
+      await updateMut.mutateAsync({ key: 'plans_currency', value: cur === 'GTQ' ? 1 : 0 });
+      toast.success(
+        `Planes ahora se muestran en ${cur === 'GTQ' ? 'quetzales (Q)' : 'dólares (US$)'}.`,
+      );
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : t('config.saveError'));
+    }
+  };
+
   if (!isAdmin) {
     return (
       <main>
@@ -203,6 +217,40 @@ const AdminConfigMain: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+
+          {/* WP-7 — moneda en que se muestran los precios de los planes. */}
+          <div className="ac-card ac-currency-card">
+            <div className="ac-card-head">
+              <h3>Moneda de los planes</h3>
+              <span className="ac-current">
+                {t('config.current')}:{' '}
+                <strong>{current.plansCurrency === 'GTQ' ? 'Quetzales (Q)' : 'Dólares (US$)'}</strong>
+              </span>
+            </div>
+            <p className="ac-desc">
+              Define en qué moneda se muestran los precios en /pricing-plan. Cambia
+              el símbolo mostrado; asegurate de que los montos de los planes estén
+              cargados en esa moneda.
+            </p>
+            <div className="ac-currency-toggle" role="group" aria-label="Moneda de los planes">
+              <button
+                type="button"
+                className={current.plansCurrency === 'USD' ? 'active' : ''}
+                onClick={() => handleSetPlansCurrency('USD')}
+                disabled={updateMut.isPending}
+              >
+                US$ Dólares
+              </button>
+              <button
+                type="button"
+                className={current.plansCurrency === 'GTQ' ? 'active' : ''}
+                onClick={() => handleSetPlansCurrency('GTQ')}
+                disabled={updateMut.isPending}
+              >
+                Q Quetzales
+              </button>
+            </div>
           </div>
 
           <div className="ac-footnote mt-30">
@@ -336,6 +384,36 @@ const AdminConfigMain: React.FC = () => {
         }
         .ac-btn-primary:hover:not(:disabled) {
           filter: brightness(1.05);
+        }
+        .ac-currency-card {
+          margin-top: 18px;
+          max-width: 480px;
+        }
+        .ac-currency-toggle {
+          display: inline-flex;
+          padding: 5px;
+          background: var(--surface-sunk, #f0f1f3);
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          border-radius: 999px;
+        }
+        .ac-currency-toggle button {
+          border: none;
+          background: transparent;
+          color: var(--fg-muted);
+          padding: 9px 20px;
+          border-radius: 999px;
+          font-weight: 700;
+          font-size: 13px;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+        .ac-currency-toggle button.active {
+          background: var(--navy-800);
+          color: var(--cream);
+        }
+        .ac-currency-toggle button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
         .ac-footnote {
           font-size: 12.5px;

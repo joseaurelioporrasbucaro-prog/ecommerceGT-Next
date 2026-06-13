@@ -197,3 +197,32 @@
   vs "Patrocinado" navy del canvas v2.1. **¿Es correcto usar siempre el badge
   lavanda, o querés que las cards de campañas de tipo "mensajes" usen el badge
   navy "Patrocinado" en cambio?**
+
+### Del WP-7 — Pricing voseo + plan recomendado (2026-06-13, Claude Code)
+
+- [WP7-1] **"Plan recomendado" es HEURÍSTICO en el front** (no hay flag en
+  backend). Hoy se resalta (anillo + badge lavanda "Recomendado") el plan **pago,
+  no personalizado, con mayor `pubPerUser`** del intervalo visible (desempate por
+  precio); no se marca si es el plan actual del usuario. **Decisión pedida**: lo
+  ideal es un campo `recommended`/`popular` en `subscriptions` (backend) para
+  controlarlo desde datos en vez de adivinar. Implica backend → autorización +
+  `Codigo Aurelio`. Mientras tanto la heurística es razonable pero arbitraria.
+- [WP7-2] **Moneda de planes queda en `$` (USD)**: `subscriptions.sub_price` no
+  tiene columna de moneda y los seeds son USD. A diferencia de las propiedades
+  (que ya son Q/US$ por listing), los planes se muestran en `$`. Si la marca
+  quiere planes en Q, requiere precio/moneda en el modelo de suscripciones
+  (backend) — pendiente de decisión.
+- [WP7-3] **Pricing no usa i18n (`t()`)**: el copy está hardcodeado en español
+  (ahora voseo). La versión EN no aplica acá hasta Fase 14 (i18n). Solo se anota.
+- [WP7-4] **Moneda de planes configurable desde admin (REQUIERE BACKEND)**:
+  pedido de Aurelio — poder elegir desde `/admin/config` si los planes se
+  muestran en Q o US$. Frontend LISTO: `plansCurrency` en `usePricingConfig`,
+  toggle en `AdminConfigMain`, símbolo dinámico en el pricing. Como
+  `platform_config.config_value` es NUMERIC, la clave se codifica `0=US$ / 1=Q`.
+  **Backend pendiente (3 cambios)**: (a) seed `plans_currency`=0 en
+  platform_config; (b) `getPricingConfig` devuelve `plansCurrency:'GTQ'|'USD'`
+  (mapeando 0/1); (c) `updatePlatformConfig` acepta la key `plans_currency`.
+  Hasta que exista, el toggle guarda pero el read cae a 'USD' (degrada sin romper).
+  ⚠️ El toggle cambia solo el SÍMBOLO; para que los MONTOS en Q sean reales (no
+  el número USD con símbolo Q) conviene un `sub_price_gtq` por plan — el front ya
+  lee `priceGtq` opcional si el backend lo provee.

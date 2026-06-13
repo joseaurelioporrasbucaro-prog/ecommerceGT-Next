@@ -8,16 +8,28 @@ import {
   useMySubscription,
   useChangeSubscription,
 } from '@/hooks/api/useSubscription';
+import { usePricingConfig } from '@/hooks/api/usePricingConfig';
 import type { Plan } from '@/types/api';
 
-const fmtPrice = (price: number) =>
-  price === 0 ? 'Gratis' : `$${price.toFixed(price % 1 === 0 ? 0 : 2)}`;
+const fmtPrice = (price: number, symbol: string) =>
+  price === 0 ? 'Gratis' : `${symbol}${price.toFixed(price % 1 === 0 ? 0 : 2)}`;
 
 const PricingPlanMain = () => {
   const { user } = useAuth();
   const plansQuery = usePlans();
   const mySubQuery = useMySubscription();
   const changeSub = useChangeSubscription();
+
+  // WP-7 — moneda de display de los planes (config de admin). Símbolo según la
+  // moneda elegida; el monto en Q usa priceGtq real si el backend lo provee,
+  // si no cae a `price` (mismo número, solo cambia el símbolo).
+  const pricingCfg = usePricingConfig();
+  const planSymbol = pricingCfg.plansCurrency === 'GTQ' ? 'Q ' : '$';
+  const displayPlanPrice = (plan: Plan) =>
+    fmtPrice(
+      pricingCfg.plansCurrency === 'GTQ' && plan.priceGtq != null ? plan.priceGtq : plan.price,
+      planSymbol,
+    );
 
   const [interval, setInterval] = useState<'Mensual' | 'Anual'>('Mensual');
 
@@ -36,6 +48,19 @@ const PricingPlanMain = () => {
   const currentSubId = mySubQuery.data?.subId;
   const busId = user?.busId;
 
+  // WP-7 — "Plan recomendado". El backend no expone un flag popular/recomendado
+  // (ver feedback §2), así que lo derivamos en el front: entre los planes pagos
+  // NO personalizados del intervalo visible, el de mayor capacidad de publicación
+  // (flagship); desempate por precio. Si no hay candidatos, no se recomienda.
+  const recommendedId = useMemo<number | null>(() => {
+    const candidates = visiblePlans.filter((p: Plan) => !p.personalized && p.price > 0);
+    if (candidates.length === 0) return null;
+    const best = candidates.reduce((a: Plan, b: Plan) =>
+      b.pubPerUser > a.pubPerUser || (b.pubPerUser === a.pubPerUser && b.price > a.price) ? b : a,
+    );
+    return best.id;
+  }, [visiblePlans]);
+
   const handleChoose = (plan: Plan) => {
     if (!user) return;
     if (plan.id === currentSubId) return;
@@ -50,9 +75,9 @@ const PricingPlanMain = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-xl-8 text-center">
-              <h2 className="pp-heading">Elige el plan ideal para ti</h2>
+              <h2 className="pp-heading">Elegí el plan ideal para vos</h2>
               <p className="pp-sub">
-                Publica más propiedades y gestiona tu equipo. Cambia o cancela
+                Publicá más propiedades y gestioná tu equipo. Cambiá o cancelá
                 cuando quieras.
               </p>
             </div>
@@ -83,13 +108,14 @@ const PricingPlanMain = () => {
           )}
           {plansQuery.isError && (
             <div className="alert alert-danger mt-30">
-              No se pudieron cargar los planes. Intenta de nuevo.
+              No se pudieron cargar los planes. Intentá de nuevo.
             </div>
           )}
 
           <div className="row pp-grid">
             {visiblePlans.map((plan) => {
               const isCurrent = plan.id === currentSubId;
+              const isRecommended = !isCurrent && plan.id === recommendedId;
               const isPersonalized = plan.personalized;
               const isBusId = plan.busid === busId;
 
@@ -105,7 +131,7 @@ const PricingPlanMain = () => {
                       {isCurrent && <span className="pp-badge">Tu plan</span>}
                       <h3 className="pp-name">{plan.description}</h3>
                       <div className="pp-price">
-                        <span className="pp-amount">{fmtPrice(plan.price)}</span>
+                        <span className="pp-amount">{displayPlanPrice(plan)}</span>
                         {plan.price > 0 && (
                           <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
                         )}
@@ -129,7 +155,7 @@ const PricingPlanMain = () => {
 
                       {!user ? (
                         <Link href="/login?from=/pricing-plan" className="pp-btn">
-                          Inicia sesión para elegir
+                          Iniciá sesión para elegir
                         </Link>
                       ) : isCurrent ? (
                         <button type="button" className="pp-btn pp-btn-current" disabled>
@@ -149,11 +175,15 @@ const PricingPlanMain = () => {
                       )}
                     </div>
                   ) : (
-                    <div className={`pp-card ${isCurrent ? 'is-current' : ''}`}>
-                      {isCurrent && <span className="pp-badge">Tu plan</span>}
+                    <div className={`pp-card ${isCurrent ? 'is-current' : ''} ${isRecommended ? 'is-recommended' : ''}`}>
+                      {isCurrent ? (
+                        <span className="pp-badge">Tu plan</span>
+                      ) : isRecommended ? (
+                        <span className="pp-badge pp-badge-rec">Recomendado</span>
+                      ) : null}
                       <h3 className="pp-name">{plan.description}</h3>
                       <div className="pp-price">
-                        <span className="pp-amount">{fmtPrice(plan.price)}</span>
+                        <span className="pp-amount">{displayPlanPrice(plan)}</span>
                         {plan.price > 0 && (
                           <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
                         )}
@@ -177,7 +207,7 @@ const PricingPlanMain = () => {
 
                       {!user ? (
                         <Link href="/login?from=/pricing-plan" className="pp-btn">
-                          Inicia sesión para elegir
+                          Iniciá sesión para elegir
                         </Link>
                       ) : isCurrent ? (
                         <button type="button" className="pp-btn pp-btn-current" disabled>
@@ -274,6 +304,15 @@ const PricingPlanMain = () => {
           box-shadow: 0 0 0 2px var(--clr-theme-1) inset;
           background: var(--paper);
         }
+        /* WP-7 — Plan recomendado (heurístico): anillo lavanda + leve elevación,
+           distinto del navy de "Tu plan". */
+        .pp-card.is-recommended {
+          border-color: var(--lav-500);
+          box-shadow: 0 0 0 2px var(--lav-500) inset, var(--shadow-md);
+        }
+        .pp-card.is-recommended:hover {
+          box-shadow: 0 0 0 2px var(--lav-500) inset, 0 16px 36px rgba(109, 98, 207, 0.22);
+        }
         .pp-badge {
           position: absolute;
           top: -13px;
@@ -286,6 +325,15 @@ const PricingPlanMain = () => {
           padding: 5px 14px;
           border-radius: 999px;
           white-space: nowrap;
+        }
+        /* Badge "Recomendado" — lavanda (el verde queda para "Tu plan"). */
+        .pp-badge-rec {
+          background: var(--lav-600);
+          color: #fff;
+        }
+        :global([data-theme='dark']) .pp-badge-rec {
+          background: var(--lav-400);
+          color: var(--navy-900);
         }
         .pp-name {
           font-family: var(--font-display);

@@ -1109,6 +1109,12 @@ export interface Plan {
   /** Intervalo de cobro: "Mensual" | "Anual" (sub_interval). */
   interval: string;
   price: number;
+  /**
+   * WP-7 — precio del plan en quetzales (opcional). Cuando el admin muestra los
+   * planes en Q y el backend provee este valor real, se usa en vez de `price`.
+   * PENDIENTE en backend (sub_price_gtq); hasta entonces se cae a `price`.
+   */
+  priceGtq?: number | null;
   userLimit: number;
   pubPerUser: number;
   personalized: boolean,
