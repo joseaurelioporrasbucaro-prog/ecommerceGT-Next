@@ -14,7 +14,11 @@ import { ApiFetch } from '@/utils/Api';
  * /admin/config refresquen al instante.
  */
 export interface UpdatePlatformConfigPayload {
-  key: 'ad_impression_cost' | 'ad_click_cost' | 'ad_min_budget';
+  /**
+   * `plans_currency` (WP-7): moneda de DISPLAY de los planes, codificada como
+   * número porque platform_config.config_value es NUMERIC. 0 = US$, 1 = Q.
+   */
+  key: 'ad_impression_cost' | 'ad_click_cost' | 'ad_min_budget' | 'plans_currency';
   value: number;
 }
 

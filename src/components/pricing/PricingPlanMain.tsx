@@ -8,16 +8,28 @@ import {
   useMySubscription,
   useChangeSubscription,
 } from '@/hooks/api/useSubscription';
+import { usePricingConfig } from '@/hooks/api/usePricingConfig';
 import type { Plan } from '@/types/api';
 
-const fmtPrice = (price: number) =>
-  price === 0 ? 'Gratis' : `$${price.toFixed(price % 1 === 0 ? 0 : 2)}`;
+const fmtPrice = (price: number, symbol: string) =>
+  price === 0 ? 'Gratis' : `${symbol}${price.toFixed(price % 1 === 0 ? 0 : 2)}`;
 
 const PricingPlanMain = () => {
   const { user } = useAuth();
   const plansQuery = usePlans();
   const mySubQuery = useMySubscription();
   const changeSub = useChangeSubscription();
+
+  // WP-7 — moneda de display de los planes (config de admin). Símbolo según la
+  // moneda elegida; el monto en Q usa priceGtq real si el backend lo provee,
+  // si no cae a `price` (mismo número, solo cambia el símbolo).
+  const pricingCfg = usePricingConfig();
+  const planSymbol = pricingCfg.plansCurrency === 'GTQ' ? 'Q ' : '$';
+  const displayPlanPrice = (plan: Plan) =>
+    fmtPrice(
+      pricingCfg.plansCurrency === 'GTQ' && plan.priceGtq != null ? plan.priceGtq : plan.price,
+      planSymbol,
+    );
 
   const [interval, setInterval] = useState<'Mensual' | 'Anual'>('Mensual');
 
@@ -119,7 +131,7 @@ const PricingPlanMain = () => {
                       {isCurrent && <span className="pp-badge">Tu plan</span>}
                       <h3 className="pp-name">{plan.description}</h3>
                       <div className="pp-price">
-                        <span className="pp-amount">{fmtPrice(plan.price)}</span>
+                        <span className="pp-amount">{displayPlanPrice(plan)}</span>
                         {plan.price > 0 && (
                           <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
                         )}
@@ -171,7 +183,7 @@ const PricingPlanMain = () => {
                       ) : null}
                       <h3 className="pp-name">{plan.description}</h3>
                       <div className="pp-price">
-                        <span className="pp-amount">{fmtPrice(plan.price)}</span>
+                        <span className="pp-amount">{displayPlanPrice(plan)}</span>
                         {plan.price > 0 && (
                           <span className="pp-interval">/ {plan.interval.toLowerCase()}</span>
                         )}

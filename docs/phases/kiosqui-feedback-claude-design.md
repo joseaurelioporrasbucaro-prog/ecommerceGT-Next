@@ -214,3 +214,15 @@
   (backend) — pendiente de decisión.
 - [WP7-3] **Pricing no usa i18n (`t()`)**: el copy está hardcodeado en español
   (ahora voseo). La versión EN no aplica acá hasta Fase 14 (i18n). Solo se anota.
+- [WP7-4] **Moneda de planes configurable desde admin (REQUIERE BACKEND)**:
+  pedido de Aurelio — poder elegir desde `/admin/config` si los planes se
+  muestran en Q o US$. Frontend LISTO: `plansCurrency` en `usePricingConfig`,
+  toggle en `AdminConfigMain`, símbolo dinámico en el pricing. Como
+  `platform_config.config_value` es NUMERIC, la clave se codifica `0=US$ / 1=Q`.
+  **Backend pendiente (3 cambios)**: (a) seed `plans_currency`=0 en
+  platform_config; (b) `getPricingConfig` devuelve `plansCurrency:'GTQ'|'USD'`
+  (mapeando 0/1); (c) `updatePlatformConfig` acepta la key `plans_currency`.
+  Hasta que exista, el toggle guarda pero el read cae a 'USD' (degrada sin romper).
+  ⚠️ El toggle cambia solo el SÍMBOLO; para que los MONTOS en Q sean reales (no
+  el número USD con símbolo Q) conviene un `sub_price_gtq` por plan — el front ya
+  lee `priceGtq` opcional si el backend lo provee.
