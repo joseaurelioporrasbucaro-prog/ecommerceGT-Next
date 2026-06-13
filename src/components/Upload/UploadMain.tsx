@@ -9,6 +9,7 @@ import PublicationForm, {
   PUBGEN_APTO,
   PUBGEN_CASA,
   PUBGEN_TERRENO,
+  mapPricesToPayload,
   type PublicationFormValues,
 } from './PublicationForm';
 import { ApiError } from '@/utils/Api';
@@ -27,6 +28,8 @@ const UploadMain: React.FC = () => {
     const isApto = propertieNum === PUBGEN_APTO;
     const isTerreno = propertieNum === PUBGEN_TERRENO;
 
+    const prices = mapPricesToPayload(values);
+
     try {
       const response = await createMutation.mutateAsync({
         title: values.title.trim(),
@@ -34,8 +37,10 @@ const UploadMain: React.FC = () => {
         address: values.address.trim(),
         propertie: propertieNum,
         transaction: Number(values.transaction),
-        price: Number(values.price),
-        currency: values.currency,
+        price: prices.price,
+        currency: prices.currency,
+        priceAlt: prices.priceAlt,
+        currencyAlt: prices.currencyAlt,
         country: Number(values.country),
         city: Number(values.city),
         municipality: Number(values.municipality),

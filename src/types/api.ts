@@ -737,8 +737,15 @@ export interface CreatePublicationPayload extends Record<string, unknown> {
   frente?: number | null;
   /** Solo Terreno(3) — metros de fondo (Fase 19.5). */
   fondo?: number | null;
-  /** ISO 4217 — 'GTQ' (default) o 'USD'. */
+  /** ISO 4217 del precio primario — 'GTQ' (default) o 'USD'. */
   currency: 'GTQ' | 'USD';
+  /**
+   * Fase 17 (dual-divisa) — segundo precio opcional en la OTRA moneda. Solo se
+   * envía si el dueño cargó ambos (Q y US$). El backend lo persiste como
+   * pubdet_price_alt/pubdet_currency_alt. PENDIENTE en backend.
+   */
+  priceAlt?: number | null;
+  currencyAlt?: 'GTQ' | 'USD' | null;
   images: UploadedImage[];
   imagesglb?: UploadedImage[];
   /** Fase 19.5 — IDs de amenidades seleccionadas (M:N con cat_amenities). */
@@ -790,6 +797,10 @@ export interface PublicationEditData {
   transaction: number;
   price: number | string | null;
   currency: 'GTQ' | 'USD' | string | null;
+  /** Fase 17 (dual-divisa) — segundo precio para precargar el form de edición.
+   * PENDIENTE en backend; opcional para no romper el contrato actual. */
+  priceAlt?: number | string | null;
+  currencyAlt?: string | null;
   rooms: string | number | null;
   bathrooms: string | number | null;
   parking: string | number | null;

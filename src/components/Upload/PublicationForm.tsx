@@ -26,9 +26,14 @@ export interface PublicationFormValues {
   address: string;
   propertie: string;
   transaction: string;
-  /** Valor numérico crudo ("250000.50") — el display con comas se maneja aparte. */
-  price: string;
-  currency: 'GTQ' | 'USD';
+  /**
+   * Fase 17 (dual-divisa) — dos precios independientes. Ambos opcionales pero
+   * al menos uno obligatorio. El efecto de switch Q⇄US$ en la card solo se
+   * activa cuando ambos están cargados. Valor numérico crudo ("250000.50");
+   * el display con comas se maneja aparte.
+   */
+  priceGtq: string;
+  priceUsd: string;
   country: string;
   city: string;
   municipality: string;
@@ -51,8 +56,8 @@ export const EMPTY_FORM_VALUES: PublicationFormValues = {
   address: '',
   propertie: '',
   transaction: '',
-  price: '',
-  currency: 'GTQ',
+  priceGtq: '',
+  priceUsd: '',
   country: '',
   city: '',
   municipality: '',
@@ -89,6 +94,59 @@ function parsePriceInput(input: string): string {
   return cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '').slice(0, 2);
 }
 
+const isPositive = (raw: string) => {
+  if (!raw) return false;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0;
+};
+
+/**
+ * Fase 17 (dual-divisa) — mapea los dos campos del form al contrato del backend.
+ * El primario (`price`/`currency`) lleva la moneda cargada (GTQ tiene prioridad
+ * si están ambas); el alterno (`priceAlt`/`currencyAlt`) solo se manda cuando
+ * AMBAS monedas tienen valor. Nunca convertimos: son valores reales del dueño.
+ */
+export function mapPricesToPayload(values: Pick<PublicationFormValues, 'priceGtq' | 'priceUsd'>): {
+  price: number;
+  currency: 'GTQ' | 'USD';
+  priceAlt: number | null;
+  currencyAlt: 'GTQ' | 'USD' | null;
+} {
+  const hasGtq = isPositive(values.priceGtq);
+  const hasUsd = isPositive(values.priceUsd);
+
+  if (hasGtq && hasUsd) {
+    return { price: Number(values.priceGtq), currency: 'GTQ', priceAlt: Number(values.priceUsd), currencyAlt: 'USD' };
+  }
+  if (hasUsd) {
+    return { price: Number(values.priceUsd), currency: 'USD', priceAlt: null, currencyAlt: null };
+  }
+  // Solo GTQ (o fallback — la validación garantiza al menos uno).
+  return { price: Number(values.priceGtq), currency: 'GTQ', priceAlt: null, currencyAlt: null };
+}
+
+/**
+ * Inverso de `mapPricesToPayload` para precargar el form de edición. Reparte
+ * primario + alterno en los dos campos según su moneda.
+ */
+export function mapPricesFromData(
+  price: number | string | null | undefined,
+  currency: string | null | undefined,
+  priceAlt?: number | string | null,
+  currencyAlt?: string | null,
+): { priceGtq: string; priceUsd: string } {
+  const out = { priceGtq: '', priceUsd: '' };
+  const assign = (value: number | string | null | undefined, cur: string | null | undefined) => {
+    if (value === null || value === undefined || value === '') return;
+    const str = String(value);
+    if (cur === 'USD') out.priceUsd = str;
+    else out.priceGtq = str;
+  };
+  assign(price, currency);
+  assign(priceAlt, currencyAlt);
+  return out;
+}
+
 const isHouseLike = (value: unknown) => {
   const n = Number(value);
   return n === PUBGEN_CASA || n === PUBGEN_APTO;
@@ -100,7 +158,17 @@ const validationSchema = Yup.object({
   address: Yup.string().trim().max(255, 'Máximo 255').required('Dirección obligatoria'),
   propertie: Yup.string().required('Selecciona el tipo de propiedad'),
   transaction: Yup.string().required('Selecciona el tipo de transacción'),
-  price: Yup.number().typeError('Precio inválido').positive('Debe ser mayor a 0').required('Precio obligatorio'),
+  // Fase 17 (dual-divisa): cada precio es opcional pero debe ser > 0 si se
+  // ingresa; al menos uno de los dos es obligatorio. El error de "al menos uno"
+  // se ancla en priceGtq (se muestra bajo el precio en quetzales).
+  priceUsd: Yup.string().test('usd-pos', 'Debe ser mayor a 0', (v) => !v || isPositive(v)),
+  priceGtq: Yup.string()
+    .test('gtq-pos', 'Debe ser mayor a 0', (v) => !v || isPositive(v))
+    .when('priceUsd', {
+      is: (v: string) => !isPositive(v),
+      then: (s) => s.test('at-least-one', 'Ingresá el precio en quetzales o en dólares (al menos uno).', (v) => isPositive(v ?? '')),
+      otherwise: (s) => s,
+    }),
   country: Yup.string().required('Selecciona el país'),
   city: Yup.string().required('Selecciona la ciudad'),
   municipality: Yup.string().required('Selecciona el municipio'),
@@ -416,45 +484,52 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
                 </div>
               </div>
 
+              {/* Fase 17 (dual-divisa): dos precios independientes. Al menos uno
+                  obligatorio; si cargás los dos, la card alterna Q ⇄ US$. */}
               <div className="col-md-6">
                 <div className="single-input-unit">
-                  <label htmlFor="price">
-                    Precio ({formik.values.currency === 'USD' ? '$' : 'Q'})
-                  </label>
-                  <div className="price-input-row">
+                  <label htmlFor="priceGtq">Precio en quetzales (Q)</label>
+                  <div className="price-currency-input">
+                    <span className="price-currency-prefix">Q</span>
                     <input
-                      id="price"
+                      id="priceGtq"
                       type="text"
                       inputMode="decimal"
                       autoComplete="off"
-                      placeholder={formik.values.currency === 'USD' ? 'Ej. 110,500.00' : 'Ej. 850,000.00'}
-                      value={formatPriceDisplay(formik.values.price)}
-                      onChange={(e) => formik.setFieldValue('price', parsePriceInput(e.target.value))}
+                      placeholder="Ej. 850,000.00"
+                      value={formatPriceDisplay(formik.values.priceGtq)}
+                      onChange={(e) => formik.setFieldValue('priceGtq', parsePriceInput(e.target.value))}
                       onBlur={formik.handleBlur}
-                      name="price"
+                      name="priceGtq"
                     />
-                    <div className="currency-toggle" role="group" aria-label="Moneda">
-                      <button
-                        type="button"
-                        className={`currency-toggle-btn ${formik.values.currency === 'GTQ' ? 'is-active' : ''}`}
-                        onClick={() => formik.setFieldValue('currency', 'GTQ')}
-                        aria-pressed={formik.values.currency === 'GTQ'}
-                      >
-                        Q · GTQ
-                      </button>
-                      <button
-                        type="button"
-                        className={`currency-toggle-btn ${formik.values.currency === 'USD' ? 'is-active' : ''}`}
-                        onClick={() => formik.setFieldValue('currency', 'USD')}
-                        aria-pressed={formik.values.currency === 'USD'}
-                      >
-                        $ · USD
-                      </button>
-                    </div>
                   </div>
-                  {formik.touched.price && formik.errors.price && (
-                    <p className="field-error">{formik.errors.price}</p>
+                  {formik.touched.priceGtq && formik.errors.priceGtq && (
+                    <p className="field-error">{formik.errors.priceGtq}</p>
                   )}
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <div className="single-input-unit">
+                  <label htmlFor="priceUsd">Precio en dólares (US$) <span className="field-optional">— opcional</span></label>
+                  <div className="price-currency-input">
+                    <span className="price-currency-prefix">US$</span>
+                    <input
+                      id="priceUsd"
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      placeholder="Ej. 110,500.00"
+                      value={formatPriceDisplay(formik.values.priceUsd)}
+                      onChange={(e) => formik.setFieldValue('priceUsd', parsePriceInput(e.target.value))}
+                      onBlur={formik.handleBlur}
+                      name="priceUsd"
+                    />
+                  </div>
+                  {formik.touched.priceUsd && formik.errors.priceUsd && (
+                    <p className="field-error">{formik.errors.priceUsd}</p>
+                  )}
+                  <p className="price-hint">Si cargás los dos, la tarjeta mostrará el precio alternando entre Q y US$.</p>
                 </div>
               </div>
 
@@ -784,42 +859,42 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         :global(.upload-form .upload-btn .fill-btn-outline) {
           margin-left: 14px;
         }
-        :global(.upload-form .price-input-row) {
+        /* Fase 17 (dual-divisa) — input con prefijo de moneda fijo. */
+        :global(.upload-form .price-currency-input) {
           display: flex;
-          gap: 10px;
           align-items: stretch;
-        }
-        :global(.upload-form .price-input-row input) {
-          flex: 1;
-          min-width: 0;
-        }
-        :global(.upload-form .currency-toggle) {
-          display: inline-flex;
-          border: 1px solid var(--clr-bg-white, #fff);
+          border: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.3));
           border-radius: 6px;
           overflow: hidden;
-          height: 50px;
-          flex-shrink: 0;
-        }
-        :global(.upload-form .currency-toggle-btn) {
-          padding: 0 14px;
           background: var(--clr-bg-white, #fff);
+        }
+        :global(.upload-form .price-currency-prefix) {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 52px;
+          padding: 0 12px;
+          background: var(--clr-bg-gray, rgba(128, 128, 128, 0.08));
           color: var(--clr-common-heading, #181818);
-          font-size: 13px;
-          font-weight: 600;
+          font-weight: 700;
+          font-size: 14px;
+          border-right: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
+        }
+        :global(.upload-form .price-currency-input input) {
+          flex: 1;
+          min-width: 0;
           border: none;
-          cursor: pointer;
-          transition: background 0.15s, color 0.15s;
+          background: transparent;
         }
-        :global(.upload-form .currency-toggle-btn + .currency-toggle-btn) {
-          border-left: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
+        :global(.upload-form .field-optional) {
+          color: var(--clr-common-body-text, #8a8a8a);
+          font-weight: 400;
+          font-size: 13px;
         }
-        :global(.upload-form .currency-toggle-btn.is-active) {
-          background: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
-        }
-        :global(.upload-form .currency-toggle-btn:hover:not(.is-active)) {
-          background: rgba(108, 92, 231, 0.08);
+        :global(.upload-form .price-hint) {
+          margin: 6px 0 0;
+          font-size: 12.5px;
+          color: var(--clr-common-body-text, #8a8a8a);
         }
         /* Upgrade card cuando el usuario está en plan free — sustituye al
            dropzone GLB y explica la limitación con un CTA a /pricing-plan. */

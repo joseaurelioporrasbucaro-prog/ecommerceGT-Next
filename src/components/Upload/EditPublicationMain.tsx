@@ -9,6 +9,8 @@ import PublicationForm, {
   PUBGEN_APTO,
   PUBGEN_CASA,
   PUBGEN_TERRENO,
+  mapPricesFromData,
+  mapPricesToPayload,
   type PublicationFormValues,
 } from './PublicationForm';
 import { ApiError } from '@/utils/Api';
@@ -40,8 +42,8 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
       address: d.address ?? '',
       propertie: asString(d.category),
       transaction: asString(d.transaction),
-      price: asString(d.price),
-      currency: d.currency === 'USD' ? 'USD' : 'GTQ',
+      // Fase 17 (dual-divisa) — reparte primario + alterno en los dos campos.
+      ...mapPricesFromData(d.price, d.currency, d.priceAlt, d.currencyAlt),
       country: asString(d.country),
       city: asString(d.city),
       municipality: asString(d.municipality),
@@ -66,6 +68,8 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
     const isApto = propertieNum === PUBGEN_APTO;
     const isTerreno = propertieNum === PUBGEN_TERRENO;
 
+    const prices = mapPricesToPayload(values);
+
     try {
       await updateMutation.mutateAsync({
         title: values.title.trim(),
@@ -73,8 +77,10 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
         address: values.address.trim(),
         propertie: propertieNum,
         transaction: Number(values.transaction),
-        price: Number(values.price),
-        currency: values.currency,
+        price: prices.price,
+        currency: prices.currency,
+        priceAlt: prices.priceAlt,
+        currencyAlt: prices.currencyAlt,
         country: Number(values.country),
         city: Number(values.city),
         municipality: Number(values.municipality),
