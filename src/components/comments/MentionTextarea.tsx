@@ -159,20 +159,20 @@ const MentionTextarea = ({
           z-index: 50;
           left: 0;
           right: 0;
-          margin: 4px 0 0;
+          margin: 6px 0 0;
           padding: 6px;
           list-style: none;
           max-height: 260px;
           overflow-y: auto;
-          background: var(--clr-bg-white, #fff);
-          border: 1px solid rgba(108, 92, 231, 0.3);
-          border-radius: 10px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+          background: var(--bg-elevated);
+          border: 1.5px solid var(--border);
+          border-radius: var(--r-md);
+          box-shadow: var(--shadow-md);
         }
         .mention-empty {
           padding: 10px 12px;
           font-size: 13px;
-          opacity: 0.7;
+          color: var(--fg-muted);
         }
         .mention-option {
           display: flex;
@@ -182,22 +182,27 @@ const MentionTextarea = ({
           padding: 8px 10px;
           background: transparent;
           border: 0;
-          border-radius: 8px;
+          border-radius: var(--r-sm);
           cursor: pointer;
           text-align: left;
-          color: inherit;
+          color: var(--fg-strong);
+          transition: background 0.15s ease;
         }
         .mention-option.active,
         .mention-option:hover {
-          background: rgba(108, 92, 231, 0.12);
+          background: var(--accent-soft);
         }
         .mention-name {
           font-weight: 600;
           font-size: 14px;
+          color: var(--fg-strong);
         }
         .mention-handle {
           font-size: 13px;
-          color: var(--tp-theme-1, #6c5ce7);
+          color: var(--accent);
+        }
+        :global([data-theme='dark']) .mention-handle {
+          color: var(--lav-400);
         }
       `}</style>
     </div>

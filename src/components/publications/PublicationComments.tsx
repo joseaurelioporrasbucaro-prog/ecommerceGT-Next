@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
@@ -10,7 +11,9 @@ import MentionTextarea from '@/components/comments/MentionTextarea';
 import { renderCommentContent } from '@/components/comments/renderCommentContent';
 import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
+import { getBackendUrl } from '@/utils/backendUrl';
 import { useAddComment, usePublicationComments } from '@/hooks/api/usePublicationComments';
+import { usePublicationDetail } from '@/hooks/api/usePublications';
 import { useToggleCommentLike } from '@/hooks/api/useToggleCommentLike';
 import ReportCommentButton from './ReportCommentButton';
 import { useDateFmt } from '@/utils/datetime';
@@ -24,6 +27,8 @@ interface PublicationCommentsProps {
 }
 
 const DEFAULT_AVATAR = '/assets/img/profile/avatar.png';
+/** A partir de esta cantidad de respuestas, el hilo se colapsa por defecto. */
+const REPLIES_COLLAPSE_THRESHOLD = 2;
 
 interface CommentNode extends Comment {
   children: CommentNode[];
@@ -31,6 +36,12 @@ interface CommentNode extends Comment {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Error inesperado';
+}
+
+/** Resuelve la URL del avatar del usuario autenticado para el composer. */
+function resolveAvatar(imagenu: string | null | undefined): string {
+  if (!imagenu) return DEFAULT_AVATAR;
+  return imagenu.startsWith('http') ? imagenu : getBackendUrl(imagenu);
 }
 
 /**
@@ -68,7 +79,7 @@ function buildCommentTree(comments: Comment[]): CommentNode[] {
 }
 
 // ============================================================================
-// Form inline que aparece debajo del comentario al que respondes
+// Form inline que aparece debajo de la pregunta/respuesta al responder
 // ============================================================================
 
 interface InlineReplyFormProps {
@@ -100,9 +111,9 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
   };
 
   return (
-    <form className="inline-reply-form" onSubmit={handleSubmit}>
-      <div className="inline-reply-target">
-        <i className="fal fa-reply"></i>
+    <form className="kq-inline-reply" onSubmit={handleSubmit}>
+      <div className="kq-inline-target">
+        <i className="fal fa-reply" />
         {t('comments.replyingTo')} <strong>{authorName}</strong>
       </div>
       <MentionTextarea
@@ -113,77 +124,74 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
         disabled={isPending}
         autoFocus
       />
-      {error && <div className="text-danger inline-reply-error">{error}</div>}
-      <div className="inline-reply-actions">
+      {error && <div className="kq-form-error">{error}</div>}
+      <div className="kq-inline-actions">
         <button
           type="button"
-          className="btn-cancel-reply"
+          className="kq-btn-ghost"
           onClick={onCancel}
           disabled={isPending}
         >
           {t('common.cancel')}
         </button>
-        <button
-          type="submit"
-          className="btn-submit-reply"
-          disabled={isPending}
-        >
-          <i className="fal fa-paper-plane"></i>
+        <button type="submit" className="kq-btn-green kq-btn-sm" disabled={isPending}>
+          <i className="fal fa-paper-plane" />
           {isPending ? t('common.sending') : t('comments.sendReply')}
         </button>
       </div>
 
       <style jsx>{`
-        .inline-reply-form {
+        .kq-inline-reply {
           margin-top: 14px;
           padding: 16px;
           background: var(--surface-sunk);
           border: 1.5px solid var(--border);
           border-radius: var(--r-md);
         }
-        .inline-reply-target {
+        .kq-inline-target {
           display: inline-flex;
           align-items: center;
           gap: 6px;
           margin-bottom: 10px;
           font-size: 13px;
-          color: var(--lav-700);
+          color: var(--accent);
         }
-        .inline-reply-target :global(strong) {
+        .kq-inline-target :global(strong) {
           color: var(--fg-strong);
           font-weight: 700;
         }
-        :global([data-theme='dark']) .inline-reply-target {
+        :global([data-theme='dark']) .kq-inline-target {
           color: var(--lav-400);
         }
-        .inline-reply-form :global(textarea) {
+        .kq-inline-reply :global(textarea) {
           width: 100%;
           resize: vertical;
           min-height: 80px;
           background: var(--surface);
           color: var(--fg-strong);
-          border: 1px solid var(--border-strong);
+          border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
           padding: 10px 12px;
           font-size: 14px;
+          font-family: var(--font-body);
         }
-        .inline-reply-form :global(textarea:focus) {
-          border-color: var(--lav-500);
+        .kq-inline-reply :global(textarea:focus) {
+          border-color: var(--accent);
           outline: 0;
           box-shadow: var(--shadow-focus);
         }
-        .inline-reply-error {
+        .kq-form-error {
           margin-top: 6px;
           font-size: 13px;
           color: var(--danger);
         }
-        .inline-reply-actions {
+        .kq-inline-actions {
           display: flex;
           justify-content: flex-end;
           gap: 10px;
           margin-top: 12px;
         }
-        .btn-cancel-reply {
+        .kq-btn-ghost {
           padding: 8px 16px;
           background: transparent;
           color: var(--fg-strong);
@@ -194,33 +202,38 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
           font-size: 13px;
           transition: all 0.18s ease;
         }
-        .btn-cancel-reply:hover:not(:disabled) {
-          border-color: var(--lav-500);
-          color: var(--lav-700);
+        .kq-btn-ghost:hover:not(:disabled) {
+          border-color: var(--accent);
+          color: var(--accent);
         }
-        .btn-submit-reply {
+        :global([data-theme='dark']) .kq-btn-ghost:hover:not(:disabled) {
+          color: var(--lav-400);
+        }
+        .kq-btn-green {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 8px 18px;
           background: var(--green-500);
           color: var(--navy-900);
           border: 1.5px solid var(--green-500);
           border-radius: var(--r-pill);
           cursor: pointer;
           font-weight: 700;
-          font-size: 13px;
           transition: all 0.18s ease;
           box-shadow: var(--shadow-xs);
         }
-        .btn-submit-reply:hover:not(:disabled) {
+        .kq-btn-sm {
+          padding: 8px 18px;
+          font-size: 13px;
+        }
+        .kq-btn-green:hover:not(:disabled) {
           background: var(--green-600);
           border-color: var(--green-600);
           transform: translateY(-1px);
           box-shadow: var(--shadow-sm);
         }
-        .btn-submit-reply:disabled,
-        .btn-cancel-reply:disabled {
+        .kq-btn-green:disabled,
+        .kq-btn-ghost:disabled {
           opacity: 0.6;
           cursor: not-allowed;
         }
@@ -230,7 +243,7 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
 };
 
 // ============================================================================
-// Componente recursivo de un nodo de la cascada
+// Nodo recursivo del hilo (pregunta raíz → respuestas)
 // ============================================================================
 
 interface CommentNodeProps {
@@ -244,6 +257,7 @@ interface CommentNodeProps {
   onLike: (commentId: number) => void;
   isClosed: boolean;
   currentUserId: number | null;
+  sellerId: number | null;
 }
 
 const CommentNodeView = ({
@@ -257,18 +271,30 @@ const CommentNodeView = ({
   onLike,
   isClosed,
   currentUserId,
+  sellerId,
 }: CommentNodeProps) => {
+  const t = useTranslations('publications');
   const dateFmt = useDateFmt();
   const date = dateFmt.medium(node.created_at, node.created_at);
   const time = dateFmt.time(node.created_at, '');
   const authorName = `${node.cus_first_name} ${node.cus_last_name}`;
   const authorHref = `/creator-profile/${node.cus_id}`;
   const isReplyingHere = replyingTo === node.comment_id;
+  const isSeller = sellerId != null && node.cus_id === sellerId;
   const likeHandler = isClosed ? undefined : () => onLike(node.comment_id);
   // Fase 8.4 — denunciar comentario (no el propio, y solo logueado).
   const canReport = currentUserId != null && currentUserId !== node.cus_id;
+
+  // Colapso de hilos largos a nivel de pregunta raíz.
+  const [expanded, setExpanded] = useState(false);
+  const totalChildren = node.children.length;
+  const collapses = depth === 0 && totalChildren > REPLIES_COLLAPSE_THRESHOLD;
+  const visibleChildren =
+    collapses && !expanded ? node.children.slice(0, REPLIES_COLLAPSE_THRESHOLD) : node.children;
+  const hiddenCount = totalChildren - visibleChildren.length;
+
   const reportRow = canReport && (
-    <div className="comment-report-row">
+    <div className="kq-report-row">
       <ReportCommentButton commentId={node.comment_id} />
     </div>
   );
@@ -282,23 +308,38 @@ const CommentNodeView = ({
     />
   );
 
-  const childrenView = node.children.length > 0 && (
-    <div className="cascade-children">
-      {node.children.map((child) => (
-        <CommentNodeView
-          key={child.comment_id}
-          node={child}
-          depth={depth + 1}
-          canReply={canReply}
-          replyingTo={replyingTo}
-          setReplyingTo={setReplyingTo}
-          onSubmitReply={onSubmitReply}
-          isPending={isPending}
-          onLike={onLike}
-          isClosed={isClosed}
-          currentUserId={currentUserId}
-        />
-      ))}
+  const renderChild = (child: CommentNode) => (
+    <CommentNodeView
+      key={child.comment_id}
+      node={child}
+      depth={depth + 1}
+      canReply={canReply}
+      replyingTo={replyingTo}
+      setReplyingTo={setReplyingTo}
+      onSubmitReply={onSubmitReply}
+      isPending={isPending}
+      onLike={onLike}
+      isClosed={isClosed}
+      currentUserId={currentUserId}
+      sellerId={sellerId}
+    />
+  );
+
+  const childrenView = totalChildren > 0 && (
+    <div className="kq-thread">
+      {visibleChildren.map(renderChild)}
+      {collapses && !expanded && hiddenCount > 0 && (
+        <button type="button" className="kq-show-more" onClick={() => setExpanded(true)}>
+          <i className="fal fa-chevron-down" />
+          {t('comments.showMoreReplies', { count: hiddenCount })}
+        </button>
+      )}
+      {collapses && expanded && (
+        <button type="button" className="kq-show-more" onClick={() => setExpanded(false)}>
+          <i className="fal fa-chevron-up" />
+          {t('comments.hideReplies')}
+        </button>
+      )}
     </div>
   );
 
@@ -314,8 +355,10 @@ const CommentNodeView = ({
         likes={node.likesCount}
         isLiked={node.isLiked}
         onLike={likeHandler}
-        repliesCount={node.children.length}
+        repliesCount={totalChildren}
         onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
+        likesLabel={t('comments.likesLabel')}
+        replyLabel={t('comments.replyLabel')}
       >
         {reportRow}
         {replyForm}
@@ -336,6 +379,10 @@ const CommentNodeView = ({
       isLiked={node.isLiked}
       onLike={likeHandler}
       onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
+      likesLabel={t('comments.likesLabel')}
+      replyLabel={t('comments.replyLabel')}
+      isSeller={isSeller}
+      sellerLabel={t('comments.sellerBadge')}
     >
       {reportRow}
       {replyForm}
@@ -355,6 +402,10 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   const commentsQuery = usePublicationComments(pubId);
   const addCommentMutation = useAddComment(pubId);
   const toggleLikeMutation = useToggleCommentLike(pubId);
+  // Solo para identificar al vendedor (dueño de la publicación). React-query
+  // reusa el caché del detalle si ya se cargó; no añade lógica nueva de API.
+  const detailQuery = usePublicationDetail(pubId);
+  const sellerId = detailQuery.data?.cus_id ?? null;
   const comments = commentsQuery.data ?? [];
 
   const [content, setContent] = useState('');
@@ -374,6 +425,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   });
   const isClosed = statusInfo.isClosed;
   const canComment = !!user && !isClosed;
+  const questionCount = tree.length;
 
   const handleLike = (commentId: number) => {
     if (!user) {
@@ -405,100 +457,127 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   };
 
   return (
-    <section className="about-info-area pt-80 pb-90">
+    <section className="kq-comments-area">
       <div className="container">
-        <div className="row wow fadeInUp">
+        <div className="row">
           <div className="col-lg-10 mx-auto">
-            <div className="section-title1 mb-30">
-              <h2 className="section-main-title1">{t('comments.title')}</h2>
-            </div>
+            {/* ───────── Encabezado ───────── */}
+            <header className="kq-comments-head">
+              <h2 className="kq-comments-title">
+                {t('comments.questionsTitle')}
+                <span className="kq-count">{questionCount}</span>
+              </h2>
+              <p className="kq-comments-sub">{t('comments.questionsSubtitle')}</p>
+            </header>
 
-            {/* Aviso si la publicación está cerrada */}
-            {isClosed && (
-              <div className="closed-publication-notice">
-                <i className="fal fa-lock"></i>
-                {t('comments.closedNotice', { status: statusInfo.label.toLowerCase() })}
-              </div>
-            )}
-
-            {commentsQuery.isLoading && (
-              <div className="alert alert-info">{t('comments.loading')}</div>
-            )}
-
-            {commentsQuery.error && (
-              <div className="alert alert-danger">{getErrorMessage(commentsQuery.error)}</div>
-            )}
-
-            {!commentsQuery.isLoading && !commentsQuery.error && tree.length === 0 && (
-              <div className="alert alert-warning">{t('comments.empty')}</div>
-            )}
-
-            {/* Árbol de cascada */}
-            <div className="forum-post-wrapper publication-comments-list cascade-tree">
-              {tree.map((node) => (
-                <CommentNodeView
-                  key={node.comment_id}
-                  node={node}
-                  depth={0}
-                  canReply={canComment}
-                  replyingTo={replyingTo}
-                  setReplyingTo={setReplyingTo}
-                  onSubmitReply={handleReplySubmit}
-                  isPending={addCommentMutation.isPending}
-                  onLike={handleLike}
-                  isClosed={isClosed}
-                  currentUserId={user?.id ?? null}
-                />
-              ))}
-            </div>
-
-            {/* Form para NUEVO comentario root al final */}
+            {/* ───────── Composer pill ───────── */}
             {!isClosed && (
-              <div className="publication-comment-form mt-40">
+              <div className="kq-composer">
                 {user ? (
-                  <form onSubmit={handleNewCommentSubmit}>
-                    <label className="form-label-bold">
-                      <i className="fal fa-comment"></i>
-                      {t('comments.leaveComment')}
-                    </label>
-                    <MentionTextarea
-                      rows={4}
-                      value={content}
-                      onChange={setContent}
-                      placeholder={t('comments.commentPlaceholder')}
-                      disabled={addCommentMutation.isPending}
+                  <form className="kq-composer-form" onSubmit={handleNewCommentSubmit}>
+                    <Image
+                      src={resolveAvatar(user.imagenu)}
+                      alt=""
+                      width={44}
+                      height={44}
+                      unoptimized
+                      className="kq-composer-avatar"
                     />
-                    {formError && <div className="text-danger mt-2">{formError}</div>}
-                    <div className="form-actions">
-                      <button
-                        type="submit"
-                        className="btn-submit-comment"
-                        disabled={addCommentMutation.isPending}
-                      >
-                        <i className="fal fa-paper-plane"></i>
-                        {addCommentMutation.isPending ? t('common.sending') : t('comments.submit')}
-                      </button>
+                    <div className="kq-composer-fields">
+                      <div className="kq-composer-input">
+                        <MentionTextarea
+                          rows={1}
+                          value={content}
+                          onChange={setContent}
+                          placeholder={t('comments.askPlaceholder')}
+                          disabled={addCommentMutation.isPending}
+                        />
+                      </div>
+                      {formError && <div className="kq-form-error">{formError}</div>}
+                      <div className="kq-composer-actions">
+                        <button
+                          type="submit"
+                          className="kq-btn-green kq-btn-md"
+                          disabled={addCommentMutation.isPending}
+                        >
+                          <i className="fal fa-paper-plane" />
+                          {addCommentMutation.isPending
+                            ? t('common.sending')
+                            : t('comments.ask')}
+                        </button>
+                      </div>
                     </div>
                   </form>
                 ) : (
-                  <div className="login-comment-box">
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      value=""
-                      placeholder={t('comments.loginPlaceholder')}
-                      disabled
-                      readOnly
+                  <div className="kq-login-box">
+                    <Image
+                      src={DEFAULT_AVATAR}
+                      alt=""
+                      width={44}
+                      height={44}
+                      className="kq-composer-avatar"
                     />
+                    <div className="kq-login-pill">{t('comments.loginPlaceholder')}</div>
                     <Link
                       href={`/login?from=${encodeURIComponent(`/publications/${pubId}`)}`}
-                      className="btn-submit-comment mt-15"
+                      className="kq-btn-green kq-btn-md kq-login-cta"
                     >
-                      <i className="fal fa-sign-in"></i>
+                      <i className="fal fa-sign-in" />
                       {t('comments.loginCta')}
                     </Link>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Aviso si la publicación está cerrada */}
+            {isClosed && (
+              <div className="kq-closed-notice">
+                <i className="fal fa-lock" />
+                {t('comments.closedNotice', { status: statusInfo.label.toLowerCase() })}
+              </div>
+            )}
+
+            {/* ───────── Estados ───────── */}
+            {commentsQuery.isLoading && (
+              <div className="kq-state kq-state-info">{t('comments.loading')}</div>
+            )}
+
+            {commentsQuery.error && (
+              <div className="kq-state kq-state-error">
+                {getErrorMessage(commentsQuery.error)}
+              </div>
+            )}
+
+            {!commentsQuery.isLoading && !commentsQuery.error && tree.length === 0 && (
+              <div className="kq-empty">
+                <div className="kq-empty-icon">
+                  <i className="fal fa-comments" />
+                </div>
+                <p className="kq-empty-title">{t('comments.emptyTitle')}</p>
+                <p className="kq-empty-sub">{t('comments.emptySub')}</p>
+              </div>
+            )}
+
+            {/* ───────── Hilos ───────── */}
+            {tree.length > 0 && (
+              <div className="kq-questions">
+                {tree.map((node) => (
+                  <CommentNodeView
+                    key={node.comment_id}
+                    node={node}
+                    depth={0}
+                    canReply={canComment}
+                    replyingTo={replyingTo}
+                    setReplyingTo={setReplyingTo}
+                    onSubmitReply={handleReplySubmit}
+                    isPending={addCommentMutation.isPending}
+                    onLike={handleLike}
+                    isClosed={isClosed}
+                    currentUserId={user?.id ?? null}
+                    sellerId={sellerId}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -506,19 +585,159 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
       </div>
 
       <style jsx>{`
-        /* Heading de sección */
-        .about-info-area :global(.section-main-title1) {
-          font-family: var(--font-display);
-          color: var(--fg-strong);
+        .kq-comments-area {
+          padding: 70px 0 90px;
         }
 
-        /* Aviso de cierre */
-        .closed-publication-notice {
+        /* ───────── Encabezado ───────── */
+        .kq-comments-head {
+          margin-bottom: 26px;
+        }
+        .kq-comments-title {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 0 0 6px;
+          font-family: var(--font-display);
+          font-size: 28px;
+          font-weight: 700;
+          color: var(--fg-strong);
+        }
+        .kq-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 34px;
+          height: 28px;
+          padding: 0 10px;
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--accent);
+          background: var(--accent-soft);
+          border-radius: var(--r-pill);
+        }
+        :global([data-theme='dark']) .kq-count {
+          color: var(--lav-300);
+        }
+        .kq-comments-sub {
+          margin: 0;
+          font-size: 14.5px;
+          color: var(--fg-muted);
+        }
+
+        /* ───────── Composer pill ───────── */
+        .kq-composer {
+          margin-bottom: 34px;
+        }
+        .kq-composer-form,
+        .kq-login-box {
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+        }
+        .kq-composer-form :global(.kq-composer-avatar),
+        .kq-login-box :global(.kq-composer-avatar) {
+          flex: 0 0 auto;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          object-fit: cover;
+          box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--lav-300);
+        }
+        .kq-composer-fields {
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+        .kq-composer-input {
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-lg);
+          padding: 4px 6px 4px 16px;
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .kq-composer-input:focus-within {
+          border-color: var(--accent);
+          box-shadow: var(--shadow-focus);
+        }
+        .kq-composer-input :global(textarea) {
+          width: 100%;
+          resize: none;
+          min-height: 40px;
+          padding: 8px 4px;
+          background: transparent;
+          color: var(--fg-strong);
+          border: 0;
+          outline: 0;
+          font-size: 15px;
+          font-family: var(--font-body);
+          line-height: 1.5;
+        }
+        .kq-composer-input :global(textarea::placeholder) {
+          color: var(--fg-subtle);
+        }
+        .kq-composer-actions {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 12px;
+        }
+
+        /* Login (no logueado) */
+        .kq-login-box {
+          align-items: center;
+          flex-wrap: wrap;
+        }
+        .kq-login-pill {
+          flex: 1 1 240px;
+          min-width: 0;
+          padding: 13px 18px;
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-lg);
+          color: var(--fg-subtle);
+          font-size: 15px;
+        }
+        .kq-login-box :global(.kq-login-cta) {
+          flex: 0 0 auto;
+        }
+
+        /* ───────── Botón verde (pill) ───────── */
+        .kq-comments-area :global(.kq-btn-green) {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: var(--green-500);
+          color: var(--navy-900) !important;
+          border: 1.5px solid var(--green-500);
+          border-radius: var(--r-pill);
+          cursor: pointer;
+          font-weight: 700;
+          text-decoration: none !important;
+          transition: all 0.2s ease;
+          box-shadow: var(--shadow-sm);
+        }
+        .kq-comments-area :global(.kq-btn-md) {
+          padding: 11px 26px;
+          font-size: 14px;
+        }
+        .kq-comments-area :global(.kq-btn-green:hover) {
+          background: var(--green-600);
+          border-color: var(--green-600);
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-md);
+        }
+        .kq-comments-area :global(.kq-btn-green:disabled) {
+          opacity: 0.65;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        /* ───────── Aviso de cierre ───────── */
+        .kq-closed-notice {
           display: flex;
           align-items: center;
           gap: 10px;
           padding: 14px 18px;
-          margin-bottom: 24px;
+          margin-bottom: 26px;
           background: var(--danger-bg);
           border: 1.5px solid var(--danger);
           border-radius: var(--r-md);
@@ -526,158 +745,270 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           font-weight: 600;
           font-size: 14px;
         }
-        .closed-publication-notice :global(i) {
+        .kq-closed-notice :global(i) {
           font-size: 18px;
         }
 
-        /* Avatares con anillo lavanda suave */
-        .cascade-tree :global(.publication-comment-item img),
-        .cascade-tree :global(.q-single-answer img) {
-          box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--lav-300);
+        /* ───────── Estados ───────── */
+        .kq-state {
+          padding: 14px 18px;
+          margin-bottom: 18px;
+          border-radius: var(--r-md);
+          font-size: 14px;
         }
-
-        /* Cascada — separador entre comentarios root */
-        :global(.cascade-tree .publication-comment-item) {
-          margin-bottom: 30px;
-        }
-        :global(.cascade-tree .publication-comment-item:last-child) {
-          margin-bottom: 0;
-        }
-
-        /* Cierre de la caja del meta-content */
-        :global(.cascade-tree .q-meta-content .q-meta-item) {
-          border-bottom: 1px solid var(--border);
-        }
-
-        /* Hijos cascadeados — indentación + línea lavanda vertical */
-        :global(.cascade-tree .cascade-children) {
-          margin-top: 20px;
-          padding-left: 24px;
-          border-left: 2px solid var(--lav-300);
-        }
-        :global(.cascade-tree .q-single-answer + .q-single-answer) {
-          margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid var(--border);
-        }
-        :global(.cascade-tree .ans-meta-content) {
-          display: flex;
-          align-items: center;
-          gap: 24px;
-          padding: 14px 4px 4px;
-          margin-top: 12px;
-          border-top: 1px solid var(--border);
-        }
-        :global(.cascade-tree .ans-meta-content .q-meta-item) {
-          padding: 0;
-          border: 0;
-          height: auto;
-          background: transparent;
-        }
-        :global(.cascade-tree .ans-meta-content .q-meta-item button) {
-          background: transparent;
-          color: var(--fg-muted);
-          border: 0;
-          cursor: pointer;
-          padding: 0;
-        }
-        :global(.cascade-tree .ans-meta-content .q-meta-item button:hover) {
-          color: var(--lav-700);
-        }
-        :global([data-theme='dark']) :global(.cascade-tree .ans-meta-content .q-meta-item button:hover) {
-          color: var(--lav-400);
-        }
-
-        /* ---------- Form de nuevo comentario root ---------- */
-        .publication-comment-form {
-          padding: 20px;
-          background: var(--surface-sunk);
+        .kq-state-info {
+          background: var(--info-bg);
+          color: var(--info);
           border: 1.5px solid var(--border);
+        }
+        .kq-state-error {
+          background: var(--danger-bg);
+          color: var(--danger);
+          border: 1.5px solid var(--danger);
+        }
+
+        /* ───────── Estado vacío ───────── */
+        .kq-empty {
+          text-align: center;
+          padding: 48px 24px;
+          background: var(--surface-sunk);
+          border: 1.5px dashed var(--border-strong);
           border-radius: var(--r-lg);
         }
-        .form-label-bold {
+        .kq-empty-icon {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          justify-content: center;
+          width: 64px;
+          height: 64px;
+          margin-bottom: 16px;
+          border-radius: 50%;
+          background: var(--accent-soft);
+          color: var(--accent);
+          font-size: 26px;
+        }
+        :global([data-theme='dark']) .kq-empty-icon {
+          color: var(--lav-300);
+        }
+        .kq-empty-title {
+          margin: 0 0 4px;
+          font-family: var(--font-display);
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--fg-strong);
+        }
+        .kq-empty-sub {
+          margin: 0;
+          font-size: 14px;
+          color: var(--fg-muted);
+        }
+
+        /* ───────── Lista de preguntas ───────── */
+        .kq-questions {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        /* === Tarjeta de pregunta (ForumComment) === */
+        .kq-questions :global(.kq-question) {
+          padding: 22px;
+          background: var(--surface);
+          border: 1.5px solid var(--border);
+          border-radius: var(--r-lg);
+          box-shadow: var(--shadow-xs);
+        }
+        .kq-questions :global(.kq-q-head),
+        .kq-questions :global(.kq-a-head) {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .kq-questions :global(.kq-avatar) {
+          display: inline-flex;
+          flex: 0 0 auto;
+          border-radius: 50%;
+          overflow: hidden;
+        }
+        .kq-questions :global(.kq-avatar img) {
+          border-radius: 50%;
+          object-fit: cover;
+        }
+        .kq-questions :global(.kq-avatar-navy) {
+          box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--navy-600);
+        }
+        .kq-questions :global(.kq-avatar-lav) {
+          box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+        }
+        .kq-questions :global(.kq-avatar-sm img) {
+          width: 36px;
+          height: 36px;
+        }
+        .kq-questions :global(.kq-author) {
           font-family: var(--font-display);
           font-weight: 700;
           font-size: 15px;
-          margin-bottom: 12px;
           color: var(--fg-strong);
+          text-decoration: none;
         }
-        .form-label-bold :global(i) {
-          color: var(--lav-700);
+        .kq-questions :global(.kq-author:hover) {
+          color: var(--accent);
         }
-        :global([data-theme='dark']) .form-label-bold :global(i) {
-          color: var(--lav-400);
-        }
-        .publication-comment-form :global(textarea) {
-          width: 100%;
-          resize: vertical;
-          min-height: 110px;
-          background: var(--surface);
-          color: var(--fg-strong);
-          border: 1px solid var(--border-strong);
-          border-radius: var(--r-sm);
-          padding: 12px 14px;
-          font-size: 14px;
-        }
-        .publication-comment-form :global(textarea:focus) {
-          border-color: var(--lav-500);
-          outline: 0;
-          box-shadow: var(--shadow-focus);
-        }
-        .form-actions {
-          display: flex;
-          justify-content: flex-end;
-          margin-top: 14px;
-        }
-
-        /* ---------- Botón principal de Comentar / Iniciar sesión (pill verde) ---------- */
-        :global(.btn-submit-comment) {
+        .kq-questions :global(.kq-a-author-row) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 12px 28px;
-          background: var(--green-500);
-          color: var(--navy-900) !important;
-          border: 2px solid var(--green-500);
-          border-radius: var(--r-pill);
-          cursor: pointer;
-          font-weight: 700;
-          font-size: 14px;
-          text-decoration: none !important;
-          transition: all 0.2s ease;
-          box-shadow: var(--shadow-sm);
         }
-        :global(.btn-submit-comment:hover:not(:disabled)) {
-          background: var(--green-600);
-          border-color: var(--green-600);
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-md);
-        }
-        :global(.btn-submit-comment:disabled) {
-          opacity: 0.65;
-          cursor: not-allowed;
-        }
-        .login-comment-box {
+        .kq-questions :global(.kq-time) {
           display: flex;
-          flex-direction: column;
-          align-items: flex-start;
+          align-items: center;
+          gap: 8px;
+          margin-top: 2px;
+          font-size: 12.5px;
+          color: var(--fg-subtle);
         }
-        .login-comment-box :global(textarea) {
-          width: 100%;
-          background: var(--surface);
-          color: var(--fg-muted);
-          border: 1px solid var(--border-strong);
-          border-radius: var(--r-sm);
-          padding: 12px 14px;
-          font-size: 14px;
+        .kq-questions :global(.kq-time-sep)::before {
+          content: '·';
+          margin-right: 8px;
+        }
+        .kq-questions :global(.kq-q-body) {
+          margin: 14px 0 12px;
+        }
+        .kq-questions :global(.kq-q-title) {
+          margin: 0 0 6px;
+          font-family: var(--font-display);
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--fg-strong);
+        }
+        .kq-questions :global(.kq-text) {
+          margin: 0;
+          font-size: 15px;
+          line-height: 1.6;
+          color: var(--fg-strong);
+          word-break: break-word;
+        }
+        .kq-questions :global(.kq-a-text) {
+          margin: 12px 0;
         }
 
-        /* Menciones @handle linkificadas dentro de los comentarios (Fase 6.3.3) */
+        /* === Acciones (like / responder) === */
+        .kq-questions :global(.kq-actions) {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .kq-questions :global(.kq-action) {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          background: transparent;
+          border: 0;
+          border-radius: var(--r-pill);
+          color: var(--fg-muted);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.16s ease, color 0.16s ease;
+        }
+        .kq-questions :global(button.kq-action:hover) {
+          background: var(--accent-soft);
+          color: var(--accent);
+        }
+        :global([data-theme='dark']) .kq-questions :global(button.kq-action:hover) {
+          color: var(--lav-300);
+        }
+        .kq-questions :global(.kq-action.is-static) {
+          cursor: default;
+        }
+        .kq-questions :global(.kq-action.is-active) {
+          color: var(--danger);
+        }
+        .kq-questions :global(.kq-action.is-active:hover) {
+          background: var(--danger-bg);
+          color: var(--danger);
+        }
+        .kq-questions :global(.kq-action i) {
+          font-size: 15px;
+        }
+        .kq-questions :global(.kq-action-count) {
+          font-weight: 700;
+        }
+
+        /* === Hilo de respuestas === */
+        .kq-questions :global(.kq-thread) {
+          margin-top: 16px;
+          padding-left: 22px;
+          border-left: 2px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .kq-questions :global(.kq-answer) {
+          padding: 16px 18px;
+          background: var(--surface-sunk);
+          border: 1.5px solid var(--border);
+          border-radius: var(--r-md);
+        }
+        .kq-questions :global(.kq-answer.is-seller) {
+          background: var(--accent-soft);
+          border-color: transparent;
+          border-left: 3px solid var(--accent);
+        }
+        .kq-questions :global(.kq-seller-chip) {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 3px 10px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+          color: var(--navy-900);
+          background: var(--accent);
+          border-radius: var(--r-pill);
+        }
+        :global([data-theme='dark']) .kq-questions :global(.kq-seller-chip) {
+          color: var(--navy-900);
+        }
+        .kq-questions :global(.kq-seller-chip i) {
+          font-size: 11px;
+        }
+
+        /* === "Ver N respuestas más" === */
+        .kq-questions :global(.kq-show-more) {
+          align-self: flex-start;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 14px;
+          background: transparent;
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-pill);
+          color: var(--accent);
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.16s ease;
+        }
+        .kq-questions :global(.kq-show-more:hover) {
+          background: var(--accent-soft);
+          border-color: var(--accent);
+        }
+        :global([data-theme='dark']) .kq-questions :global(.kq-show-more) {
+          color: var(--lav-300);
+        }
+
+        /* === Fila de denuncia === */
+        .kq-questions :global(.kq-report-row) {
+          margin-top: 10px;
+        }
+
+        /* === Menciones @handle linkificadas === */
         :global(.comment-mention) {
-          color: var(--lav-700);
+          color: var(--accent);
           font-weight: 600;
           text-decoration: none;
         }
@@ -686,6 +1017,26 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
         }
         :global([data-theme='dark']) :global(.comment-mention) {
           color: var(--lav-400);
+        }
+
+        /* === Form de error compartido (composer) === */
+        .kq-form-error {
+          margin-top: 8px;
+          font-size: 13px;
+          color: var(--danger);
+        }
+
+        @media (max-width: 575px) {
+          .kq-comments-title {
+            font-size: 23px;
+          }
+          .kq-login-box :global(.kq-login-cta) {
+            flex: 1 1 100%;
+            justify-content: center;
+          }
+          .kq-questions :global(.kq-thread) {
+            padding-left: 14px;
+          }
         }
       `}</style>
     </section>
