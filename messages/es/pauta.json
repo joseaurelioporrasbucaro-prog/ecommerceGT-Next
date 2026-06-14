@@ -48,7 +48,10 @@
   "credit": {
     "label": "Mi saldo de pauta",
     "available": "Disponible para usar en tu proxima campana. No es canjeable por dinero.",
-    "empty": "Aun no tienes saldo. Se genera del presupuesto no gastado al finalizar campanas."
+    "empty": "Aun no tienes saldo. Se genera del presupuesto no gastado al finalizar campanas.",
+    "gift": "Incluye Q50 por cada amigo que invitas",
+    "recharge": "Recargar saldo",
+    "rechargeSoon": "La recarga de saldo estara disponible pronto."
   },
   "form": {
     "title": "Nueva campana",

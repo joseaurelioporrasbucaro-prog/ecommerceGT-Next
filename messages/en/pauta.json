@@ -48,7 +48,10 @@
   "credit": {
     "label": "My ad credit",
     "available": "Available for your next campaign. It cannot be exchanged for money.",
-    "empty": "You do not have credit yet. It is generated from unspent budget when campaigns end."
+    "empty": "You do not have credit yet. It is generated from unspent budget when campaigns end.",
+    "gift": "Includes Q50 for each friend you invite",
+    "recharge": "Add funds",
+    "rechargeSoon": "Adding funds will be available soon."
   },
   "form": {
     "title": "New campaign",

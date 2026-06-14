@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { toast } from 'react-toastify';
@@ -155,7 +154,6 @@ const PautaMain = () => {
 
   return (
     <main>
-      <ThemeChanger />
       <Breadcrumbs breadcrumbTitle={t('breadcrumbs.title')} breadcrumbSubTitle={t('breadcrumbs.subtitle')} />
 
       <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
@@ -189,8 +187,8 @@ const PautaMain = () => {
             </ul>
           </div>
 
-          {/* Fase 10.2/10.3 — tarjeta de saldo siempre visible */}
-          <div className={`pa-credit-card ${availableCredit > 0 ? 'has' : 'empty'}`}>
+          {/* Fase 10.2/10.3 — tarjeta de saldo (navy, handoff #10) siempre visible */}
+          <div className="pa-credit-card">
             <div className="pa-credit-card-icon"><i className="fas fa-wallet" /></div>
             <div className="pa-credit-card-body">
               <div className="pa-credit-card-label">{t('credit.label')}</div>
@@ -200,7 +198,15 @@ const PautaMain = () => {
                   ? t('credit.available')
                   : t('credit.empty')}
               </div>
+              <div className="pa-credit-card-gift"><i className="fas fa-gift" /> {t('credit.gift')}</div>
             </div>
+            <button
+              type="button"
+              className="pa-credit-recharge"
+              onClick={() => toast.info(t('credit.rechargeSoon'))}
+            >
+              <i className="fas fa-plus" /> {t('credit.recharge')}
+            </button>
           </div>
 
           <div className="row">
@@ -398,74 +404,85 @@ const PautaMain = () => {
       </section>
 
       <style jsx>{`
-        .pa-explain { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; background: rgba(108,92,231,0.04); }
-        .pa-explain h5 { display: flex; align-items: center; gap: 9px; margin: 0 0 8px; }
-        .pa-explain p { margin: 0 0 12px; font-size: 14px; opacity: 0.85; }
+        .pa-explain { border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px; margin-bottom: 24px; background: var(--accent-soft); }
+        .pa-explain h5 { display: flex; align-items: center; gap: 9px; margin: 0 0 8px; font-family: var(--font-display); color: var(--fg-strong); }
+        .pa-explain h5 :global(i) { color: var(--lav-700); }
+        .pa-explain p { margin: 0 0 12px; font-size: 14px; color: var(--fg-muted); }
         .pa-obj-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         @media (max-width: 575px) { .pa-obj-cards { grid-template-columns: 1fr; } }
-        .pa-obj-card { border: 1px solid rgba(128,128,128,0.2); border-radius: 10px; padding: 12px 14px; background: var(--clr-bg-white, #fff); }
-        .pa-obj-card strong { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
-        .pa-obj-card span { font-size: 13px; opacity: 0.75; }
+        .pa-obj-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
+        .pa-obj-card strong { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; color: var(--fg-strong); }
+        .pa-obj-card strong :global(i) { color: var(--lav-700); }
+        .pa-obj-card span { font-size: 13px; color: var(--fg-muted); }
         .pa-explain-list { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-direction: column; gap: 10px; }
-        .pa-explain-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.55; opacity: 0.85; }
-        .pa-explain-list li :global(i) { color: var(--clr-theme-1, #6c5ce7); margin-top: 3px; flex-shrink: 0; width: 16px; text-align: center; }
+        .pa-explain-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.55; color: var(--fg-muted); }
+        .pa-explain-list li :global(i) { color: var(--lav-700); margin-top: 3px; flex-shrink: 0; width: 16px; text-align: center; }
         .pa-explain-list li span { flex: 1; }
-        .pa-card { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 22px; background: var(--clr-bg-white, #fff); }
-        .pa-card h5 { margin: 0 0 6px; }
-        .pa-label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 5px; }
-        .pa-card select, .pa-card input { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 9px 11px; }
-        .pa-hint { font-size: 12px; color: #b8860b; margin-top: 6px; }
-        .pa-estimate { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; font-size: 13px; background: rgba(34,197,94,0.1); color: #16a34a; padding: 9px 12px; border-radius: 8px; }
-        /* Fase 10.2/10.3 — tarjeta de saldo */
-        .pa-credit-card { display: flex; align-items: center; gap: 14px; border-radius: 14px; padding: 16px 20px; margin-bottom: 22px; border: 1px solid; }
-        .pa-credit-card.has { border-color: rgba(34,197,94,0.4); background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04)); color: #15803d; }
-        .pa-credit-card.empty { border-color: rgba(128,128,128,0.2); background: rgba(128,128,128,0.04); color: inherit; }
-        .pa-credit-card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-        .pa-credit-card.has .pa-credit-card-icon { background: rgba(34,197,94,0.18); color: #15803d; }
-        .pa-credit-card.empty .pa-credit-card-icon { background: rgba(128,128,128,0.15); opacity: 0.6; }
-        .pa-credit-card-body { display: flex; flex-direction: column; gap: 2px; }
-        .pa-credit-card-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.65; font-weight: 600; }
-        .pa-credit-card-amount { font-size: 24px; font-weight: 700; line-height: 1.1; }
-        .pa-credit-card-note { font-size: 12.5px; opacity: 0.75; }
+        .pa-card { border: 1px solid var(--border); border-radius: 16px; padding: 22px; background: var(--surface); box-shadow: var(--shadow-xs); }
+        .pa-card h5 { margin: 0 0 6px; font-family: var(--font-display); color: var(--fg-strong); }
+        .pa-label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 5px; color: var(--fg-strong); }
+        .pa-card select, .pa-card input { width: 100%; border: 1.5px solid var(--border-strong); border-radius: 10px; padding: 10px 12px; background: var(--bg-elevated); color: var(--fg-strong); font-family: var(--font-body); font-size: 14px; transition: border-color .15s ease, box-shadow .15s ease; }
+        .pa-card select:focus, .pa-card input:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
+        .pa-hint { font-size: 12px; color: var(--fg-subtle); margin-top: 6px; }
+        .pa-hint :global(i) { color: var(--lav-700); }
+        .pa-estimate { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; font-size: 13px; background: var(--green-100); color: var(--green-700); padding: 9px 12px; border-radius: 10px; }
+        /* Saldo — tarjeta navy con halo lavanda (mock handoff #10). */
+        .pa-credit-card { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; border-radius: 20px; padding: 20px 22px; margin-bottom: 22px; flex-wrap: wrap;
+          background: radial-gradient(360px 200px at 92% -40%, rgba(181, 172, 239, 0.38), transparent 60%), var(--navy-800);
+          color: var(--cream); border: none; box-shadow: var(--shadow-sm); }
+        .pa-credit-card-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; background: rgba(248, 244, 238, 0.12); color: var(--cream); }
+        .pa-credit-card-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 180px; }
+        .pa-credit-card-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(248, 244, 238, 0.7); font-weight: 600; }
+        .pa-credit-card-amount { font-family: var(--font-display); font-size: 30px; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; color: var(--cream); }
+        .pa-credit-card-note { font-size: 12.5px; color: rgba(248, 244, 238, 0.75); }
+        .pa-credit-card-gift { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--green-300); margin-top: 3px; }
+        .pa-credit-recharge { display: inline-flex; align-items: center; gap: 8px; background: var(--green-500); color: var(--navy-900); border: none; border-radius: 999px; padding: 10px 18px; font-family: var(--font-display); font-weight: 700; font-size: 13px; cursor: pointer; transition: background .15s ease; flex-shrink: 0; }
+        .pa-credit-recharge:hover { background: var(--green-600); }
         /* Fase 10.3 — método de pago */
         .pa-pay-methods { display: flex; flex-direction: column; gap: 8px; }
-        .pa-pay-opt { display: flex; gap: 10px; align-items: flex-start; border: 1px solid rgba(128,128,128,0.25); border-radius: 10px; padding: 11px 13px; cursor: pointer; transition: all 0.15s; }
-        .pa-pay-opt.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .pa-pay-opt { display: flex; gap: 10px; align-items: flex-start; border: 1.5px solid var(--border-strong); border-radius: 12px; padding: 11px 13px; cursor: pointer; transition: all 0.15s; }
+        .pa-pay-opt.active { border-color: var(--lav-500); background: var(--accent-soft); }
         .pa-pay-opt.disabled { opacity: 0.5; cursor: not-allowed; }
-        .pa-pay-opt input[type="radio"] { width: 18px !important; height: 18px; margin-top: 2px; cursor: inherit; flex-shrink: 0; }
+        .pa-pay-opt input[type="radio"] { width: 18px !important; height: 18px; margin-top: 2px; cursor: inherit; flex-shrink: 0; accent-color: var(--lav-600); }
         .pa-pay-opt > div { display: flex; flex-direction: column; gap: 2px; }
-        .pa-pay-opt strong { display: flex; align-items: center; gap: 7px; font-size: 13.5px; }
-        .pa-pay-opt strong :global(i) { color: var(--clr-theme-1, #6c5ce7); }
-        .pa-pay-opt span { font-size: 12px; opacity: 0.7; }
-        .pa-pay-summary { margin-top: 12px; background: rgba(128,128,128,0.06); border-radius: 10px; padding: 11px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+        .pa-pay-opt strong { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--fg-strong); }
+        .pa-pay-opt strong :global(i) { color: var(--lav-700); }
+        .pa-pay-opt span { font-size: 12px; color: var(--fg-muted); }
+        .pa-pay-summary { margin-top: 12px; background: var(--surface-sunk); border-radius: 12px; padding: 11px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--fg-muted); }
         .pa-pay-summary > div { display: flex; justify-content: space-between; }
-        .pa-pay-summary .pos { color: #16a34a; }
-        .pa-pay-summary .total { padding-top: 6px; border-top: 1px solid rgba(128,128,128,0.18); margin-top: 2px; font-weight: 600; }
-        .pa-pay-stub { font-size: 12px; opacity: 0.7; margin-top: 8px; display: flex; gap: 6px; align-items: flex-start; }
-        .pa-pay-stub :global(i) { color: var(--clr-theme-1, #6c5ce7); margin-top: 2px; }
-        .pa-objective { display: flex; gap: 10px; }
-        .pa-objective button { flex: 1; border: 1px solid rgba(128,128,128,0.3); background: transparent; border-radius: 10px; padding: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-        .pa-objective button.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.08); color: var(--clr-theme-1, #6c5ce7); }
-        .pa-section-title { font-weight: 700; margin: 18px 0 4px; font-size: 14px; }
+        .pa-pay-summary strong { color: var(--fg-strong); }
+        .pa-pay-summary .pos { color: var(--green-700); }
+        .pa-pay-summary .total { padding-top: 6px; border-top: 1px solid var(--border); margin-top: 2px; font-weight: 600; }
+        .pa-pay-stub { font-size: 12px; color: var(--fg-subtle); margin-top: 8px; display: flex; gap: 6px; align-items: flex-start; }
+        .pa-pay-stub :global(i) { color: var(--lav-700); margin-top: 2px; }
+        /* Objetivo — cards lavanda (icon-tile + label). */
+        .pa-objective { display: flex; gap: 12px; }
+        .pa-objective button { flex: 1; border: 1.5px solid var(--border-strong); background: var(--surface); border-radius: 14px; padding: 16px 12px; cursor: pointer; font-weight: 700; font-family: var(--font-display); color: var(--fg-strong); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s; }
+        .pa-objective button :global(i) { font-size: 20px; color: var(--lav-700); }
+        .pa-objective button.active { border-color: var(--lav-500); background: var(--accent-soft); color: var(--lav-700); }
+        .pa-section-title { font-family: var(--font-display); font-weight: 700; margin: 20px 0 4px; font-size: 14px; color: var(--fg-strong); }
         .pa-age { display: flex; gap: 12px; }
         .pa-age > div { flex: 1; }
-        .pa-create { margin-top: 18px; width: 100%; background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 11px; border-radius: 24px; font-weight: 600; cursor: pointer; }
-        .pa-create:disabled { opacity: 0.6; }
+        .pa-create { margin-top: 18px; width: 100%; background: var(--green-500); color: var(--navy-900); border: none; padding: 13px; border-radius: 999px; font-family: var(--font-display); font-weight: 700; cursor: pointer; transition: background .15s ease; }
+        .pa-create:hover:not(:disabled) { background: var(--green-600); }
+        .pa-create:disabled { opacity: 0.6; cursor: not-allowed; }
         .pa-list { display: flex; flex-direction: column; gap: 12px; }
-        .pa-camp { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; padding: 14px 16px; background: var(--clr-bg-white, #fff); }
+        .pa-camp { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; background: var(--surface); box-shadow: var(--shadow-xs); }
         .pa-camp-main { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-        .pa-camp-title { font-weight: 600; }
+        .pa-camp-title { font-weight: 600; color: var(--fg-strong); }
         .pa-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-        .pa-status-active { background: rgba(34,197,94,0.16); color: #16a34a; }
-        .pa-status-paused { background: rgba(245,158,11,0.18); color: #b8860b; }
-        .pa-status-finished { background: rgba(128,128,128,0.18); color: #777; }
-        .pa-obj-tag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(108,92,231,0.12); color: #6c5ce7; }
-        .pa-metrics { display: flex; gap: 16px; font-size: 13px; opacity: 0.75; margin-bottom: 8px; flex-wrap: wrap; }
-        .pa-progress { height: 6px; border-radius: 4px; background: rgba(128,128,128,0.18); overflow: hidden; margin-bottom: 10px; }
-        .pa-progress-bar { height: 100%; background: var(--clr-theme-1, #6c5ce7); }
+        .pa-status-active { background: var(--green-100); color: var(--green-700); }
+        .pa-status-paused { background: rgba(245, 158, 11, 0.18); color: #b8860b; }
+        .pa-status-finished { background: var(--surface-sunk); color: var(--fg-subtle); }
+        .pa-obj-tag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: var(--accent-soft); color: var(--lav-700); }
+        .pa-metrics { display: flex; gap: 16px; font-size: 13px; color: var(--fg-muted); margin-bottom: 8px; flex-wrap: wrap; }
+        .pa-progress { height: 6px; border-radius: 4px; background: var(--surface-sunk); overflow: hidden; margin-bottom: 10px; }
+        .pa-progress-bar { height: 100%; background: var(--green-500); }
         .pa-camp-actions { display: flex; gap: 8px; }
-        .pa-camp-actions button { border: 1px solid rgba(128,128,128,0.3); background: transparent; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
-        .pa-camp-actions .pa-finish { color: #dc2626; border-color: rgba(239,68,68,0.4); }
+        .pa-camp-actions button { border: 1.5px solid var(--border-strong); background: transparent; color: var(--fg-strong); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .15s ease; }
+        .pa-camp-actions button:hover { border-color: var(--lav-500); color: var(--lav-700); }
+        .pa-camp-actions .pa-finish { color: var(--danger); border-color: var(--danger-bg, rgba(239, 68, 68, 0.35)); }
+        .pa-camp-actions .pa-finish:hover { color: var(--danger); border-color: var(--danger); }
       `}</style>
     </main>
   );
