@@ -226,3 +226,42 @@
   ⚠️ El toggle cambia solo el SÍMBOLO; para que los MONTOS en Q sean reales (no
   el número USD con símbolo Q) conviene un `sub_price_gtq` por plan — el front ya
   lee `priceGtq` opcional si el backend lo provee.
+
+### Respuestas a las preguntas técnicas del Handoff #10 §4 (verificado en backend, 2026-06-13)
+
+**Pauta / wallet:**
+1. **No hay tabla de wallet con movimientos.** El saldo es UNA columna
+   `customer.cus_ad_credit NUMERIC(10,2)` (Fase 10.2). Crece cuando una campaña
+   expira con presupuesto no gastado y se consume al crear campañas. **No hay
+   ledger** que distinga recarga vs referido vs gasto. Para "movimientos" (y para
+   los Q50 de referidos con origen marcado) habría que crear una tabla
+   `ad_credit_movements`. → cambio de backend.
+2. **Recarga con tarjeta: NO existe** (no hay endpoint). Los métodos con tarjeta
+   en /pauta ya son stub. Recargar saldo requiere pasarela real (misma que
+   suscripciones, también stub) — decisión + backend. El botón "Recargar saldo"
+   que agregué hoy es un stub (toast "próximamente").
+3. **Costos de impresión/clic: reales y configurables** por admin
+   (`platform_config` vía /admin/config). No son placeholder.
+4. **Descuento de saldo: lazy, no tiempo real.** Se procesa al abrir /pauta
+   (y en endpoints de campaña); no hay job en tiempo real por impresión/clic.
+5. **Una pub = una campaña activa: confirmado.** El front bloquea pubs con
+   campaña active/paused (`lockedPubIds`) y el backend valida igual. Es la regla.
+
+**Referidos Q50 — NADA existe aún (es feature nueva de backend):**
+6. **No hay tabla de referidos.** El único "invitation" es `company_invitations`
+   (invitar miembro a una empresa, con token) — NO es referido. La pantalla
+   `/invite/[token]` actual es esa aceptación de empresa, no el programa Q50.
+7. **No hay evento que acredite Q50.** Habría que: webhook/transacción en la
+   PRIMERA compra de pauta exitosa del invitado → acreditar Q50 a ambos
+   (`cus_ad_credit += 50`), idempotente (marca para no duplicar).
+8. **No hay código de referido por usuario** ni `invited_by` en el registro.
+   Hay que generarlo (ej. `ANA2026`) y guardarlo al registrarse el invitado.
+9. **Crédito sin tope/vencimiento:** hoy `cus_ad_credit` se gasta igual sin
+   marca de origen. Si los Q50 deben ser "no reembolsables" o trazables, se
+   necesita el ledger del punto 1.
+
+**Conclusión H10 §2 (/invite Q50):** es **pantalla nueva + sistema de backend
+completo** (tabla referidos + código por usuario + acreditación idempotente en
+primera compra + opcional ledger de movimientos). Sin backend, el front solo
+puede ser una **cáscara** (link de invitación derivado del usuario, progreso en
+placeholder). Requiere autorización + diseño del esquema de referidos.
