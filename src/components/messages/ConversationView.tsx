@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
@@ -10,6 +10,8 @@ import {
   useReportMessage,
   useSendMessage,
 } from '@/hooks/api/useMessages';
+import { usePublicationDetail } from '@/hooks/api/usePublications';
+import { getPublicationImagePath } from '@/components/publications/publicationUtils';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { getBackendUrl } from '@/utils/backendUrl';
@@ -125,6 +127,31 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
     ? getBackendUrl(inboxItem.contact_image)
     : generateInitialsAvatar(contactName, 80);
 
+  // Handoff #11 §6/§7 — contexto de propiedad con datos REALES. En vez de
+  // depender de un payload `property` nuevo en el inbox (backend), resolvemos
+  // el detalle de la publicación abierta: 1 conversación = 1 fetch, cacheado
+  // por React Query (mismo queryKey que ya usa MessagesMain). Si falta imagen
+  // o precio caemos al placeholder navy; el visor 3D solo aparece si hay GLB.
+  const propertyQuery = usePublicationDetail(pubId);
+  const pub = propertyQuery.data;
+  const propTitle = pub?.pub_title ?? inboxItem?.pub_title ?? t('property.fallbackTitle');
+  const propThumb = useMemo(() => {
+    const first = pub?.images?.[0];
+    if (!first) return null;
+    const path = getPublicationImagePath(first);
+    return path ? getBackendUrl(path) : null;
+  }, [pub]);
+  const propHasGlb = (pub?.imagesglb?.length ?? 0) > 0;
+  const propPrice = useMemo(() => {
+    if (pub?.pubdet_price == null) return '';
+    const n = Number(pub.pubdet_price);
+    if (!Number.isFinite(n)) return '';
+    const sym = pub.pubdet_currency === 'USD' ? 'US$' : 'Q';
+    return `${sym} ${n.toLocaleString('es-GT')}`;
+  }, [pub]);
+  const propZone = pub?.pub_address?.trim() || '';
+  const propSub = [propPrice, propZone].filter(Boolean).join(' · ') || t('property.eyebrow');
+
   return (
     <div className="conversation-view">
       <header className="conversation-header">
@@ -148,14 +175,19 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         </Link>
       </header>
 
-      {/* Handoff #10 §3 — barra de contexto de la propiedad + acceso al visor 3D.
-          El inbox no trae imagen ni precio reales: thumb placeholder honesto (igual
-          que el reference de diseño), título de la publicación y accesos. */}
+      {/* Handoff #11 §6/§7 — barra de contexto: datos reales del detalle (thumb,
+          título, precio · zona) con fallback al placeholder navy; el botón
+          'Modelo 3D' solo aparece si la publicación tiene modelo (hasGlb). */}
       <div className="conversation-property">
-        <span className="cp-thumb" aria-hidden="true"><i className="fal fa-camera" /></span>
+        {propThumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={propThumb} alt={propTitle} className="cp-thumb cp-thumb-img" />
+        ) : (
+          <span className="cp-thumb" aria-hidden="true"><i className="fal fa-camera" /></span>
+        )}
         <div className="cp-info">
-          <span className="cp-eyebrow">{t('property.eyebrow')}</span>
-          <span className="cp-title">{inboxItem?.pub_title ?? t('property.fallbackTitle')}</span>
+          <span className="cp-title">{propTitle}</span>
+          <span className="cp-sub">{propSub}</span>
         </div>
         <Link
           href={`/publications/${pubId}`}
@@ -165,14 +197,16 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           <i className="fal fa-home" />
           <span>{t('property.view')}</span>
         </Link>
-        <Link
-          href={`/publications/${pubId}/viewer`}
-          className="cp-btn cp-btn-3d"
-          title={t('property.model3d')}
-        >
-          <i className="fal fa-cube" />
-          <span>{t('property.model3d')}</span>
-        </Link>
+        {propHasGlb && (
+          <Link
+            href={`/publications/${pubId}/viewer`}
+            className="cp-btn cp-btn-3d"
+            title={t('property.model3d')}
+          >
+            <i className="fal fa-cube" />
+            <span>{t('property.model3d')}</span>
+          </Link>
+        )}
       </div>
 
       <div className="conversation-messages">
@@ -498,6 +532,10 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           justify-content: center;
           font-size: 14px;
         }
+        .cp-thumb-img {
+          object-fit: cover;
+          background: var(--surface-sunk);
+        }
         .cp-info {
           flex: 1;
           min-width: 0;
@@ -505,12 +543,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           flex-direction: column;
           gap: 1px;
         }
-        .cp-eyebrow {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          color: var(--info);
+        .cp-sub {
+          font-size: 12px;
+          color: var(--fg-muted);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .cp-title {
           font-size: 13.5px;
