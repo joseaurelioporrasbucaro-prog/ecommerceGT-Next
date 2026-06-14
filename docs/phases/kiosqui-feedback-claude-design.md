@@ -298,3 +298,49 @@ contexto de propiedad con botón 3D).
   azul-morado de `.fill-btn`). Recordatorio del gap global ya listado: `.fill-btn`
   (header "Publicar", registros, etc.) **sigue** con el degradado Oction; falta el
   sistema de botón de marca para reemplazarlo en todos lados.
+
+### Del handoff #11 — Decisiones de diseño (2026-06-13, Claude Code)
+
+**CORRECCIÓN a [H10-5]:** el sistema de botón global YA estaba migrado en un WP
+previo — `.fill-btn` en `_common.scss` es verde de marca y sus variantes lo
+extienden; **no quedan gradientes Oction en los partials** (`_about/_art/_creator/
+_footer/_custome`). El gap [H10-5] estaba desactualizado. La Prioridad #1 del #11
+ya estaba cumplida (solo se verificó).
+
+Aplicado en #11:
+- **§3 Rating:** ya estaba en `--rating` (verde) en los componentes de estrellas
+  (CreatorProfile `Stars`, Survey, TopSellers). El único `#f59e0b` restante era el
+  marcador de fila "pautada" en soporte → pasado a lavanda.
+- **§4 Badges:** chip/fila "pautada" (#fbbf24/#d97706/#f59e0b) → lavanda; precio
+  dorado del visor 3D → `--fg-strong`; warning/danger de DangerZone → tokens
+  `--warning`/`--danger`; avatares de iniciales (CreatorSingle/CompanyProfile) con
+  gradiente morado Oction → gradiente navy de marca.
+- **Leak nuevo encontrado y corregido:** `--tp-theme-1` (acento secundario Oction
+  #6c5ce7) NO estaba remapeado en el bridge → ~12 usos (RegisterForm, sidebars,
+  comentarios, like-buttons) renderizaban morado fijo en ambos temas. Remapeado a
+  lavanda de marca en `bridge.css`.
+- **§5 Logo:** `KiosquiLogo` ya hacía swap cream/navy por tema. Confirmado.
+- **§6/§7 /messages:** **[RESUELVE H10-3 y H10-4].** La barra de propiedad ahora
+  trae datos REALES (thumb, precio·zona) resolviendo el detalle de la pub vía
+  `usePublicationDetail` (1 conversación = 1 fetch cacheado, sin tocar backend),
+  con fallback al placeholder navy. El botón "Modelo 3D" ahora es condicional a
+  `hasGlb`. El detalle ya gateaba el 3D; la pub-card no tiene acceso 3D.
+- **§2 Invite:** **[RESUELVE H10-1].** Namespacing aplicado — empresa a
+  `/invite/team/[token]`, referido personal en `/invite` (panel) + `/invite/[code]`
+  (canje → `/register?ref=`). Banner "te invitaron" en el registro.
+
+Gaps NUEVOS (fuera del scope de #11, para decisión de Design):
+- [H11-1] **Dorado de "empresa verificada" (`#d4af37`→`#f1c75b`)** en `.cp-badge`,
+  anillo de avatar de empresa y hover de cards (`CompanyMain`, `CompanyProfileMain`).
+  No es leak Oction (no es azul/morado); es una identidad premium gold. **¿Se alinea
+  a marca (verde/lavanda de "verificado") o se mantiene el oro premium?** No lo toqué.
+- [H11-2] **Chips de categoría internos de soporte** (`.sr-chip-publication` ámbar,
+  `.sr-chip-message` teal): leyenda categórica de una tabla admin interna, no badges
+  de marca. Se mantienen como diferenciadores funcionales.
+- [H11-3] **Banner "te invitó X" sin nombre/avatar:** sin backend de referidos no
+  se resuelve el nombre del invitador desde el code. El banner muestra la versión
+  genérica; necesita `GET /referrals/validate/:code` (ya en el prompt de Codex).
+- [H11-PENDIENTE] **§8 /pauta rediseño completo** (slider de inversión + estimado de
+  impresiones en vivo + columna sticky "saldo + a pagar"): el re-skin del #10 ya
+  cubre saldo navy + objetivos lavanda + segmentación; falta el constructor ambicioso
+  del `batch_c/PautaScreen`. Se entrega como chunk siguiente.
