@@ -825,19 +825,36 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         :global(.upload-form .single-input-unit label) {
           display: block;
           margin-bottom: 8px;
+          font-size: 13px;
           font-weight: 600;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
+        /* Inputs / textarea / select — look unificado con el form de contacto. */
+        :global(.upload-form .single-input-unit input),
+        :global(.upload-form .single-input-unit textarea),
         :global(.upload-form .upload-select) {
           width: 100%;
-          height: 50px;
+          font-family: var(--font-body);
+          font-size: 15px;
+          color: var(--fg-strong);
+          background: var(--bg-elevated, #fffdf9);
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          border-radius: 10px;
+          padding: 11px 14px;
+          line-height: 1.5;
+          transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        :global(.upload-form .upload-select) {
+          height: 46px;
           padding: 0 14px;
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 6px;
-          background: var(--clr-bg-white, #fff);
-          color: var(--clr-common-heading, #181818);
-          font-size: 14px;
           appearance: auto;
+        }
+        :global(.upload-form .single-input-unit input:focus),
+        :global(.upload-form .single-input-unit textarea:focus),
+        :global(.upload-form .upload-select:focus) {
+          outline: none;
+          border-color: var(--accent, #b5acef);
+          box-shadow: var(--shadow-focus, 0 0 0 3px rgba(181, 172, 239, 0.55));
         }
         :global(.upload-form .upload-select:disabled) {
           opacity: 0.6;
@@ -845,7 +862,7 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         }
         :global(.upload-form .field-error) {
           margin: 6px 0 0;
-          color: #ef4444;
+          color: var(--danger);
           font-size: 13px;
         }
         :global(.upload-form input[type="number"]::-webkit-outer-spin-button),
@@ -863,10 +880,15 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
         :global(.upload-form .price-currency-input) {
           display: flex;
           align-items: stretch;
-          border: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.3));
-          border-radius: 6px;
+          border: 1.5px solid var(--border-strong, #d4c8b6);
+          border-radius: 10px;
           overflow: hidden;
-          background: var(--clr-bg-white, #fff);
+          background: var(--bg-elevated, #fffdf9);
+          transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        :global(.upload-form .price-currency-input:focus-within) {
+          border-color: var(--accent, #b5acef);
+          box-shadow: var(--shadow-focus, 0 0 0 3px rgba(181, 172, 239, 0.55));
         }
         :global(.upload-form .price-currency-prefix) {
           display: flex;
@@ -874,11 +896,11 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           justify-content: center;
           min-width: 52px;
           padding: 0 12px;
-          background: var(--clr-bg-gray, rgba(128, 128, 128, 0.08));
-          color: var(--clr-common-heading, #181818);
+          background: var(--surface-sunk);
+          color: var(--fg-strong);
           font-weight: 700;
           font-size: 14px;
-          border-right: 1px solid var(--clr-common-border, rgba(128, 128, 128, 0.25));
+          border-right: 1.5px solid var(--border-strong, #d4c8b6);
         }
         :global(.upload-form .price-currency-input input) {
           flex: 1;
@@ -886,41 +908,49 @@ const PublicationForm: React.FC<PublicationFormProps> = ({
           border: none;
           background: transparent;
         }
+        /* El anillo de foco lo lleva el wrapper (focus-within), no el input. */
+        :global(.upload-form .price-currency-input input:focus) {
+          box-shadow: none;
+        }
         :global(.upload-form .field-optional) {
-          color: var(--clr-common-body-text, #8a8a8a);
+          color: var(--fg-subtle);
           font-weight: 400;
           font-size: 13px;
         }
         :global(.upload-form .price-hint) {
           margin: 6px 0 0;
           font-size: 12.5px;
-          color: var(--clr-common-body-text, #8a8a8a);
+          color: var(--fg-subtle);
         }
         /* Upgrade card cuando el usuario está en plan free — sustituye al
            dropzone GLB y explica la limitación con un CTA a /pricing-plan. */
         :global(.upload-form .glb-upgrade-card) {
-          border: 1.5px dashed rgba(108, 92, 231, 0.45);
-          background: rgba(108, 92, 231, 0.06);
-          border-radius: 12px;
+          border: 1.5px dashed var(--lav-400);
+          background: var(--accent-soft);
+          border-radius: 16px;
           padding: 22px 18px;
           text-align: center;
         }
         :global(.upload-form .glb-upgrade-icon) {
           font-size: 32px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700);
           margin-bottom: 6px;
+        }
+        :global([data-theme='dark'] .upload-form .glb-upgrade-icon) {
+          color: var(--lav-300);
         }
         :global(.upload-form .glb-upgrade-title) {
           margin: 0 0 6px;
+          font-family: var(--font-display);
           font-size: 15px;
           font-weight: 700;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
         :global(.upload-form .glb-upgrade-text) {
           margin: 0 0 14px;
           font-size: 12.5px;
           line-height: 1.5;
-          opacity: 0.8;
+          color: var(--fg-muted);
         }
         :global(.upload-form .glb-upgrade-cta) {
           display: inline-block;

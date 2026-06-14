@@ -232,8 +232,8 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
       <style jsx>{`
         .glb-format-guide {
           margin-top: 10px;
-          border: 1px solid rgba(108, 92, 231, 0.25);
-          background: rgba(108, 92, 231, 0.05);
+          border: 1px solid var(--lav-300);
+          background: var(--accent-soft);
           border-radius: 10px;
           font-size: 12.5px;
         }
@@ -241,7 +241,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           padding: 9px 13px;
           cursor: pointer;
           list-style: none;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700);
           font-weight: 600;
           user-select: none;
         }
@@ -253,7 +253,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
         }
         .glb-guide-content p { margin: 0 0 8px; opacity: 0.85; }
         .glb-guide-content code {
-          background: rgba(108, 92, 231, 0.12);
+          background: var(--accent-soft);
           padding: 1px 5px;
           border-radius: 4px;
         }
@@ -264,7 +264,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
         }
         .glb-format-guide .glb-guide-tools li { margin-bottom: 2px; }
         .glb-format-guide .glb-guide-tools a {
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700);
           font-weight: 600;
         }
         .glb-guide-note { font-size: 11.5px; opacity: 0.7; margin: 0; }
@@ -288,8 +288,8 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
                   aspectRatio: '1 / 1',
                   borderRadius: 8,
                   overflow: 'hidden',
-                  background: 'rgba(108, 92, 231, 0.08)',
-                  border: '1px solid var(--clr-common-border, #e0e2e5)',
+                  background: 'var(--accent-soft)',
+                  border: '1px solid var(--border)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -302,7 +302,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
                 <i
                   className="fas fa-cube"
                   style={{
-                    color: 'var(--clr-theme-1, #6c5ce7)',
+                    color: 'var(--lav-700)',
                     fontSize: 22,
                   }}
                 />
@@ -311,7 +311,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
                     fontSize: 9,
                     fontWeight: 700,
                     letterSpacing: '0.5px',
-                    color: 'var(--clr-theme-1, #6c5ce7)',
+                    color: 'var(--lav-700)',
                   }}
                 >
                   GLB
@@ -354,8 +354,8 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
                 aspectRatio: '1 / 1',
                 borderRadius: 8,
                 overflow: 'hidden',
-                background: 'rgba(108, 92, 231, 0.08)',
-                border: '1px solid var(--clr-common-border, #e0e2e5)',
+                background: 'var(--accent-soft)',
+                border: '1px solid var(--border)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -368,7 +368,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
               <i
                 className="fas fa-cube"
                 style={{
-                  color: 'var(--clr-theme-1, #6c5ce7)',
+                  color: 'var(--lav-700)',
                   fontSize: 22,
                   opacity: 0.5,
                 }}
@@ -406,17 +406,18 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           display: block;
           width: 100%;
           margin-bottom: 20px;
-          border: 2px dashed var(--clr-theme-1, #6c5ce7);
-          border-radius: 12px;
-          background: rgba(108, 92, 231, 0.04);
+          border: 2px dashed var(--lav-400);
+          border-radius: 16px;
+          background: var(--accent-soft);
           padding: 28px 20px;
           text-align: center;
           cursor: pointer;
-          transition: background 0.15s, border-color 0.15s;
+          transition: background 0.15s, border-color 0.15s, filter 0.15s;
           /* La librería pone svg + label internos; los ocultamos para usar nuestro children. */
         }
         .upload-images-panel :global(.upload-dropzone:hover) {
-          background: rgba(108, 92, 231, 0.08);
+          border-color: var(--lav-500);
+          filter: brightness(0.98);
         }
         .upload-images-panel :global(.upload-dropzone.is-disabled) {
           opacity: 0.5;
@@ -436,25 +437,26 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
         }
         .upload-images-panel :global(.upload-dropzone .browse-file-icon) {
           font-size: 42px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700);
           margin-bottom: 4px;
         }
         .upload-images-panel :global(.upload-dropzone-title) {
           margin: 0;
           font-size: 16px;
           font-weight: 600;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
         .upload-images-panel :global(.upload-dropzone-button) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           padding: 10px 22px;
-          border-radius: 6px;
-          background: var(--clr-theme-1, #6c5ce7);
-          color: #fff;
+          border-radius: 999px;
+          background: var(--navy-800);
+          color: var(--cream);
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 700;
+          font-family: var(--font-display);
         }
         .upload-images-panel :global(.upload-dropzone .browse-file-note) {
           font-size: 12px;
@@ -475,7 +477,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           border-radius: 8px;
           overflow: hidden;
           background: rgba(128, 128, 128, 0.12);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
+          border: 1px solid var(--border);
         }
         .upload-thumbs :global(.upload-thumb img) {
           width: 100%;
@@ -486,7 +488,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           opacity: 0.8;
         }
         .upload-thumbs :global(.upload-thumb-pending.is-error) {
-          border-color: #ef4444;
+          border-color: var(--danger);
         }
         .upload-thumbs :global(.upload-thumb-overlay) {
           position: absolute;
@@ -499,7 +501,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           font-size: 22px;
         }
         .upload-thumbs :global(.upload-thumb-error) {
-          color: #ef4444;
+          color: var(--danger);
         }
         .upload-thumbs :global(.upload-thumb-remove) {
           position: absolute;
@@ -520,7 +522,7 @@ const DragDropSectionGlb: React.FC<DragDropSectionProps> = ({
           z-index: 2;
         }
         .upload-thumbs :global(.upload-thumb-remove:hover) {
-          background: #ef4444;
+          background: var(--danger);
         }
         .upload-thumbs :global(.upload-thumb-remove:disabled) {
           cursor: not-allowed;

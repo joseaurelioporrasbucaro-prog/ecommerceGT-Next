@@ -106,7 +106,6 @@ const EditPublicationMain: React.FC<EditPublicationMainProps> = ({ publicationId
 
   return (
     <>
-      <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Editar publicación" breadcrumbSubTitle="Editar" />
 
       <div className="upload-area pt-130 pb-90">

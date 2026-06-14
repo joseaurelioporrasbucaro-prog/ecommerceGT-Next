@@ -3,7 +3,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
-import ThemeChanger from '../home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import PublicationForm, {
   PUBGEN_APTO,
@@ -69,7 +68,6 @@ const UploadMain: React.FC = () => {
 
   return (
     <>
-      <ThemeChanger />
       <Breadcrumbs breadcrumbTitle="Crear publicación" breadcrumbSubTitle="Publicar" />
 
       <div className="upload-area pt-130 pb-90">
