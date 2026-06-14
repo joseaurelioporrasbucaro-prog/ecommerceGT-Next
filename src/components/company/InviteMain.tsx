@@ -49,7 +49,7 @@ const InviteMain = ({ token }: { token: string }) => {
                     <p className="iv-text">
                       {t('invite.loginText')}
                     </p>
-                    <Link href={`/login?from=/invite/${token}`} className="iv-btn">
+                    <Link href={`/login?from=/invite/team/${token}`} className="iv-btn">
                       {t('invite.loginButton')}
                     </Link>
                   </>

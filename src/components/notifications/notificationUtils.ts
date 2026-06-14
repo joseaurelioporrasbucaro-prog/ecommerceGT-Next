@@ -128,7 +128,7 @@ export function getNotificationContent(
           ? t('content.companyInviteNamed', { name, busName })
           : t('content.companyInvite', { name }),
         snippet: t('content.companyInviteSnippet'),
-        href: token ? `/invite/${token}` : '/activity',
+        href: token ? `/invite/team/${token}` : '/activity',
         icon: 'fa-user-plus',
         iconColor: '#5a5af2',
       };
