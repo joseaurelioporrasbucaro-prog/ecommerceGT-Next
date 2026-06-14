@@ -67,9 +67,10 @@ export const metadata: Metadata = {
     description: DEFAULT_DESC,
     images: ['/assets/img/og-default.jpg'],
   },
-  icons: {
-    icon: '/favicon.png',
-  },
+  // Handoff #13 §1 — favicon de Kiosqui (lente "Q" lavanda + apertura verde).
+  // Se registra por CONVENCIÓN de archivos: src/app/icon.png (512) y
+  // src/app/apple-icon.png (180). Next emite los <link> y la convención tiene
+  // precedencia sobre metadata.icons (por eso no se configura acá).
 };
 
 export function generateStaticParams() {
