@@ -77,5 +77,11 @@
     "exploreProperties": "Explorar propiedades",
     "aboutPublication": "Sobre esta publicacion",
     "viewDetail": "Ver detalle"
+  },
+  "property": {
+    "eyebrow": "Publicacion",
+    "view": "Ver publicacion",
+    "model3d": "Modelo 3D",
+    "fallbackTitle": "Esta publicacion"
   }
 }

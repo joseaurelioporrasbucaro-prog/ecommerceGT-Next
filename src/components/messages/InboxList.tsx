@@ -134,7 +134,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
         .inbox-search-row {
           position: relative;
           padding: 10px 12px;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+          border-bottom: 1px solid var(--border);
         }
         .inbox-search-icon {
           position: absolute;
@@ -150,9 +150,9 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           padding: 8px 10px 8px 32px;
           border-radius: 20px;
           border: none;
-          background: rgba(128, 128, 128, 0.1);
+          background: var(--surface-sunk);
           font-size: 13px;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
           outline: none;
           transition: background 0.15s;
         }
@@ -168,7 +168,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           display: flex;
           gap: 6px;
           padding: 8px 12px;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+          border-bottom: 1px solid var(--border);
         }
         .inbox-tab {
           display: flex;
@@ -177,11 +177,11 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           padding: 5px 14px;
           border-radius: 20px;
           border: none;
-          background: rgba(128, 128, 128, 0.1);
+          background: var(--surface-sunk);
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
           transition: background 0.15s, color 0.15s;
         }
         .inbox-tab.is-active {
@@ -189,7 +189,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
           color: var(--cream, #f8f4ee);
         }
         .tab-badge {
-          background: #ef4444;
+          background: var(--danger);
           color: #fff;
           font-size: 10px;
           font-weight: 700;
@@ -295,9 +295,9 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           gap: 10px;
           align-items: center;
           padding: 10px 14px;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+          border-bottom: 1px solid var(--border);
           cursor: pointer;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
           text-decoration: none;
           transition: background 0.15s;
         }
@@ -320,7 +320,7 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           width: 11px;
           height: 11px;
           background: var(--green-500, #9bc64a);
-          border: 2px solid var(--clr-bg-white, #fff);
+          border: 2px solid var(--surface);
           border-radius: 50%;
         }
         :global(.inbox-meta) {
