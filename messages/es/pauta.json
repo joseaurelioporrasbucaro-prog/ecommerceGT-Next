@@ -98,5 +98,40 @@
     "pause": "Pausar",
     "resume": "Reanudar",
     "finish": "Finalizar"
+  },
+  "invite": {
+    "breadcrumbTitle": "Invita y gana",
+    "banner": {
+      "badge": "Referidos",
+      "title": "Invita a un amigo y gana Q50 en pauta",
+      "body": "Cuando tu amigo se registre y haga su primera compra de pauta, los dos reciben Q50 de credito en su saldo. Sin limite y no vence."
+    },
+    "steps": {
+      "share": "Comparte tu enlace",
+      "register": "Tu amigo se registra",
+      "earn": "Compra pauta y ganan Q50 cada uno"
+    },
+    "link": {
+      "label": "Tu enlace de invitacion",
+      "copy": "Copiar",
+      "soonBadge": "Proximamente",
+      "loginPrompt": "Inicia sesion para obtener tu enlace de invitacion.",
+      "login": "Iniciar sesion"
+    },
+    "share": {
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook",
+      "email": "Correo"
+    },
+    "soon": "El programa de referidos se activara pronto.",
+    "progress": {
+      "none": "Aun no tienes referidos activados.",
+      "hint": "El credito se acredita automaticamente cuando tu amigo hace su primera compra de pauta."
+    },
+    "balance": {
+      "label": "Tu saldo de pauta",
+      "gift": "Incluye el credito de tus referidos",
+      "cta": "Usar en Pauta"
+    }
   }
 }
