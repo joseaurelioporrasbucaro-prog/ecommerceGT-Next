@@ -113,11 +113,11 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
 
       <style jsx>{`
         .info-panel {
-          border-left: 1px solid rgba(128, 128, 128, 0.18);
+          border-left: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           overflow-y: auto;
-          background: var(--clr-bg-white, #fff);
+          background: var(--surface);
         }
         .info-top {
           display: flex;
@@ -125,7 +125,7 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           align-items: center;
           gap: 10px;
           padding: 28px 16px 16px;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          border-bottom: 1px solid var(--border);
         }
         .info-avatar-wrap {
           width: 72px;
@@ -138,33 +138,33 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           font-size: 15px;
           font-weight: 700;
           text-align: center;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
         .info-actions-row {
           display: flex;
           justify-content: center;
           gap: 16px;
           padding: 14px 16px;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          border-bottom: 1px solid var(--border);
         }
         :global(.info-action-btn) {
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 4px;
-          background: rgba(128, 128, 128, 0.1);
+          background: var(--surface-sunk);
           border-radius: 50%;
           width: 44px;
           height: 44px;
           justify-content: center;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
           text-decoration: none;
           font-size: 16px;
           transition: background 0.15s;
         }
         :global(.info-action-btn:hover) {
-          background: rgba(108, 92, 231, 0.15);
-          color: var(--clr-theme-1, #6c5ce7);
+          background: var(--accent-soft);
+          color: var(--info);
         }
         :global(.info-action-btn span) {
           font-size: 9px;
@@ -172,7 +172,7 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           display: none;
         }
         .info-section {
-          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          border-bottom: 1px solid var(--border);
         }
         .info-section-header {
           width: 100%;
@@ -185,12 +185,12 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           cursor: pointer;
           font-size: 14px;
           font-weight: 700;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
           text-align: left;
           transition: background 0.15s;
         }
         .info-section-header:hover {
-          background: rgba(128, 128, 128, 0.06);
+          background: var(--surface-sunk);
         }
         .info-section-header i {
           font-size: 12px;
@@ -208,20 +208,20 @@ const ConversationInfoPanel: React.FC<ConversationInfoPanelProps> = ({
           gap: 10px;
           padding: 8px 10px;
           border-radius: 8px;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
           text-decoration: none;
           font-size: 13px;
           font-weight: 500;
           transition: background 0.15s;
         }
         :global(.info-link:hover) {
-          background: rgba(108, 92, 231, 0.08);
-          color: var(--clr-theme-1, #6c5ce7);
+          background: var(--accent-soft);
+          color: var(--info);
         }
         :global(.info-link i) {
           width: 28px;
           height: 28px;
-          background: rgba(128, 128, 128, 0.1);
+          background: var(--surface-sunk);
           border-radius: 50%;
           display: flex;
           align-items: center;

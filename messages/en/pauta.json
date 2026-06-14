@@ -48,7 +48,10 @@
   "credit": {
     "label": "My ad credit",
     "available": "Available for your next campaign. It cannot be exchanged for money.",
-    "empty": "You do not have credit yet. It is generated from unspent budget when campaigns end."
+    "empty": "You do not have credit yet. It is generated from unspent budget when campaigns end.",
+    "gift": "Includes Q50 for each friend you invite",
+    "recharge": "Add funds",
+    "rechargeSoon": "Adding funds will be available soon."
   },
   "form": {
     "title": "New campaign",
@@ -95,5 +98,40 @@
     "pause": "Pause",
     "resume": "Resume",
     "finish": "Finish"
+  },
+  "invite": {
+    "breadcrumbTitle": "Invite and earn",
+    "banner": {
+      "badge": "Referrals",
+      "title": "Invite a friend and earn Q50 in ads",
+      "body": "When your friend signs up and makes their first ad purchase, you both get Q50 of credit in your balance. No limit and it never expires."
+    },
+    "steps": {
+      "share": "Share your link",
+      "register": "Your friend signs up",
+      "earn": "Buys ads and you each earn Q50"
+    },
+    "link": {
+      "label": "Your invitation link",
+      "copy": "Copy",
+      "soonBadge": "Coming soon",
+      "loginPrompt": "Sign in to get your invitation link.",
+      "login": "Sign in"
+    },
+    "share": {
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook",
+      "email": "Email"
+    },
+    "soon": "The referral program will be available soon.",
+    "progress": {
+      "none": "You do not have activated referrals yet.",
+      "hint": "The credit is added automatically when your friend makes their first ad purchase."
+    },
+    "balance": {
+      "label": "Your ad balance",
+      "gift": "Includes the credit from your referrals",
+      "cta": "Use in Ads"
+    }
   }
 }
