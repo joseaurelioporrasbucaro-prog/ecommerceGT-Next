@@ -265,3 +265,36 @@ completo** (tabla referidos + código por usuario + acreditación idempotente en
 primera compra + opcional ledger de movimientos). Sin backend, el front solo
 puede ser una **cáscara** (link de invitación derivado del usuario, progreso en
 placeholder). Requiere autorización + diseño del esquema de referidos.
+
+### Del handoff #10 — Pauta · /invite · /messages (2026-06-13, Claude Code)
+
+Implementado: re-skin de `PautaMain` (saldo navy + objetivos lavanda), cáscara
+`/invite`, y /messages responsive (hilo + inbox + info-panel a tokens, barra de
+contexto de propiedad con botón 3D).
+
+- [H10-1] **`/invite` choca con `/invite/[token]` (invite de empresa).** El enlace
+  de referido que pide el diseño es `kiosqui.com/invite/CODE`, pero esa ruta ya es
+  la aceptación de invitación de EMPRESA. La nueva pantalla de referidos quedó en
+  `/invite` (índice), sin tocar `/invite/[token]`. **Falta decidir la ruta de canje
+  del referido** (recomiendo `?ref=CODE` en registro, o `/r/CODE`). Está en el
+  prompt de Codex (`docs/phases/codex-prompt-referrals-q50.md` §4).
+- [H10-2] **`/invite` es cáscara honesta, no funcional.** Backend de referidos no
+  existe (§4). El código/enlace es **vista previa** derivada del `handle`; Copiar y
+  compartir muestran toast "próximamente" (mismo patrón que "Recargar saldo"); el
+  progreso arranca en **cero**; el saldo sí es real (`useAdCredit`). No se inventan
+  datos de referidos ni se reparte un enlace que aún no canjea. El prompt para Codex
+  ya está listo para volverla funcional.
+- [H10-3] **Barra de propiedad en /messages: sin precio ni imagen reales.** El
+  `inbox` solo trae `contact_name`, `contact_image`, `pub_title` — **no** precio ni
+  thumb de la publicación. Por eso la barra usa un **thumb placeholder navy** (igual
+  que el reference de diseño) + título + accesos "Ver publicación" / "Modelo 3D".
+  Si se quiere mostrar precio/foto reales en el hilo, el endpoint de inbox debería
+  incluirlos (o el front haría un fetch extra del detalle). → posible cambio backend.
+- [H10-4] **Botón "3D" siempre visible** aunque la publicación no tenga modelo GLB
+  (el inbox no expone si hay GLB). El visor `/publications/:id/viewer` maneja su
+  propio estado vacío. Si molesta, exponer un flag `hasGlb` en el inbox para ocultar
+  el botón. → posible cambio backend.
+- [H10-5] **Send del composer ahora es verde de marca** (reemplaza el degradado
+  azul-morado de `.fill-btn`). Recordatorio del gap global ya listado: `.fill-btn`
+  (header "Publicar", registros, etc.) **sigue** con el degradado Oction; falta el
+  sistema de botón de marca para reemplazarlo en todos lados.
