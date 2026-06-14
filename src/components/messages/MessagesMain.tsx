@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import ThemeChanger from '@/components/home/ThemeChanger';
 import { useAuth } from '@/utils/AuthContext';
 import { ApiError } from '@/utils/Api';
 import { useInbox } from '@/hooks/api/useMessages';
@@ -78,8 +77,6 @@ const MessagesMain: React.FC = () => {
 
   return (
     <main className="messages-page">
-      <ThemeChanger />
-
       <div className={`msg-shell${hasActiveConversation ? ' has-info' : ''}`}>
 
         {/* ── Col izquierda: inbox ── */}
@@ -155,10 +152,10 @@ const MessagesMain: React.FC = () => {
           display: grid;
           grid-template-columns: 300px 1fr;
           height: calc(100vh - 90px);
-          border-top: 1px solid rgba(128, 128, 128, 0.18);
-          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
           overflow: hidden;
-          background: var(--clr-bg-white, #fff);
+          background: var(--surface);
         }
         .msg-shell.has-info {
           grid-template-columns: 300px 1fr 270px;
@@ -166,22 +163,22 @@ const MessagesMain: React.FC = () => {
 
         /* ── Sidebar izquierdo ── */
         .msg-sidebar {
-          border-right: 1px solid rgba(128, 128, 128, 0.18);
+          border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          background: var(--clr-bg-white, #fff);
+          background: var(--surface);
         }
         .msg-sidebar-head {
           padding: 20px 16px 14px;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          border-bottom: 1px solid var(--border);
           flex-shrink: 0;
         }
         .msg-sidebar-title {
           margin: 0;
           font-size: 22px;
           font-weight: 800;
-          color: var(--clr-common-heading, #181818);
+          color: var(--fg-strong);
         }
 
         /* ── Centro ── */
@@ -204,7 +201,7 @@ const MessagesMain: React.FC = () => {
         }
         .msg-empty :global(i) {
           font-size: 56px;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-500);
         }
         .msg-empty h4 {
           margin: 0;
@@ -225,9 +222,9 @@ const MessagesMain: React.FC = () => {
           background: transparent;
           font-size: 14px;
           font-weight: 700;
-          color: var(--clr-theme-1, #6c5ce7);
+          color: var(--lav-700);
           cursor: pointer;
-          border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+          border-bottom: 1px solid var(--border);
           width: 100%;
           text-align: left;
         }
@@ -239,7 +236,7 @@ const MessagesMain: React.FC = () => {
           opacity: 0.7;
         }
         .msg-state-error {
-          color: #ef4444;
+          color: var(--danger);
           opacity: 1;
         }
 
@@ -256,7 +253,7 @@ const MessagesMain: React.FC = () => {
         }
 
         /* Móvil: un panel a la vez */
-        @media (max-width: 680px) {
+        @media (max-width: 859px) {
           .msg-shell,
           .msg-shell.has-info {
             grid-template-columns: 1fr;
