@@ -378,8 +378,8 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-          color: #fff;
+          background: linear-gradient(135deg, var(--navy-700), var(--navy-900));
+          color: var(--cream);
           font-weight: 700;
           font-size: 22px;
         }

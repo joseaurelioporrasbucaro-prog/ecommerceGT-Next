@@ -280,8 +280,8 @@ const DangerZone: React.FC = () => {
         .dz-row > div { flex: 1; min-width: 240px; }
         .dz-row strong { display: block; margin-bottom: 4px; font-size: 14.5px; }
         .dz-row p { font-size: 13px; opacity: 0.75; margin: 0; line-height: 1.5; }
-        .dz-row-warning strong { color: #b45309; }
-        .dz-row-danger strong { color: #b91c1c; }
+        .dz-row-warning strong { color: var(--warning); }
+        .dz-row-danger strong { color: var(--danger); }
 
         .dz-btn {
           border: none;
@@ -296,10 +296,10 @@ const DangerZone: React.FC = () => {
           color: #fff;
           transition: background 0.15s;
         }
-        .dz-btn-warning { background: #d97706; }
-        .dz-btn-warning:hover { background: #b45309; }
-        .dz-btn-danger { background: #ef4444; }
-        .dz-btn-danger:hover { background: #dc2626; }
+        .dz-btn-warning { background: var(--warning); }
+        .dz-btn-warning:hover { background: var(--warning); filter: brightness(0.92); }
+        .dz-btn-danger { background: var(--danger); }
+        .dz-btn-danger:hover { background: var(--danger); filter: brightness(0.92); }
 
         .dz-modal-body { text-align: center; }
         .dz-modal-body :global(h4) { margin: 0 0 10px; font-size: 22px; font-weight: 700; }
@@ -313,8 +313,8 @@ const DangerZone: React.FC = () => {
           justify-content: center;
           font-size: 26px;
         }
-        .dz-modal-icon-warning { background: rgba(217, 119, 6, 0.15); color: #d97706; }
-        .dz-modal-icon-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .dz-modal-icon-warning { background: var(--warning-bg); color: var(--warning); }
+        .dz-modal-icon-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
         .dz-modal-text { font-size: 14px; margin: 0 0 8px; opacity: 0.9; }
         .dz-modal-list {
           text-align: left;
@@ -373,10 +373,10 @@ const DangerZone: React.FC = () => {
           transition: background 0.15s;
         }
         .dz-modal-confirm:disabled { opacity: 0.55; cursor: not-allowed; }
-        .dz-modal-confirm-warning { background: #d97706; }
-        .dz-modal-confirm-warning:not(:disabled):hover { background: #b45309; }
-        .dz-modal-confirm-danger { background: #ef4444; }
-        .dz-modal-confirm-danger:not(:disabled):hover { background: #dc2626; }
+        .dz-modal-confirm-warning { background: var(--warning); }
+        .dz-modal-confirm-warning:not(:disabled):hover { background: var(--warning); filter: brightness(0.92); }
+        .dz-modal-confirm-danger { background: var(--danger); }
+        .dz-modal-confirm-danger:not(:disabled):hover { background: var(--danger); filter: brightness(0.92); }
       `}</style>
     </div>
   );
