@@ -133,5 +133,29 @@
       "gift": "Incluye el credito de tus referidos",
       "cta": "Usar en Pauta"
     }
+  },
+  "builder": {
+    "stepPublication": "Publicación a promocionar",
+    "stepObjective": "Objetivo",
+    "stepInvestment": "Cuánto invertir",
+    "stepSegmentation": "Segmentación",
+    "objDestacar": "Alcance amplio + posición destacada en listados.",
+    "objMensajes": "Botón Enviar mensaje + posición destacada.",
+    "estimateWith": "Estimado con {budget}",
+    "estimateImpressions": "{lo}–{hi} impresiones",
+    "estimateReached": "{lo}–{hi} personas alcanzadas",
+    "estimateNote": "El estimado es aproximado y depende de la zona y la competencia.",
+    "segmentationSub": "¿A quién querés mostrarle la publicación? Dejá en \"Todos\" para no segmentar."
+  },
+  "summary": {
+    "title": "Resumen",
+    "investment": "Inversión",
+    "segmentation": "Segmentación",
+    "availableBalance": "Desde tu saldo",
+    "payWithCard": "A pagar con tarjeta",
+    "activate": "Activar pauta",
+    "secure": "Pago seguro con tarjeta",
+    "everyone": "Todos",
+    "years": "años"
   }
 }

@@ -133,5 +133,29 @@
       "gift": "Includes the credit from your referrals",
       "cta": "Use in Ads"
     }
+  },
+  "builder": {
+    "stepPublication": "Listing to promote",
+    "stepObjective": "Objective",
+    "stepInvestment": "How much to invest",
+    "stepSegmentation": "Targeting",
+    "objDestacar": "Wide reach + featured placement in listings.",
+    "objMensajes": "Send message button + featured placement.",
+    "estimateWith": "Estimate with {budget}",
+    "estimateImpressions": "{lo}–{hi} impressions",
+    "estimateReached": "{lo}–{hi} people reached",
+    "estimateNote": "This estimate is approximate and depends on the area and competition.",
+    "segmentationSub": "Who do you want to show the listing to? Leave on \"All\" to skip targeting."
+  },
+  "summary": {
+    "title": "Summary",
+    "investment": "Investment",
+    "segmentation": "Targeting",
+    "availableBalance": "From your balance",
+    "payWithCard": "Pay with card",
+    "activate": "Activate ad",
+    "secure": "Secure card payment",
+    "everyone": "Everyone",
+    "years": "years"
   }
 }
