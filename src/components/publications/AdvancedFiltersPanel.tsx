@@ -1,193 +1,205 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { PublicationFilters } from './PublicationsBar';
 import AmenitiesPicker from '@/components/Upload/AmenitiesPicker';
 
 /**
- * Fase 19 — panel modal de filtros avanzados.
+ * H12 — selector de amenidades de la barra de filtros cohesiva.
  *
- * Vive arriba del listado como botón compacto. Al abrir, muestra precio,
- * habitaciones mín, baños mín, m² mín y ubicación. Los filtros se aplican CLIENT-SIDE en
- * PublicationsMain (no toca el backend).
+ * Antes esto era el modal de "Filtros avanzados" (precio/cuartos/baños/tamaño/
+ * ubicación + amenidades). Con el rediseño del listado (handoff §1) esos
+ * controles viven ahora en la barra de una sola fila (`PublicationsBar`), así
+ * que este componente se reduce a su única pieza que necesita un popover: el
+ * multi-selector de amenidades. Se monta como un control más de la barra,
+ * con la misma altura (44) y estilo de chevron que los selects vecinos.
  *
- * Diseño: contador de filtros activos en el header del panel para que
- * el usuario sepa si tiene filtros aplicados aunque el panel esté cerrado.
+ * Sigue siendo client-side; solo cablea la UI a `filters.amenityIds`
+ * (el filtrado server-side es backend, fuera de scope — ver §1.0).
  */
 interface Props {
   filters: PublicationFilters;
   onFiltersChange: (next: PublicationFilters) => void;
 }
 
-const countActive = (f: PublicationFilters): number => {
-  let n = 0;
-  if (f.priceMin && f.priceMin !== '') n++;
-  if (f.priceMax && f.priceMax !== '') n++;
-  if (f.roomsMin && f.roomsMin !== '') n++;
-  if (f.bathsMin && f.bathsMin !== '') n++;
-  if (f.sizeMin && f.sizeMin !== '') n++;
-  if (f.location && f.location.trim() !== '') n++;
-  if (f.amenityIds && f.amenityIds.length > 0) n += f.amenityIds.length;
-  return n;
-};
-
-const AdvancedFiltersPanel: React.FC<Props> = ({ filters, onFiltersChange }) => {
+const AmenitiesFilterDropdown: React.FC<Props> = ({ filters, onFiltersChange }) => {
   const t = useTranslations('publications');
   const [open, setOpen] = useState(false);
-  const activeCount = countActive(filters);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const update = (patch: Partial<PublicationFilters>) => {
-    onFiltersChange({ ...filters, ...patch });
-  };
+  const count = (filters.amenityIds || []).length;
 
-  const clearAll = () => {
-    onFiltersChange({
-      ...filters,
-      priceMin: '',
-      priceMax: '',
-      roomsMin: '',
-      bathsMin: '',
-      sizeMin: '',
-      location: '',
-      amenityIds: [],
-    });
-  };
+  // Cierra al click fuera o Escape (el popover no es modal, vive en la barra).
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   return (
-    <div className={`afp ${open ? 'is-open' : ''}`}>
+    <div className="afp" ref={rootRef}>
       <button
         type="button"
-        className="afp-toggle kq-chip"
+        className={`afp-trigger ${count > 0 ? 'is-active' : ''}`}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-controls="advanced-publication-filters"
+        aria-haspopup="dialog"
       >
-        <i className="fas fa-sliders-h" />
-        <span>{t('filters.advanced')}</span>
-        {activeCount > 0 && <span className="afp-badge">{activeCount}</span>}
-        <i className="fas fa-chevron-down afp-chevron" />
+        <i className="fas fa-sliders-h afp-lead" aria-hidden="true" />
+        <span>{t('features.amenities')}</span>
+        {count > 0 && <span className="afp-badge">{count}</span>}
+        <i className="fas fa-chevron-down afp-chevron" aria-hidden="true" />
       </button>
 
       {open && (
-        <div className="afp-layer" id="advanced-publication-filters">
-          <button
-            type="button"
-            className="afp-backdrop"
-            aria-label={t('filters.close')}
-            onClick={() => setOpen(false)}
-          />
-          <aside className="afp-modal" role="dialog" aria-modal="true" aria-labelledby="afp-title">
-            <div className="afp-header">
-              <div>
-                <span className="afp-kicker">{t('filters.label')}</span>
-                <h3 id="afp-title">{t('filters.advanced')}</h3>
-              </div>
+        <div className="afp-pop" role="dialog" aria-label={t('filters.amenitiesRequired')}>
+          <div className="afp-pop-head">
+            <span>{t('filters.amenitiesRequired')}</span>
+            {count > 0 && (
               <button
                 type="button"
-                className="afp-close"
-                aria-label={t('filters.close')}
-                onClick={() => setOpen(false)}
+                className="afp-pop-clear"
+                onClick={() => onFiltersChange({ ...filters, amenityIds: [] })}
               >
-                <i className="fas fa-times" />
+                {t('filters.clearAll')}
               </button>
-            </div>
-
-            <div className="afp-body">
-              <div className="afp-grid">
-                <div className="afp-group">
-                  <label className="afp-label">{t('filters.priceMin')}</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    placeholder="Q 0"
-                    value={filters.priceMin || ''}
-                    onChange={(e) => update({ priceMin: e.target.value })}
-                  />
-                </div>
-                <div className="afp-group">
-                  <label className="afp-label">{t('filters.priceMax')}</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    placeholder={t('filters.withoutLimit')}
-                    value={filters.priceMax || ''}
-                    onChange={(e) => update({ priceMax: e.target.value })}
-                  />
-                </div>
-                <div className="afp-group">
-                  <label className="afp-label">{t('filters.roomsMin')}</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    placeholder="0"
-                    value={filters.roomsMin || ''}
-                    onChange={(e) => update({ roomsMin: e.target.value })}
-                  />
-                </div>
-                <div className="afp-group">
-                  <label className="afp-label">{t('filters.bathroomsMin')}</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    placeholder="0"
-                    value={filters.bathsMin || ''}
-                    onChange={(e) => update({ bathsMin: e.target.value })}
-                  />
-                </div>
-                <div className="afp-group">
-                  <label className="afp-label">{t('filters.sizeMin')}</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    placeholder="0"
-                    value={filters.sizeMin || ''}
-                    onChange={(e) => update({ sizeMin: e.target.value })}
-                  />
-                </div>
-                <div className="afp-group afp-group-wide">
-                  <label className="afp-label">{t('filters.location')}</label>
-                  <input
-                    type="text"
-                    placeholder={t('filters.locationPlaceholder')}
-                    value={filters.location || ''}
-                    onChange={(e) => update({ location: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {/* Fase 19.5 — filtro por amenidades. Reusa AmenitiesPicker con
-                  estilo de chips. La publicación debe tener TODAS las marcadas
-                  (AND), no cualquiera (OR) — es lo intuitivo para el comprador. */}
-              <div className="afp-amenities">
-                <label className="afp-label">{t('filters.amenitiesRequired')}</label>
-                <AmenitiesPicker
-                  value={filters.amenityIds || []}
-                  onChange={(next) => update({ amenityIds: next })}
-                />
-              </div>
-            </div>
-
-            <div className="afp-actions">
-              <button
-                type="button"
-                className="afp-clear-btn"
-                onClick={clearAll}
-                disabled={activeCount === 0}
-              >
-                <i className="fas fa-times-circle" /> {t('filters.clear', { count: activeCount })}
-              </button>
-              <button type="button" className="fill-btn fill-btn-sm afp-apply-btn" onClick={() => setOpen(false)}>
-                {t('filters.apply')}
-              </button>
-            </div>
-          </aside>
+            )}
+          </div>
+          <div className="afp-pop-body">
+            <AmenitiesPicker
+              value={filters.amenityIds || []}
+              onChange={(next) => onFiltersChange({ ...filters, amenityIds: next })}
+            />
+          </div>
         </div>
       )}
+
+      <style jsx>{`
+        .afp {
+          position: relative;
+          display: inline-flex;
+        }
+        .afp-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          height: 44px;
+          padding: 0 32px 0 14px;
+          position: relative;
+          border: 1px solid var(--border-strong);
+          border-radius: var(--r-sm);
+          background: var(--bg-elevated);
+          color: var(--fg-muted);
+          font-family: var(--font-body);
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .afp-trigger:hover {
+          border-color: var(--accent);
+        }
+        .afp-trigger:focus-visible {
+          outline: none;
+          border-color: var(--accent);
+          box-shadow: var(--shadow-focus);
+        }
+        .afp-trigger.is-active {
+          color: var(--fg-strong);
+          font-weight: 600;
+          border-color: var(--accent);
+        }
+        .afp-lead {
+          font-size: 13px;
+          color: var(--lav-700);
+        }
+        .afp-chevron {
+          position: absolute;
+          right: 13px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 11px;
+          color: var(--fg-subtle);
+        }
+        .afp-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 5px;
+          border-radius: var(--r-pill);
+          background: var(--accent);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .afp-pop {
+          position: absolute;
+          z-index: 40;
+          top: calc(100% + 8px);
+          right: 0;
+          width: min(360px, 90vw);
+          max-height: 60vh;
+          overflow: auto;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--r-md);
+          box-shadow: var(--shadow-md);
+          padding: 14px 16px 16px;
+        }
+        .afp-pop-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 14px;
+          color: var(--fg-strong);
+        }
+        .afp-pop-clear {
+          border: none;
+          background: transparent;
+          color: var(--fg-muted);
+          font-family: var(--font-body);
+          font-size: 12.5px;
+          font-weight: 600;
+          cursor: pointer;
+          text-decoration: underline;
+        }
+        .afp-pop-clear:hover {
+          color: var(--fg-strong);
+        }
+        @media (max-width: 575px) {
+          .afp {
+            flex: 1 1 100%;
+          }
+          .afp-trigger {
+            width: 100%;
+            justify-content: flex-start;
+          }
+          .afp-pop {
+            right: auto;
+            left: 0;
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   );
 };
 
-export default AdvancedFiltersPanel;
+export default AmenitiesFilterDropdown;
