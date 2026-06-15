@@ -66,7 +66,14 @@
     "sellerVerified": "Verified seller",
     "status": "Status",
     "viewSeller": "View seller",
-    "views": "Views"
+    "views": "Views",
+    "descriptionTitle": "Description",
+    "forSale": "For sale",
+    "forRent": "For rent",
+    "view3d": "View 3D model",
+    "short3d": "3D",
+    "premium": "Premium",
+    "sellerPublications": "{count} listings"
   },
   "listing": {
     "breadcrumbTitle": "Listings",
@@ -78,7 +85,13 @@
     "viewList": "List",
     "viewMap": "Map",
     "viewModeAria": "View mode",
-    "viewSplit": "List + Map"
+    "viewSplit": "List + Map",
+    "viewGrid": "Grid",
+    "emptyTitle": "No results",
+    "errorTitle": "We couldn't load this",
+    "retry": "Retry",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit"
   },
   "favoritesPage": {
     "breadcrumbTitle": "My favorites",
@@ -141,7 +154,13 @@
     "sortHighPrice": "Highest price",
     "sortLowPrice": "Lowest price",
     "sortRecent": "Newest",
-    "withoutLimit": "No limit"
+    "withoutLimit": "No limit",
+    "type": "Type",
+    "currency": "Currency",
+    "size": "Size",
+    "clearAll": "Clear all",
+    "removeFilter": "Remove filter",
+    "resultCount": "{count, plural, one {# property} other {# properties}}"
   },
   "comments": {
     "closedNotice": "This listing is {status}. It no longer accepts new comments.",
@@ -157,7 +176,18 @@
     "replyRequired": "Write a reply before posting it.",
     "sendReply": "Reply",
     "submit": "Comment",
-    "title": "Comments"
+    "title": "Comments",
+    "questionsTitle": "Questions",
+    "questionsSubtitle": "Ask anything you need about this property. The seller or the community will reply.",
+    "ask": "Ask",
+    "askPlaceholder": "Write your question about this property… (use @ to mention)",
+    "sellerBadge": "Seller",
+    "likesLabel": "Like",
+    "replyLabel": "Reply",
+    "showMoreReplies": "Show {count} more replies",
+    "hideReplies": "Hide replies",
+    "emptyTitle": "Be the first to ask",
+    "emptySub": "There are no questions about this property yet. Ask yours."
   },
   "reports": {
     "commentSuccess": "Comment reported.",

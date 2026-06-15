@@ -9,6 +9,10 @@
    ============================================================ */
 :root {
   --clr-theme-1:            var(--navy-800);
+  /* Acento SECUNDARIO de Oction (era #6c5ce7 morado). Sin remapear, los usos
+     `var(--tp-theme-1, #6c5ce7)` (links/like/sidebars/comentarios) caían al
+     fallback morado fijo en ambos temas. Lo mandamos a la lavanda de marca. */
+  --tp-theme-1:             var(--lav-700);
   --clr-common-heading:     var(--fg-strong);
   --clr-common-body-text:   var(--fg-muted);
   --clr-common-border:      var(--border);
@@ -26,5 +30,6 @@
    "oscuro sobre claro" no funciona en dark) y bodylight al fondo oscuro. */
 [data-theme='dark'] {
   --clr-theme-1:      var(--lav-400);
+  --tp-theme-1:       var(--lav-400);
   --clr-bg-bodylight: var(--bg);
 }

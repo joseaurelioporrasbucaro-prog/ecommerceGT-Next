@@ -66,7 +66,14 @@
     "sellerVerified": "Vendedor verificado",
     "status": "Estado",
     "viewSeller": "Ver vendedor",
-    "views": "Vistas"
+    "views": "Vistas",
+    "descriptionTitle": "Descripción",
+    "forSale": "Venta",
+    "forRent": "Renta",
+    "view3d": "Ver modelo 3D",
+    "short3d": "3D",
+    "premium": "Premium",
+    "sellerPublications": "{count} publicaciones"
   },
   "listing": {
     "breadcrumbTitle": "Publicaciones",
@@ -78,7 +85,13 @@
     "viewList": "Lista",
     "viewMap": "Mapa",
     "viewModeAria": "Modo de visualización",
-    "viewSplit": "Lista + Mapa"
+    "viewSplit": "Lista + Mapa",
+    "viewGrid": "Cuadrícula",
+    "emptyTitle": "Sin resultados",
+    "errorTitle": "No pudimos cargar",
+    "retry": "Reintentar",
+    "fullscreen": "Pantalla completa",
+    "exitFullscreen": "Salir"
   },
   "favoritesPage": {
     "breadcrumbTitle": "Mis favoritos",
@@ -141,7 +154,13 @@
     "sortHighPrice": "Mayor precio",
     "sortLowPrice": "Menor precio",
     "sortRecent": "Más recientes",
-    "withoutLimit": "Sin límite"
+    "withoutLimit": "Sin límite",
+    "type": "Tipo",
+    "currency": "Moneda",
+    "size": "Tamaño",
+    "clearAll": "Limpiar todo",
+    "removeFilter": "Quitar filtro",
+    "resultCount": "{count, plural, one {# propiedad} other {# propiedades}}"
   },
   "comments": {
     "closedNotice": "Esta publicación está {status}. Ya no acepta comentarios nuevos.",
@@ -157,7 +176,18 @@
     "replyRequired": "Escribe una respuesta antes de publicarla.",
     "sendReply": "Responder",
     "submit": "Comentar",
-    "title": "Comentarios"
+    "title": "Comentarios",
+    "questionsTitle": "Preguntas",
+    "questionsSubtitle": "Preguntá lo que necesités sobre esta propiedad. El vendedor o la comunidad te responde.",
+    "ask": "Preguntar",
+    "askPlaceholder": "Escribí tu pregunta sobre esta propiedad… (usá @ para mencionar)",
+    "sellerBadge": "Vendedor",
+    "likesLabel": "Me gusta",
+    "replyLabel": "Responder",
+    "showMoreReplies": "Ver {count} respuestas más",
+    "hideReplies": "Ocultar respuestas",
+    "emptyTitle": "Sé el primero en preguntar",
+    "emptySub": "Todavía no hay preguntas sobre esta propiedad. Hacé la tuya."
   },
   "reports": {
     "commentSuccess": "Comentario denunciado.",

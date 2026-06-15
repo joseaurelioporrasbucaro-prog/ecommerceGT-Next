@@ -298,3 +298,86 @@ contexto de propiedad con botón 3D).
   azul-morado de `.fill-btn`). Recordatorio del gap global ya listado: `.fill-btn`
   (header "Publicar", registros, etc.) **sigue** con el degradado Oction; falta el
   sistema de botón de marca para reemplazarlo en todos lados.
+
+### Del handoff #11 — Decisiones de diseño (2026-06-13, Claude Code)
+
+**CORRECCIÓN a [H10-5]:** el sistema de botón global YA estaba migrado en un WP
+previo — `.fill-btn` en `_common.scss` es verde de marca y sus variantes lo
+extienden; **no quedan gradientes Oction en los partials** (`_about/_art/_creator/
+_footer/_custome`). El gap [H10-5] estaba desactualizado. La Prioridad #1 del #11
+ya estaba cumplida (solo se verificó).
+
+Aplicado en #11:
+- **§3 Rating:** ya estaba en `--rating` (verde) en los componentes de estrellas
+  (CreatorProfile `Stars`, Survey, TopSellers). El único `#f59e0b` restante era el
+  marcador de fila "pautada" en soporte → pasado a lavanda.
+- **§4 Badges:** chip/fila "pautada" (#fbbf24/#d97706/#f59e0b) → lavanda; precio
+  dorado del visor 3D → `--fg-strong`; warning/danger de DangerZone → tokens
+  `--warning`/`--danger`; avatares de iniciales (CreatorSingle/CompanyProfile) con
+  gradiente morado Oction → gradiente navy de marca.
+- **Leak nuevo encontrado y corregido:** `--tp-theme-1` (acento secundario Oction
+  #6c5ce7) NO estaba remapeado en el bridge → ~12 usos (RegisterForm, sidebars,
+  comentarios, like-buttons) renderizaban morado fijo en ambos temas. Remapeado a
+  lavanda de marca en `bridge.css`.
+- **§5 Logo:** `KiosquiLogo` ya hacía swap cream/navy por tema. Confirmado.
+- **§6/§7 /messages:** **[RESUELVE H10-3 y H10-4].** La barra de propiedad ahora
+  trae datos REALES (thumb, precio·zona) resolviendo el detalle de la pub vía
+  `usePublicationDetail` (1 conversación = 1 fetch cacheado, sin tocar backend),
+  con fallback al placeholder navy. El botón "Modelo 3D" ahora es condicional a
+  `hasGlb`. El detalle ya gateaba el 3D; la pub-card no tiene acceso 3D.
+- **§2 Invite:** **[RESUELVE H10-1].** Namespacing aplicado — empresa a
+  `/invite/team/[token]`, referido personal en `/invite` (panel) + `/invite/[code]`
+  (canje → `/register?ref=`). Banner "te invitaron" en el registro.
+
+Gaps NUEVOS (fuera del scope de #11, para decisión de Design):
+- [H11-1] **Dorado de "empresa verificada" (`#d4af37`→`#f1c75b`)** en `.cp-badge`,
+  anillo de avatar de empresa y hover de cards (`CompanyMain`, `CompanyProfileMain`).
+  No es leak Oction (no es azul/morado); es una identidad premium gold. **¿Se alinea
+  a marca (verde/lavanda de "verificado") o se mantiene el oro premium?** No lo toqué.
+- [H11-2] **Chips de categoría internos de soporte** (`.sr-chip-publication` ámbar,
+  `.sr-chip-message` teal): leyenda categórica de una tabla admin interna, no badges
+  de marca. Se mantienen como diferenciadores funcionales.
+- [H11-3] **Banner "te invitó X" sin nombre/avatar:** sin backend de referidos no
+  se resuelve el nombre del invitador desde el code. El banner muestra la versión
+  genérica; necesita `GET /referrals/validate/:code` (ya en el prompt de Codex).
+- [H11-PENDIENTE → HECHO] **§8 /pauta rediseño completo** — APLICADO (ver sección #12/#13).
+
+### Del handoff #12 + #13 — Listado/Detalle/Comentarios · Favicon · 3D · Pauta (2026-06-14, Claude Code)
+
+Aplicado vía 4 subagentes en paralelo (listado, detalle, comentarios, pauta) +
+favicon. `tsc --noEmit` y `next build` limpios. La i18n se fusionó central
+(deep-merge aditivo) para evitar colisiones en los JSON compartidos.
+
+- **Favicon (#13 §1):** `metadata.icons` NO se aplicaba porque el archivo de
+  convención `src/app/favicon.ico` (viejo) tiene precedencia. Solución: convención
+  de archivos `src/app/icon.png` (512) + `apple-icon.png` (180), removido el ico
+  viejo. (Es la alternativa que el propio handoff sugería.)
+- **/pauta (#11 §8):** constructor ambicioso aplicado (slider + estimado en vivo +
+  resumen sticky), lógica preservada.
+
+Gaps NUEVOS / decisiones (para Design + equipo):
+- [H12-1] ⚠️ **Listado: el fix real es BACKEND.** Se aplicó toda la UI (barra
+  cohesiva, chips, estados, grid default, toggle+localStorage) PERO el filtrado/orden
+  sigue **client-side** sobre el set cargado. El contador y la completitud reales
+  necesitan el **endpoint de búsqueda server-side con filtros + paginación** (§1.0 del
+  handoff). Marcado `// TODO(backend)`. Sin esto, los filtros se ven bien pero el bug
+  de fondo persiste. → coordinar con `ecommerceGTBackEnd`.
+- [H12-2] **Detalle: `PublicationContent.tsx` quedó huérfano.** El nuevo layout
+  consolidó todo inline, así que ese componente ya no se renderiza (no se borró). Con
+  él se dejaron de mostrar: las **tabs Info/Características** y los campos **frente/fondo
+  de terreno**. Si se quieren conservar esos datos (sobre todo frente/fondo para
+  TERRENOS, donde cuartos/baños no aplican y salen "no especificado"), hay que portarlos
+  como tiles/condicionales. → decisión de Design.
+- [H12-3] **Detalle sin badge "Destacado" ni rating numérico:** `PublicationDetail`
+  (backend) no trae flag de destacado/pauta ni un rating numérico del vendedor. El badge
+  Destacado se omitió y el "rating" usa la estrella verde con el **conteo de
+  publicaciones** del vendedor (dato real) en vez de un "4.9" inventado. Para un rating
+  real (ej. 4.9 ★) se necesita backend.
+- [H12-4] **Fidelidad:** los handoffs #12/#13 + `batch_d/*.jsx` viven en el checkout
+  principal (sin commitear), así que los subagentes de listado y comentarios no pudieron
+  leerlos y trabajaron del brief `docs/phases/kiosqui-request-modern-views.md` + las
+  specs del prompt. Cubre todos los requisitos, pero conviene un repaso visual fino
+  contra los artboards de `Batch D` por si algún detalle de spacing/color difiere.
+- [H12-5] **Detalle/Comentarios sin verificación visual con datos:** requieren auth +
+  backend (CORS del backend solo permite :3000, no el preview :3117). Verificados por
+  `tsc`/`build` + el listado/registro/favicon sí se vieron en preview.

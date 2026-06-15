@@ -15,14 +15,23 @@ interface ForumReplyProps {
   likes?: number;
   isLiked?: boolean;
   onLike?: () => void;
-  /** Si se provee, muestra el botón "Reply" (estilo del forum del scaffold). */
+  /** Si se provee, muestra el botón "Responder". */
   onReply?: () => void;
   likesLabel?: string;
   replyLabel?: string;
-  /** Permite renderizar el form inline + sub-hilos anidados debajo del comentario. */
+  /** Respuesta del vendedor → tarjeta destacada con chip "Vendedor". */
+  isSeller?: boolean;
+  /** Texto del chip de vendedor (i18n). */
+  sellerLabel?: string;
+  /** Permite renderizar el form inline + sub-hilos anidados debajo. */
   children?: React.ReactNode;
 }
 
+/**
+ * Tarjeta de una RESPUESTA a una pregunta. Cuando `isSeller` es true la
+ * respuesta se destaca (fondo accent-soft, borde izquierdo lavanda, avatar
+ * lavanda y chip "Vendedor") para dar jerarquía a la respuesta oficial.
+ */
 const ForumReply = ({
   authorName,
   authorHref,
@@ -34,67 +43,71 @@ const ForumReply = ({
   isLiked = false,
   onLike,
   onReply,
-  likesLabel = 'Likes',
+  likesLabel = 'Me gusta',
   replyLabel = 'Responder',
+  isSeller = false,
+  sellerLabel = 'Vendedor',
   children,
 }: ForumReplyProps) => (
-  <div className="q-single-answer">
-    <div className="author-name-time">
-      <div className="profile-img pos-rel">
-        <Link href={authorHref}>
-          <Image
-            src={avatarSrc}
-            alt={authorName}
-            width={50}
-            height={50}
-            style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-          />
-        </Link>
-      </div>
-      <div className="name-post-time">
-        <h4 className="artist-name">
-          <Link href={authorHref}>{authorName}</Link>
-        </h4>
-        <div className="post-date-time">
-          <div className="post-date">{date}</div>
-          {time && <div className="post-time item-border-before">{time}</div>}
+  <div className={`kq-answer${isSeller ? ' is-seller' : ''}`}>
+    <div className="kq-a-head">
+      <Link
+        href={authorHref}
+        className={`kq-avatar kq-avatar-sm${isSeller ? ' kq-avatar-lav' : ' kq-avatar-navy'}`}
+      >
+        <Image
+          src={avatarSrc}
+          alt={authorName}
+          width={36}
+          height={36}
+        />
+      </Link>
+      <div className="kq-a-meta">
+        <span className="kq-a-author-row">
+          <Link href={authorHref} className="kq-author">{authorName}</Link>
+          {isSeller && (
+            <span className="kq-seller-chip">
+              <i className="fas fa-store" />
+              {sellerLabel}
+            </span>
+          )}
+        </span>
+        <div className="kq-time">
+          <span>{date}</span>
+          {time && <span className="kq-time-sep">{time}</span>}
         </div>
       </div>
     </div>
-    <div className="answer-text">{content}</div>
 
-    {/* Estructura idéntica al `q-single-answer` del scaffold (forum). */}
-    <div className="ans-meta-content">
+    <div className="kq-text kq-a-text">{content}</div>
+
+    <div className="kq-actions kq-a-actions">
       {onLike ? (
-        <div className="q-meta-item">
-          <button
-            type="button"
-            onClick={onLike}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, color: isLiked ? 'var(--tp-theme-1, #6c5ce7)' : 'inherit' }}
-          >
-            <span className="q-meta-icon"><i className={isLiked ? 'fas fa-heart' : 'flaticon-heart'} /></span>
-            <span style={{ fontWeight: isLiked ? 700 : undefined }}>{likes}</span>
-            <span className="q-meta-type">{likesLabel}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`kq-action${isLiked ? ' is-active' : ''}`}
+          onClick={onLike}
+          aria-pressed={isLiked}
+        >
+          <i className={isLiked ? 'fas fa-heart' : 'fal fa-heart'} />
+          <span className="kq-action-count">{likes}</span>
+          <span className="kq-action-label">{likesLabel}</span>
+        </button>
       ) : (
-        <div className="q-meta-item">
-          <div className="q-meta-icon"><i className="flaticon-heart" /></div>
-          <div className="q-meta-likes">{likes}</div>
-          <div className="q-meta-type">{likesLabel}</div>
-        </div>
+        <span className="kq-action is-static">
+          <i className="fal fa-heart" />
+          <span className="kq-action-count">{likes}</span>
+          <span className="kq-action-label">{likesLabel}</span>
+        </span>
       )}
       {onReply && (
-        <div className="q-meta-item">
-          <button type="button" onClick={onReply}>
-            <span className="q-meta-icon">
-              <i className="flaticon-share-1"></i>
-            </span>
-            <span className="q-meta-type">{replyLabel}</span>
-          </button>
-        </div>
+        <button type="button" className="kq-action" onClick={onReply}>
+          <i className="fal fa-reply" />
+          <span className="kq-action-label">{replyLabel}</span>
+        </button>
       )}
     </div>
+
     {children}
   </div>
 );

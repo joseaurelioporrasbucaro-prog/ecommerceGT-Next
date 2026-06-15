@@ -19,9 +19,18 @@ interface ForumCommentProps {
   onLike?: () => void;
   repliesCount?: number;
   onReply?: () => void;
+  /** Etiquetas i18n (con fallback para no romper usos existentes). */
+  likesLabel?: string;
+  replyLabel?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Tarjeta de una PREGUNTA sobre la propiedad (patrón Kiosqui).
+ * Avatar navy + nombre + tiempo, el texto de la pregunta, y acciones
+ * discretas (like / responder). El hilo de respuestas se renderiza vía
+ * `children`.
+ */
 const ForumComment = ({
   authorName,
   authorHref,
@@ -36,80 +45,70 @@ const ForumComment = ({
   onLike,
   repliesCount = 0,
   onReply,
+  likesLabel = 'Me gusta',
+  replyLabel = 'Responder',
   children,
 }: ForumCommentProps) => (
-  <div className="q-single-wrapper publication-comment-item">
-    <div className="q-single-content">
-      <div className="author-name-time">
-        <div className="profile-img pos-rel">
-          <Link href={authorHref}>
-            <Image
-              src={avatarSrc}
-              alt={authorName}
-              width={50}
-              height={50}
-              style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-            />
-          </Link>
-        </div>
-        <div className="name-post-time">
-          <h4 className="artist-name">
-            <Link href={authorHref}>{authorName}</Link>
-          </h4>
-          <div className="post-date-time">
-            <div className="post-date">{date}</div>
-            {time && <div className="post-time item-border-before">{time}</div>}
-          </div>
+  <article className="kq-question">
+    <div className="kq-q-head">
+      <Link href={authorHref} className="kq-avatar kq-avatar-navy">
+        <Image
+          src={avatarSrc}
+          alt={authorName}
+          width={44}
+          height={44}
+        />
+      </Link>
+      <div className="kq-q-meta">
+        <Link href={authorHref} className="kq-author">{authorName}</Link>
+        <div className="kq-time">
+          <span>{date}</span>
+          {time && <span className="kq-time-sep">{time}</span>}
         </div>
       </div>
-      {title && <h4 className="post-question">{title}</h4>}
-      <p>{content}</p>
+    </div>
+
+    <div className="kq-q-body">
+      {title && <h4 className="kq-q-title">{title}</h4>}
+      <p className="kq-text">{content}</p>
       {afterContent}
     </div>
 
-    <div className="q-meta-content">
+    <div className="kq-actions">
       {onLike ? (
         <button
           type="button"
-          className="q-meta-item comment-like-btn"
+          className={`kq-action${isLiked ? ' is-active' : ''}`}
           onClick={onLike}
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: isLiked ? 'var(--tp-theme-1, #6c5ce7)' : 'inherit' }}
+          aria-pressed={isLiked}
         >
-          <div className="q-meta-icon">
-            <i className={isLiked ? 'fas fa-heart' : 'flaticon-heart'} />
-          </div>
-          <div className="q-meta-likes" style={{ fontWeight: isLiked ? 700 : undefined }}>{likes}</div>
-          <div className="q-meta-type">Likes</div>
+          <i className={isLiked ? 'fas fa-heart' : 'fal fa-heart'} />
+          <span className="kq-action-count">{likes}</span>
+          <span className="kq-action-label">{likesLabel}</span>
         </button>
       ) : (
-        <div className="q-meta-item">
-          <div className="q-meta-icon">
-            <i className="flaticon-heart" />
-          </div>
-          <div className="q-meta-likes">{likes}</div>
-          <div className="q-meta-type">Likes</div>
-        </div>
+        <span className="kq-action is-static">
+          <i className="fal fa-heart" />
+          <span className="kq-action-count">{likes}</span>
+          <span className="kq-action-label">{likesLabel}</span>
+        </span>
       )}
-      <div className="q-meta-item">
-        <div className="q-meta-icon">
-          <i className="flaticon-chatting"></i>
-        </div>
-        <div className="q-meta-comments">{repliesCount}</div>
-        <div className="q-meta-type">Respuestas</div>
-      </div>
+
+      <span className="kq-action is-static">
+        <i className="fal fa-comment" />
+        <span className="kq-action-count">{repliesCount}</span>
+      </span>
+
       {onReply && (
-        <button type="button" className="q-meta-item forum-reply-action" onClick={onReply}>
-          <div className="q-meta-icon">
-            <i className="fal fa-reply"></i>
-          </div>
-          <div className="q-meta-comments">+</div>
-          <div className="q-meta-type">Responder</div>
+        <button type="button" className="kq-action" onClick={onReply}>
+          <i className="fal fa-reply" />
+          <span className="kq-action-label">{replyLabel}</span>
         </button>
       )}
     </div>
 
     {children}
-  </div>
+  </article>
 );
 
 export default ForumComment;

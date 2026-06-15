@@ -12,16 +12,19 @@ import CategorySlider from './CategorySlider';
 import PublicationCard from './PublicationCard';
 import FeaturedPublicationsSection from './FeaturedPublicationsSection';
 import PublicationsBar, { type PublicationFilters } from './PublicationsBar';
-import AdvancedFiltersPanel from './AdvancedFiltersPanel';
 import PropertiesMap from './PropertiesMap';
 import { type SortOption } from './publicationUtils';
 
-type ViewMode = 'list' | 'map' | 'split';
+// H12 — vista por defecto = GRID. Se conserva lista (filas) y mapa.
+type ViewMode = 'grid' | 'list' | 'map';
+const VIEW_STORAGE_KEY = 'kq:listView';
+const SKELETON_COUNT = 8;
 
 const INITIAL_FILTERS: PublicationFilters = {
   search: '',
   category: '',
   sort: 'recent',
+  priceCurrency: 'Q',
 };
 
 const PAGE_SIZE = 12;
@@ -81,10 +84,33 @@ const PublicationsMain = () => {
   });
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  // Fase 19 — modo de visualización del catálogo: lista, mapa o split.
-  // En móvil forzamos lista (split rompe el grid). El useEffect debajo
-  // sincroniza si el usuario rota o cambia de tamaño.
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  // H12 — modo de visualización del catálogo: grid (default), lista o mapa.
+  // La preferencia se recuerda en localStorage (`kq:listView`). El estado
+  // inicial es 'grid' (SSR-safe); el useEffect lo hidrata desde storage.
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  // En móvil el toggle abre la vista a pantalla completa.
+  const [mobileFullscreen, setMobileFullscreen] = useState(false);
+
+  // Hidratar preferencia de vista guardada.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
+      if (saved === 'grid' || saved === 'list' || saved === 'map') {
+        setViewMode(saved);
+      }
+    } catch {
+      /* localStorage no disponible: nos quedamos con el default */
+    }
+  }, []);
+
+  const changeView = (next: ViewMode) => {
+    setViewMode(next);
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      /* noop */
+    }
+  };
 
   // Si la URL cambia (ej. el usuario clickea otra categoría del sidebar
   // mientras ya está en /publications), sincronizar el filtro local.
@@ -112,7 +138,11 @@ const PublicationsMain = () => {
     const roomsMin = Number(filters.roomsMin) || 0;
     const bathsMin = Number(filters.bathsMin) || 0;
     const sizeMin = Number(filters.sizeMin) || 0;
-    const locationQuery = (filters.location || '').trim().toLowerCase();
+    // H12 — ubicación por catálogo: departamento y municipio llegan como las
+    // descripciones del catálogo; las matcheamos por substring sobre los
+    // campos de texto de la publicación (city/town/country).
+    const departmentQuery = (filters.location || '').trim().toLowerCase();
+    const municipalityQuery = (filters.municipality || '').trim().toLowerCase();
     const requiredAmenities = filters.amenityIds || [];
 
     const filtered = publications.filter((publication: AnyPublicationListItem) => {
@@ -138,12 +168,13 @@ const PublicationsMain = () => {
       if (size < sizeMin) return false;
 
       // Ubicación: substring case-insensitive en country/city/town.
-      if (locationQuery) {
+      if (departmentQuery || municipalityQuery) {
         const loc = [publication.country, publication.city, publication.town]
           .filter(Boolean)
           .join(' ')
           .toLowerCase();
-        if (!loc.includes(locationQuery)) return false;
+        if (departmentQuery && !loc.includes(departmentQuery)) return false;
+        if (municipalityQuery && !loc.includes(municipalityQuery)) return false;
       }
 
       // Fase 19.5 — amenidades: la publicación debe tener TODAS las
@@ -172,6 +203,7 @@ const PublicationsMain = () => {
     filters.bathsMin,
     filters.sizeMin,
     filters.location,
+    filters.municipality,
     filters.amenityIds,
     publications,
   ]);
@@ -208,6 +240,29 @@ const PublicationsMain = () => {
     setFilters((prev) => ({ ...prev, category }));
   };
 
+  const clearAllFilters = () => {
+    setFilters({ ...INITIAL_FILTERS });
+  };
+
+  const viewButtons: Array<{ mode: ViewMode; icon: string; label: string }> = [
+    { mode: 'grid', icon: 'fa-th-large', label: t('listing.viewGrid') },
+    { mode: 'list', icon: 'fa-bars', label: t('listing.viewList') },
+    { mode: 'map', icon: 'fa-map-marked-alt', label: t('listing.viewMap') },
+  ];
+
+  const cardsGrid = (
+    <div className={`pub-grid ${viewMode === 'list' ? 'is-rows' : ''}`}>
+      {visiblePublications.map((publication, index) => (
+        <PublicationCard
+          key={publication.id}
+          publication={publication}
+          isNew={filters.sort === 'recent' && index === 0}
+          isFeatured={false}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <main>
       <Breadcrumbs
@@ -216,152 +271,127 @@ const PublicationsMain = () => {
       />
 
       <section className="artworks-area pt-130 pb-90">
-        <div className="container">
+        <div className={`container ${mobileFullscreen ? 'is-mobile-fullscreen' : ''}`}>
           <CategorySlider
             categories={categories}
             activeCategory={filters.category}
             onSelect={handleCategorySelect}
           />
 
+          {/* H12 — barra de filtros cohesiva (reemplaza barra fragmentada + modal). */}
           <PublicationsBar
             key={categories.length}
             filters={filters}
+            categories={categories}
+            resultCount={isLoading || error ? undefined : filteredAndSorted.length}
             onFiltersChange={setFilters}
           />
 
-          {/* Fase 19 — filtros avanzados client-side. Colapsado por defecto. */}
-          <AdvancedFiltersPanel filters={filters} onFiltersChange={setFilters} />
-
-          {/* Fase 19 — toggle de vista (Lista / Mapa / Split). */}
-          <div className="view-toggle">
-            <span className="view-toggle-label">{t('listing.viewAs')}</span>
-            <div className="view-toggle-group" role="group" aria-label={t('listing.viewModeAria')}>
-              <button
-                type="button"
-                className={`view-toggle-btn ${viewMode === 'list' ? 'is-active' : ''}`}
-                onClick={() => setViewMode('list')}
-              >
-                <i className="fas fa-th" /> {t('listing.viewList')}
-              </button>
-              <button
-                type="button"
-                className={`view-toggle-btn ${viewMode === 'split' ? 'is-active' : ''}`}
-                onClick={() => setViewMode('split')}
-              >
-                <i className="fas fa-columns" /> {t('listing.viewSplit')}
-              </button>
-              <button
-                type="button"
-                className={`view-toggle-btn ${viewMode === 'map' ? 'is-active' : ''}`}
-                onClick={() => setViewMode('map')}
-              >
-                <i className="fas fa-map-marked-alt" /> {t('listing.viewMap')}
-              </button>
+          {/* Toggle de vista segmentado (activo navy). */}
+          <div className="pub-viewbar">
+            <div className="view-seg" role="group" aria-label={t('listing.viewModeAria')}>
+              {viewButtons.map((b) => (
+                <button
+                  key={b.mode}
+                  type="button"
+                  className={`view-seg-btn ${viewMode === b.mode ? 'is-active' : ''}`}
+                  aria-pressed={viewMode === b.mode}
+                  onClick={() => changeView(b.mode)}
+                >
+                  <i className={`fas ${b.icon}`} aria-hidden="true" /> <span>{b.label}</span>
+                </button>
+              ))}
             </div>
+            {/* En móvil: alternar vista a pantalla completa. */}
+            <button
+              type="button"
+              className="view-fullscreen-btn"
+              onClick={() => setMobileFullscreen((v) => !v)}
+              aria-pressed={mobileFullscreen}
+            >
+              <i className={`fas ${mobileFullscreen ? 'fa-compress' : 'fa-expand'}`} aria-hidden="true" />
+              <span>{mobileFullscreen ? t('listing.exitFullscreen') : t('listing.fullscreen')}</span>
+            </button>
           </div>
 
-          {/* Fase 10 — destacados/patrocinados segmentados (solo en lista) */}
-          {viewMode === 'list' && <FeaturedPublicationsSection limit={4} />}
+          {/* Destacados/patrocinados segmentados (solo en grid/lista). */}
+          {viewMode !== 'map' && <FeaturedPublicationsSection limit={4} />}
 
+          {/* ── Estado: cargando (skeletons de fila, no spinner full-page) ── */}
           {isLoading && (
-            <div className="row wow fadeInUp">
-              <div className="col-12">
-                <div className="alert alert-info">{t('listing.loadingPublications')}</div>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="row wow fadeInUp">
-              <div className="col-12">
-                <div className="alert alert-danger">{getErrorMessage(error, t('common.unexpectedError'))}</div>
-              </div>
-            </div>
-          )}
-
-          {!isLoading && !error && (
-            <>
-              {/* Modo MAPA puro: solo el mapa. */}
-              {viewMode === 'map' && (
-                <PropertiesMap publications={filteredAndSorted} />
-              )}
-
-              {/* Modo SPLIT: lista a la izquierda, mapa sticky a la derecha.
-                  En móvil el split se colapsa a una columna (mapa arriba,
-                  lista abajo).
-
-                  Nota: PublicationCard ya envuelve internamente con
-                  col-xl-4 col-lg-6 col-md-6. Para que NO se aniden las
-                  columnas y las cards ocupen el ancho completo de la
-                  columna izquierda, NO los envolvemos en otro col-*; el
-                  CSS del split-view-list anula los col-* internos vía
-                  :global y los fuerza a width:100%. */}
-              {viewMode === 'split' && (
-                <div className="split-view">
-                  <div className="split-view-list">
-                    <div className="row wow fadeInUp split-view-cards">
-                      {visiblePublications.length > 0 ? (
-                        visiblePublications.map((publication, index) => (
-                          <PublicationCard
-                            key={publication.id}
-                            publication={publication}
-                            isNew={filters.sort === 'recent' && index === 0}
-                            isFeatured={false}
-                          />
-                        ))
-                      ) : (
-                        <div className="col-12">
-                          <div className="alert alert-warning">
-                            {t('listing.emptyFilters')}
-                          </div>
-                        </div>
-                      )}
+            <div className="pub-grid" aria-busy="true" aria-live="polite">
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <div key={i} className="pub-skel">
+                  <div className="pub-skel-photo" />
+                  <div className="pub-skel-body">
+                    <div className="pub-skel-line w60" />
+                    <div className="pub-skel-line w90" />
+                    <div className="pub-skel-line w40" />
+                    <div className="pub-skel-specs">
+                      <span /><span /><span />
                     </div>
-                    {hasMore && (
-                      <div ref={sentinelRef} className="text-center py-4" aria-live="polite">
-                        <i className="fal fa-spinner fa-spin" />
-                        <span className="ms-2">{t('listing.loadingMore')}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="split-view-map">
-                    <PropertiesMap publications={filteredAndSorted} />
                   </div>
                 </div>
-              )}
+              ))}
+            </div>
+          )}
 
-              {/* Modo LISTA (default): grid 4 columnas como hasta ahora. */}
-              {viewMode === 'list' && (
+          {/* ── Estado: error ── */}
+          {!isLoading && error && (
+            <div className="pub-state" role="alert">
+              <div className="pub-state-icon pub-state-icon--danger">
+                <i className="fas fa-triangle-exclamation" aria-hidden="true" />
+              </div>
+              <h4>{t('listing.errorTitle')}</h4>
+              <p>{getErrorMessage(error, t('common.unexpectedError'))}</p>
+              <button
+                type="button"
+                className="pub-state-btn"
+                onClick={() => publicationsQuery.refetch()}
+              >
+                <i className="fas fa-rotate-right" aria-hidden="true" /> {t('listing.retry')}
+              </button>
+            </div>
+          )}
+
+          {/* ── Contenido ── */}
+          {!isLoading && !error && (
+            <>
+              {viewMode === 'map' && <PropertiesMap publications={filteredAndSorted} />}
+
+              {viewMode !== 'map' && (
                 <>
-                  <div className="row wow fadeInUp">
-                    {visiblePublications.length > 0 ? (
-                      visiblePublications.map((publication, index) => (
-                        <PublicationCard
-                          key={publication.id}
-                          publication={publication}
-                          isNew={filters.sort === 'recent' && index === 0}
-                          isFeatured={false}
-                        />
-                      ))
-                    ) : (
-                      <div className="col-12">
-                        <div className="alert alert-warning">
-                          {t('listing.emptyFilters')}
+                  {visiblePublications.length > 0 ? (
+                    <>
+                      {cardsGrid}
+
+                      {hasMore && (
+                        <div ref={sentinelRef} className="text-center py-4" aria-live="polite">
+                          <i className="fal fa-spinner fa-spin" />
+                          <span className="ms-2">{t('listing.loadingMore')}</span>
                         </div>
+                      )}
+
+                      {!hasMore && (
+                        <div className="pub-showing">
+                          {t('listing.showing', {
+                            visible: visiblePublications.length,
+                            total: filteredAndSorted.length,
+                          })}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    // ── Estado: vacío ──
+                    <div className="pub-state">
+                      <div className="pub-state-icon">
+                        <i className="fas fa-magnifying-glass" aria-hidden="true" />
                       </div>
-                    )}
-                  </div>
-
-                  {hasMore && (
-                    <div ref={sentinelRef} className="text-center py-4" aria-live="polite">
-                      <i className="fal fa-spinner fa-spin" />
-                      <span className="ms-2">{t('listing.loadingMore')}</span>
-                    </div>
-                  )}
-
-                  {!hasMore && visiblePublications.length > 0 && (
-                    <div className="text-center py-4 text-muted" style={{ opacity: 0.6 }}>
-                      {t('listing.showing', { visible: visiblePublications.length, total: filteredAndSorted.length })}
+                      <h4>{t('listing.emptyTitle')}</h4>
+                      <p>{t('listing.emptyFilters')}</p>
+                      <button type="button" className="pub-state-btn" onClick={clearAllFilters}>
+                        <i className="fas fa-broom" aria-hidden="true" /> {t('filters.clearAll')}
+                      </button>
                     </div>
                   )}
                 </>
@@ -372,95 +402,258 @@ const PublicationsMain = () => {
       </section>
 
       <style jsx>{`
-        .view-toggle {
+        /* ── Toggle de vista segmentado ── */
+        .pub-viewbar {
           display: flex;
           align-items: center;
+          justify-content: flex-end;
           gap: 12px;
-          margin-bottom: 18px;
-          flex-wrap: wrap;
+          margin-bottom: 22px;
         }
-        .view-toggle-label {
-          font-size: 13px;
-          color: var(--clr-common-body-text, #636363);
-          font-weight: 600;
-        }
-        .view-toggle-group {
+        .view-seg {
           display: inline-flex;
-          background: var(--clr-bg-white, #fff);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 8px;
-          overflow: hidden;
+          background: var(--surface-sunk);
+          border: 1px solid var(--border);
+          border-radius: var(--r-pill);
+          padding: 3px;
         }
-        .view-toggle-btn {
-          padding: 8px 14px;
-          background: transparent;
-          border: none;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--clr-common-body-text, #636363);
-          cursor: pointer;
+        .view-seg-btn {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          transition: background 0.15s, color 0.15s;
+          gap: 7px;
+          padding: 7px 16px;
+          border: none;
+          border-radius: var(--r-pill);
+          background: transparent;
+          color: var(--fg-muted);
+          font-family: var(--font-body);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
         }
-        .view-toggle-btn :global(i) {
+        .view-seg-btn :global(i) {
           font-size: 12px;
         }
-        .view-toggle-btn + .view-toggle-btn {
-          border-left: 1px solid var(--clr-common-border, #e0e2e5);
+        .view-seg-btn:hover {
+          color: var(--fg-strong);
         }
-        .view-toggle-btn:hover {
-          background: var(--green-100);
-          color: var(--green-600);
+        .view-seg-btn.is-active {
+          background: var(--navy-800);
+          color: var(--cream);
         }
-        .view-toggle-btn.is-active {
-          background: var(--green-600);
-          color: #fff;
+        .view-fullscreen-btn {
+          display: none;
+          align-items: center;
+          gap: 7px;
+          padding: 8px 14px;
+          border: 1px solid var(--border-strong);
+          border-radius: var(--r-pill);
+          background: var(--bg-elevated);
+          color: var(--fg-muted);
+          font-family: var(--font-body);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
         }
 
-        .split-view {
+        /* ── Grid de tarjetas ──
+           PublicationCard se auto-envuelve en col-xl-4/col-lg-6/col-md-6.
+           Para usar un CSS Grid real (auto-fill minmax 300) neutralizamos
+           esos col-* y forzamos cada wrapper a celda neutra width:100%. */
+        .pub-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-          gap: 18px;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 22px;
           margin-bottom: 30px;
         }
-        .split-view-list {
-          min-width: 0;
-        }
-        .split-view-map {
-          position: sticky;
-          top: 100px;
-          align-self: start;
-        }
-        /* En el split, NO usamos el row/col de Bootstrap (cuyas cols
-           internas se aniden y se rompan). Convertimos el contenedor
-           en un CSS Grid responsive y forzamos a cada card-wrapper
-           (col-xl-4 etc del PublicationCard) a comportarse como una
-           celda neutra del grid: width 100%, max-width none, flex
-           none. Resultado: 2 cards por fila cuando hay ~580+px de
-           ancho de columna izquierda, 1 cuando es estrecha. */
-        .split-view-cards {
-          display: grid !important;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 14px;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
-        }
-        .split-view-cards :global(> [class*="col-"]) {
+        .pub-grid :global(> [class*='col-']) {
           flex: none !important;
           width: 100% !important;
           max-width: 100% !important;
           padding-left: 0 !important;
           padding-right: 0 !important;
         }
-        @media (max-width: 991px) {
-          /* En tablet/móvil colapsamos a una columna: mapa arriba,
-             listado abajo. Aquí el mapa NO es sticky porque ocupa demasiado. */
-          .split-view {
-            grid-template-columns: 1fr;
+        /* La card trae mb-30 propio; en el grid el gap ya separa las filas. */
+        .pub-grid :global(.pub-card) {
+          margin-bottom: 0 !important;
+        }
+        /* Vista LISTA = filas anchas (una columna). */
+        .pub-grid.is-rows {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        /* ── Skeletons de carga (shimmer sobre surface-sunk) ── */
+        .pub-skel {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--r-lg);
+          overflow: hidden;
+        }
+        .pub-skel-photo {
+          width: 100%;
+          padding-top: 66.67%;
+          background: var(--surface-sunk);
+        }
+        .pub-skel-body {
+          padding: 16px 18px 18px;
+        }
+        .pub-skel-line {
+          height: 12px;
+          border-radius: 6px;
+          background: var(--surface-sunk);
+          margin-bottom: 10px;
+        }
+        .pub-skel-line.w40 {
+          width: 40%;
+        }
+        .pub-skel-line.w60 {
+          width: 60%;
+          height: 18px;
+        }
+        .pub-skel-line.w90 {
+          width: 90%;
+        }
+        .pub-skel-specs {
+          display: flex;
+          gap: 14px;
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid var(--border);
+        }
+        .pub-skel-specs span {
+          width: 48px;
+          height: 12px;
+          border-radius: 6px;
+          background: var(--surface-sunk);
+        }
+        .pub-skel-photo,
+        .pub-skel-line,
+        .pub-skel-specs span {
+          position: relative;
+          overflow: hidden;
+        }
+        .pub-skel-photo::after,
+        .pub-skel-line::after,
+        .pub-skel-specs span::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            var(--bg-elevated),
+            transparent
+          );
+          animation: pub-shimmer 1.3s infinite;
+        }
+        @keyframes pub-shimmer {
+          100% {
+            transform: translateX(100%);
           }
-          .split-view-map {
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pub-skel-photo::after,
+          .pub-skel-line::after,
+          .pub-skel-specs span::after {
+            animation: none;
+          }
+        }
+
+        /* ── Estados vacío / error ── */
+        .pub-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 64px 24px;
+          gap: 4px;
+        }
+        .pub-state-icon {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--accent-soft);
+          color: var(--lav-700);
+          font-size: 28px;
+          margin-bottom: 14px;
+        }
+        .pub-state-icon--danger {
+          background: var(--surface-sunk);
+          color: var(--danger);
+        }
+        .pub-state h4 {
+          font-family: var(--font-display);
+          font-weight: 700;
+          color: var(--fg-strong);
+          margin: 0;
+        }
+        .pub-state p {
+          color: var(--fg-muted);
+          font-size: 14px;
+          margin: 4px 0 16px;
+          max-width: 380px;
+        }
+        .pub-state-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 22px;
+          border: none;
+          border-radius: var(--r-pill);
+          background: var(--accent);
+          color: #fff;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+        .pub-state-btn:hover {
+          background: var(--accent-hover);
+        }
+
+        .pub-showing {
+          text-align: center;
+          padding: 16px 0 4px;
+          color: var(--fg-subtle);
+          font-size: 13px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 767px) {
+          .pub-viewbar {
+            justify-content: space-between;
+          }
+          .view-fullscreen-btn {
+            display: inline-flex;
+          }
+          .view-seg-btn span {
+            display: none;
+          }
+          .view-seg-btn {
+            padding: 8px 14px;
+          }
+          /* Pantalla completa en móvil: el contenedor cubre el viewport y
+             scrollea internamente — ideal para el mapa o el grid extenso. */
+          .container.is-mobile-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            background: var(--bg);
+            max-width: none;
+            overflow-y: auto;
+            padding: 16px;
+          }
+        }
+        @media (min-width: 768px) {
+          /* En desktop el botón de pantalla completa no aplica. */
+          .container.is-mobile-fullscreen {
             position: static;
           }
         }

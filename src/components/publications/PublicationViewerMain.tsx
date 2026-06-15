@@ -362,10 +362,7 @@ const viewerStyles = `
   .pv-price {
     font-size: 20px;
     font-weight: 700;
-    background: linear-gradient(135deg, #fbbf24, #d97706);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--fg-strong);
     white-space: nowrap;
   }
 
@@ -545,7 +542,7 @@ const viewerStyles = `
   }
   .pv-error i {
     font-size: 48px;
-    color: #fbbf24;
+    color: var(--warning);
     opacity: 0.85;
   }
   .pv-error p {

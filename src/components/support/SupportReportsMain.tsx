@@ -260,10 +260,10 @@ const SupportReportsMain = () => {
         .sr-chip-message { background: rgba(0,184,148,0.16); color: #00b894; }
         .sr-chip-publication { background: rgba(245,158,11,0.18); color: #b8860b; }
         /* Fase 10.6: chip dorado para denuncias sobre publicaciones pautadas */
-        .sr-chip-pautada { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; box-shadow: 0 2px 6px rgba(217,119,6,0.3); }
+        .sr-chip-pautada { background: linear-gradient(135deg, var(--lav-500), var(--lav-600)); color: #fff; box-shadow: 0 2px 6px rgba(109,98,207,0.3); }
         .sr-chip-pautada :global(i) { font-size: 9px; }
-        .sr-row-pautada { background: rgba(251, 191, 36, 0.05); }
-        .sr-row-pautada td:first-child { border-left: 3px solid #f59e0b; }
+        .sr-row-pautada { background: rgba(181, 172, 239, 0.08); }
+        .sr-row-pautada td:first-child { border-left: 3px solid var(--lav-500); }
         .sr-content { max-width: 300px; }
         .sr-excerpt { display: block; overflow: hidden; text-overflow: ellipsis; }
         .sr-view { font-size: 12px; color: var(--clr-theme-1, #6c5ce7); background: none; border: none; padding: 0; cursor: pointer; }
