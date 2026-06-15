@@ -11,6 +11,8 @@ import AmenitiesFilterDropdown from './AdvancedFiltersPanel';
 // cou_id de Guatemala (mismo valor que usa PautaMain para el catálogo de ciudades).
 const GUATEMALA = 502;
 
+export type ListView = 'grid' | 'list' | 'map';
+
 export interface PublicationFilters {
   search: string;
   category: string;
@@ -43,18 +45,26 @@ interface PublicationsBarProps {
   /** Conteo de resultados ya filtrados (client-side). */
   resultCount?: number;
   onFiltersChange: (filters: PublicationFilters) => void;
+  /** Vista activa + cambio (toggle integrado a la barra, como el diseño).
+   * Opcional: si no se pasa onViewChange, el toggle no se renderiza (ej. en
+   * /favorites, que no tiene vista de mapa). */
+  viewMode?: ListView;
+  onViewChange?: (v: ListView) => void;
 }
 
-// Chevron compacto reutilizable para los selects nativos de la barra.
+// Select nativo estilizado como "pill" del diseño: ícono + valor + chevron.
 const SelectField: React.FC<{
   value: string;
   onChange: (value: string) => void;
   ariaLabel: string;
+  icon?: string;
   disabled?: boolean;
   active?: boolean;
+  wide?: boolean;
   children: React.ReactNode;
-}> = ({ value, onChange, ariaLabel, disabled, active, children }) => (
-  <div className={`kqf-select ${active ? 'is-active' : ''}`}>
+}> = ({ value, onChange, ariaLabel, icon, disabled, active, wide, children }) => (
+  <div className={`kqf-sel ${active ? 'is-active' : ''} ${wide ? 'is-wide' : ''}`}>
+    {icon && <i className={`${icon} kqf-sel-icon`} aria-hidden="true" />}
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -63,7 +73,7 @@ const SelectField: React.FC<{
     >
       {children}
     </select>
-    <i className="fas fa-chevron-down kqf-chevron" aria-hidden="true" />
+    <i className="fas fa-chevron-down kqf-sel-chevron" aria-hidden="true" />
   </div>
 );
 
@@ -72,13 +82,12 @@ const PublicationsBar = ({
   categories = [],
   resultCount,
   onFiltersChange,
+  viewMode,
+  onViewChange,
 }: PublicationsBarProps) => {
   const t = useTranslations('publications');
 
   const cities = useCities(GUATEMALA);
-  // El municipio depende del id del departamento; pero en filters guardamos la
-  // descripción (para matchear contra el string de la publicación). Resolvemos
-  // el id a partir de la descripción seleccionada.
   const selectedCity = (cities.data ?? []).find((c: City) => c.description === filters.location);
   const munis = useMunicipalities(selectedCity ? selectedCity.city : null);
   const { grouped } = useAmenitiesGrouped();
@@ -95,7 +104,6 @@ const PublicationsBar = ({
     onFiltersChange({ ...filters, ...patch });
   };
 
-  // Etiquetas legibles de las amenidades activas (para los chips).
   const amenityLabel = useMemo(() => {
     const map = new Map<number, string>();
     grouped.forEach((g) => g.items.forEach((a) => map.set(a.id, a.name)));
@@ -106,43 +114,23 @@ const PublicationsBar = ({
   type Chip = { key: string; label: string; clear: () => void };
   const chips: Chip[] = [];
 
-  if (filters.search.trim()) {
-    chips.push({
-      key: 'search',
-      label: `"${filters.search.trim()}"`,
-      clear: () => update({ search: '' }),
-    });
-  }
   if (filters.category) {
     chips.push({ key: 'category', label: filters.category, clear: () => update({ category: '' }) });
   }
   if (filters.location) {
     chips.push({
       key: 'location',
-      label: filters.location,
-      // limpiar departamento también limpia municipio dependiente
+      label: filters.municipality ? `${filters.location} · ${filters.municipality}` : filters.location,
       clear: () => update({ location: '', municipality: '' }),
     });
   }
-  if (filters.municipality) {
+  if (filters.priceMin || filters.priceMax) {
+    const lo = filters.priceMin ? `${currency} ${filters.priceMin}` : '';
+    const hi = filters.priceMax ? `${currency} ${filters.priceMax}` : '';
     chips.push({
-      key: 'municipality',
-      label: filters.municipality,
-      clear: () => update({ municipality: '' }),
-    });
-  }
-  if (filters.priceMin) {
-    chips.push({
-      key: 'priceMin',
-      label: `${t('filters.priceMin')}: ${currency} ${filters.priceMin}`,
-      clear: () => update({ priceMin: '' }),
-    });
-  }
-  if (filters.priceMax) {
-    chips.push({
-      key: 'priceMax',
-      label: `${t('filters.priceMax')}: ${currency} ${filters.priceMax}`,
-      clear: () => update({ priceMax: '' }),
+      key: 'price',
+      label: lo && hi ? `${lo} – ${hi}` : lo || `≤ ${hi}`,
+      clear: () => update({ priceMin: '', priceMax: '' }),
     });
   }
   if (filters.roomsMin) {
@@ -160,11 +148,7 @@ const PublicationsBar = ({
     });
   }
   if (filters.sizeMin) {
-    chips.push({
-      key: 'sizeMin',
-      label: `${filters.sizeMin}+ m²`,
-      clear: () => update({ sizeMin: '' }),
-    });
+    chips.push({ key: 'sizeMin', label: `${filters.sizeMin}+ m²`, clear: () => update({ sizeMin: '' }) });
   }
   (filters.amenityIds || []).forEach((id) => {
     chips.push({
@@ -192,23 +176,20 @@ const PublicationsBar = ({
     });
   };
 
+  const locationText = filters.municipality || filters.location || '';
+
+  const viewButtons: Array<{ mode: ListView; icon: string; label: string }> = [
+    { mode: 'grid', icon: 'fa-th-large', label: t('listing.viewGrid') },
+    { mode: 'list', icon: 'fa-bars', label: t('listing.viewList') },
+    { mode: 'map', icon: 'fa-map-marked-alt', label: t('listing.viewMap') },
+  ];
+
   return (
     <div className="kqf">
+      {/* ── Fila de filtros cohesiva ── */}
       <div className="kqf-row" role="search">
-        {/* Búsqueda */}
-        <div className="kqf-search">
-          <i className="fal fa-search kqf-search-icon" aria-hidden="true" />
-          <input
-            value={filters.search}
-            onChange={(e) => update({ search: e.target.value })}
-            type="text"
-            placeholder={t('filters.searchPlaceholder')}
-            aria-label={t('filters.searchAria')}
-          />
-        </div>
-
-        {/* Tipo de propiedad */}
         <SelectField
+          icon="fas fa-home"
           ariaLabel={t('filters.type')}
           value={filters.category}
           active={!!filters.category}
@@ -222,8 +203,8 @@ const PublicationsBar = ({
           ))}
         </SelectField>
 
-        {/* Departamento (catálogo) */}
         <SelectField
+          icon="fas fa-map-marker-alt"
           ariaLabel={t('features.state')}
           value={filters.location || ''}
           active={!!filters.location}
@@ -237,7 +218,6 @@ const PublicationsBar = ({
           ))}
         </SelectField>
 
-        {/* Municipio (dependiente) */}
         <SelectField
           ariaLabel={t('features.municipality')}
           value={filters.municipality || ''}
@@ -253,18 +233,18 @@ const PublicationsBar = ({
           ))}
         </SelectField>
 
-        {/* Precio: rango con selector de moneda */}
+        {/* Precio: rango con selector de moneda, en un solo control compacto. */}
         <div className={`kqf-price ${filters.priceMin || filters.priceMax ? 'is-active' : ''}`}>
-          <div className="kqf-cur">
-            <select
-              value={currency}
-              onChange={(e) => update({ priceCurrency: e.target.value as 'Q' | 'US$' })}
-              aria-label={t('filters.currency')}
-            >
-              <option value="Q">Q</option>
-              <option value="US$">US$</option>
-            </select>
-          </div>
+          <i className="fas fa-tag kqf-price-icon" aria-hidden="true" />
+          <select
+            className="kqf-cur"
+            value={currency}
+            onChange={(e) => update({ priceCurrency: e.target.value as 'Q' | 'US$' })}
+            aria-label={t('filters.currency')}
+          >
+            <option value="Q">Q</option>
+            <option value="US$">US$</option>
+          </select>
           <input
             type="number"
             inputMode="numeric"
@@ -286,8 +266,8 @@ const PublicationsBar = ({
           />
         </div>
 
-        {/* Cuartos */}
         <SelectField
+          icon="fas fa-bed"
           ariaLabel={t('filters.roomsMin')}
           value={filters.roomsMin || ''}
           active={!!filters.roomsMin}
@@ -299,8 +279,8 @@ const PublicationsBar = ({
           ))}
         </SelectField>
 
-        {/* Baños */}
         <SelectField
+          icon="fas fa-bath"
           ariaLabel={t('filters.bathroomsMin')}
           value={filters.bathsMin || ''}
           active={!!filters.bathsMin}
@@ -314,6 +294,7 @@ const PublicationsBar = ({
 
         {/* Tamaño mínimo (m²) */}
         <div className={`kqf-size ${filters.sizeMin ? 'is-active' : ''}`}>
+          <i className="fas fa-vector-square kqf-size-icon" aria-hidden="true" />
           <input
             type="number"
             inputMode="numeric"
@@ -329,53 +310,77 @@ const PublicationsBar = ({
         {/* Amenidades (multi) — popover reutilizado */}
         <AmenitiesFilterDropdown filters={filters} onFiltersChange={onFiltersChange} />
 
-        {/* Orden */}
-        <SelectField
-          ariaLabel={t('filters.label')}
-          value={filters.sort}
-          active={filters.sort !== 'recent'}
-          onChange={(v) => update({ sort: v as SortOption })}
-        >
-          {sortOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </SelectField>
-      </div>
+        {/* ── Orden + toggle de vista, alineados a la derecha ── */}
+        <div className="kqf-right">
+          <SelectField
+            icon="fas fa-sort-amount-down"
+            ariaLabel={t('filters.label')}
+            value={filters.sort}
+            active={filters.sort !== 'recent'}
+            wide
+            onChange={(v) => update({ sort: v as SortOption })}
+          >
+            {sortOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </SelectField>
 
-      {/* Chips de filtros activos + contador */}
-      <div className="kqf-summary">
-        <div className="kqf-chips" aria-live="polite">
-          {chips.map((chip) => (
-            <button
-              key={chip.key}
-              type="button"
-              className="kqf-chip"
-              onClick={chip.clear}
-              aria-label={`${t('filters.removeFilter')}: ${chip.label}`}
-            >
-              <span>{chip.label}</span>
-              <i className="fas fa-times" aria-hidden="true" />
-            </button>
-          ))}
-          {hasActiveFilters && (
-            <button type="button" className="kqf-clear-all" onClick={clearAll}>
-              {t('filters.clearAll')}
-            </button>
+          {onViewChange && (
+            <div className="kqf-view" role="group" aria-label={t('listing.viewModeAria')}>
+              {viewButtons.map((b) => (
+                <button
+                  key={b.mode}
+                  type="button"
+                  className={`kqf-view-btn ${viewMode === b.mode ? 'is-active' : ''}`}
+                  aria-pressed={viewMode === b.mode}
+                  aria-label={b.label}
+                  title={b.label}
+                  onClick={() => onViewChange(b.mode)}
+                >
+                  <i className={`fas ${b.icon}`} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
-        {typeof resultCount === 'number' && (
-          <div className="kqf-count">
-            {/* TODO(backend): total desde endpoint server-side */}
-            {t('filters.resultCount', { count: resultCount })}
-          </div>
-        )}
       </div>
+
+      {/* ── Chips de filtros activos ── */}
+      {hasActiveFilters && (
+        <div className="kqf-chips" aria-live="polite">
+          {chips.map((chip) => (
+            <span key={chip.key} className="kqf-chip">
+              <span className="kqf-chip-label">{chip.label}</span>
+              <button
+                type="button"
+                className="kqf-chip-x"
+                onClick={chip.clear}
+                aria-label={`${t('filters.removeFilter')}: ${chip.label}`}
+              >
+                <i className="fas fa-times" aria-hidden="true" />
+              </button>
+            </span>
+          ))}
+          <button type="button" className="kqf-clear-all" onClick={clearAll}>
+            {t('filters.clearAll')}
+          </button>
+        </div>
+      )}
+
+      {/* ── Contador (debajo, con borde inferior, como el diseño) ── */}
+      {typeof resultCount === 'number' && (
+        <div className="kqf-count-row">
+          {/* TODO(backend): total desde endpoint server-side */}
+          <span className="kqf-count-strong">{t('filters.resultCount', { count: resultCount })}</span>
+          {locationText && <span className="kqf-count-loc">{` en ${locationText}`}</span>}
+        </div>
+      )}
 
       <style jsx>{`
         .kqf {
-          margin-bottom: 22px;
+          margin-bottom: 4px;
         }
         .kqf-row {
           display: flex;
@@ -384,101 +389,98 @@ const PublicationsBar = ({
           align-items: center;
         }
 
-        /* ── Búsqueda ── */
-        .kqf-search {
+        /* ── Pill de select (ícono + valor + chevron) ── */
+        .kqf-sel {
           position: relative;
-          flex: 1 1 240px;
-          min-width: 200px;
-          display: flex;
+          display: inline-flex;
           align-items: center;
-        }
-        .kqf-search-icon {
-          position: absolute;
-          left: 14px;
-          font-size: 14px;
-          color: var(--fg-subtle);
-          pointer-events: none;
-        }
-        .kqf-search input {
-          width: 100%;
           height: 44px;
-          padding: 0 14px 0 38px;
-          border: 1px solid var(--border-strong);
+          flex: 0 0 auto;
+          width: 150px;
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
-          background: var(--bg-elevated);
-          color: var(--fg-strong);
-          font-family: var(--font-body);
-          font-size: 14px;
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-        .kqf-search input::placeholder {
-          color: var(--fg-subtle);
+        .kqf-sel.is-wide {
+          width: 178px;
         }
-        .kqf-search input:focus {
-          outline: none;
+        .kqf-sel.is-active {
+          border-color: var(--accent);
+        }
+        .kqf-sel:focus-within {
           border-color: var(--accent);
           box-shadow: var(--shadow-focus);
         }
-
-        /* ── Selects ── */
-        .kqf-select {
-          position: relative;
-          display: inline-flex;
+        .kqf-sel-icon {
+          position: absolute;
+          left: 13px;
+          font-size: 13px;
+          color: var(--fg-subtle);
+          pointer-events: none;
+          z-index: 1;
         }
-        .kqf-select select {
-          height: 44px;
-          padding: 0 34px 0 14px;
-          border: 1px solid var(--border-strong);
-          border-radius: var(--r-sm);
-          background: var(--bg-elevated);
-          color: var(--fg-muted);
+        .kqf-sel select {
+          width: 100%;
+          height: 100%;
+          border: none;
+          background: transparent;
+          color: var(--fg-subtle);
           font-family: var(--font-body);
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 400;
           cursor: pointer;
           appearance: none;
           -webkit-appearance: none;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+          padding: 0 30px 0 34px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          border-radius: var(--r-sm);
         }
-        .kqf-select select:disabled {
-          opacity: 0.55;
+        .kqf-sel select:disabled {
+          opacity: 0.5;
           cursor: not-allowed;
         }
-        .kqf-select select:focus {
+        .kqf-sel select:focus {
           outline: none;
-          border-color: var(--accent);
-          box-shadow: var(--shadow-focus);
         }
-        .kqf-select.is-active select {
+        .kqf-sel.is-active select {
           color: var(--fg-strong);
           font-weight: 600;
-          border-color: var(--accent);
         }
-        .kqf-chevron {
+        .kqf-sel-chevron {
           position: absolute;
           right: 13px;
-          top: 50%;
-          transform: translateY(-50%);
           font-size: 11px;
           color: var(--fg-subtle);
           pointer-events: none;
         }
 
-        /* ── Precio ── */
+        /* ── Precio (rango con moneda) ── */
         .kqf-price {
+          position: relative;
           display: inline-flex;
           align-items: center;
           height: 44px;
-          border: 1px solid var(--border-strong);
+          flex: 0 0 auto;
+          padding-left: 34px;
+          border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
-          background: var(--bg-elevated);
+          background: var(--surface);
           overflow: hidden;
           transition: border-color 0.15s ease;
         }
         .kqf-price.is-active {
           border-color: var(--accent);
         }
-        .kqf-cur select {
+        .kqf-price-icon {
+          position: absolute;
+          left: 13px;
+          font-size: 13px;
+          color: var(--fg-subtle);
+          pointer-events: none;
+        }
+        .kqf-cur {
           height: 42px;
           border: none;
           background: var(--surface-sunk);
@@ -486,17 +488,17 @@ const PublicationsBar = ({
           font-family: var(--font-body);
           font-weight: 600;
           font-size: 13px;
-          padding: 0 8px;
+          padding: 0 6px;
           cursor: pointer;
           appearance: none;
           -webkit-appearance: none;
           text-align: center;
         }
-        .kqf-cur select:focus {
+        .kqf-cur:focus {
           outline: none;
         }
         .kqf-price input {
-          width: 84px;
+          width: 72px;
           height: 42px;
           border: none;
           background: transparent;
@@ -507,7 +509,7 @@ const PublicationsBar = ({
         }
         .kqf-price input::placeholder {
           color: var(--fg-subtle);
-          font-weight: 500;
+          font-weight: 400;
         }
         .kqf-price input:focus {
           outline: none;
@@ -519,31 +521,43 @@ const PublicationsBar = ({
 
         /* ── Tamaño ── */
         .kqf-size {
+          position: relative;
           display: inline-flex;
           align-items: center;
           height: 44px;
-          border: 1px solid var(--border-strong);
+          flex: 0 0 auto;
+          width: 132px;
+          padding-left: 34px;
+          padding-right: 12px;
+          border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
-          background: var(--bg-elevated);
-          padding: 0 12px 0 0;
+          background: var(--surface);
           transition: border-color 0.15s ease;
         }
         .kqf-size.is-active {
           border-color: var(--accent);
         }
+        .kqf-size-icon {
+          position: absolute;
+          left: 13px;
+          font-size: 13px;
+          color: var(--fg-subtle);
+          pointer-events: none;
+        }
         .kqf-size input {
-          width: 92px;
+          flex: 1;
+          min-width: 0;
           height: 42px;
           border: none;
           background: transparent;
           color: var(--fg-strong);
           font-family: var(--font-body);
           font-size: 14px;
-          padding: 0 4px 0 12px;
+          padding: 0 4px;
         }
         .kqf-size input::placeholder {
           color: var(--fg-subtle);
-          font-weight: 500;
+          font-weight: 400;
         }
         .kqf-size input:focus {
           outline: none;
@@ -554,86 +568,136 @@ const PublicationsBar = ({
           font-weight: 600;
         }
 
-        /* ── Resumen (chips + contador) ── */
-        .kqf-summary {
-          display: flex;
+        /* ── Grupo derecho: orden + toggle ── */
+        .kqf-right {
+          margin-left: auto;
+          display: inline-flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 14px;
-          margin-top: 14px;
-          flex-wrap: wrap;
+          gap: 10px;
         }
+        .kqf-view {
+          display: inline-flex;
+          height: 44px;
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-sm);
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+        .kqf-view-btn {
+          width: 44px;
+          border: none;
+          background: transparent;
+          color: var(--fg-muted);
+          cursor: pointer;
+          font-size: 14px;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .kqf-view-btn + .kqf-view-btn {
+          border-left: 1px solid var(--border);
+        }
+        .kqf-view-btn:hover {
+          color: var(--fg-strong);
+        }
+        .kqf-view-btn.is-active {
+          background: var(--navy-800);
+          color: var(--cream);
+        }
+
+        /* ── Chips activos ── */
         .kqf-chips {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 9px;
           align-items: center;
-          flex: 1;
-          min-height: 1px;
+          margin: 14px 0;
         }
         .kqf-chip {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           height: 30px;
-          padding: 0 8px 0 12px;
-          border: none;
+          padding: 0 6px 0 13px;
           border-radius: var(--r-pill);
           background: var(--accent-soft);
           color: var(--lav-700);
           font-family: var(--font-body);
-          font-size: 12.5px;
+          font-size: 13px;
           font-weight: 600;
+        }
+        .kqf-chip-x {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(109, 98, 207, 0.18);
+          color: var(--lav-700);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
-          transition: background 0.15s ease;
+          flex-shrink: 0;
         }
-        .kqf-chip:hover {
-          background: var(--lav-200);
-        }
-        .kqf-chip :global(i) {
-          font-size: 10px;
-          opacity: 0.85;
+        .kqf-chip-x :global(i) {
+          font-size: 9px;
         }
         .kqf-clear-all {
           border: none;
           background: transparent;
           color: var(--fg-muted);
           font-family: var(--font-body);
-          font-size: 12.5px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           text-decoration: underline;
           padding: 0 4px;
-          transition: color 0.15s ease;
         }
         .kqf-clear-all:hover {
           color: var(--fg-strong);
         }
-        .kqf-count {
+
+        /* ── Contador ── */
+        .kqf-count-row {
+          padding: 4px 0 14px;
+          margin-top: ${hasActiveFilters ? '0' : '14px'};
+          border-bottom: 1px solid var(--border);
+          font-size: 15px;
+          color: var(--fg-muted);
+        }
+        .kqf-count-strong {
           font-family: var(--font-display);
-          font-size: 14px;
           font-weight: 700;
           color: var(--fg-strong);
-          white-space: nowrap;
         }
 
-        @media (max-width: 575px) {
-          .kqf-row {
-            gap: 8px;
+        /* ── Responsive ── */
+        @media (max-width: 991px) {
+          .kqf-right {
+            margin-left: 0;
+            width: 100%;
+            justify-content: space-between;
           }
-          .kqf-search {
+        }
+        @media (max-width: 575px) {
+          .kqf-sel,
+          .kqf-size {
+            flex: 1 1 calc(50% - 5px);
+            width: auto;
+          }
+          .kqf-price {
             flex: 1 1 100%;
           }
-          .kqf-select,
-          .kqf-price,
-          .kqf-size {
-            flex: 1 1 calc(50% - 4px);
+          .kqf-price input {
+            flex: 1;
+            width: auto;
           }
-          .kqf-select select {
-            width: 100%;
+          .kqf-right {
+            flex-wrap: wrap;
+            gap: 8px;
           }
-          .kqf-summary {
-            justify-content: flex-start;
+          .kqf-sel.is-wide {
+            flex: 1 1 auto;
+            width: auto;
           }
         }
       `}</style>

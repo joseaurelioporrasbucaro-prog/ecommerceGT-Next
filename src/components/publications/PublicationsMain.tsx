@@ -8,7 +8,6 @@ import { ApiError } from '@/utils/Api';
 import { usePublicationCategories } from '@/hooks/api/useCatalogs';
 import { usePublications } from '@/hooks/api/usePublications';
 import type { AnyPublicationListItem } from '@/types/api';
-import CategorySlider from './CategorySlider';
 import PublicationCard from './PublicationCard';
 import FeaturedPublicationsSection from './FeaturedPublicationsSection';
 import PublicationsBar, { type PublicationFilters } from './PublicationsBar';
@@ -88,8 +87,6 @@ const PublicationsMain = () => {
   // La preferencia se recuerda en localStorage (`kq:listView`). El estado
   // inicial es 'grid' (SSR-safe); el useEffect lo hidrata desde storage.
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  // En móvil el toggle abre la vista a pantalla completa.
-  const [mobileFullscreen, setMobileFullscreen] = useState(false);
 
   // Hidratar preferencia de vista guardada.
   useEffect(() => {
@@ -236,19 +233,9 @@ const PublicationsMain = () => {
   const isLoading = publicationsQuery.isLoading || categoriesQuery.isLoading;
   const error = publicationsQuery.error || categoriesQuery.error;
 
-  const handleCategorySelect = (category: string) => {
-    setFilters((prev) => ({ ...prev, category }));
-  };
-
   const clearAllFilters = () => {
     setFilters({ ...INITIAL_FILTERS });
   };
-
-  const viewButtons: Array<{ mode: ViewMode; icon: string; label: string }> = [
-    { mode: 'grid', icon: 'fa-th-large', label: t('listing.viewGrid') },
-    { mode: 'list', icon: 'fa-bars', label: t('listing.viewList') },
-    { mode: 'map', icon: 'fa-map-marked-alt', label: t('listing.viewMap') },
-  ];
 
   const cardsGrid = (
     <div className={`pub-grid ${viewMode === 'list' ? 'is-rows' : ''}`}>
@@ -271,50 +258,19 @@ const PublicationsMain = () => {
       />
 
       <section className="artworks-area pt-130 pb-90">
-        <div className={`container ${mobileFullscreen ? 'is-mobile-fullscreen' : ''}`}>
-          <CategorySlider
-            categories={categories}
-            activeCategory={filters.category}
-            onSelect={handleCategorySelect}
-          />
-
-          {/* H12 — barra de filtros cohesiva (reemplaza barra fragmentada + modal). */}
+        <div className="container">
+          {/* H12 — barra de filtros cohesiva: filtros + orden + toggle de vista. */}
           <PublicationsBar
             key={categories.length}
             filters={filters}
             categories={categories}
             resultCount={isLoading || error ? undefined : filteredAndSorted.length}
             onFiltersChange={setFilters}
+            viewMode={viewMode}
+            onViewChange={changeView}
           />
 
-          {/* Toggle de vista segmentado (activo navy). */}
-          <div className="pub-viewbar">
-            <div className="view-seg" role="group" aria-label={t('listing.viewModeAria')}>
-              {viewButtons.map((b) => (
-                <button
-                  key={b.mode}
-                  type="button"
-                  className={`view-seg-btn ${viewMode === b.mode ? 'is-active' : ''}`}
-                  aria-pressed={viewMode === b.mode}
-                  onClick={() => changeView(b.mode)}
-                >
-                  <i className={`fas ${b.icon}`} aria-hidden="true" /> <span>{b.label}</span>
-                </button>
-              ))}
-            </div>
-            {/* En móvil: alternar vista a pantalla completa. */}
-            <button
-              type="button"
-              className="view-fullscreen-btn"
-              onClick={() => setMobileFullscreen((v) => !v)}
-              aria-pressed={mobileFullscreen}
-            >
-              <i className={`fas ${mobileFullscreen ? 'fa-compress' : 'fa-expand'}`} aria-hidden="true" />
-              <span>{mobileFullscreen ? t('listing.exitFullscreen') : t('listing.fullscreen')}</span>
-            </button>
-          </div>
-
-          {/* Destacados/patrocinados segmentados (solo en grid/lista). */}
+          {/* Destacados/patrocinados (solo en grid/lista). */}
           {viewMode !== 'map' && <FeaturedPublicationsSection limit={4} />}
 
           {/* ── Estado: cargando (skeletons de fila, no spinner full-page) ── */}
@@ -357,7 +313,22 @@ const PublicationsMain = () => {
           {/* ── Contenido ── */}
           {!isLoading && !error && (
             <>
-              {viewMode === 'map' && <PropertiesMap publications={filteredAndSorted} />}
+              {viewMode === 'map' && (
+                <div className="pub-maplayout">
+                  <div className="pub-grid is-rows pub-maplist">
+                    {filteredAndSorted.slice(0, 40).map((publication) => (
+                      <PublicationCard
+                        key={publication.id}
+                        publication={publication}
+                        isFeatured={false}
+                      />
+                    ))}
+                  </div>
+                  <div className="pub-mapcanvas">
+                    <PropertiesMap publications={filteredAndSorted} />
+                  </div>
+                </div>
+              )}
 
               {viewMode !== 'map' && (
                 <>
@@ -402,86 +373,81 @@ const PublicationsMain = () => {
       </section>
 
       <style jsx>{`
-        /* ── Toggle de vista segmentado ── */
-        .pub-viewbar {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 12px;
-          margin-bottom: 22px;
-        }
-        .view-seg {
-          display: inline-flex;
-          background: var(--surface-sunk);
-          border: 1px solid var(--border);
-          border-radius: var(--r-pill);
-          padding: 3px;
-        }
-        .view-seg-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          padding: 7px 16px;
-          border: none;
-          border-radius: var(--r-pill);
-          background: transparent;
-          color: var(--fg-muted);
-          font-family: var(--font-body);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.15s ease, color 0.15s ease;
-        }
-        .view-seg-btn :global(i) {
-          font-size: 12px;
-        }
-        .view-seg-btn:hover {
-          color: var(--fg-strong);
-        }
-        .view-seg-btn.is-active {
-          background: var(--navy-800);
-          color: var(--cream);
-        }
-        .view-fullscreen-btn {
-          display: none;
-          align-items: center;
-          gap: 7px;
-          padding: 8px 14px;
-          border: 1px solid var(--border-strong);
-          border-radius: var(--r-pill);
-          background: var(--bg-elevated);
-          color: var(--fg-muted);
-          font-family: var(--font-body);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        /* ── Grid de tarjetas ──
-           PublicationCard se auto-envuelve en col-xl-4/col-lg-6/col-md-6.
-           Para usar un CSS Grid real (auto-fill minmax 300) neutralizamos
-           esos col-* y forzamos cada wrapper a celda neutra width:100%. */
+        /* ── Grid de tarjetas ── */
         .pub-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 22px;
           margin-bottom: 30px;
         }
-        .pub-grid :global(> [class*='col-']) {
+        /* Bootstrap envuelve cada card en un col-* con max-width 33/50%.
+           El > va FUERA de :global (si no, no matchea). Así neutralizamos el
+           cap de Bootstrap y cada celda del grid ocupa el ancho completo. */
+        .pub-grid > :global([class*='col-']) {
           flex: none !important;
           width: 100% !important;
           max-width: 100% !important;
           padding-left: 0 !important;
           padding-right: 0 !important;
         }
-        /* La card trae mb-30 propio; en el grid el gap ya separa las filas. */
         .pub-grid :global(.pub-card) {
           margin-bottom: 0 !important;
         }
-        /* Vista LISTA = filas anchas (una columna). */
+        /* Vista LISTA = una columna; la card se reflowea a fila horizontal. */
         .pub-grid.is-rows {
           grid-template-columns: 1fr;
           gap: 16px;
+        }
+        .pub-grid.is-rows :global(.pub-card) {
+          flex-direction: row;
+          align-items: stretch;
+        }
+        .pub-grid.is-rows :global(.pub-photo) {
+          width: 260px;
+          flex-shrink: 0;
+          padding-top: 0;
+          min-height: 190px;
+        }
+        .pub-grid.is-rows :global(.pub-body) {
+          flex: 1;
+          min-width: 0;
+        }
+        @media (max-width: 575px) {
+          .pub-grid.is-rows :global(.pub-card) {
+            flex-direction: column;
+          }
+          .pub-grid.is-rows :global(.pub-photo) {
+            width: 100%;
+            padding-top: 66.67%;
+            min-height: 0;
+          }
+        }
+
+        /* ── Vista mapa: split lista + mapa ── */
+        .pub-maplayout {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          gap: 20px;
+          align-items: start;
+          margin-bottom: 30px;
+        }
+        .pub-maplist {
+          max-height: 78vh;
+          overflow-y: auto;
+          padding-right: 4px;
+          margin-bottom: 0;
+        }
+        .pub-mapcanvas {
+          position: sticky;
+          top: 90px;
+        }
+        @media (max-width: 991px) {
+          .pub-maplayout {
+            grid-template-columns: 1fr;
+          }
+          .pub-mapcanvas {
+            position: static;
+          }
         }
 
         /* ── Skeletons de carga (shimmer sobre surface-sunk) ── */
@@ -626,37 +592,6 @@ const PublicationsMain = () => {
         }
 
         /* ── Responsive ── */
-        @media (max-width: 767px) {
-          .pub-viewbar {
-            justify-content: space-between;
-          }
-          .view-fullscreen-btn {
-            display: inline-flex;
-          }
-          .view-seg-btn span {
-            display: none;
-          }
-          .view-seg-btn {
-            padding: 8px 14px;
-          }
-          /* Pantalla completa en móvil: el contenedor cubre el viewport y
-             scrollea internamente — ideal para el mapa o el grid extenso. */
-          .container.is-mobile-fullscreen {
-            position: fixed;
-            inset: 0;
-            z-index: 1200;
-            background: var(--bg);
-            max-width: none;
-            overflow-y: auto;
-            padding: 16px;
-          }
-        }
-        @media (min-width: 768px) {
-          /* En desktop el botón de pantalla completa no aplica. */
-          .container.is-mobile-fullscreen {
-            position: static;
-          }
-        }
       `}</style>
     </main>
   );
