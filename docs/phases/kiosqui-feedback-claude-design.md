@@ -340,7 +340,44 @@ Gaps NUEVOS (fuera del scope de #11, para decisión de Design):
 - [H11-3] **Banner "te invitó X" sin nombre/avatar:** sin backend de referidos no
   se resuelve el nombre del invitador desde el code. El banner muestra la versión
   genérica; necesita `GET /referrals/validate/:code` (ya en el prompt de Codex).
-- [H11-PENDIENTE] **§8 /pauta rediseño completo** (slider de inversión + estimado de
-  impresiones en vivo + columna sticky "saldo + a pagar"): el re-skin del #10 ya
-  cubre saldo navy + objetivos lavanda + segmentación; falta el constructor ambicioso
-  del `batch_c/PautaScreen`. Se entrega como chunk siguiente.
+- [H11-PENDIENTE → HECHO] **§8 /pauta rediseño completo** — APLICADO (ver sección #12/#13).
+
+### Del handoff #12 + #13 — Listado/Detalle/Comentarios · Favicon · 3D · Pauta (2026-06-14, Claude Code)
+
+Aplicado vía 4 subagentes en paralelo (listado, detalle, comentarios, pauta) +
+favicon. `tsc --noEmit` y `next build` limpios. La i18n se fusionó central
+(deep-merge aditivo) para evitar colisiones en los JSON compartidos.
+
+- **Favicon (#13 §1):** `metadata.icons` NO se aplicaba porque el archivo de
+  convención `src/app/favicon.ico` (viejo) tiene precedencia. Solución: convención
+  de archivos `src/app/icon.png` (512) + `apple-icon.png` (180), removido el ico
+  viejo. (Es la alternativa que el propio handoff sugería.)
+- **/pauta (#11 §8):** constructor ambicioso aplicado (slider + estimado en vivo +
+  resumen sticky), lógica preservada.
+
+Gaps NUEVOS / decisiones (para Design + equipo):
+- [H12-1] ⚠️ **Listado: el fix real es BACKEND.** Se aplicó toda la UI (barra
+  cohesiva, chips, estados, grid default, toggle+localStorage) PERO el filtrado/orden
+  sigue **client-side** sobre el set cargado. El contador y la completitud reales
+  necesitan el **endpoint de búsqueda server-side con filtros + paginación** (§1.0 del
+  handoff). Marcado `// TODO(backend)`. Sin esto, los filtros se ven bien pero el bug
+  de fondo persiste. → coordinar con `ecommerceGTBackEnd`.
+- [H12-2] **Detalle: `PublicationContent.tsx` quedó huérfano.** El nuevo layout
+  consolidó todo inline, así que ese componente ya no se renderiza (no se borró). Con
+  él se dejaron de mostrar: las **tabs Info/Características** y los campos **frente/fondo
+  de terreno**. Si se quieren conservar esos datos (sobre todo frente/fondo para
+  TERRENOS, donde cuartos/baños no aplican y salen "no especificado"), hay que portarlos
+  como tiles/condicionales. → decisión de Design.
+- [H12-3] **Detalle sin badge "Destacado" ni rating numérico:** `PublicationDetail`
+  (backend) no trae flag de destacado/pauta ni un rating numérico del vendedor. El badge
+  Destacado se omitió y el "rating" usa la estrella verde con el **conteo de
+  publicaciones** del vendedor (dato real) en vez de un "4.9" inventado. Para un rating
+  real (ej. 4.9 ★) se necesita backend.
+- [H12-4] **Fidelidad:** los handoffs #12/#13 + `batch_d/*.jsx` viven en el checkout
+  principal (sin commitear), así que los subagentes de listado y comentarios no pudieron
+  leerlos y trabajaron del brief `docs/phases/kiosqui-request-modern-views.md` + las
+  specs del prompt. Cubre todos los requisitos, pero conviene un repaso visual fino
+  contra los artboards de `Batch D` por si algún detalle de spacing/color difiere.
+- [H12-5] **Detalle/Comentarios sin verificación visual con datos:** requieren auth +
+  backend (CORS del backend solo permite :3000, no el preview :3117). Verificados por
+  `tsc`/`build` + el listado/registro/favicon sí se vieron en preview.
