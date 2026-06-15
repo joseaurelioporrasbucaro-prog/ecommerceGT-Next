@@ -789,6 +789,8 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
         }
 
         /* ── Botón "Ver modelo 3D" PREMIUM (siempre <Link> → :global) ── */
+        /* Handoff #13 §2 + mockup DetailScreen: outline lavanda calmo
+           (lav-100 bg · lav-500 borde · lav-700 texto), chip Premium sólido. */
         :global(.view-3d-btn) {
           display: flex;
           align-items: center;
@@ -799,19 +801,22 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           margin-top: 12px;
           border-radius: var(--r-pill);
           border: 1.5px solid var(--lav-500);
-          background: linear-gradient(135deg, var(--lav-500), var(--lav-700));
-          color: #fff;
+          background: var(--lav-100);
+          color: var(--lav-700);
           font-family: var(--font-display);
           font-weight: 700;
           font-size: 15px;
           cursor: pointer;
           text-decoration: none !important;
-          box-shadow: 0 10px 30px rgba(109, 98, 207, 0.6), 0 0 0 3px var(--lav-200);
-          transition: all 0.2s;
+          transition: background 0.2s, border-color 0.2s;
         }
         :global(.view-3d-btn:hover) {
-          transform: translateY(-1px);
-          box-shadow: 0 12px 34px rgba(109, 98, 207, 0.7), 0 0 0 3px var(--lav-300);
+          background: var(--lav-200);
+          border-color: var(--lav-600);
+        }
+        :global([data-theme='dark'] .view-3d-btn) {
+          background: var(--accent-soft);
+          color: var(--lav-300);
         }
         :global(.view-3d-btn i) {
           font-size: 16px;
@@ -823,7 +828,8 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           margin-left: 2px;
           padding: 4px 10px;
           border-radius: var(--r-pill);
-          background: rgba(255, 255, 255, 0.22);
+          background: var(--lav-500);
+          color: #fff;
           font-size: 12px;
           font-weight: 800;
         }
