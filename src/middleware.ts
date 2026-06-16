@@ -61,5 +61,8 @@ export const config = {
   // para que el middleware no se ejecute en cada imagen/fuente.
   // `brand` (logos Kiosqui) y `fonts` viven en public/ — sin la exclusión el
   // middleware i18n les devuelve HTML con 200 (mismo bug que sitemap, Fase 14.4).
-    matcher: ['/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|assets|uploads|brand|fonts|api).*)'],
+  // Handoff #13 — icon.png/apple-icon.png son los favicons por convención de
+  // Next (src/app/). Sin excluirlos, el middleware i18n los redirige (307) a
+  // /es/icon.png y el navegador nunca carga el favicon Kiosqui.
+    matcher: ['/((?!_next/static|_next/image|favicon\\.ico|icon\\.png|apple-icon\\.png|sitemap\\.xml|robots\\.txt|assets|uploads|brand|fonts|api).*)'],
   };

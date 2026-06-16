@@ -258,7 +258,7 @@ const PublicationsMain = () => {
       />
 
       <section className="artworks-area pt-130 pb-90">
-        <div className="container">
+        <div className="pub-shell">
           {/* H12 — barra de filtros cohesiva: filtros + orden + toggle de vista. */}
           <PublicationsBar
             key={categories.length}
@@ -373,50 +373,68 @@ const PublicationsMain = () => {
       </section>
 
       <style jsx>{`
-        /* ── Grid de tarjetas ── */
-        .pub-grid {
+        /* Contenedor más ancho que el .container de Bootstrap (~1140px): el
+           listado del mockup es full-width con padding → caben los 8 filtros
+           en una fila y 4 cards por fila. */
+        .pub-shell {
+          max-width: 1340px;
+          margin: 0 auto;
+          padding: 0 24px;
+        }
+        @media (max-width: 575px) {
+          .pub-shell {
+            padding: 0 16px;
+          }
+        }
+
+        /* ── Grid de tarjetas ──
+           OJO: cardsGrid se define como const fuera del return, así que
+           styled-jsx NO le pone la clase de scope al <div.pub-grid> → las
+           reglas scopeadas no matchean y las cards se apilan (display:block).
+           Por eso TODAS las reglas del grid van con :global(). .pub-grid es
+           único del listado, así que el global no filtra a otras pantallas. */
+        :global(.pub-grid) {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 22px;
           margin-bottom: 30px;
         }
-        /* Bootstrap envuelve cada card en un col-* con max-width 33/50%.
-           El > va FUERA de :global (si no, no matchea). Así neutralizamos el
-           cap de Bootstrap y cada celda del grid ocupa el ancho completo. */
-        .pub-grid > :global([class*='col-']) {
+        /* Bootstrap envuelve cada card en un col-* con max-width 33/50%; lo
+           neutralizamos para que cada celda ocupe el ancho completo. */
+        :global(.pub-grid > [class*='col-']) {
           flex: none !important;
           width: 100% !important;
           max-width: 100% !important;
           padding-left: 0 !important;
           padding-right: 0 !important;
         }
-        .pub-grid :global(.pub-card) {
+        :global(.pub-grid .pub-card) {
           margin-bottom: 0 !important;
         }
         /* Vista LISTA = una columna; la card se reflowea a fila horizontal. */
-        .pub-grid.is-rows {
+        :global(.pub-grid.is-rows) {
           grid-template-columns: 1fr;
           gap: 16px;
         }
-        .pub-grid.is-rows :global(.pub-card) {
+        :global(.pub-grid.is-rows .pub-card) {
           flex-direction: row;
           align-items: stretch;
         }
-        .pub-grid.is-rows :global(.pub-photo) {
+        :global(.pub-grid.is-rows .pub-photo) {
           width: 260px;
           flex-shrink: 0;
           padding-top: 0;
           min-height: 190px;
         }
-        .pub-grid.is-rows :global(.pub-body) {
+        :global(.pub-grid.is-rows .pub-body) {
           flex: 1;
           min-width: 0;
         }
         @media (max-width: 575px) {
-          .pub-grid.is-rows :global(.pub-card) {
+          :global(.pub-grid.is-rows .pub-card) {
             flex-direction: column;
           }
-          .pub-grid.is-rows :global(.pub-photo) {
+          :global(.pub-grid.is-rows .pub-photo) {
             width: 100%;
             padding-top: 66.67%;
             min-height: 0;

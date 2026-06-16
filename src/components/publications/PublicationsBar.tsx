@@ -309,9 +309,10 @@ const PublicationsBar = ({
 
         {/* Amenidades (multi) — popover reutilizado */}
         <AmenitiesFilterDropdown filters={filters} onFiltersChange={onFiltersChange} />
+      </div>
 
-        {/* ── Orden + toggle de vista, alineados a la derecha ── */}
-        <div className="kqf-right">
+      {/* ── Orden + toggle de vista (fila propia, a la derecha) ── */}
+      <div className="kqf-toolbar">
           <SelectField
             icon="fas fa-sort-amount-down"
             ariaLabel={t('filters.label')}
@@ -344,7 +345,6 @@ const PublicationsBar = ({
               ))}
             </div>
           )}
-        </div>
       </div>
 
       {/* ── Chips de filtros activos ── */}
@@ -395,15 +395,16 @@ const PublicationsBar = ({
           display: inline-flex;
           align-items: center;
           height: 44px;
-          flex: 0 0 auto;
-          width: 150px;
+          flex: 1 1 130px;
+          min-width: 0;
           background: var(--surface);
           border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .kqf-sel.is-wide {
-          width: 178px;
+          flex: 0 0 auto;
+          width: 190px;
         }
         .kqf-sel.is-active {
           border-color: var(--accent);
@@ -462,7 +463,8 @@ const PublicationsBar = ({
           display: inline-flex;
           align-items: center;
           height: 44px;
-          flex: 0 0 auto;
+          flex: 1 1 200px;
+          min-width: 0;
           padding-left: 34px;
           border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
@@ -498,7 +500,9 @@ const PublicationsBar = ({
           outline: none;
         }
         .kqf-price input {
-          width: 72px;
+          flex: 1;
+          min-width: 0;
+          width: auto;
           height: 42px;
           border: none;
           background: transparent;
@@ -525,8 +529,8 @@ const PublicationsBar = ({
           display: inline-flex;
           align-items: center;
           height: 44px;
-          flex: 0 0 auto;
-          width: 132px;
+          flex: 1 1 130px;
+          min-width: 0;
           padding-left: 34px;
           padding-right: 12px;
           border: 1.5px solid var(--border-strong);
@@ -568,12 +572,13 @@ const PublicationsBar = ({
           font-weight: 600;
         }
 
-        /* ── Grupo derecho: orden + toggle ── */
-        .kqf-right {
-          margin-left: auto;
-          display: inline-flex;
+        /* ── Toolbar: orden + toggle (fila propia, a la derecha) ── */
+        .kqf-toolbar {
+          display: flex;
+          justify-content: flex-end;
           align-items: center;
           gap: 10px;
+          margin-top: 12px;
         }
         .kqf-view {
           display: inline-flex;
@@ -672,7 +677,7 @@ const PublicationsBar = ({
 
         /* ── Responsive ── */
         @media (max-width: 991px) {
-          .kqf-right {
+          .kqf-toolbar {
             margin-left: 0;
             width: 100%;
             justify-content: space-between;
@@ -691,7 +696,7 @@ const PublicationsBar = ({
             flex: 1;
             width: auto;
           }
-          .kqf-right {
+          .kqf-toolbar {
             flex-wrap: wrap;
             gap: 8px;
           }
