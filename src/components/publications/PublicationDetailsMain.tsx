@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import { ApiError } from '@/utils/Api';
 import { usePublicationDetail, useSellerInfo } from '@/hooks/api/usePublications';
@@ -136,14 +137,51 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
   const isRent = publication ? Number(publication.pubtra_id) === 2 : false;
   const transactionLabel = isRent ? t('detail.forRent') : t('detail.forSale');
 
-  const priceText = publication
-    ? formatPrice(publication.pubdet_price, publication.pubdet_currency, t('card.priceConsult'))
+  // Terreno (pubgen_id 3): no aplica habitaciones/baños/parqueos → solo tamaño.
+  const isLand = Number(publication?.pubgen_id) === 3;
+
+  // Fase 17 dual-divisa + Handoff #14 §2: el detalle puede traer dos montos
+  // REALES (Q y US$), ambos ingresados por el vendedor (sin conversión
+  // automática). Mostramos el Q grande + chip US$. Si solo hay una moneda, esa.
+  const priceEntries = publication
+    ? [
+        { value: publication.pubdet_price, currency: publication.pubdet_currency },
+        { value: publication.priceAlt, currency: publication.currencyAlt },
+      ].filter(
+        (e) =>
+          e.value !== null &&
+          e.value !== undefined &&
+          e.value !== '' &&
+          Number.isFinite(Number(e.value)),
+      )
+    : [];
+  const usdEntry = priceEntries.find((e) => String(e.currency).toUpperCase() === 'USD');
+  const gtqEntry = priceEntries.find((e) => String(e.currency).toUpperCase() !== 'USD');
+  const primaryEntry = gtqEntry ?? priceEntries[0] ?? null;
+  const altUsdEntry = usdEntry && usdEntry !== primaryEntry ? usdEntry : null;
+  const priceText = primaryEntry
+    ? formatPrice(primaryEntry.value, primaryEntry.currency, t('card.priceConsult'))
+    : t('card.priceConsult');
+  // Monto US$ sin el prefijo "US$ " (el chip ya lleva el ícono $).
+  const usdAmount = altUsdEntry
+    ? formatPrice(altUsdEntry.value, altUsdEntry.currency, '').replace(/^US\$\s*/, '')
     : '';
-  const currencyLabel = publication
-    ? publication.pubdet_currency === 'USD'
-      ? t('detail.currencyUsd')
-      : t('detail.currencyGtq')
-    : '';
+  const usdFull = altUsdEntry ? formatPrice(altUsdEntry.value, altUsdEntry.currency, '') : '';
+
+  // Compartir: Web Share API nativa con fallback a copiar el enlace.
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title: publication?.pub_title ?? 'Kiosqui', url });
+      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        toast.success(t('detail.linkCopied'));
+      }
+    } catch {
+      /* el usuario canceló el diálogo de compartir — no es error */
+    }
+  };
 
   const statusInfo = publication
     ? getPublicationStatusInfo(publication.pubsta_id, {
@@ -208,6 +246,12 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
         <>
           <section className="detail-shell pt-50 pb-30">
             <div className="container">
+              {/* Volver a resultados (mockup DetailScreen) */}
+              <Link href="/publications" className="detail-back">
+                <i className="fas fa-chevron-left" aria-hidden="true" />
+                <span>{t('detail.backToResults')}</span>
+              </Link>
+
               {/* ───────── Galería protagonista ───────── */}
               <PublicationGallery images={galleryImages} alt={publication.pub_title} />
 
@@ -215,11 +259,16 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
               <div className="detail-grid">
                 {/* Columna principal */}
                 <div className="detail-main">
-                  {/* Badges → H1 → ubicación.
-                      `PublicationDetail` no trae flag de destacado/pauta (solo lo
-                      tiene el item de listado), así que el único badge con dato real
-                      es el tipo de transacción (Venta/Renta, por `pubtra_id`). */}
+                  {/* Badges → H1 → ubicación. `sponsored` lo expone el backend
+                      (campaña activa/pausada) → badge "Destacado". El de tipo de
+                      transacción (Venta/Renta) viene de pubtra_id. */}
                   <div className="detail-badges">
+                    {publication.sponsored && (
+                      <span className="badge-feat">
+                        <i className="fas fa-star" aria-hidden="true" />
+                        {t('card.featured')}
+                      </span>
+                    )}
                     <span className="badge-type">{transactionLabel}</span>
                   </div>
 
@@ -230,28 +279,34 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
                     <span>{locationLabel || publication.pub_address || notSpecified}</span>
                   </div>
 
-                  {/* Specs: 4 tiles */}
-                  <div className="spec-grid">
-                    <SpecTile
-                      icon="fas fa-bed"
-                      value={formatNumberValue(publication.pubdet_rooms, notSpecified)}
-                      label={t('features.rooms')}
-                    />
-                    <SpecTile
-                      icon="fas fa-bath"
-                      value={formatNumberValue(publication.pubdet_bathrooms, notSpecified)}
-                      label={t('features.bathrooms')}
-                    />
+                  {/* Specs. En terreno solo aplica el tamaño (no hab./baños/parqueos). */}
+                  <div className={`spec-grid ${isLand ? 'spec-grid--land' : ''}`}>
+                    {!isLand && (
+                      <>
+                        <SpecTile
+                          icon="fas fa-bed"
+                          value={formatNumberValue(publication.pubdet_rooms, notSpecified)}
+                          label={t('features.rooms')}
+                        />
+                        <SpecTile
+                          icon="fas fa-bath"
+                          value={formatNumberValue(publication.pubdet_bathrooms, notSpecified)}
+                          label={t('features.bathrooms')}
+                        />
+                      </>
+                    )}
                     <SpecTile
                       icon="fas fa-vector-square"
                       value={publication.pubdet_size ? `${publication.pubdet_size} m²` : notSpecified}
                       label={t('features.size')}
                     />
-                    <SpecTile
-                      icon="fas fa-car"
-                      value={formatNumberValue(publication.pubdet_parking, notSpecified)}
-                      label={t('features.parking')}
-                    />
+                    {!isLand && (
+                      <SpecTile
+                        icon="fas fa-car"
+                        value={formatNumberValue(publication.pubdet_parking, notSpecified)}
+                        label={t('features.parking')}
+                      />
+                    )}
                   </div>
 
                   {/* Descripción */}
@@ -285,11 +340,18 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
                 {/* ───────── Card de vendedor STICKY ───────── */}
                 <aside className="detail-aside">
                   <div className="seller-card">
-                    {/* Precio */}
-                    <div className="seller-price">{priceText}</div>
-                    <div className="seller-price-sub">
-                      {currencyLabel} · {transactionLabel}
+                    {/* Precio dual: Q grande + chip US$ (Handoff #14 §2). Sin nota
+                        de "tipo de cambio" porque los montos los escribe el dueño. */}
+                    <div className="seller-price-row">
+                      <span className="seller-price">{priceText}</span>
+                      {usdAmount && (
+                        <span className="price-chip">
+                          <i className="fas fa-dollar-sign" aria-hidden="true" />
+                          {usdAmount}
+                        </span>
+                      )}
                     </div>
+                    <div className="seller-price-sub">{transactionLabel}</div>
 
                     {/* Vendedor */}
                     <div className="seller-row">
@@ -367,13 +429,16 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
                         />
                         <span>{t('favorite.add')}</span>
                       </button>
-                      <Link
-                        href={`/creator-profile/${publication.cus_id}`}
+                      <button
+                        type="button"
                         className="ghost-btn"
+                        onClick={handleShare}
+                        title={t('detail.share')}
+                        aria-label={t('detail.share')}
                       >
-                        <i className="fas fa-user" aria-hidden="true" />
-                        <span>{t('detail.viewSeller')}</span>
-                      </Link>
+                        <i className="fas fa-share-alt" aria-hidden="true" />
+                        <span>{t('detail.share')}</span>
+                      </button>
                     </div>
 
                     {/* Estado (vendida / anulada / disponible) */}
@@ -382,11 +447,9 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
                         {statusInfo.label}
                       </div>
                     )}
-                  </div>
 
-                  {/* Denunciar (Fase 8.4) */}
-                  <div className="report-wrap">
-                    <ReportPublicationButton pubId={publication.pub_id} />
+                    {/* Denunciar (Handoff #14 §3): discreto, debajo de Guardar/Compartir. */}
+                    <ReportPublicationButton pubId={publication.pub_id} block />
                   </div>
                 </aside>
               </div>
@@ -404,7 +467,8 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
             <div className="mobile-bar-price">
               <div className="mobile-bar-amount">{priceText}</div>
               <div className="mobile-bar-sub">
-                {currencyLabel} · {transactionLabel}
+                {usdFull ? `${usdFull} · ` : ''}
+                {transactionLabel}
               </div>
             </div>
             <Premium3dButton variant="bar" />
@@ -468,6 +532,28 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           box-shadow: var(--shadow-sm);
         }
 
+        /* ── Volver a resultados (Link → :global, no recibe scope) ── */
+        :global(.detail-back) {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          color: var(--fg-muted);
+          font-family: var(--font-body);
+          font-size: 14px;
+          font-weight: 600;
+          text-decoration: none !important;
+          padding: 4px 0;
+          margin-bottom: 14px;
+          transition: color 0.15s ease, gap 0.15s ease;
+        }
+        :global(.detail-back:hover) {
+          color: var(--lav-700);
+          gap: 11px;
+        }
+        :global(.detail-back i) {
+          font-size: 13px;
+        }
+
         /* ──────────────── Layout ──────────────── */
         .detail-grid {
           display: grid;
@@ -493,7 +579,8 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           margin-bottom: 14px;
           flex-wrap: wrap;
         }
-        .badge-type {
+        .badge-type,
+        .badge-feat {
           display: inline-flex;
           align-items: center;
           gap: 6px;
@@ -506,6 +593,14 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           line-height: 1;
           background: var(--accent-soft);
           color: var(--lav-700);
+        }
+        /* "Destacado": lavanda sólido para diferenciarlo del tipo de transacción. */
+        .badge-feat {
+          background: var(--lav-500);
+          color: #fff;
+        }
+        .badge-feat i {
+          font-size: 10px;
         }
         :global([data-theme='dark']) .badge-type {
           color: var(--lav-300);
@@ -547,41 +642,48 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           gap: 12px;
           margin-bottom: 34px;
         }
+        /* Terreno: solo el tile de tamaño → no estirarlo a todo el ancho. */
+        .spec-grid--land {
+          grid-template-columns: repeat(auto-fit, minmax(150px, 200px));
+        }
         @media (max-width: 768px) {
           .spec-grid {
             grid-template-columns: repeat(2, 1fr);
           }
         }
-        .spec-tile {
+        /* OJO: SpecTile es un componente APARTE → su markup no recibe el scope
+           de styled-jsx de este componente. Sin :global() las reglas .spec-tile*
+           no matchean y los 4 tiles salen sin estilo (descuadrados). Mismo
+           patrón que .kqf-sel/.pub-grid. Mockup: tile sin borde, solo fondo. */
+        :global(.spec-tile) {
           display: flex;
           align-items: center;
           gap: 12px;
           padding: 15px 16px;
           background: var(--surface-sunk);
-          border: 1px solid var(--border);
           border-radius: var(--r-md);
         }
-        .spec-tile i {
+        :global(.spec-tile i) {
           color: var(--lav-700);
           font-size: 20px;
           width: 22px;
           text-align: center;
           flex-shrink: 0;
         }
-        :global([data-theme='dark']) .spec-tile i {
+        :global([data-theme='dark'] .spec-tile i) {
           color: var(--lav-400);
         }
-        .spec-tile-body {
+        :global(.spec-tile-body) {
           min-width: 0;
         }
-        .spec-tile-value {
+        :global(.spec-tile-value) {
           font-family: var(--font-display);
           font-weight: 700;
           font-size: 19px;
           line-height: 1.1;
           color: var(--fg-strong);
         }
-        .spec-tile-label {
+        :global(.spec-tile-label) {
           font-size: 12px;
           color: var(--fg-muted);
           margin-top: 2px;
@@ -617,7 +719,6 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           padding: 9px 14px;
           border-radius: var(--r-sm);
           background: var(--surface-sunk);
-          border: 1px solid var(--border);
           font-size: 14px;
           font-weight: 500;
           color: var(--fg-strong);
@@ -677,6 +778,12 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           box-shadow: var(--shadow-md);
           padding: 24px;
         }
+        .seller-price-row {
+          display: flex;
+          align-items: baseline;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
         .seller-price {
           font-family: var(--font-display);
           font-weight: 700;
@@ -684,6 +791,27 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
           letter-spacing: -0.02em;
           color: var(--fg-strong);
           line-height: 1.1;
+        }
+        /* Chip US$ verde (Handoff #14 §2). */
+        .price-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          border-radius: var(--r-pill);
+          background: var(--green-100);
+          color: var(--green-800);
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 13px;
+          line-height: 1;
+        }
+        .price-chip i {
+          font-size: 11px;
+        }
+        :global([data-theme='dark']) .price-chip {
+          background: var(--green-900, rgba(155, 198, 74, 0.16));
+          color: var(--green-300, #b9dd7e);
         }
         .seller-price-sub {
           font-size: 13px;

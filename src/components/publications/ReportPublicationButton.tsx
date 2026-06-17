@@ -13,8 +13,16 @@ const REASONS: { value: string; label: string }[] = [
   { value: 'otro', label: 'reasonOther' },
 ];
 
-/** Fase 8.4 — botón + modal para denunciar una publicación. */
-const ReportPublicationButton = ({ pubId }: { pubId: number | string }) => {
+/** Fase 8.4 — botón + modal para denunciar una publicación.
+ *  `block` (Handoff #14 §3): variante discreta full-width (gris, sin fondo,
+ *  far fa-flag) para ir debajo de Guardar/Compartir en la card del vendedor. */
+const ReportPublicationButton = ({
+  pubId,
+  block = false,
+}: {
+  pubId: number | string;
+  block?: boolean;
+}) => {
   const t = useTranslations('publications');
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('spam');
@@ -34,8 +42,13 @@ const ReportPublicationButton = ({ pubId }: { pubId: number | string }) => {
 
   return (
     <>
-      <button type="button" className="rp-trigger" onClick={() => setOpen(true)} title={t('reports.publicationTitle')}>
-        <i className="fas fa-flag" /> {t('reports.trigger')}
+      <button
+        type="button"
+        className={`rp-trigger ${block ? 'rp-trigger--block' : ''}`}
+        onClick={() => setOpen(true)}
+        title={t('reports.publicationTitle')}
+      >
+        <i className={block ? 'far fa-flag' : 'fas fa-flag'} /> {t('reports.trigger')}
       </button>
 
       {open && (
@@ -80,6 +93,22 @@ const ReportPublicationButton = ({ pubId }: { pubId: number | string }) => {
         .rp-trigger:hover {
           border-color: var(--danger);
           color: var(--danger);
+        }
+        /* Variante discreta full-width (debajo de Guardar/Compartir). */
+        .rp-trigger--block {
+          width: 100%;
+          justify-content: center;
+          margin-top: 14px;
+          padding: 10px 16px;
+          border: none;
+          background: transparent;
+          color: var(--fg-subtle);
+          font-size: 13px;
+        }
+        .rp-trigger--block:hover {
+          border: none;
+          color: var(--danger);
+          background: transparent;
         }
         .rp-overlay {
           position: fixed;

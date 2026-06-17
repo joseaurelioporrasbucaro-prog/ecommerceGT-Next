@@ -20,6 +20,9 @@ const ContactFormSection = () => {
   const [selelectForm, setSelelectForm] = useState<string>("");
   // Token Turnstile (vacío hasta que el usuario complete el reto).
   const [captchaToken, setCaptchaToken] = useState<string>("");
+  // Al enviar OK incrementamos esto para resetear el captcha y poder enviar otro
+  // mensaje sin recargar (antes el botón quedaba bloqueado: token consumido).
+  const [captchaResetKey, setCaptchaResetKey] = useState<number>(0);
   const locale = useLocale();
 
   const {
@@ -55,14 +58,20 @@ const ContactFormSection = () => {
           name: values.name,
           email: values.email,
           phone: values.phone,
-          subject: selelectForm || "General",
+          // Default "Soporte" (coincide con la 1ra opción mostrada). El backend
+          // rutea: Venta → ventas@kiosqui.com · Soporte/Sugerencia → soporte@kiosqui.com.
+          subject: selelectForm || "Soporte",
           message: values.message,
           captchaToken,
           locale,
         });
         toast.success(res.message || "Mensaje enviado. Te responderemos pronto.");
         rf();
+        setSelelectForm("");
         setCaptchaToken("");
+        // Resetea el captcha → emite token nuevo → el botón se rehabilita para
+        // poder enviar otro mensaje (con otro asunto) sin recargar la página.
+        setCaptchaResetKey((k) => k + 1);
       } catch (error) {
         const msg = error instanceof ApiError
           ? error.message
@@ -173,6 +182,7 @@ const ContactFormSection = () => {
                   <TurnstileWidget
                     onToken={setCaptchaToken}
                     theme="auto"
+                    resetKey={captchaResetKey}
                   />
                 </div>
               </div>

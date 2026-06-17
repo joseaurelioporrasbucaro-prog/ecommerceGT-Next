@@ -1,5 +1,7 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import KiosquiLogo from "@/components/common/KiosquiLogo";
 
 // Handoff #4 §1.6 — footer Kiosqui definitivo (referencia: landing.html
@@ -7,7 +9,9 @@ import KiosquiLogo from "@/components/common/KiosquiLogo";
 // transparente, grid 1.6fr 1fr 1fr 1fr (mobile 2 col → 1 col), links
 // cream translúcido con hover cream, bottom bar con copyright +
 // "Hecho en Guatemala 🇬🇹". Reemplaza el footer del template (Fase 22/24).
+// i18n (Fase 14): textos desde el namespace `footer` (es/en).
 const Footer = () => {
+  const t = useTranslations("footer");
   return (
     <footer className="kq-footer">
       <div className="container">
@@ -19,11 +23,7 @@ const Footer = () => {
                 <KiosquiLogo height={40} variant="dark" />
               </Link>
             </div>
-            <p className="kq-footer-tag">
-              El marketplace inmobiliario de Guatemala. Casas, apartamentos y
-              terrenos publicados directamente por propietarios verificados —
-              sin intermediarios escondidos.
-            </p>
+            <p className="kq-footer-tag">{t("tagline")}</p>
             <ul className="kq-footer-social">
               <li>
                 <Link href="https://facebook.com/kiosqui" aria-label="Facebook">
@@ -50,38 +50,38 @@ const Footer = () => {
 
           {/* Columna 2 — Explorar */}
           <div className="kq-footer-col">
-            <h5>Explorar</h5>
-            <Link href="/publications">Propiedades</Link>
-            <Link href="/publications?propertie=1">Casas</Link>
-            <Link href="/publications?propertie=2">Apartamentos</Link>
-            <Link href="/publications?propertie=3">Terrenos</Link>
+            <h5>{t("exploreTitle")}</h5>
+            <Link href="/publications">{t("properties")}</Link>
+            <Link href="/publications?propertie=1">{t("houses")}</Link>
+            <Link href="/publications?propertie=2">{t("apartments")}</Link>
+            <Link href="/publications?propertie=3">{t("land")}</Link>
           </div>
 
           {/* Columna 3 — Kiosqui */}
           <div className="kq-footer-col">
-            <h5>Kiosqui</h5>
+            <h5>{t("brandTitle")}</h5>
             {/* Fase 24 — Vendedores destacados + Mejor calificados unificados
                 en /ranking con tabs internas. */}
-            <Link href="/ranking?tab=destacados">Vendedores destacados</Link>
-            <Link href="/ranking?tab=calificados">Mejor calificados</Link>
-            <Link href="/pricing-plan">Planes</Link>
-            <Link href="/contact">Contacto</Link>
+            <Link href="/ranking?tab=destacados">{t("topSellers")}</Link>
+            <Link href="/ranking?tab=calificados">{t("topRated")}</Link>
+            <Link href="/pricing-plan">{t("plans")}</Link>
+            <Link href="/contact">{t("contact")}</Link>
           </div>
 
           {/* Columna 4 — Soporte */}
           <div className="kq-footer-col">
-            <h5>Soporte</h5>
-            <Link href="/faq">Preguntas frecuentes</Link>
-            <Link href="/soporte/tickets">Centro de ayuda</Link>
-            <Link href="/terminos">Términos y Condiciones</Link>
-            <Link href="/privacidad">Política de Privacidad</Link>
-            <Link href="/contenido">Política de Contenido</Link>
+            <h5>{t("supportTitle")}</h5>
+            <Link href="/faq">{t("faq")}</Link>
+            <Link href="/soporte/tickets">{t("helpCenter")}</Link>
+            <Link href="/terminos">{t("terms")}</Link>
+            <Link href="/privacidad">{t("privacy")}</Link>
+            <Link href="/contenido">{t("contentPolicy")}</Link>
           </div>
         </div>
 
         <div className="kq-footer-bottom">
-          <span>© {new Date().getFullYear()} Kiosqui. Todos los derechos reservados.</span>
-          <span>Hecho en Guatemala 🇬🇹</span>
+          <span>{t("rights", { year: new Date().getFullYear() })}</span>
+          <span>{t("madeIn")}</span>
         </div>
       </div>
 

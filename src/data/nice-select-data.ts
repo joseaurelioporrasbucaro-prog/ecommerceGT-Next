@@ -233,22 +233,20 @@ export const Categorys = [
 
 ]
 
+// Asunto del formulario de contacto. El backend rutea por este valor:
+//  Venta → ventas@kiosqui.com · Soporte/Sugerencia → soporte@kiosqui.com.
 export const selectSubject = [
   {
       id: 1,
-      option: "Subject One",
+      option: "Soporte",
     },
   {
       id: 2,
-      option: "Subject Two",
+      option: "Venta",
     },
   {
       id: 3,
-      option: "Subject Three",
-    },
-  {
-      id: 4,
-      option: "Subject Four",
+      option: "Sugerencia",
     },
 
 ]

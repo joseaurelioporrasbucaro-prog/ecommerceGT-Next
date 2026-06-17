@@ -249,7 +249,7 @@ const PublicationsBar = ({
             type="number"
             inputMode="numeric"
             min={0}
-            placeholder={t('filters.priceMin')}
+            placeholder={t('filters.min')}
             aria-label={t('filters.priceMin')}
             value={filters.priceMin || ''}
             onChange={(e) => update({ priceMin: e.target.value })}
@@ -259,7 +259,7 @@ const PublicationsBar = ({
             type="number"
             inputMode="numeric"
             min={0}
-            placeholder={t('filters.priceMax')}
+            placeholder={t('filters.max')}
             aria-label={t('filters.priceMax')}
             value={filters.priceMax || ''}
             onChange={(e) => update({ priceMax: e.target.value })}
@@ -389,8 +389,14 @@ const PublicationsBar = ({
           align-items: center;
         }
 
-        /* ── Pill de select (ícono + valor + chevron) ── */
-        .kqf-sel {
+        /* ── Pill de select (ícono + valor + chevron) ──
+           OJO: estos selects los renderiza <SelectField>, un componente APARTE
+           de PublicationsBar. styled-jsx solo agrega la clase de scope a los
+           elementos del MISMO componente que tiene el <style jsx>, así que el
+           <div.kqf-sel> de SelectField NO recibe scope → sin :global() las
+           reglas no matchean y el select queda nativo (sin pill/ícono/altura).
+           Mismo patrón que .pub-grid. .kqf-sel es único de esta barra. */
+        :global(.kqf-sel) {
           position: relative;
           display: inline-flex;
           align-items: center;
@@ -402,18 +408,18 @@ const PublicationsBar = ({
           border-radius: var(--r-sm);
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-        .kqf-sel.is-wide {
+        :global(.kqf-sel.is-wide) {
           flex: 0 0 auto;
           width: 190px;
         }
-        .kqf-sel.is-active {
+        :global(.kqf-sel.is-active) {
           border-color: var(--accent);
         }
-        .kqf-sel:focus-within {
+        :global(.kqf-sel:focus-within) {
           border-color: var(--accent);
           box-shadow: var(--shadow-focus);
         }
-        .kqf-sel-icon {
+        :global(.kqf-sel-icon) {
           position: absolute;
           left: 13px;
           font-size: 13px;
@@ -421,7 +427,7 @@ const PublicationsBar = ({
           pointer-events: none;
           z-index: 1;
         }
-        .kqf-sel select {
+        :global(.kqf-sel select) {
           width: 100%;
           height: 100%;
           border: none;
@@ -438,18 +444,18 @@ const PublicationsBar = ({
           white-space: nowrap;
           border-radius: var(--r-sm);
         }
-        .kqf-sel select:disabled {
+        :global(.kqf-sel select:disabled) {
           opacity: 0.5;
           cursor: not-allowed;
         }
-        .kqf-sel select:focus {
+        :global(.kqf-sel select:focus) {
           outline: none;
         }
-        .kqf-sel.is-active select {
+        :global(.kqf-sel.is-active select) {
           color: var(--fg-strong);
           font-weight: 600;
         }
-        .kqf-sel-chevron {
+        :global(.kqf-sel-chevron) {
           position: absolute;
           right: 13px;
           font-size: 11px;
@@ -684,7 +690,7 @@ const PublicationsBar = ({
           }
         }
         @media (max-width: 575px) {
-          .kqf-sel,
+          :global(.kqf-sel),
           .kqf-size {
             flex: 1 1 calc(50% - 5px);
             width: auto;
@@ -700,7 +706,7 @@ const PublicationsBar = ({
             flex-wrap: wrap;
             gap: 8px;
           }
-          .kqf-sel.is-wide {
+          :global(.kqf-sel.is-wide) {
             flex: 1 1 auto;
             width: auto;
           }

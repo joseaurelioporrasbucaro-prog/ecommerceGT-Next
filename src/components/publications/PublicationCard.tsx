@@ -287,7 +287,8 @@ const PublicationCard = ({
             <span>{locationLabel}</span>
           </div>
 
-          <div className="pub-stats mt-auto">
+          <div className="pub-foot mt-auto">
+            <div className="pub-stats">
             {isLand ? (
               <span title={t('features.size')}>
                 <i className="fas fa-vector-square" aria-hidden="true"></i>
@@ -308,6 +309,29 @@ const PublicationCard = ({
                   {sizeLabel}
                 </span>
               </>
+            )}
+            </div>
+
+            {/* Handoff #14 §1 + decisión Aurelio: "Enviar mensaje" SOLO en
+                pautadas de mensajes (ctaOverride) y solo en vista lista (CSS
+                .pub-grid.is-rows). En grid la pautada conserva su CTA full-width
+                aprobado (.pub-cta-row); en lista se reemplaza por este pill. Las
+                tarjetas orgánicas no llevan botón (se entra al detalle). */}
+            {ctaOverride && (
+              <Link
+                href={ctaOverride.href}
+                className="pub-list-cta"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  ctaOverride.onMouseDown?.();
+                }}
+              >
+                {ctaOverride.iconClass && (
+                  <i className={`fas ${ctaOverride.iconClass}`} aria-hidden="true"></i>
+                )}
+                <span>{ctaOverride.label}</span>
+              </Link>
             )}
           </div>
 

@@ -308,7 +308,7 @@ const MyPublicationsMain = () => {
       <PageHead
         overline="Mis publicaciones"
         title={t('myPublications.breadcrumbTitle')}
-        sub={t('myPublications.empty')}
+        sub={t('myPublications.subtitle')}
       />
 
       <section className="pb-90">
@@ -394,12 +394,18 @@ const MyPublicationsMain = () => {
                             <span className="owner-row-sep">·</span>
                             <span>{formatRowDate(publication.pub_create_date)}</span>
                           </div>
-                          {/* Métricas — TODO(metrics): el endpoint /my-publications no
-                              expone vistas/favs/consultas todavía. Reportado en feedback §2. */}
+                          {/* Métricas reales (backend: pub_views + conteos de
+                              favoritos/comentarios). */}
                           <div className="owner-row-stats">
-                            <span><i className="far fa-eye" />—</span>
-                            <span><i className="far fa-heart" />—</span>
-                            <span><i className="far fa-comments" />—</span>
+                            <span title={t('myPublications.metricViews')}>
+                              <i className="far fa-eye" />{publication.pub_views ?? 0}
+                            </span>
+                            <span title={t('myPublications.metricFavorites')}>
+                              <i className="far fa-heart" />{publication.favoritesCount ?? 0}
+                            </span>
+                            <span title={t('myPublications.metricComments')}>
+                              <i className="far fa-comments" />{publication.commentsCount ?? 0}
+                            </span>
                           </div>
                         </div>
 

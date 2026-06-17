@@ -79,32 +79,52 @@ const AmenitiesFilterDropdown: React.FC<Props> = ({ filters, onFiltersChange }) 
             <AmenitiesPicker
               value={filters.amenityIds || []}
               onChange={(next) => onFiltersChange({ ...filters, amenityIds: next })}
+              intro={null}
             />
           </div>
         </div>
       )}
 
       <style jsx>{`
+        /* Un control más de la barra cohesiva: mismo flex-basis y altura que los
+           selects (.kqf-sel) vecinos para que NO quede desalineado/separado. */
         .afp {
           position: relative;
           display: inline-flex;
+          flex: 1 1 150px;
+          min-width: 0;
+          /* Neutraliza un margin-bottom global que se cuela en el div y, con
+             align-items:center en la barra, lo subía ~9px respecto a los
+             demás controles. */
+          margin: 0;
         }
         .afp-trigger {
           display: inline-flex;
           align-items: center;
           gap: 9px;
+          width: 100%;
           height: 44px;
           padding: 0 32px 0 14px;
           position: relative;
-          border: 1px solid var(--border-strong);
+          /* Igual que los selects de la barra: borde 1.5px + superficie. */
+          border: 1.5px solid var(--border-strong);
           border-radius: var(--r-sm);
-          background: var(--bg-elevated);
+          background: var(--surface);
           color: var(--fg-muted);
           font-family: var(--font-body);
           font-size: 14px;
           font-weight: 500;
           cursor: pointer;
           transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+        }
+        /* La etiqueta ocupa el espacio y se trunca; el chevron queda a la derecha. */
+        .afp-trigger > span:not(.afp-badge) {
+          flex: 1;
+          min-width: 0;
+          text-align: left;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .afp-trigger:hover {
           border-color: var(--accent);

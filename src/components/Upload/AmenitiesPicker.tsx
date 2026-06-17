@@ -17,11 +17,18 @@ interface Props {
   value: number[];
   onChange: (next: number[]) => void;
   disabled?: boolean;
+  /** Texto introductorio. `undefined` = copy por defecto (form de publicación);
+   * `null` = sin intro (ej. en filtros, donde el popover ya rotula el contexto). */
+  intro?: React.ReactNode;
 }
 
-const AmenitiesPicker: React.FC<Props> = ({ value, onChange, disabled = false }) => {
+const DEFAULT_INTRO =
+  'Marcá las comodidades que ofrece la propiedad. Los compradores las usan como filtro.';
+
+const AmenitiesPicker: React.FC<Props> = ({ value, onChange, disabled = false, intro }) => {
   const { grouped, isLoading } = useAmenitiesGrouped();
   const selected = new Set(value);
+  const introNode = intro === undefined ? DEFAULT_INTRO : intro;
 
   const toggle = (amenId: number) => {
     if (disabled) return;
@@ -45,10 +52,7 @@ const AmenitiesPicker: React.FC<Props> = ({ value, onChange, disabled = false })
 
   return (
     <div className="amenities-picker">
-      <p className="amp-intro">
-        Marcá las comodidades que ofrece la propiedad. Los compradores las
-        usan como filtro.
-      </p>
+      {introNode && <p className="amp-intro">{introNode}</p>}
 
       {grouped.map((group) => (
         <div key={group.category} className="amp-group">

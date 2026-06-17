@@ -547,6 +547,13 @@ export interface PublicationDetail {
   pubdet_price: number | string | null;
   /** ISO 4217 — 'GTQ' o 'USD'. */
   pubdet_currency?: string | null;
+  /** Fase 17 dual-divisa: segundo monto REAL ingresado por el vendedor (otra
+   * moneda). El detalle los expone como priceAlt/currencyAlt (no hay conversión
+   * automática — cada monto es el que el dueño escribió). */
+  priceAlt?: number | string | null;
+  currencyAlt?: string | null;
+  /** True si la publicación tiene una campaña activa/pausada → badge "Destacado". */
+  sponsored?: boolean;
   pubdet_rooms: number | null;
   pubdet_bathrooms: number | null;
   pubdet_parking: number | null;
@@ -597,6 +604,10 @@ export interface MyPublicationItem {
   pubdet_rooms: number | null;
   pubdet_bathrooms: number | null;
   main_image: string | null;
+  /** Métricas por publicación (backend agrega los conteos; vistas = pub_views). */
+  pub_views?: number | null;
+  favoritesCount?: number | null;
+  commentsCount?: number | null;
 }
 
 /** Shape de "Mis favoritos" (`GET /myfavorites`). */

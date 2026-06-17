@@ -9,7 +9,11 @@ import { usePublicationCategories } from '@/hooks/api/useCatalogs';
 import { usePublications } from '@/hooks/api/usePublications';
 import type { AnyPublicationListItem } from '@/types/api';
 import PublicationCard from './PublicationCard';
-import FeaturedPublicationsSection from './FeaturedPublicationsSection';
+import {
+  useFeaturedPublications,
+  recordAdClick,
+  type FeaturedPublication,
+} from '@/hooks/api/useCampaigns';
 import PublicationsBar, { type PublicationFilters } from './PublicationsBar';
 import PropertiesMap from './PropertiesMap';
 import { type SortOption } from './publicationUtils';
@@ -28,9 +32,88 @@ const INITIAL_FILTERS: PublicationFilters = {
 
 const PAGE_SIZE = 12;
 
+// Patrocinados (campañas) intercalados estilo Facebook:
+//  - SPONSORED_POOL: cuántos pedimos al backend para rotar.
+//  - SPONSORED_LEAD: cuántos van "al principio" del feed (como ya estaba).
+//  - SPONSORED_EVERY: cada cuántas orgánicas se vuelve a colar uno (cíclico),
+//    para que reaparezcan "disimuladamente" al ir bajando.
+const SPONSORED_POOL = 8;
+const SPONSORED_LEAD = 1;
+const SPONSORED_EVERY = 6;
+
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
 }
+
+// ── Feed unificado: orgánicas + patrocinados intercalados ────────────────────
+type FeedEntry =
+  | { kind: 'organic'; pub: AnyPublicationListItem }
+  | { kind: 'sponsored'; pub: FeaturedPublication; slot: number };
+
+function buildInterleavedFeed(
+  organic: AnyPublicationListItem[],
+  sponsored: FeaturedPublication[],
+  lead: number,
+  every: number,
+): FeedEntry[] {
+  if (sponsored.length === 0) {
+    return organic.map((pub) => ({ kind: 'organic', pub }));
+  }
+  const out: FeedEntry[] = [];
+  let s = 0;
+  const take = () => {
+    const pub = sponsored[s % sponsored.length];
+    const slot = s;
+    s += 1;
+    return { pub, slot };
+  };
+  // Bloque inicial al principio del listado.
+  for (let i = 0; i < lead && i < sponsored.length; i += 1) {
+    const { pub, slot } = take();
+    out.push({ kind: 'sponsored', pub, slot });
+  }
+  // Luego, 1 patrocinado cada `every` orgánicas (rotando el pool).
+  organic.forEach((pub, idx) => {
+    out.push({ kind: 'organic', pub });
+    if ((idx + 1) % every === 0) {
+      const { pub: spon, slot } = take();
+      out.push({ kind: 'sponsored', pub: spon, slot });
+    }
+  });
+  return out;
+}
+
+// Tarjeta patrocinada del feed: misma card del catálogo (mismo tamaño y reflow
+// a fila en vista lista) con su badge "Patrocinado". Registra el clic de la
+// campaña como hacía FeaturedPublicationsSection. El badge SÍ se muestra (no
+// hay sección rotuladora): así se reconoce pero queda discreto, estilo FB.
+const SponsoredFeedCard = ({ pub }: { pub: FeaturedPublication }) => {
+  const t = useTranslations('publications');
+  const isMessages = pub.campObjective === 'mensajes';
+  return (
+    <div
+      className="pub-spon"
+      onMouseDown={() => {
+        if (!isMessages) recordAdClick(pub.campId);
+      }}
+    >
+      <PublicationCard
+        publication={pub as unknown as AnyPublicationListItem}
+        isFeatured
+        ctaOverride={
+          isMessages
+            ? {
+                label: t('card.sendMessage'),
+                href: `/messages?pub=${pub.id}`,
+                iconClass: 'fa-comments',
+                onMouseDown: () => recordAdClick(pub.campId),
+              }
+            : undefined
+        }
+      />
+    </div>
+  );
+};
 
 function matchesSearch(publication: AnyPublicationListItem, search: string): boolean {
   const normalizedSearch = search.trim().toLowerCase();
@@ -120,9 +203,16 @@ const PublicationsMain = () => {
 
   const publicationsQuery = usePublications();
   const categoriesQuery = usePublicationCategories();
+  // Patrocinados (campañas) para intercalar en el feed.
+  const featuredQuery = useFeaturedPublications(SPONSORED_POOL);
 
   const publications = publicationsQuery.data ?? [];
   const categories = categoriesQuery.data ?? [];
+  const sponsored = useMemo(() => featuredQuery.data ?? [], [featuredQuery.data]);
+  const sponsoredIds = useMemo(
+    () => new Set(sponsored.map((s: FeaturedPublication) => s.id)),
+    [sponsored],
+  );
 
   // Filtrar primero, ordenar después.
   // Fase 19 — sumamos filtros avanzados client-side (precio min/max,
@@ -205,9 +295,48 @@ const PublicationsMain = () => {
     publications,
   ]);
 
+  // ¿Hay algún filtro activo (cualquiera salvo el orden)? Con filtros activos
+  // NO promovemos patrocinados: cada inmueble aparece en su posición natural
+  // ("se reacomodan entre los resultados"). Sin filtros, los promovemos arriba
+  // + intercalados estilo FB.
+  const hasActiveFilters = Boolean(
+    filters.search ||
+      filters.category ||
+      filters.priceMin ||
+      filters.priceMax ||
+      filters.roomsMin ||
+      filters.bathsMin ||
+      filters.sizeMin ||
+      filters.location ||
+      filters.municipality ||
+      (filters.amenityIds && filters.amenityIds.length > 0),
+  );
+
+  // Feed orgánico: sin filtros, sacamos los patrocinados (se muestran como
+  // promovidos) para no duplicar el mismo inmueble.
+  const organicBase = useMemo(
+    () =>
+      hasActiveFilters
+        ? filteredAndSorted
+        : filteredAndSorted.filter((p) => !sponsoredIds.has(p.id)),
+    [hasActiveFilters, filteredAndSorted, sponsoredIds],
+  );
+
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [filters.category, filters.search, filters.sort]);
+  }, [
+    filters.category,
+    filters.search,
+    filters.sort,
+    filters.priceMin,
+    filters.priceMax,
+    filters.roomsMin,
+    filters.bathsMin,
+    filters.sizeMin,
+    filters.location,
+    filters.municipality,
+    filters.amenityIds,
+  ]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -217,7 +346,7 @@ const PublicationsMain = () => {
       (entries) => {
         const [entry] = entries;
         if (entry.isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredAndSorted.length));
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, organicBase.length));
         }
       },
       { rootMargin: '200px' },
@@ -225,10 +354,16 @@ const PublicationsMain = () => {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [filteredAndSorted.length]);
+  }, [organicBase.length]);
 
-  const visiblePublications = filteredAndSorted.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredAndSorted.length;
+  const visibleOrganic = organicBase.slice(0, visibleCount);
+  const hasMore = visibleCount < organicBase.length;
+
+  // Feed final renderizado en el grid (orgánicas + patrocinados intercalados).
+  const feed: FeedEntry[] = hasActiveFilters
+    ? visibleOrganic.map((pub) => ({ kind: 'organic', pub }))
+    : buildInterleavedFeed(visibleOrganic, sponsored, SPONSORED_LEAD, SPONSORED_EVERY);
+  const firstOrganicId = organicBase[0]?.id;
 
   const isLoading = publicationsQuery.isLoading || categoriesQuery.isLoading;
   const error = publicationsQuery.error || categoriesQuery.error;
@@ -239,14 +374,18 @@ const PublicationsMain = () => {
 
   const cardsGrid = (
     <div className={`pub-grid ${viewMode === 'list' ? 'is-rows' : ''}`}>
-      {visiblePublications.map((publication, index) => (
-        <PublicationCard
-          key={publication.id}
-          publication={publication}
-          isNew={filters.sort === 'recent' && index === 0}
-          isFeatured={false}
-        />
-      ))}
+      {feed.map((entry) =>
+        entry.kind === 'sponsored' ? (
+          <SponsoredFeedCard key={`spon-${entry.pub.campId}-${entry.slot}`} pub={entry.pub} />
+        ) : (
+          <PublicationCard
+            key={entry.pub.id}
+            publication={entry.pub}
+            isNew={filters.sort === 'recent' && entry.pub.id === firstOrganicId}
+            isFeatured={false}
+          />
+        ),
+      )}
     </div>
   );
 
@@ -270,8 +409,8 @@ const PublicationsMain = () => {
             onViewChange={changeView}
           />
 
-          {/* Destacados/patrocinados (solo en grid/lista). */}
-          {viewMode !== 'map' && <FeaturedPublicationsSection limit={4} />}
+          {/* Los patrocinados ya no van en una sección aparte: se intercalan
+              dentro del mismo grid (feed unificado estilo FB) — ver `feed`. */}
 
           {/* ── Estado: cargando (skeletons de fila, no spinner full-page) ── */}
           {isLoading && (
@@ -332,7 +471,7 @@ const PublicationsMain = () => {
 
               {viewMode !== 'map' && (
                 <>
-                  {visiblePublications.length > 0 ? (
+                  {feed.length > 0 ? (
                     <>
                       {cardsGrid}
 
@@ -346,8 +485,8 @@ const PublicationsMain = () => {
                       {!hasMore && (
                         <div className="pub-showing">
                           {t('listing.showing', {
-                            visible: visiblePublications.length,
-                            total: filteredAndSorted.length,
+                            visible: visibleOrganic.length,
+                            total: organicBase.length,
                           })}
                         </div>
                       )}
@@ -400,8 +539,11 @@ const PublicationsMain = () => {
           margin-bottom: 30px;
         }
         /* Bootstrap envuelve cada card en un col-* con max-width 33/50%; lo
-           neutralizamos para que cada celda ocupe el ancho completo. */
-        :global(.pub-grid > [class*='col-']) {
+           neutralizamos para que cada celda ocupe el ancho completo. Selector
+           DESCENDIENTE (no hijo directo): la card orgánica es hija directa
+           del grid, pero la patrocinada va dentro de .pub-spon, así ambas
+           quedan a ancho completo de su celda. */
+        :global(.pub-grid [class*='col-']) {
           flex: none !important;
           width: 100% !important;
           max-width: 100% !important;
@@ -410,6 +552,13 @@ const PublicationsMain = () => {
         }
         :global(.pub-grid .pub-card) {
           margin-bottom: 0 !important;
+        }
+        /* Celda patrocinada: wrapper que captura el clic de campaña. Flex para
+           que la card interna (col-* neutralizada) estire a la altura de la
+           celda igual que las orgánicas. En vista lista hereda el reflow a fila
+           vía las reglas .pub-grid.is-rows .pub-card. */
+        :global(.pub-grid .pub-spon) {
+          display: flex;
         }
         /* Vista LISTA = una columna; la card se reflowea a fila horizontal. */
         :global(.pub-grid.is-rows) {
@@ -429,6 +578,15 @@ const PublicationsMain = () => {
         :global(.pub-grid.is-rows .pub-body) {
           flex: 1;
           min-width: 0;
+        }
+        /* Handoff #14 §1 — botón "Enviar mensaje" (pautada de mensajes) visible
+           solo en vista lista, como pill a la derecha. En lista se oculta el CTA
+           full-width (.pub-cta-row) porque el pill lo reemplaza. */
+        :global(.pub-grid.is-rows .pub-list-cta) {
+          display: inline-flex;
+        }
+        :global(.pub-grid.is-rows .pub-cta-row) {
+          display: none;
         }
         @media (max-width: 575px) {
           :global(.pub-grid.is-rows .pub-card) {

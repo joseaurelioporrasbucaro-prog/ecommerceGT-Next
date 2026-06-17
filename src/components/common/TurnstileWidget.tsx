@@ -69,6 +69,10 @@ interface TurnstileWidgetProps {
   /** Tema visual del widget. */
   theme?: "light" | "dark" | "auto";
   className?: string;
+  /** Al cambiar este número se resetea el widget (emite un token nuevo). Sirve
+   * para reenviar el formulario sin recargar: tras un submit OK el token se
+   * consume y Cloudflare no emite otro hasta hacer reset. */
+  resetKey?: number;
 }
 
 const log = (...args: unknown[]) => {
@@ -82,6 +86,7 @@ const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
   onToken,
   theme = "auto",
   className = "",
+  resetKey = 0,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -195,6 +200,22 @@ const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteKey, theme]);
+
+  // Reset controlado: al cambiar `resetKey` (tras un submit OK) pedimos a
+  // Cloudflare un token nuevo. Con la sitekey de prueba auto-resuelve; con una
+  // real el usuario debe re-resolver el reto (correcto: cada envío re-verifica).
+  useEffect(() => {
+    if (!resetKey) return; // 0 = montaje inicial, no resetear
+    if (widgetIdRef.current && typeof window !== "undefined" && window.turnstile) {
+      try {
+        window.turnstile.reset(widgetIdRef.current);
+        onToken("");
+      } catch {
+        /* noop */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
 
   // ────── Renderizado por estado ──────
 

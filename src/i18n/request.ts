@@ -17,6 +17,7 @@ const namespaces = [
   'publications',
   'legal',
   'danger',
+  'footer',
 ] as const;
 
 type Namespace = (typeof namespaces)[number];
