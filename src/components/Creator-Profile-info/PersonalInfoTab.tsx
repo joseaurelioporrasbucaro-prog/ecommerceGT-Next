@@ -129,195 +129,190 @@ const PersonalInfoTab = () => {
         }
     };
 
+    // Estilos compartidos (Handoff #16: cards .kq-card + inputs .kq-input).
+    const label: React.CSSProperties = {
+        fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 13,
+        color: 'var(--fg-strong)', display: 'block', marginBottom: 7,
+    };
+    const grid2: React.CSSProperties = {
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18,
+    };
+    const cardTitle: React.CSSProperties = {
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20,
+        color: 'var(--fg-strong)', margin: '0 0 4px',
+    };
+    const cardSub: React.CSSProperties = {
+        fontSize: 13.5, color: 'var(--fg-muted)', margin: '0 0 20px',
+    };
+
     return (
         <>
-            <h4 className="mb-4">Información Personal</h4>
-            <form className="personal-info-form mb-5" onSubmit={handleSubmitHandle}>
-                <div className="row">
-                    <div className="col-md-8">
-                        <div className="single-input-unit">
-                            <label>Nombre de usuario</label>
-                            <input
-                                type="text"
-                                value={handleValue}
-                                onChange={(event) => setHandleValue(event.target.value.toLowerCase())}
-                                disabled={handleLimitReached}
-                                title={handleLimitReached ? 'Has alcanzado el límite de 2 cambios.' : undefined}
-                                placeholder="ej. ana_garcia"
-                            />
-                            <span className="handle-counter">
-                                Cambios disponibles: {availableHandleChanges} / 2
+            {/* ── Card: nombre de usuario ── */}
+            <form className="kq-card" style={{ padding: 28, marginBottom: 24 }} onSubmit={handleSubmitHandle}>
+                <h3 style={cardTitle}>Nombre de usuario</h3>
+                <p style={cardSub}>Podés cambiarlo hasta 2 veces.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 14, alignItems: 'flex-end' }}>
+                    <div>
+                        <label style={label}>Usuario</label>
+                        <input
+                            type="text"
+                            className="kq-input"
+                            value={handleValue}
+                            onChange={(event) => setHandleValue(event.target.value.toLowerCase())}
+                            disabled={handleLimitReached}
+                            title={handleLimitReached ? 'Has alcanzado el límite de 2 cambios.' : undefined}
+                            placeholder="ej. ana_garcia"
+                        />
+                        <span style={{ display: 'block', marginTop: 6, fontSize: 12.5, color: 'var(--fg-subtle)' }}>
+                            Cambios disponibles: {availableHandleChanges} / 2
+                        </span>
+                        {handleLimitReached && (
+                            <span style={{ display: 'block', marginTop: 2, fontSize: 12, color: 'var(--fg-muted)' }}>
+                                Has alcanzado el límite de cambios para tu nombre de usuario.
                             </span>
-                            {handleLimitReached && (
-                                <span className="text-muted d-block mt-1" style={{ fontSize: '12px' }}>
-                                    Has alcanzado el límite de cambios para tu nombre de usuario.
-                                </span>
-                            )}
-                            {handleChanged && handleFormatIsValid && handleAvailable === false && (
-                                <span className="text-danger d-block mt-1" style={{ fontSize: '12px' }}>
-                                    Ese nombre de usuario ya está ocupado.
-                                </span>
-                            )}
-                            {handleChanged && handleFormatIsValid && handleAvailable === true && (
-                                <span className="text-success d-block mt-1" style={{ fontSize: '12px' }}>
-                                    Nombre disponible.
-                                </span>
-                            )}
-                        </div>
+                        )}
+                        {handleChanged && handleFormatIsValid && handleAvailable === false && (
+                            <span style={{ display: 'block', marginTop: 2, fontSize: 12, color: 'var(--danger)' }}>
+                                Ese nombre de usuario ya está ocupado.
+                            </span>
+                        )}
+                        {handleChanged && handleFormatIsValid && handleAvailable === true && (
+                            <span style={{ display: 'block', marginTop: 2, fontSize: 12, color: 'var(--green-700)' }}>
+                                Nombre disponible.
+                            </span>
+                        )}
                     </div>
-                    <div className="col-md-4 d-flex align-items-end">
-                        <button
-                            type="submit"
-                            className="fill-btn mb-30"
-                            disabled={
-                                handleLimitReached ||
-                                !handleChanged ||
-                                !handleFormatIsValid ||
-                                handleAvailable === false ||
-                                handleCheckQuery.isFetching ||
-                                updateHandleMutation.isPending
-                            }
-                        >
-                            {updateHandleMutation.isPending ? 'Guardando...' : 'Guardar usuario'}
-                        </button>
-                    </div>
-                </div>
-            </form>
-            <form className="personal-info-form mb-5" onSubmit={formik.handleSubmit}>
-                <div className="row">
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Nombre(s)</label>
-                            <input type="text" {...formik.getFieldProps('firstName')} />
-                            {renderError('firstName')}
-                        </div>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Apellido(s)</label>
-                            <input type="text" {...formik.getFieldProps('lastName')} />
-                            {renderError('lastName')}
-                        </div>
-                    </div>
-
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Género</label>
-                            <select className="form-control" style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }} {...formik.getFieldProps('genid')}>
-                                <option value="" disabled>Seleccione...</option>
-                                {genders.map((g: Gender) => (
-                                    <option key={g.gen_id} value={g.gen_id}>{g.gen_description}</option>
-                                ))}
-                            </select>
-                            {renderError('genid')}
-                        </div>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Fecha de Nacimiento</label>
-                            <input type="date" {...formik.getFieldProps('birthday')} />
-                            {renderError('birthday')}
-                        </div>
-                    </div>
-
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Teléfono</label>
-                            <input type="text" maxLength={8} {...formik.getFieldProps('phone')} 
-                                onKeyDown={(e) => { if (!/^[0-9]*$/.test(e.key) && e.key !== 'Backspace') e.preventDefault(); }}
-                            />
-                            {renderError('phone')}
-                        </div>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Idioma Preferido</label>
-                            <select className="form-control" style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }} {...formik.getFieldProps('lang')}>
-                                <option value="es">Español</option>
-                                <option value="en">English</option>
-                            </select>
-                            {renderError('lang')}
-                        </div>
-                    </div>
-
-                    <div className="col-md-12">
-                        <div className="single-input-unit">
-                            <label>Dirección</label>
-                            <textarea rows={3} style={{ width: '100%', padding: '15px', borderRadius: '5px', border: '1px solid #e0e0e0' }} {...formik.getFieldProps('address')}></textarea>
-                            {renderError('address')}
-                        </div>
-                    </div>
-
-                    {/* ── Ubicación de perfil (departamento / municipio) ── */}
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Departamento</label>
-                            <select
-                                className="form-control"
-                                style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }}
-                                value={formik.values.citId}
-                                onChange={(e) => {
-                                    formik.setFieldValue('citId', e.target.value);
-                                    formik.setFieldValue('towId', ''); // reset municipio al cambiar depto
-                                }}
-                            >
-                                <option value="">Seleccione...</option>
-                                {cities.map((c: City) => (
-                                    <option key={c.city} value={String(c.city)}>{c.description}</option>
-                                ))}
-                            </select>
-                            {renderError('citId')}
-                        </div>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Municipio</label>
-                            <select
-                                className="form-control"
-                                style={{ height: '55px', borderRadius: '5px', border: '1px solid #e0e0e0' }}
-                                value={formik.values.towId}
-                                onChange={(e) => formik.setFieldValue('towId', e.target.value)}
-                                disabled={!formik.values.citId}
-                            >
-                                <option value="">Seleccione...</option>
-                                {municipalities.map((m: Municipality) => (
-                                    <option key={m.municipality} value={String(m.municipality)}>{m.description}</option>
-                                ))}
-                            </select>
-                            {renderError('towId')}
-                        </div>
-                    </div>
-
-                    <div className="col-md-12">
-                        <label
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 10,
-                                cursor: 'pointer',
-                                marginTop: 18,
-                                marginBottom: 10,
-                            }}
-                        >
-                            <input
-                                type="checkbox"
-                                checked={formik.values.showLocation}
-                                onChange={(e) => formik.setFieldValue('showLocation', e.target.checked)}
-                                style={{ width: 18, height: 18, flexShrink: 0, margin: 0 }}
-                            />
-                            <span>Mostrar mi ubicación (departamento y municipio) en mi perfil público</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div className="personal-info-btn mt-3">
-                    <button type="submit" className="fill-btn" disabled={loading}>
-                        {loading ? 'Guardando...' : 'Guardar Información Personal'}
+                    <button
+                        type="submit"
+                        className="kq-btn kq-btn--outline"
+                        style={{ height: 48 }}
+                        disabled={
+                            handleLimitReached ||
+                            !handleChanged ||
+                            !handleFormatIsValid ||
+                            handleAvailable === false ||
+                            handleCheckQuery.isFetching ||
+                            updateHandleMutation.isPending
+                        }
+                    >
+                        {updateHandleMutation.isPending ? 'Guardando...' : 'Guardar usuario'}
                     </button>
                 </div>
             </form>
 
-            {/* Fase 11 — Zona de peligro: eliminar cuenta */}
+            {/* ── Card: información personal ── */}
+            <form className="kq-card" style={{ padding: 28, marginBottom: 24 }} onSubmit={formik.handleSubmit}>
+                <h3 style={cardTitle}>Información personal</h3>
+                <div style={{ height: 16 }} />
+                <div style={grid2}>
+                    <div>
+                        <label style={label}>Nombre(s)</label>
+                        <input type="text" className="kq-input" {...formik.getFieldProps('firstName')} />
+                        {renderError('firstName')}
+                    </div>
+                    <div>
+                        <label style={label}>Apellido(s)</label>
+                        <input type="text" className="kq-input" {...formik.getFieldProps('lastName')} />
+                        {renderError('lastName')}
+                    </div>
+                    <div>
+                        <label style={label}>Género</label>
+                        <select className="kq-input" {...formik.getFieldProps('genid')}>
+                            <option value="" disabled>Seleccione...</option>
+                            {genders.map((g: Gender) => (
+                                <option key={g.gen_id} value={g.gen_id}>{g.gen_description}</option>
+                            ))}
+                        </select>
+                        {renderError('genid')}
+                    </div>
+                    <div>
+                        <label style={label}>Fecha de nacimiento</label>
+                        <input type="date" className="kq-input" {...formik.getFieldProps('birthday')} />
+                        {renderError('birthday')}
+                    </div>
+                    <div>
+                        <label style={label}>Teléfono</label>
+                        <input
+                            type="text"
+                            className="kq-input"
+                            maxLength={8}
+                            {...formik.getFieldProps('phone')}
+                            onKeyDown={(e) => { if (!/^[0-9]*$/.test(e.key) && e.key !== 'Backspace') e.preventDefault(); }}
+                        />
+                        {renderError('phone')}
+                    </div>
+                    <div>
+                        <label style={label}>Idioma preferido</label>
+                        <select className="kq-input" {...formik.getFieldProps('lang')}>
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                        </select>
+                        {renderError('lang')}
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={label}>Dirección</label>
+                        <textarea
+                            className="kq-input"
+                            rows={2}
+                            style={{ resize: 'vertical', fontFamily: 'var(--font-body)' }}
+                            {...formik.getFieldProps('address')}
+                        />
+                        {renderError('address')}
+                    </div>
+                    <div>
+                        <label style={label}>Departamento</label>
+                        <select
+                            className="kq-input"
+                            value={formik.values.citId}
+                            onChange={(e) => {
+                                formik.setFieldValue('citId', e.target.value);
+                                formik.setFieldValue('towId', ''); // reset municipio al cambiar depto
+                            }}
+                        >
+                            <option value="">Seleccione...</option>
+                            {cities.map((c: City) => (
+                                <option key={c.city} value={String(c.city)}>{c.description}</option>
+                            ))}
+                        </select>
+                        {renderError('citId')}
+                    </div>
+                    <div>
+                        <label style={label}>Municipio</label>
+                        <select
+                            className="kq-input"
+                            value={formik.values.towId}
+                            onChange={(e) => formik.setFieldValue('towId', e.target.value)}
+                            disabled={!formik.values.citId}
+                        >
+                            <option value="">Seleccione...</option>
+                            {municipalities.map((m: Municipality) => (
+                                <option key={m.municipality} value={String(m.municipality)}>{m.description}</option>
+                            ))}
+                        </select>
+                        {renderError('towId')}
+                    </div>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 18, cursor: 'pointer' }}>
+                    <input
+                        type="checkbox"
+                        checked={formik.values.showLocation}
+                        onChange={(e) => formik.setFieldValue('showLocation', e.target.checked)}
+                        style={{ width: 18, height: 18, flexShrink: 0, margin: 0, accentColor: 'var(--lav-600)' }}
+                    />
+                    <span style={{ fontSize: 14, color: 'var(--fg)' }}>
+                        Mostrar mi ubicación (departamento y municipio) en mi perfil público
+                    </span>
+                </label>
+
+                <div style={{ marginTop: 22 }}>
+                    <button type="submit" className="kq-btn kq-btn--action" disabled={loading}>
+                        {loading ? 'Guardando...' : 'Guardar información personal'}
+                    </button>
+                </div>
+            </form>
+
+            {/* Zona de peligro: eliminar cuenta */}
             <DangerZone />
         </>
     );
