@@ -30,52 +30,61 @@ const DEFAULT_AVATAR = '/assets/img/profile/avatar.png';
 /** A partir de esta cantidad de respuestas, el hilo se colapsa por defecto. */
 const REPLIES_COLLAPSE_THRESHOLD = 2;
 
-interface CommentNode extends Comment {
-  children: CommentNode[];
+/** Respuesta aplanada a nivel 1. `replyToName` = a quién responde cuando es
+ *  respuesta-a-respuesta (para mostrar la @mención); null si responde directo
+ *  a la pregunta. */
+interface FlatReply extends Comment {
+  replyToName: string | null;
+}
+
+/** Hilo aplanado: pregunta (nivel 0) + todas sus respuestas en UN solo nivel. */
+interface Thread {
+  question: Comment;
+  replies: FlatReply[];
 }
 
 function getErrorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Error inesperado';
 }
 
-/** Resuelve la URL del avatar del usuario autenticado para el composer. */
+/** Resuelve la URL del avatar de un usuario; placeholder si no tiene foto. */
 function resolveAvatar(imagenu: string | null | undefined): string {
   if (!imagenu) return DEFAULT_AVATAR;
   return imagenu.startsWith('http') ? imagenu : getBackendUrl(imagenu);
 }
 
+const byDateAsc = (a: Comment, b: Comment) =>
+  new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+
 /**
- * Construye un árbol de comentarios desde el array plano del backend.
- * Soporta múltiples niveles de anidación (estilo Reddit/Facebook).
+ * Handoff #15 — aplana el árbol del backend a 2 niveles: pregunta (raíz) +
+ * TODAS sus respuestas en una sola lista (sin anidar). La respuesta-a-respuesta
+ * se marca con `replyToName` para la @mención, no un contenedor nuevo.
  */
-function buildCommentTree(comments: Comment[]): CommentNode[] {
-  const map = new Map<number, CommentNode>();
-  const roots: CommentNode[] = [];
+function buildThreads(comments: Comment[]): Thread[] {
+  const byId = new Map<number, Comment>();
+  comments.forEach((c) => byId.set(c.comment_id, c));
+  const roots = comments.filter((c) => c.parent_id === null).slice().sort(byDateAsc);
 
-  comments.forEach((c) => {
-    map.set(c.comment_id, { ...c, children: [] });
+  return roots.map((question) => {
+    const replies: FlatReply[] = [];
+    const collect = (parentId: number) => {
+      comments
+        .filter((c) => c.parent_id === parentId)
+        .forEach((child) => {
+          const parent = child.parent_id != null ? byId.get(child.parent_id) : undefined;
+          const replyToName =
+            parent && parent.comment_id !== question.comment_id
+              ? `${parent.cus_first_name} ${parent.cus_last_name}`
+              : null;
+          replies.push({ ...child, replyToName });
+          collect(child.comment_id);
+        });
+    };
+    collect(question.comment_id);
+    replies.sort(byDateAsc);
+    return { question, replies };
   });
-
-  comments.forEach((c) => {
-    const node = map.get(c.comment_id);
-    if (!node) return;
-    if (c.parent_id !== null && map.has(c.parent_id)) {
-      map.get(c.parent_id)!.children.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-
-  // Ordenar por fecha ascendente (los nuevos al final)
-  const sortByDate = (nodes: CommentNode[]) => {
-    nodes.sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-    );
-    nodes.forEach((n) => sortByDate(n.children));
-  };
-  sortByDate(roots);
-
-  return roots;
 }
 
 // ============================================================================
@@ -243,151 +252,143 @@ const InlineReplyForm = ({ authorName, isPending, onSubmit, onCancel }: InlineRe
 };
 
 // ============================================================================
-// Nodo recursivo del hilo (pregunta raíz → respuestas)
+// Hilo aplanado: pregunta (nivel 0) → respuestas (nivel 1) en una sola sangría.
+// Sin cajas anidadas; la respuesta-a-respuesta se marca con @mención (Handoff #15).
 // ============================================================================
 
-interface CommentNodeProps {
-  node: CommentNode;
-  depth: number;
+interface QuestionThreadProps {
+  question: Comment;
+  replies: FlatReply[];
   canReply: boolean;
   replyingTo: number | null;
   setReplyingTo: (id: number | null) => void;
   onSubmitReply: (parentId: number, content: string) => Promise<void>;
   isPending: boolean;
-  onLike: (commentId: number) => void;
-  isClosed: boolean;
+  /** undefined cuando la publicación está cerrada (no se puede dar like). */
+  onLike?: (commentId: number) => void;
   currentUserId: number | null;
   sellerId: number | null;
 }
 
-const CommentNodeView = ({
-  node,
-  depth,
+const QuestionThread = ({
+  question,
+  replies,
   canReply,
   replyingTo,
   setReplyingTo,
   onSubmitReply,
   isPending,
   onLike,
-  isClosed,
   currentUserId,
   sellerId,
-}: CommentNodeProps) => {
+}: QuestionThreadProps) => {
   const t = useTranslations('publications');
   const dateFmt = useDateFmt();
-  const date = dateFmt.medium(node.created_at, node.created_at);
-  const time = dateFmt.time(node.created_at, '');
-  const authorName = `${node.cus_first_name} ${node.cus_last_name}`;
-  const authorHref = `/creator-profile/${node.cus_id}`;
-  const isReplyingHere = replyingTo === node.comment_id;
-  const isSeller = sellerId != null && node.cus_id === sellerId;
-  const likeHandler = isClosed ? undefined : () => onLike(node.comment_id);
-  // Fase 8.4 — denunciar comentario (no el propio, y solo logueado).
-  const canReport = currentUserId != null && currentUserId !== node.cus_id;
-
-  // Colapso de hilos largos a nivel de pregunta raíz.
   const [expanded, setExpanded] = useState(false);
-  const totalChildren = node.children.length;
-  const collapses = depth === 0 && totalChildren > REPLIES_COLLAPSE_THRESHOLD;
-  const visibleChildren =
-    collapses && !expanded ? node.children.slice(0, REPLIES_COLLAPSE_THRESHOLD) : node.children;
-  const hiddenCount = totalChildren - visibleChildren.length;
 
-  const reportRow = canReport && (
-    <div className="kq-report-row">
-      <ReportCommentButton commentId={node.comment_id} />
-    </div>
-  );
+  const qName = `${question.cus_first_name} ${question.cus_last_name}`;
+  const qHref = `/creator-profile/${question.cus_id}`;
+  const canReportQ = currentUserId != null && currentUserId !== question.cus_id;
 
-  const replyForm = isReplyingHere && (
+  const collapses = replies.length > REPLIES_COLLAPSE_THRESHOLD;
+  const visibleReplies =
+    collapses && !expanded ? replies.slice(0, REPLIES_COLLAPSE_THRESHOLD) : replies;
+  const hiddenCount = replies.length - visibleReplies.length;
+
+  const replyForm = (parentId: number, name: string) => (
     <InlineReplyForm
-      authorName={authorName}
+      authorName={name}
       isPending={isPending}
-      onSubmit={(content) => onSubmitReply(node.comment_id, content)}
+      onSubmit={(content) => onSubmitReply(parentId, content)}
       onCancel={() => setReplyingTo(null)}
     />
   );
 
-  const renderChild = (child: CommentNode) => (
-    <CommentNodeView
-      key={child.comment_id}
-      node={child}
-      depth={depth + 1}
-      canReply={canReply}
-      replyingTo={replyingTo}
-      setReplyingTo={setReplyingTo}
-      onSubmitReply={onSubmitReply}
-      isPending={isPending}
-      onLike={onLike}
-      isClosed={isClosed}
-      currentUserId={currentUserId}
-      sellerId={sellerId}
-    />
-  );
-
-  const childrenView = totalChildren > 0 && (
-    <div className="kq-thread">
-      {visibleChildren.map(renderChild)}
-      {collapses && !expanded && hiddenCount > 0 && (
-        <button type="button" className="kq-show-more" onClick={() => setExpanded(true)}>
-          <i className="fal fa-chevron-down" />
-          {t('comments.showMoreReplies', { count: hiddenCount })}
-        </button>
-      )}
-      {collapses && expanded && (
-        <button type="button" className="kq-show-more" onClick={() => setExpanded(false)}>
-          <i className="fal fa-chevron-up" />
-          {t('comments.hideReplies')}
-        </button>
-      )}
-    </div>
-  );
-
-  if (depth === 0) {
-    return (
-      <ForumComment
-        authorName={authorName}
-        authorHref={authorHref}
-        avatarSrc={DEFAULT_AVATAR}
-        date={date}
-        time={time}
-        content={renderCommentContent(node.content, node.mentions)}
-        likes={node.likesCount}
-        isLiked={node.isLiked}
-        onLike={likeHandler}
-        repliesCount={totalChildren}
-        onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
-        likesLabel={t('comments.likesLabel')}
-        replyLabel={t('comments.replyLabel')}
-      >
-        {reportRow}
-        {replyForm}
-        {childrenView}
-      </ForumComment>
-    );
-  }
-
   return (
-    <ForumReply
-      authorName={authorName}
-      authorHref={authorHref}
-      avatarSrc={DEFAULT_AVATAR}
-      date={date}
-      time={time}
-      content={renderCommentContent(node.content, node.mentions)}
-      likes={node.likesCount}
-      isLiked={node.isLiked}
-      onLike={likeHandler}
-      onReply={canReply ? () => setReplyingTo(node.comment_id) : undefined}
+    <ForumComment
+      authorName={qName}
+      authorHref={qHref}
+      avatarSrc={resolveAvatar(question.authorImage)}
+      date={dateFmt.medium(question.created_at, question.created_at)}
+      time={dateFmt.time(question.created_at, '')}
+      content={renderCommentContent(question.content, question.mentions)}
+      likes={question.likesCount}
+      isLiked={question.isLiked}
+      onLike={onLike ? () => onLike(question.comment_id) : undefined}
+      repliesCount={replies.length}
+      onReply={canReply ? () => setReplyingTo(question.comment_id) : undefined}
       likesLabel={t('comments.likesLabel')}
       replyLabel={t('comments.replyLabel')}
-      isSeller={isSeller}
-      sellerLabel={t('comments.sellerBadge')}
     >
-      {reportRow}
-      {replyForm}
-      {childrenView}
-    </ForumReply>
+      {canReportQ && (
+        <div className="kq-report-row">
+          <ReportCommentButton commentId={question.comment_id} />
+        </div>
+      )}
+
+      {(replyingTo === question.comment_id || replies.length > 0) && (
+        <div className="kq-thread">
+          {/* Responder a la pregunta → form arriba del hilo. */}
+          {replyingTo === question.comment_id && replyForm(question.comment_id, qName)}
+
+          {visibleReplies.map((reply) => {
+            const rName = `${reply.cus_first_name} ${reply.cus_last_name}`;
+            const rHref = `/creator-profile/${reply.cus_id}`;
+            const isSeller = sellerId != null && reply.cus_id === sellerId;
+            const canReportR = currentUserId != null && currentUserId !== reply.cus_id;
+
+            return (
+              <React.Fragment key={reply.comment_id}>
+                <ForumReply
+                  authorName={rName}
+                  authorHref={rHref}
+                  avatarSrc={resolveAvatar(reply.authorImage)}
+                  date={dateFmt.medium(reply.created_at, reply.created_at)}
+                  time={dateFmt.time(reply.created_at, '')}
+                  content={
+                    <>
+                      {reply.replyToName && (
+                        <span className="kq-reply-mention">@{reply.replyToName} </span>
+                      )}
+                      {renderCommentContent(reply.content, reply.mentions)}
+                    </>
+                  }
+                  likes={reply.likesCount}
+                  isLiked={reply.isLiked}
+                  onLike={onLike ? () => onLike(reply.comment_id) : undefined}
+                  onReply={canReply ? () => setReplyingTo(reply.comment_id) : undefined}
+                  likesLabel={t('comments.likesLabel')}
+                  replyLabel={t('comments.replyLabel')}
+                  isSeller={isSeller}
+                  sellerLabel={t('comments.sellerBadge')}
+                >
+                  {canReportR && (
+                    <div className="kq-report-row">
+                      <ReportCommentButton commentId={reply.comment_id} />
+                    </div>
+                  )}
+                </ForumReply>
+                {/* Responder a una respuesta → form como hermano (no anida caja). */}
+                {replyingTo === reply.comment_id && replyForm(reply.comment_id, rName)}
+              </React.Fragment>
+            );
+          })}
+
+          {collapses && !expanded && hiddenCount > 0 && (
+            <button type="button" className="kq-show-more" onClick={() => setExpanded(true)}>
+              <i className="fal fa-chevron-down" />
+              {t('comments.showMoreReplies', { count: hiddenCount })}
+            </button>
+          )}
+          {collapses && expanded && (
+            <button type="button" className="kq-show-more" onClick={() => setExpanded(false)}>
+              <i className="fal fa-chevron-up" />
+              {t('comments.hideReplies')}
+            </button>
+          )}
+        </div>
+      )}
+    </ForumComment>
   );
 };
 
@@ -412,7 +413,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const tree = useMemo(() => buildCommentTree(comments), [comments]);
+  const threads = useMemo(() => buildThreads(comments), [comments]);
   const statusInfo = getPublicationStatusInfo(pubstaId, {
     sold: t('status.sold'),
     soldSub: t('status.soldSub'),
@@ -425,7 +426,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
   });
   const isClosed = statusInfo.isClosed;
   const canComment = !!user && !isClosed;
-  const questionCount = tree.length;
+  const questionCount = threads.length;
 
   const handleLike = (commentId: number) => {
     if (!user) {
@@ -549,7 +550,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
               </div>
             )}
 
-            {!commentsQuery.isLoading && !commentsQuery.error && tree.length === 0 && (
+            {!commentsQuery.isLoading && !commentsQuery.error && threads.length === 0 && (
               <div className="kq-empty">
                 <div className="kq-empty-icon">
                   <i className="fal fa-comments" />
@@ -559,21 +560,20 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
               </div>
             )}
 
-            {/* ───────── Hilos ───────── */}
-            {tree.length > 0 && (
+            {/* ───────── Hilos (aplanados a 2 niveles) ───────── */}
+            {threads.length > 0 && (
               <div className="kq-questions">
-                {tree.map((node) => (
-                  <CommentNodeView
-                    key={node.comment_id}
-                    node={node}
-                    depth={0}
+                {threads.map((thread) => (
+                  <QuestionThread
+                    key={thread.question.comment_id}
+                    question={thread.question}
+                    replies={thread.replies}
                     canReply={canComment}
                     replyingTo={replyingTo}
                     setReplyingTo={setReplyingTo}
                     onSubmitReply={handleReplySubmit}
                     isPending={addCommentMutation.isPending}
-                    onLike={handleLike}
-                    isClosed={isClosed}
+                    onLike={isClosed ? undefined : handleLike}
                     currentUserId={user?.id ?? null}
                     sellerId={sellerId}
                   />
@@ -937,25 +937,32 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
           font-weight: 700;
         }
 
-        /* === Hilo de respuestas === */
+        /* === Hilo de respuestas (Handoff #15: 1 sola sangría, sin cajas anidadas) === */
         .kq-questions :global(.kq-thread) {
           margin-top: 16px;
-          padding-left: 22px;
-          border-left: 2px solid var(--border);
+          margin-left: 56px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 14px;
         }
+        /* Comunidad: respuesta PLANA (avatar + texto), sin caja ni fondo. */
         .kq-questions :global(.kq-answer) {
-          padding: 16px 18px;
-          background: var(--surface-sunk);
-          border: 1.5px solid var(--border);
+          padding: 2px 0;
+        }
+        /* Vendedor: franja lavanda compacta con chip "Vendedor". */
+        .kq-questions :global(.kq-answer.is-seller) {
+          padding: 12px 14px;
+          background: var(--accent-soft);
+          border-left: 3px solid var(--lav-500);
           border-radius: var(--r-md);
         }
-        .kq-questions :global(.kq-answer.is-seller) {
-          background: var(--accent-soft);
-          border-color: transparent;
-          border-left: 3px solid var(--accent);
+        /* @mención (a quién responde): lavanda, al inicio del texto. */
+        .kq-questions :global(.kq-reply-mention) {
+          color: var(--accent);
+          font-weight: 700;
+        }
+        :global([data-theme='dark']) .kq-questions :global(.kq-reply-mention) {
+          color: var(--lav-400);
         }
         .kq-questions :global(.kq-seller-chip) {
           display: inline-flex;
@@ -1035,7 +1042,7 @@ const PublicationComments = ({ pubId, pubstaId }: PublicationCommentsProps) => {
             justify-content: center;
           }
           .kq-questions :global(.kq-thread) {
-            padding-left: 14px;
+            margin-left: 16px;
           }
         }
       `}</style>

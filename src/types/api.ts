@@ -674,6 +674,8 @@ export interface Comment {
   parent_id: number | null;
   cus_first_name: string;
   cus_last_name: string;
+  /** Foto del autor (ruta backend) — para el avatar real; null = placeholder. */
+  authorImage?: string | null;
   likesCount: number;
   isLiked: boolean;
   /** @handle mencionados en el contenido, resueltos a cusId por el backend. */

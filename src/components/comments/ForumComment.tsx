@@ -57,6 +57,7 @@ const ForumComment = ({
           alt={authorName}
           width={44}
           height={44}
+          unoptimized
         />
       </Link>
       <div className="kq-q-meta">

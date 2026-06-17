@@ -60,6 +60,7 @@ const ForumReply = ({
           alt={authorName}
           width={36}
           height={36}
+          unoptimized
         />
       </Link>
       <div className="kq-a-meta">
@@ -67,7 +68,7 @@ const ForumReply = ({
           <Link href={authorHref} className="kq-author">{authorName}</Link>
           {isSeller && (
             <span className="kq-seller-chip">
-              <i className="fas fa-store" />
+              <i className="fas fa-home" />
               {sellerLabel}
             </span>
           )}
