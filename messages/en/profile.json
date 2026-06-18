@@ -39,6 +39,7 @@
     "loading": "Loading company...",
     "loadError": "The company profile could not be loaded.",
     "verified": "Verified company",
+    "contact": "Contact",
     "since": "Since {date}",
     "employees": "Employees",
     "noPublications": "This company does not have active publications yet.",

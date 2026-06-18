@@ -46,59 +46,70 @@ const AccountSettingsTab = () => {
 
     const renderError = (field: string) => {
         if (formik.touched[field as keyof typeof formik.values] && formik.errors[field as keyof typeof formik.values]) {
-            return <span className="text-danger" style={{ fontSize: '12px' }}>{formik.errors[field as keyof typeof formik.values] as string}</span>;
+            return <span style={{ display: 'block', marginTop: 6, fontSize: 12, color: 'var(--danger)' }}>{formik.errors[field as keyof typeof formik.values] as string}</span>;
         }
         return null;
     };
 
+    // Estilos compartidos (Handoff #16: cards .kq-card + inputs .kq-input).
+    const label: React.CSSProperties = {
+        fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 13,
+        color: 'var(--fg-strong)', display: 'block', marginBottom: 7,
+    };
+    const grid2: React.CSSProperties = {
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18,
+    };
+    const cardTitle: React.CSSProperties = {
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20,
+        color: 'var(--fg-strong)', margin: '0 0 4px',
+    };
+    const cardSub: React.CSSProperties = {
+        fontSize: 13.5, color: 'var(--fg-muted)', margin: '0 0 20px',
+    };
+
     return (
         <>
-            <h4 className="mb-4">Seguridad de la Cuenta</h4>
-            
-            {/* Solo Lectura: Email */}
-            <div className="personal-info-form mb-5">
-                <div className="row">
-                    <div className="col-md-12">
-                        <div className="single-input-unit">
-                            <label>Correo Electrónico Actual</label>
-                            <input type="email" readOnly defaultValue={user?.email || ''} style={{ backgroundColor: '#f5f5f5', color: '#888' }} />
-                            <small className="text-muted mt-1 d-block">Para cambiar tu correo electrónico, por favor contacta a soporte.</small>
-                        </div>
-                    </div>
+            {/* ── Card: correo electrónico (solo lectura) ── */}
+            <div className="kq-card" style={{ padding: 28, marginBottom: 24 }}>
+                <h3 style={cardTitle}>Correo electrónico</h3>
+                <p style={cardSub}>Para cambiar tu correo, escribinos a soporte.</p>
+                <div>
+                    <label style={label}>Correo electrónico actual</label>
+                    <input
+                        type="email"
+                        className="kq-input"
+                        readOnly
+                        defaultValue={user?.email || ''}
+                        style={{ background: 'var(--surface-sunk)', color: 'var(--fg-muted)' }}
+                    />
                 </div>
             </div>
 
-            <hr className="mb-5"/>
-
-            <h4 className="mb-4">Cambiar Contraseña</h4>
-            <form className="personal-info-form" onSubmit={formik.handleSubmit}>
-                <div className="row">
-                    <div className="col-md-12">
-                        <div className="single-input-unit">
-                            <label>Contraseña Actual</label>
-                            <input type="password" placeholder="********" {...formik.getFieldProps('lastPwd')} />
-                            {renderError('lastPwd')}
-                        </div>
+            {/* ── Card: cambiar contraseña ── */}
+            <form className="kq-card" style={{ padding: 28, marginBottom: 24 }} onSubmit={formik.handleSubmit}>
+                <h3 style={cardTitle}>Cambiar contraseña</h3>
+                <p style={cardSub}>Usá una contraseña de al menos 8 caracteres con una mayúscula y un número.</p>
+                <div>
+                    <label style={label}>Contraseña actual</label>
+                    <input type="password" className="kq-input" placeholder="********" {...formik.getFieldProps('lastPwd')} />
+                    {renderError('lastPwd')}
+                </div>
+                <div style={{ ...grid2, marginTop: 18 }}>
+                    <div>
+                        <label style={label}>Nueva contraseña</label>
+                        <input type="password" className="kq-input" placeholder="********" {...formik.getFieldProps('password')} />
+                        {renderError('password')}
                     </div>
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Nueva Contraseña</label>
-                            <input type="password" placeholder="********" {...formik.getFieldProps('password')} />
-                            {renderError('password')}
-                        </div>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="single-input-unit">
-                            <label>Confirmar Nueva Contraseña</label>
-                            <input type="password" placeholder="********" {...formik.getFieldProps('confirmPassword')} />
-                            {renderError('confirmPassword')}
-                        </div>
+                    <div>
+                        <label style={label}>Confirmar nueva contraseña</label>
+                        <input type="password" className="kq-input" placeholder="********" {...formik.getFieldProps('confirmPassword')} />
+                        {renderError('confirmPassword')}
                     </div>
                 </div>
 
-                <div className="personal-info-btn mt-3">
-                    <button type="submit" className="fill-btn" disabled={loading}>
-                        {loading ? 'Actualizando...' : 'Cambiar Contraseña'}
+                <div style={{ marginTop: 22 }}>
+                    <button type="submit" className="kq-btn kq-btn--action" disabled={loading}>
+                        {loading ? 'Actualizando...' : 'Cambiar contraseña'}
                     </button>
                 </div>
             </form>

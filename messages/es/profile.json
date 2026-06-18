@@ -39,6 +39,7 @@
     "loading": "Cargando empresa...",
     "loadError": "No se pudo cargar el perfil de la empresa.",
     "verified": "Empresa verificada",
+    "contact": "Contactar",
     "since": "Desde {date}",
     "employees": "Empleados",
     "noPublications": "Esta empresa todavia no tiene publicaciones activas.",

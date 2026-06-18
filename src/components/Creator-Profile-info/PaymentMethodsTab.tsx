@@ -166,7 +166,7 @@ const PaymentMethodsTab: React.FC = () => {
         <div className="pm-card-info">
           <p className="pm-card-title">
             {m.label || typeMeta.label}
-            {m.isDefault && <span className="pm-default-badge">Predeterminado</span>}
+            {m.isDefault && <span className="kq-badge kq-badge--lav pm-default-badge">Principal</span>}
           </p>
           <p className="pm-card-detail">
             {m.type === 'card' && m.last4 && (
@@ -189,10 +189,10 @@ const PaymentMethodsTab: React.FC = () => {
           {!m.isDefault && (
             <button
               type="button"
-              className="pm-action-btn"
+              className="pm-action-btn pm-action-primary"
               onClick={() => defaultMut.mutate(m.id)}
               disabled={defaultMut.isPending}
-              title="Marcar como predeterminado"
+              title="Hacer principal"
             >
               <i className="fas fa-star" />
             </button>
@@ -206,7 +206,7 @@ const PaymentMethodsTab: React.FC = () => {
               }
             }}
             disabled={removeMut.isPending}
-            title="Eliminar"
+            title="Quitar"
           >
             <i className="fas fa-trash" />
           </button>
@@ -224,10 +224,10 @@ const PaymentMethodsTab: React.FC = () => {
         </div>
         <button
           type="button"
-          className="fill-btn pm-add-btn"
+          className="kq-btn kq-btn--outline"
           onClick={() => setModalOpen(true)}
         >
-          <i className="fas fa-plus" /> Agregar
+          <i className="fas fa-plus" /> Agregar tarjeta
         </button>
       </div>
 
@@ -236,10 +236,10 @@ const PaymentMethodsTab: React.FC = () => {
       ) : items.length === 0 ? (
         <div className="pm-empty">
           <i className="fas fa-credit-card" />
-          <p>Aún no tienes métodos de pago guardados.</p>
+          <p>Aún no tenés métodos de pago guardados.</p>
           <button
             type="button"
-            className="fill-btn"
+            className="kq-btn kq-btn--action"
             onClick={() => setModalOpen(true)}
           >
             Agregar mi primer método
@@ -254,8 +254,17 @@ const PaymentMethodsTab: React.FC = () => {
         onClose={close}
         center
         styles={{
-          overlay: { background: 'rgba(0,0,0,0.55)' },
-          modal: { maxWidth: 540, width: '94%', padding: '28px 26px', borderRadius: 14 },
+          overlay: { background: 'rgba(11,17,32,0.55)' },
+          modal: {
+            maxWidth: 540,
+            width: '94%',
+            padding: '28px 26px',
+            borderRadius: 'var(--r-lg)',
+            background: 'var(--surface)',
+            color: 'var(--fg-strong)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-md)',
+          },
           closeButton: { display: 'none' },
         }}
       >
@@ -300,6 +309,7 @@ const PaymentMethodsTab: React.FC = () => {
             <span>Etiqueta (opcional)</span>
             <input
               type="text"
+              className="kq-input"
               placeholder="Ej. Visa principal, Cuenta Banrural, PayPal trabajo"
               value={label}
               onChange={(e) => setLabel(e.target.value.slice(0, 80))}
@@ -310,7 +320,7 @@ const PaymentMethodsTab: React.FC = () => {
             <>
               <label className="pm-field">
                 <span>Marca</span>
-                <select value={brand} onChange={(e) => setBrand(e.target.value)}>
+                <select className="kq-input" value={brand} onChange={(e) => setBrand(e.target.value)}>
                   <option value="visa">Visa</option>
                   <option value="mastercard">Mastercard</option>
                   <option value="amex">American Express</option>
@@ -321,6 +331,7 @@ const PaymentMethodsTab: React.FC = () => {
                 <span>Número de tarjeta</span>
                 <input
                   type="text"
+                  className="kq-input"
                   inputMode="numeric"
                   autoComplete="cc-number"
                   placeholder="0000 0000 0000 0000"
@@ -339,6 +350,7 @@ const PaymentMethodsTab: React.FC = () => {
                   <span>Mes (MM)</span>
                   <input
                     type="number"
+                    className="kq-input"
                     min={1}
                     max={12}
                     placeholder="MM"
@@ -352,6 +364,7 @@ const PaymentMethodsTab: React.FC = () => {
                   <span>Año (YYYY)</span>
                   <input
                     type="number"
+                    className="kq-input"
                     min={new Date().getFullYear()}
                     max={2100}
                     placeholder="YYYY"
@@ -366,6 +379,7 @@ const PaymentMethodsTab: React.FC = () => {
                 <span>Nombre del titular</span>
                 <input
                   type="text"
+                  className="kq-input"
                   autoComplete="cc-name"
                   placeholder="Tal como aparece en la tarjeta"
                   value={holderName}
@@ -383,6 +397,7 @@ const PaymentMethodsTab: React.FC = () => {
                 <span>Banco</span>
                 <input
                   type="text"
+                  className="kq-input"
                   placeholder="Ej. Banrural, BAM, BI, G&T..."
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value.slice(0, 80))}
@@ -391,6 +406,7 @@ const PaymentMethodsTab: React.FC = () => {
               <label className="pm-field">
                 <span>Tipo de cuenta</span>
                 <select
+                  className="kq-input"
                   value={accountType}
                   onChange={(e) => setAccountType(e.target.value as 'ahorro' | 'monetario')}
                 >
@@ -406,6 +422,7 @@ const PaymentMethodsTab: React.FC = () => {
               <label className="pm-field">
                 <span>Proveedor</span>
                 <select
+                  className="kq-input"
                   value={walletProvider}
                   onChange={(e) => setWalletProvider(e.target.value)}
                 >
@@ -419,6 +436,7 @@ const PaymentMethodsTab: React.FC = () => {
                 <span>Identificador</span>
                 <input
                   type="text"
+                  className="kq-input"
                   placeholder="Email o teléfono asociado"
                   value={walletHandle}
                   onChange={(e) => setWalletHandle(e.target.value.slice(0, 100))}
@@ -437,12 +455,12 @@ const PaymentMethodsTab: React.FC = () => {
           </label>
 
           <div className="pm-modal-actions">
-            <button type="button" className="border-btn" onClick={close} disabled={addMut.isPending}>
+            <button type="button" className="kq-btn kq-btn--outline" onClick={close} disabled={addMut.isPending}>
               Cancelar
             </button>
             <button
               type="button"
-              className="fill-btn"
+              className="kq-btn kq-btn--action"
               onClick={submit}
               disabled={addMut.isPending}
             >
@@ -463,38 +481,32 @@ const PaymentMethodsTab: React.FC = () => {
         }
         .pm-head h4 {
           margin: 0 0 4px;
+          font-family: var(--font-display);
           font-size: 20px;
-          font-weight: 700;
+          font-weight: 600;
+          color: var(--fg-strong);
         }
         .pm-head p {
           margin: 0;
           font-size: 13.5px;
-          opacity: 0.75;
-        }
-        .pm-add-btn {
-          height: 42px !important;
-          line-height: 42px !important;
-          padding: 0 20px !important;
-          font-size: 14px !important;
-        }
-        .pm-add-btn :global(i) {
-          margin-right: 6px;
+          color: var(--fg-muted);
         }
         .pm-empty {
           padding: 50px 20px;
           text-align: center;
-          background: var(--clr-bg-gray, #f9f9f9);
-          border: 1px dashed var(--clr-common-border, #e0e2e5);
-          border-radius: 12px;
+          background: var(--surface-sunk);
+          border: 1px dashed var(--border-strong);
+          border-radius: var(--r-lg);
+          color: var(--fg-muted);
         }
         .pm-empty :global(i) {
           font-size: 40px;
-          opacity: 0.25;
+          color: var(--fg-subtle);
           margin-bottom: 14px;
         }
         .pm-empty p {
           margin: 0 0 18px;
-          opacity: 0.7;
+          color: var(--fg-muted);
         }
         .pm-list {
           display: flex;
@@ -506,20 +518,21 @@ const PaymentMethodsTab: React.FC = () => {
           align-items: center;
           gap: 16px;
           padding: 16px;
-          background: var(--clr-bg-white, #fff);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 10px;
-          transition: border-color 0.15s;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--r-md);
+          box-shadow: var(--shadow-xs);
+          transition: border-color 0.15s, box-shadow 0.15s;
         }
         .pm-card.is-default {
-          border-color: var(--clr-theme-1, #2785ff);
-          box-shadow: 0 0 0 1px var(--clr-theme-1, #2785ff);
+          border: 1.5px solid var(--lav-500);
+          box-shadow: 0 0 0 1px var(--lav-300);
         }
         .pm-card-icon {
           width: 48px;
           height: 48px;
-          border-radius: 10px;
-          background: rgba(128, 128, 128, 0.1);
+          border-radius: var(--r-sm);
+          background: var(--surface-sunk);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -532,8 +545,10 @@ const PaymentMethodsTab: React.FC = () => {
         }
         .pm-card-title {
           margin: 0 0 4px;
-          font-weight: 700;
+          font-family: var(--font-display);
+          font-weight: 600;
           font-size: 14.5px;
+          color: var(--fg-strong);
           display: flex;
           align-items: center;
           gap: 8px;
@@ -541,17 +556,13 @@ const PaymentMethodsTab: React.FC = () => {
         }
         .pm-default-badge {
           font-size: 10.5px;
-          font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 4px;
-          background: var(--clr-theme-1, #2785ff);
-          color: #fff;
           letter-spacing: 0.4px;
+          text-transform: uppercase;
         }
         .pm-card-detail {
           margin: 0;
           font-size: 13px;
-          opacity: 0.75;
+          color: var(--fg-muted);
         }
         .pm-card-actions {
           display: flex;
@@ -560,21 +571,23 @@ const PaymentMethodsTab: React.FC = () => {
         .pm-action-btn {
           width: 34px;
           height: 34px;
-          border-radius: 8px;
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          background: transparent;
+          border-radius: var(--r-sm);
+          border: 1.5px solid var(--border-strong);
+          background: var(--surface);
           cursor: pointer;
-          color: var(--clr-common-body-text);
+          color: var(--fg-muted);
           font-size: 13px;
           transition: all 0.15s;
         }
-        .pm-action-btn:hover {
-          border-color: var(--clr-theme-1, #2785ff);
-          color: var(--clr-theme-1, #2785ff);
+        .pm-action-primary:hover {
+          border-color: var(--lav-500);
+          color: var(--lav-700);
+          background: var(--lav-100);
         }
         .pm-action-danger:hover {
-          border-color: #ef4444 !important;
-          color: #ef4444 !important;
+          border-color: var(--danger);
+          color: var(--danger);
+          background: var(--danger-bg);
         }
         .pm-action-btn:disabled {
           opacity: 0.4;
@@ -583,8 +596,10 @@ const PaymentMethodsTab: React.FC = () => {
 
         .pm-modal h4 {
           margin: 0 0 18px;
+          font-family: var(--font-display);
           font-size: 20px;
-          font-weight: 700;
+          font-weight: 600;
+          color: var(--fg-strong);
         }
         .pm-type-selector {
           display: flex;
@@ -596,13 +611,14 @@ const PaymentMethodsTab: React.FC = () => {
           flex: 1;
           min-width: 0;
           padding: 10px 14px;
-          background: var(--clr-bg-white, #fff);
-          border: 1.5px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 8px;
+          background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          border-radius: var(--r-sm);
           cursor: pointer;
+          font-family: var(--font-display);
           font-size: 13px;
           font-weight: 600;
-          color: var(--clr-common-heading);
+          color: var(--fg-strong);
           transition: all 0.15s;
           display: inline-flex;
           align-items: center;
@@ -615,7 +631,7 @@ const PaymentMethodsTab: React.FC = () => {
         .pm-type-chip.is-active {
           border-color: var(--lav-500);
           background: var(--lav-200);
-          color: var(--navy-900);
+          color: var(--lav-700);
         }
         .pm-field {
           display: block;
@@ -623,25 +639,16 @@ const PaymentMethodsTab: React.FC = () => {
         }
         .pm-field > span {
           display: block;
+          font-family: var(--font-body);
           font-size: 13px;
           font-weight: 600;
+          color: var(--fg-strong);
           margin-bottom: 6px;
-        }
-        .pm-field input,
-        .pm-field select {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 8px;
-          font-size: 14px;
-          background: var(--clr-bg-white, #fff);
-          color: var(--clr-common-heading);
-          box-sizing: border-box;
         }
         .pm-note {
           display: block;
           font-size: 11.5px;
-          opacity: 0.7;
+          color: var(--fg-subtle);
           margin-top: 5px;
           line-height: 1.4;
         }
@@ -657,8 +664,15 @@ const PaymentMethodsTab: React.FC = () => {
           align-items: center;
           gap: 8px;
           font-size: 13px;
+          color: var(--fg);
           margin: 14px 0 18px;
           cursor: pointer;
+        }
+        .pm-ack :global(input) {
+          accent-color: var(--lav-600);
+          width: 17px;
+          height: 17px;
+          flex-shrink: 0;
         }
         .pm-modal-actions {
           display: flex;

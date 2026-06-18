@@ -18,30 +18,146 @@ const STATUS_LABEL: Record<VerificationStatus, string> = {
   rejected: 'Rechazada',
 };
 
+// Estilo del chip de estado según el estado actual de verificación.
+const STATUS_CHIP: Record<VerificationStatus, React.CSSProperties> = {
+  unverified: { background: 'var(--surface-sunk)', color: 'var(--fg-muted)' },
+  pending: { background: 'var(--warning-bg)', color: '#9a5a12' },
+  verified: { background: 'var(--green-100)', color: 'var(--green-800)' },
+  rejected: { background: 'var(--danger-bg)', color: 'var(--danger)' },
+};
+
+const chipBase: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  fontFamily: 'var(--font-body)',
+  fontWeight: 600,
+  fontSize: 12,
+  padding: '4px 12px',
+  borderRadius: 'var(--r-pill)',
+  whiteSpace: 'nowrap',
+};
+
+const bannerBase: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 9,
+  padding: '12px 16px',
+  borderRadius: 'var(--r-md)',
+  fontSize: 14,
+  marginTop: 14,
+};
+
 const StatusBanner = ({ status, reason }: { status: VerificationStatus; reason?: string | null }) => {
   if (status === 'verified') {
     return (
-      <div className="vt-banner vt-ok">
+      <div style={{ ...bannerBase, background: 'var(--green-100)', color: 'var(--green-800)' }}>
         <i className="fas fa-check-circle" /> Identidad verificada. ¡Tu check ya es visible!
       </div>
     );
   }
   if (status === 'pending') {
     return (
-      <div className="vt-banner vt-pending">
+      <div style={{ ...bannerBase, background: 'var(--warning-bg)', color: '#9a5a12' }}>
         <i className="fas fa-clock" /> En revisión. Soporte validará tu documento pronto.
       </div>
     );
   }
   if (status === 'rejected') {
     return (
-      <div className="vt-banner vt-rejected">
+      <div style={{ ...bannerBase, background: 'var(--danger-bg)', color: 'var(--danger)' }}>
         <i className="fas fa-times-circle" /> Solicitud rechazada
         {reason ? `: ${reason}` : '.'} Puedes corregir y volver a enviar.
       </div>
     );
   }
   return null;
+};
+
+// Estilos compartidos (Handoff §1: cards .kq-card + inputs .kq-input).
+const sectionTitle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  flexWrap: 'wrap',
+  fontFamily: 'var(--font-display)',
+  fontWeight: 600,
+  fontSize: 18,
+  color: 'var(--fg-strong)',
+  margin: 0,
+};
+const fieldLabel: React.CSSProperties = {
+  fontFamily: 'var(--font-body)',
+  fontWeight: 600,
+  fontSize: 13,
+  color: 'var(--fg-strong)',
+  display: 'block',
+  marginBottom: 7,
+};
+const docLabel: React.CSSProperties = {
+  display: 'block',
+  fontFamily: 'var(--font-body)',
+  fontWeight: 600,
+  fontSize: 13,
+  color: 'var(--fg-strong)',
+  margin: '18px 0 10px',
+};
+const docGrid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: 14,
+};
+const docSlot: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  flexWrap: 'wrap',
+  padding: '14px 16px',
+  border: '1px dashed var(--border-strong)',
+  borderRadius: 'var(--r-md)',
+  background: 'var(--surface-sunk)',
+};
+const docRow: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  flexWrap: 'wrap',
+  padding: '14px 16px',
+  border: '1px dashed var(--border-strong)',
+  borderRadius: 'var(--r-md)',
+  background: 'var(--surface-sunk)',
+};
+const slotName: React.CSSProperties = {
+  fontFamily: 'var(--font-body)',
+  fontWeight: 600,
+  fontSize: 13.5,
+  color: 'var(--fg-strong)',
+  minWidth: 56,
+};
+const docOk: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  color: 'var(--green-700)',
+  fontWeight: 600,
+  fontSize: 13.5,
+};
+const docEmpty: React.CSSProperties = {
+  color: 'var(--fg-subtle)',
+  fontSize: 13.5,
+};
+const warnText: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 8,
+  fontSize: 13,
+  color: 'var(--fg-muted)',
+  margin: '12px 0 0',
+};
+const noteText: React.CSSProperties = {
+  fontSize: 12.5,
+  color: 'var(--fg-muted)',
+  margin: '10px 0 0',
 };
 
 const VerifyForm = ({
@@ -158,92 +274,107 @@ const VerifyForm = ({
   };
 
   return (
-    <div className="vt-section">
-      <h5 className="vt-title">
+    <div className="kq-card" style={{ padding: 28 }}>
+      <h5 style={sectionTitle}>
         {isPersonal ? 'Verificación personal (DPI)' : 'Verificación empresarial (RTU)'}
-        <span className={`vt-chip vt-chip-${status}`}>{STATUS_LABEL[status]}</span>
+        <span style={{ ...chipBase, ...STATUS_CHIP[status] }}>{STATUS_LABEL[status]}</span>
       </h5>
 
       <StatusBanner status={status} reason={reason} />
 
       {editable && (
-        <form className="personal-info-form mt-3" onSubmit={handleSubmit}>
-          <div className="row">
-            <div className="col-md-6">
-              <div className="single-input-unit">
-                <label>{isPersonal ? 'Número de DPI' : 'Número de NIT'}</label>
-                <input
-                  type="text"
-                  placeholder={isPersonal ? '0000 00000 0000' : '0000000-0'}
-                  value={doc}
-                  onChange={(e) => setDoc(e.target.value)}
-                />
-              </div>
-            </div>
+        <form className="mt-3" onSubmit={handleSubmit}>
+          <div style={{ maxWidth: 360 }}>
+            <label style={fieldLabel}>{isPersonal ? 'Número de DPI' : 'Número de NIT'}</label>
+            <input
+              type="text"
+              className="kq-input"
+              placeholder={isPersonal ? '0000 00000 0000' : '0000000-0'}
+              value={doc}
+              onChange={(e) => setDoc(e.target.value)}
+            />
           </div>
 
           {isPersonal ? (
             <>
-              <label className="vt-doc-label">Fotos del DPI (frente y reverso)</label>
-              <div className="vt-doc-grid">
-                <div className="vt-doc-slot">
-                  <span className="vt-doc-slot-name">Frente</span>
+              <label style={docLabel}>Fotos del DPI (frente y reverso)</label>
+              <div style={docGrid}>
+                <div style={docSlot}>
+                  <span style={slotName}>Frente</span>
                   {frontImage ? (
-                    <span className="vt-doc-ok"><i className="fas fa-check" /> Listo</span>
+                    <span style={docOk}><i className="fas fa-check" /> Listo</span>
                   ) : (
-                    <span className="vt-doc-empty">Sin adjuntar</span>
+                    <span style={docEmpty}>Sin adjuntar</span>
                   )}
-                  <button type="button" className="vt-doc-btn" onClick={() => frontRef.current?.click()} disabled={busy}>
+                  <button
+                    type="button"
+                    className="kq-btn kq-btn--outline kq-btn--sm"
+                    style={{ marginLeft: 'auto' }}
+                    onClick={() => frontRef.current?.click()}
+                    disabled={busy}
+                  >
                     {frontImage ? 'Cambiar' : 'Adjuntar'}
                   </button>
                   <input ref={frontRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPickDpi('front')} />
                 </div>
-                <div className="vt-doc-slot">
-                  <span className="vt-doc-slot-name">Reverso</span>
+                <div style={docSlot}>
+                  <span style={slotName}>Reverso</span>
                   {backImage ? (
-                    <span className="vt-doc-ok"><i className="fas fa-check" /> Listo</span>
+                    <span style={docOk}><i className="fas fa-check" /> Listo</span>
                   ) : (
-                    <span className="vt-doc-empty">Sin adjuntar</span>
+                    <span style={docEmpty}>Sin adjuntar</span>
                   )}
-                  <button type="button" className="vt-doc-btn" onClick={() => backRef.current?.click()} disabled={busy}>
+                  <button
+                    type="button"
+                    className="kq-btn kq-btn--outline kq-btn--sm"
+                    style={{ marginLeft: 'auto' }}
+                    onClick={() => backRef.current?.click()}
+                    disabled={busy}
+                  >
                     {backImage ? 'Cambiar' : 'Adjuntar'}
                   </button>
                   <input ref={backRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPickDpi('back')} />
                 </div>
               </div>
-              <p className="vt-warn">
-                <i className="fas fa-exclamation-triangle" /> Los datos del DPI deben verse
+              <p style={warnText}>
+                <i className="fas fa-exclamation-triangle" style={{ color: '#9a5a12', marginTop: 2 }} /> Los datos del DPI deben verse
                 completos y legibles en ambas fotos. Si no se leen, la solicitud será rechazada.
               </p>
             </>
           ) : (
             <>
-              <label className="vt-doc-label">RTU (PDF)</label>
-              <div className="vt-doc-row">
+              <label style={docLabel}>RTU (PDF)</label>
+              <div style={docRow}>
                 {frontImage ? (
-                  <span className="vt-doc-ok"><i className="fas fa-file-pdf" /> RTU adjuntado</span>
+                  <span style={docOk}><i className="fas fa-file-pdf" /> RTU adjuntado</span>
                 ) : (
-                  <span className="vt-doc-empty">Sin adjuntar</span>
+                  <span style={docEmpty}>Sin adjuntar</span>
                 )}
-                <button type="button" className="vt-doc-btn" onClick={() => pdfRef.current?.click()} disabled={busy}>
+                <button
+                  type="button"
+                  className="kq-btn kq-btn--outline kq-btn--sm"
+                  style={{ marginLeft: 'auto' }}
+                  onClick={() => pdfRef.current?.click()}
+                  disabled={busy}
+                >
                   {busy ? 'Subiendo…' : frontImage ? 'Cambiar' : 'Adjuntar PDF'}
                 </button>
                 <input ref={pdfRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={onPickPdf} />
               </div>
-              <p className="vt-warn">
-                <i className="fas fa-exclamation-triangle" /> Sube el RTU en PDF con los datos de
+              <p style={warnText}>
+                <i className="fas fa-exclamation-triangle" style={{ color: '#9a5a12', marginTop: 2 }} /> Sube el RTU en PDF con los datos de
                 la empresa legibles. Si no se leen, la solicitud será rechazada.
               </p>
             </>
           )}
 
-          <p className="vt-note">
+          <p style={noteText}>
             Tu documento es privado: solo lo usa soporte para validar tu identidad. No se muestra
             en tu perfil.
           </p>
 
-          <div className="personal-info-btn mt-2">
-            <button type="submit" className="fill-btn" disabled={requestMutation.isPending || busy}>
+          <div style={{ marginTop: 18 }}>
+            <button type="submit" className="kq-btn kq-btn--action" disabled={requestMutation.isPending || busy}>
               {requestMutation.isPending ? 'Enviando…' : 'Enviar a revisión'}
             </button>
           </div>
@@ -269,71 +400,27 @@ const VerifyAccountTab = () => {
   const { user } = useAuth();
   const { data, isLoading, isError } = useVerificationStatus();
 
-  if (isLoading) return <p style={{ opacity: 0.6 }}>Cargando estado de verificación…</p>;
-  if (isError || !data) return <p className="text-danger">No se pudo cargar el estado de verificación.</p>;
+  if (isLoading) return <p style={{ color: 'var(--fg-muted)' }}>Cargando estado de verificación…</p>;
+  if (isError || !data) return <p style={{ color: 'var(--danger)' }}>No se pudo cargar el estado de verificación.</p>;
 
   return (
-    <>
-      <h4 className="mb-2">Verificar cuenta</h4>
-      <p className="text-muted mb-4">
-        Verifica tu identidad para obtener el check {user ? `(${user.firstName})` : ''}. Soporte
-        revisa cada solicitud manualmente.
-      </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, color: 'var(--fg-strong)', margin: '0 0 4px' }}>
+          Verificar cuenta
+        </h2>
+        <p style={{ fontSize: 13.5, color: 'var(--fg-muted)', margin: 0 }}>
+          Verifica tu identidad para obtener el check {user ? `(${user.firstName})` : ''}. Soporte
+          revisa cada solicitud manualmente.
+        </p>
+      </div>
 
       <VerifyForm type="personal" status={data.personal.status} reason={data.personal.rejectReason} />
 
       {data.canRequestBusiness && data.business && (
-        <>
-          <hr className="my-4" />
-          <VerifyForm type="business" status={data.business.status} reason={data.business.rejectReason} />
-        </>
+        <VerifyForm type="business" status={data.business.status} reason={data.business.rejectReason} />
       )}
-
-      <style jsx>{`
-        .vt-section { margin-bottom: 8px; }
-        .vt-title {
-          display: flex; align-items: center; gap: 12px;
-          font-size: 18px; margin-bottom: 14px;
-        }
-        .vt-chip { font-size: 12px; font-weight: 600; padding: 3px 12px; border-radius: 20px; }
-        .vt-chip-unverified { background: rgba(128,128,128,0.15); color: #777; }
-        .vt-chip-pending { background: rgba(245,158,11,0.15); color: #b8860b; }
-        .vt-chip-verified { background: rgba(34,197,94,0.15); color: #16a34a; }
-        .vt-chip-rejected { background: rgba(239,68,68,0.15); color: #dc2626; }
-        .vt-banner {
-          display: flex; align-items: center; gap: 9px;
-          padding: 12px 16px; border-radius: 10px; font-size: 14px;
-        }
-        .vt-ok { background: rgba(34,197,94,0.1); color: #16a34a; }
-        .vt-pending { background: rgba(245,158,11,0.1); color: #b8860b; }
-        .vt-rejected { background: rgba(239,68,68,0.1); color: #dc2626; }
-        .vt-doc-label { display: block; font-weight: 600; margin: 6px 0 10px; }
-        .vt-doc-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
-        }
-        @media (max-width: 575px) { .vt-doc-grid { grid-template-columns: 1fr; } }
-        .vt-doc-slot {
-          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-          padding: 12px 14px; border: 1px solid rgba(128,128,128,0.25); border-radius: 10px;
-        }
-        .vt-doc-slot-name { font-weight: 600; min-width: 56px; }
-        .vt-doc-row { display: flex; align-items: center; gap: 12px; }
-        .vt-doc-ok { color: #16a34a; font-weight: 600; }
-        .vt-doc-empty { color: #999; }
-        .vt-doc-btn {
-          padding: 7px 16px; border-radius: 24px; margin-left: auto;
-          border: 1px solid var(--clr-theme-1, #6c5ce7);
-          background: transparent; color: var(--clr-theme-1, #6c5ce7);
-          font-weight: 600; cursor: pointer;
-        }
-        .vt-doc-btn:disabled { opacity: 0.6; cursor: default; }
-        .vt-warn {
-          display: flex; align-items: flex-start; gap: 8px;
-          font-size: 13px; color: #b8860b; margin: 12px 0 0;
-        }
-        .vt-note { font-size: 12px; opacity: 0.6; margin: 10px 0 0; }
-      `}</style>
-    </>
+    </div>
   );
 };
 
