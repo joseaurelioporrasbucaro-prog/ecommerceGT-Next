@@ -381,3 +381,46 @@ Gaps NUEVOS / decisiones (para Design + equipo):
 - [H12-5] **Detalle/Comentarios sin verificación visual con datos:** requieren auth +
   backend (CORS del backend solo permite :3000, no el preview :3117). Verificados por
   `tsc`/`build` + el listado/registro/favicon sí se vieron en preview.
+
+### Del handoff #16 — Cuenta + Empresa (2026-06-17, Claude Code)
+
+Aplicado vía workflow (5 agentes en paralelo, uno por archivo) con **verificación
+adversarial por archivo** (lógica intacta + on-brand + sin bug de scope styled-jsx).
+`tsc --noEmit` y `next build` limpios. Solo skin + markup; hooks/mutations/Formik/fetch
+intactos. Cubre §1 (tabs DangerZone, Verificar cuenta, Métodos de pago, Configuración de
+cuenta) y §2 (perfil público de empresa). El swap de logo del header (§0) ya estaba
+correcto (`KiosquiLogo` con `useTheme()` en `HeaderTwo`).
+
+Gaps NUEVOS / decisiones (para Design + backend):
+- [H16-1] ⚠️ **Empresa: falta el stat "Calificación" (★ verde).** `CompanyProfileData`
+  (`GET /company-profile/:id`) NO trae `rating`/`avgrating`, así que se omitió en vez de
+  inventar un "4.8". Se dejaron los dos stats reales (Empleados, Publicaciones). → para
+  el stat de rating se necesita **campo backend**.
+- [H16-2] ⚠️ **Empresa: falta el badge "Admin" en empleados.** `CompanyProfileEmployee`
+  expone solo `cusid/firstname/lastname/handle/imagenu`; el tipo dice explícitamente
+  *"por seguridad NO se expone el rol de administrador en este endpoint"*. Sin `isAdmin`
+  no se puede pintar el badge. → decidir si el rol es público; si sí, exponer flag.
+- [H16-3] **Empresa: botón "Contactar" enlaza a `/messages` (bandeja), no abre chat con
+  la empresa.** El perfil se identifica por `busid` (negocio), y `/messages?with=` espera
+  un `cusid` (cliente); no hay forma de derivar el destinatario. El de vendedor sí usa
+  `?pub=&with=${cus_id}`. → exponer el `cusid` de contacto de la empresa (o una ruta de
+  contacto dedicada) para abrir conversación directa. Se i18n-keó `company.contact`.
+- [H16-4] **Config de cuenta: se quitó la edición de PORTADA.** El mockup de cuenta usa
+  franja uniforme navy→lavanda (sin imagen de portada subible), así que la subida de
+  portada que existía ya no tiene UI. Si los usuarios deben poder cambiar su portada, hay
+  que reubicar esa acción (¿perfil público `/creator-profile`?) o re-agregarla. → decisión
+  de Design. (El avatar con badge de cámara sí se conservó.)
+- [H16-5] **Pantallas de empresa del DUEÑO sin mockup en Batch E.** `CompanyMain`
+  (`/company`, dashboard) y `CompanyTeamMain` (`/company/equipo`, gestión de equipo +
+  invitaciones) son de gestión, NO el perfil público. Batch E solo trae el perfil público
+  (`/empresa/[id]`). No se re-skinearon para no inventar un layout de gestión. → si se
+  quieren on-brand, hace falta un artboard.
+- [H16-6] **Fidelidad:** igual que [H12-4], `batch_e/*.jsx` + `16-HANDOFF` viven solo en
+  el checkout principal (sin commitear), así que los agentes (que corren en el worktree) no
+  los vieron y trabajaron del brief en prosa derivado de `CompanyScreen.jsx`. Conviene un
+  repaso visual fino contra los artboards de `Batch E`.
+- [H16-7] **Copy voseo en tabs de cuenta:** se pasó a voseo el texto **hardcodeado** (no
+  i18n) que se tocó (`Usá una contraseña…`, `escribinos a soporte`, `no tenés…`). Queda
+  copy tuteo pre-existente en `VerifyAccountTab` (`Verifica`, `Sube el RTU`, `Puedes
+  corregir`) que NO se tocó por ser fuera de alcance del skin → pasarlo en un barrido de
+  copy/i18n (Fase 14).
