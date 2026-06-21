@@ -42,14 +42,14 @@ const InviteMain = ({ token }: { token: string }) => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-xl-6 col-lg-8">
-              <div className="iv-card">
+              <div className="iv-card kq-card">
                 {!user && (
                   <>
                     <h3 className="iv-title">{t('invite.loginTitle')}</h3>
                     <p className="iv-text">
                       {t('invite.loginText')}
                     </p>
-                    <Link href={`/login?from=/invite/team/${token}`} className="iv-btn">
+                    <Link href={`/login?from=/invite/team/${token}`} className="kq-btn kq-btn--action iv-btn">
                       {t('invite.loginButton')}
                     </Link>
                   </>
@@ -62,10 +62,10 @@ const InviteMain = ({ token }: { token: string }) => {
                 {user && invitationQuery.isError && (
                   <>
                     <h3 className="iv-title">{t('invite.notFoundTitle')}</h3>
-                    <p className="iv-text">
+                    <p className="iv-text iv-text--danger">
                       {t('invite.notFoundText')}
                     </p>
-                    <Link href="/" className="iv-btn">{t('invite.home')}</Link>
+                    <Link href="/" className="kq-btn kq-btn--outline iv-btn">{t('invite.home')}</Link>
                   </>
                 )}
 
@@ -84,7 +84,7 @@ const InviteMain = ({ token }: { token: string }) => {
                     <p className="iv-text">
                       {t('invite.teamOf')} <strong>{invitation.busName}</strong>.
                     </p>
-                    <Link href="/company" className="iv-btn">{t('invite.goCompany')}</Link>
+                    <Link href="/company" className="kq-btn kq-btn--action iv-btn">{t('invite.goCompany')}</Link>
                   </>
                 )}
 
@@ -105,7 +105,7 @@ const InviteMain = ({ token }: { token: string }) => {
                     <div className="iv-actions">
                       <button
                         type="button"
-                        className="iv-btn"
+                        className="kq-btn kq-btn--action iv-btn"
                         onClick={() => handleRespond(true)}
                       disabled={respond.isPending}
                     >
@@ -113,7 +113,7 @@ const InviteMain = ({ token }: { token: string }) => {
                       </button>
                       <button
                         type="button"
-                        className="iv-btn iv-btn-ghost"
+                        className="kq-btn kq-btn--outline iv-btn"
                         onClick={() => handleRespond(false)}
                       disabled={respond.isPending}
                     >
@@ -129,37 +129,47 @@ const InviteMain = ({ token }: { token: string }) => {
       </section>
 
       <style jsx>{`
+        /* Tarjeta centrada (kq-card aporta surface/borde/sombra); aqui solo
+           el padding y el centrado del contenido del invite. */
         .iv-card {
-          background: var(--clr-bg-white);
-          border: 1px solid var(--clr-common-border);
-          border-radius: 16px;
           padding: 40px 34px;
           text-align: center;
         }
+        /* Placeholder circular con gradiente navy-lavanda (mismo lenguaje que
+           el avatar/logo de CompanyProfileMain), nunca azul Oction. */
         .iv-icon {
           width: 70px;
           height: 70px;
           margin: 0 auto 20px;
           border-radius: 50%;
-          background: rgba(90, 90, 242, 0.12);
+          background: linear-gradient(135deg, var(--lav-500, #b5acef), var(--navy-800, #1e2d4a));
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .iv-icon i {
           font-size: 30px;
-          color: var(--clr-theme-1);
+          color: var(--cream, #f8f4ee);
         }
         .iv-title {
+          font-family: var(--font-display);
+          font-weight: 700;
           font-size: 24px;
+          color: var(--fg-strong, #22252a);
           margin-bottom: 12px;
         }
         .iv-text {
-          color: var(--clr-common-body-text);
+          color: var(--fg-muted, #5c616a);
           margin-bottom: 8px;
         }
+        .iv-text strong {
+          color: var(--fg-strong, #22252a);
+        }
+        .iv-text--danger {
+          color: var(--danger, #d2453c);
+        }
         .iv-note {
-          color: var(--clr-common-body-text);
+          color: var(--fg-subtle, #9aa0a8);
           font-size: 14px;
           margin: 12px 0 24px;
         }
@@ -168,29 +178,11 @@ const InviteMain = ({ token }: { token: string }) => {
           gap: 12px;
           justify-content: center;
         }
-        .iv-btn {
-          display: inline-block;
-          padding: 12px 30px;
-          border-radius: 30px;
-          background: var(--clr-theme-1);
-          color: #fff !important;
-          font-weight: 600;
-          border: none;
-          cursor: pointer;
-          transition: 0.3s;
-          text-decoration: none;
-        }
-        .iv-btn:hover:not(:disabled) {
-          opacity: 0.9;
-        }
-        .iv-btn:disabled {
-          opacity: 0.6;
-          cursor: default;
-        }
-        .iv-btn-ghost {
-          background: transparent;
-          color: var(--clr-theme-1) !important;
-          border: 1px solid var(--clr-theme-1);
+        /* Los botones llevan .kq-btn (primitiva global); .iv-btn solo ajusta el
+           espaciado superior. Como los Link no reciben el scope de styled-jsx,
+           se aplica via :global. */
+        .iv-card :global(.iv-btn) {
+          margin-top: 8px;
         }
       `}</style>
     </>
