@@ -1,0 +1,142 @@
+/* ============================================================
+   KIOSQUI — Portal staff (Batch F): layout del StaffShell + DataTable.
+   Sidebar lateral, hover de filas/nav, estado activo y responsive.
+   Cargado global (layout.tsx) para no chocar con el scope de styled-jsx.
+   ============================================================ */
+
+.staff-shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 72vh;
+  background: var(--bg);
+}
+
+/* ---- Sidebar ---- */
+.staff-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elevated);
+  padding: 18px 12px;
+}
+.staff-sidebar-label {
+  font: var(--text-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  padding: 0 12px 12px;
+}
+.staff-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.staff-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--fg-muted);
+  font: var(--text-body-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.staff-nav-item:hover {
+  background: var(--surface-sunk);
+  color: var(--fg-strong);
+}
+.staff-nav-item i {
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--fg-subtle);
+}
+.staff-nav-item.is-active,
+.staff-nav-item.is-active:hover {
+  background: var(--navy-800);
+  color: var(--cream);
+}
+.staff-nav-item.is-active i {
+  color: var(--green-400);
+}
+.staff-nav-label {
+  flex: 1;
+}
+.staff-nav-count {
+  font: var(--text-caption);
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--lav-200);
+  color: var(--lav-700);
+}
+.staff-nav-item.is-active .staff-nav-count {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--cream);
+}
+
+/* ---- Área de contenido ---- */
+.staff-content {
+  flex: 1;
+  min-width: 0; /* permite el scroll-x de la DataTable dentro del flex */
+  padding: 24px 28px 40px;
+}
+.staff-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.staff-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  color: var(--fg-strong);
+  margin: 0 0 4px;
+}
+.staff-sub {
+  font: var(--text-body-sm);
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+/* ---- DataTable: hover de fila ---- */
+.f-row {
+  transition: background 0.12s ease;
+}
+.f-row:hover {
+  background: var(--surface-sunk);
+}
+
+/* ---- Responsive: sidebar arriba (scroll horizontal) en pantallas chicas ---- */
+@media (max-width: 860px) {
+  .staff-shell {
+    flex-direction: column;
+  }
+  .staff-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+  }
+  .staff-sidebar-label {
+    display: none;
+  }
+  .staff-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+  }
+  .staff-nav-item {
+    white-space: nowrap;
+  }
+  .staff-content {
+    padding: 18px 16px 32px;
+  }
+}

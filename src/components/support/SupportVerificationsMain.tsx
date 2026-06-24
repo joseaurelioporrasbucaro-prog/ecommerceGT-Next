@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
-import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { toast } from 'react-toastify';
@@ -10,6 +9,8 @@ import { ApiError } from '@/utils/Api';
 import { useVerificationRequests, useResolveVerification } from '@/hooks/api/useVerification';
 import { useDateFmt } from '@/utils/datetime';
 import type { VerificationRequestRow } from '@/types/api';
+import StaffShell from '@/components/support/StaffShell';
+import { DataTable, Row, Cell, FilterTabs } from '@/components/support/staffUi';
 
 const docUrl = (verId: number, side: 'front' | 'back') =>
   getBackendUrl(`/verification/document/${verId}/${side}`);
@@ -60,101 +61,166 @@ const SupportVerificationsMain = () => {
 
   const rows = data ?? [];
 
+  const cols = [
+    { label: t('table.type') },
+    { label: t('table.requester') },
+    { label: t('table.document') },
+    { label: t('table.files') },
+    { label: t('table.date') },
+    ...(status === 'pending' ? [{ label: t('table.actions'), right: true }] : []),
+    ...(status === 'rejected' ? [{ label: t('table.reason') }] : []),
+  ];
+
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.verifications')} />
 
-      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
-        <div className="container">
-          {!isSupport ? (
-            <div className="alert alert-danger">{t('common.restricted')}</div>
-          ) : (
-            <>
-              <div className="sv-filter">
-                {(['pending', 'verified', 'rejected'] as const).map((s) => (
-                  <button key={s} className={`sv-tab ${status === s ? 'active' : ''}`} onClick={() => setStatus(s)}>
-                    {t(`verifications.status.${s}`)}
-                  </button>
-                ))}
-              </div>
+      <StaffShell
+        active="verif"
+        title={t('breadcrumbs.verifications')}
+        sub={t('verifications.subtitle')}
+      >
+        {!isSupport ? (
+          <div
+            style={{
+              padding: '14px 18px', borderRadius: 'var(--r-md)',
+              background: 'var(--danger-bg)', color: 'var(--danger)', font: 'var(--text-body-sm)', fontWeight: 600,
+            }}
+          >
+            {t('common.restricted')}
+          </div>
+        ) : (
+          <>
+            <div style={{ marginBottom: 18 }}>
+              <FilterTabs
+                active={status}
+                onSelect={(k) => setStatus(k as StatusFilter)}
+                tabs={(['pending', 'verified', 'rejected'] as const).map((s) => [
+                  s,
+                  t(`verifications.status.${s}`),
+                ])}
+              />
+            </div>
 
-              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
-              {!isLoading && rows.length === 0 && (
-                <p style={{ opacity: 0.6 }}>
-                  {t(`verifications.empty.${status}`)}
-                </p>
-              )}
+            {isLoading && (
+              <p style={{ font: 'var(--text-body-sm)', color: 'var(--fg-subtle)' }}>{t('common.loading')}</p>
+            )}
+            {!isLoading && rows.length === 0 && (
+              <p style={{ font: 'var(--text-body-sm)', color: 'var(--fg-subtle)' }}>
+                {t(`verifications.empty.${status}`)}
+              </p>
+            )}
 
-              {rows.length > 0 && (
-                <div className="sv-table-wrap">
-                  <table className="sv-table">
-                    <thead>
-                      <tr>
-                        <th>{t('table.type')}</th>
-                        <th>{t('table.requester')}</th>
-                        <th>{t('table.document')}</th>
-                        <th>{t('table.files')}</th>
-                        <th>{t('table.date')}</th>
-                        {status === 'pending' && <th className="sv-th-actions">{t('table.actions')}</th>}
-                        {status === 'rejected' && <th>{t('table.reason')}</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((req: VerificationRequestRow) => {
-                        const isPersonal = req.ver_type === 'personal';
-                        const name = `${req.firstname ?? ''} ${req.lastname ?? ''}`.trim() || t('common.user');
-                        return (
-                          <tr key={req.ver_id}>
-                            <td>
-                              <span className={`sv-chip sv-chip-${isPersonal ? 'personal' : 'business'}`}>
-                                {isPersonal ? 'DPI' : 'RTU'}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="sv-name">{isPersonal ? name : (req.companyname || t('common.company'))}</div>
-                              {req.handle && <div className="sv-handle">@{req.handle}</div>}
-                            </td>
-                            <td className="sv-mono">{req.ver_document}</td>
-                            <td>
-                              <div className="sv-files">
-                                {isPersonal ? (
-                                  <>
-                                    <a href={docUrl(req.ver_id, 'front')} target="_blank" rel="noopener noreferrer">{t('verifications.front')}</a>
-                                    <a href={docUrl(req.ver_id, 'back')} target="_blank" rel="noopener noreferrer">{t('verifications.back')}</a>
-                                  </>
-                                ) : (
-                                  <a href={docUrl(req.ver_id, 'front')} target="_blank" rel="noopener noreferrer">
-                                    <i className="fas fa-file-pdf" /> RTU
-                                  </a>
-                                )}
-                              </div>
-                            </td>
-                            <td className="sv-date">{dateFmt.short(req.created_at)}</td>
-                            {status === 'pending' && (
-                              <td>
-                                <div className="sv-row-actions">
-                                  <button className="sv-btn sv-approve" onClick={() => approve(req)} disabled={resolve.isPending} title={t('verifications.approve')}>
-                                    <i className="fas fa-check" />
-                                  </button>
-                                  <button className="sv-btn sv-reject" onClick={() => { setRejectTarget(req); setReason(''); }} disabled={resolve.isPending} title={t('verifications.reject')}>
-                                    <i className="fas fa-times" />
-                                  </button>
-                                </div>
-                              </td>
-                            )}
-                            {status === 'rejected' && <td className="sv-reason">{req.ver_reject_reason || '-'}</td>}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </section>
+            {rows.length > 0 && (
+              <DataTable cols={cols}>
+                {rows.map((req: VerificationRequestRow) => {
+                  const isPersonal = req.ver_type === 'personal';
+                  const name = `${req.firstname ?? ''} ${req.lastname ?? ''}`.trim() || t('common.user');
+                  return (
+                    <Row key={req.ver_id}>
+                      <Cell>
+                        <span
+                          style={{
+                            display: 'inline-flex', padding: '2px 10px', borderRadius: '999px',
+                            background: isPersonal ? 'var(--lav-200)' : 'var(--navy-100)',
+                            color: isPersonal ? 'var(--lav-700)' : 'var(--navy-700)',
+                            font: 'var(--text-caption)', fontWeight: 700,
+                          }}
+                        >
+                          {isPersonal ? 'DPI' : 'RTU'}
+                        </span>
+                      </Cell>
+                      <Cell strong>
+                        {isPersonal ? name : (req.companyname || t('common.company'))}
+                        {req.handle && (
+                          <span style={{ color: 'var(--accent-hover)', fontWeight: 400 }}> @{req.handle}</span>
+                        )}
+                      </Cell>
+                      <Cell mono muted>{req.ver_document}</Cell>
+                      <Cell>
+                        <span style={{ display: 'inline-flex', gap: 12 }}>
+                          {isPersonal ? (
+                            <>
+                              <a
+                                href={docUrl(req.ver_id, 'front')}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'var(--lav-700)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', gap: 5, alignItems: 'center' }}
+                              >
+                                <i className="far fa-image" style={{ fontSize: 12 }} /> {t('verifications.front')}
+                              </a>
+                              <a
+                                href={docUrl(req.ver_id, 'back')}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'var(--lav-700)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', gap: 5, alignItems: 'center' }}
+                              >
+                                <i className="far fa-image" style={{ fontSize: 12 }} /> {t('verifications.back')}
+                              </a>
+                            </>
+                          ) : (
+                            <a
+                              href={docUrl(req.ver_id, 'front')}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'var(--lav-700)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', gap: 5, alignItems: 'center' }}
+                            >
+                              <i className="far fa-image" style={{ fontSize: 12 }} /> RTU
+                            </a>
+                          )}
+                        </span>
+                      </Cell>
+                      <Cell muted mono>{dateFmt.short(req.created_at)}</Cell>
+                      {status === 'pending' && (
+                        <Cell right>
+                          <span style={{ display: 'inline-flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button
+                              title={t('verifications.approve')}
+                              onClick={() => approve(req)}
+                              disabled={resolve.isPending}
+                              style={{
+                                width: 34, height: 34, borderRadius: 'var(--r-sm)', border: 'none',
+                                cursor: resolve.isPending ? 'default' : 'pointer', background: 'var(--green-500)',
+                                color: 'var(--navy-900)', opacity: resolve.isPending ? 0.6 : 1,
+                              }}
+                            >
+                              <i className="fas fa-check" />
+                            </button>
+                            <button
+                              title={t('verifications.reject')}
+                              onClick={() => { setRejectTarget(req); setReason(''); }}
+                              disabled={resolve.isPending}
+                              style={{
+                                width: 34, height: 34, borderRadius: 'var(--r-sm)', border: 'none',
+                                cursor: resolve.isPending ? 'default' : 'pointer', background: 'var(--danger)',
+                                color: '#fff', opacity: resolve.isPending ? 0.6 : 1,
+                              }}
+                            >
+                              <i className="fas fa-times" />
+                            </button>
+                          </span>
+                        </Cell>
+                      )}
+                      {status === 'rejected' && (
+                        <Cell muted>{req.ver_reject_reason || '-'}</Cell>
+                      )}
+                    </Row>
+                  );
+                })}
+              </DataTable>
+            )}
+
+            <p
+              style={{
+                font: 'var(--text-caption)', color: 'var(--fg-subtle)', marginTop: 14,
+                display: 'flex', gap: 7, alignItems: 'center',
+              }}
+            >
+              <i className="fas fa-lock" /> {t('verifications.privacyNote')}
+            </p>
+          </>
+        )}
+      </StaffShell>
 
       {/* Modal de rechazo */}
       {rejectTarget && (
@@ -184,41 +250,17 @@ const SupportVerificationsMain = () => {
       )}
 
       <style jsx>{`
-        .sv-filter { display: flex; gap: 10px; margin-bottom: 26px; }
-        .sv-tab { padding: 8px 20px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; }
-        .sv-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
-        .sv-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
-        .sv-table { width: 100%; border-collapse: collapse; min-width: 720px; background: var(--clr-bg-white, #fff); }
-        .sv-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
-        .sv-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: middle; font-size: 14px; }
-        .sv-table tbody tr:hover { background: rgba(108,92,231,0.04); }
-        .sv-table tbody tr:last-child td { border-bottom: none; }
-        .sv-chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-        .sv-chip-personal { background: rgba(59,130,246,0.14); color: #2563eb; }
-        .sv-chip-business { background: rgba(212,175,55,0.18); color: #b8860b; }
-        .sv-name { font-weight: 600; }
-        .sv-handle { font-size: 13px; color: #3b82f6; }
-        .sv-mono { font-variant-numeric: tabular-nums; }
-        .sv-files { display: flex; gap: 12px; }
-        .sv-files a { color: var(--clr-theme-1, #6c5ce7); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
-        .sv-files a:hover { text-decoration: underline; }
-        .sv-date { white-space: nowrap; opacity: 0.7; }
-        .sv-reason { max-width: 280px; opacity: 0.8; }
-        .sv-th-actions { text-align: center; }
-        .sv-row-actions { display: flex; gap: 8px; }
+        .sv-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(13, 18, 30, 0.55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .sv-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: 24px; width: 100%; max-width: 460px; }
+        .sv-modal h5 { margin: 0 0 4px; font-family: var(--font-display); font-weight: 600; color: var(--fg-strong); }
+        .sv-modal-sub { color: var(--fg-muted); font: var(--text-body-sm); margin: 0 0 14px; }
+        .sv-modal textarea { width: 100%; border: 1.5px solid var(--border-strong); border-radius: var(--r-md); padding: 10px 12px; resize: vertical; background: var(--surface); color: var(--fg); font: var(--text-body-sm); }
+        .sv-modal textarea:focus { outline: none; border-color: var(--lav-500); }
+        .sv-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
         .sv-btn { border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
         .sv-btn:disabled { opacity: 0.6; cursor: default; }
-        .sv-approve, .sv-reject { width: 34px; height: 34px; border-radius: 8px; color: #fff; }
-        .sv-approve { background: #16a34a; }
-        .sv-reject { background: #dc2626; }
-        .sv-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .sv-modal { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 24px; width: 100%; max-width: 460px; }
-        .sv-modal h5 { margin: 0 0 4px; }
-        .sv-modal-sub { opacity: 0.7; font-size: 14px; margin: 0 0 14px; }
-        .sv-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
-        .sv-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
-        .sv-ghost { padding: 9px 18px; border-radius: 24px; background: transparent; border: 1px solid rgba(128,128,128,0.4); }
-        .sv-reject-full { padding: 9px 18px; border-radius: 24px; background: #dc2626; color: #fff; }
+        .sv-ghost { padding: 9px 18px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--border-strong); color: var(--fg-muted); }
+        .sv-reject-full { padding: 9px 18px; border-radius: 999px; background: var(--danger); color: #fff; }
       `}</style>
     </main>
   );

@@ -1,4 +1,13 @@
 {
+  "nav": {
+    "portalStaff": "Staff portal",
+    "tickets": "Tickets",
+    "verif": "Verifications",
+    "reports": "Reports",
+    "users": "Users",
+    "admin": "Settings",
+    "images": "Images"
+  },
   "breadcrumbs": {
     "support": "Support",
     "myTickets": "My tickets",
@@ -107,6 +116,8 @@
     }
   },
   "tickets": {
+    "sub": "All support tickets. Filter by status or assignment.",
+    "count": "tickets",
     "empty": "No matching tickets."
   },
   "ticketDetail": {
@@ -125,6 +136,8 @@
     "closed": "This ticket is closed."
   },
   "reports": {
+    "title": "Reports",
+    "sub": "Content reported by the community. Review and resolve it.",
     "status": {
       "pending": "Pending",
       "resolved": "Resolved",
@@ -196,6 +209,8 @@
     "rejectRequest": "Reject request",
     "rejectPlaceholder": "Rejection reason (the user will see it)",
     "rejecting": "Rejecting...",
-    "confirmReject": "Confirm rejection"
+    "confirmReject": "Confirm rejection",
+    "subtitle": "Identity verification request queue. Review the documents before approving.",
+    "privacyNote": "Documents are private and used only to validate identity."
   }
 }

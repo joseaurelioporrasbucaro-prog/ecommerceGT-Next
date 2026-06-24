@@ -9,6 +9,8 @@ import { ApiError } from '@/utils/Api';
 import { useSupportUsers, useBanUser, useUnbanUser, useUnlockPassword } from '@/hooks/api/useSupportUsers';
 import { useDateFmt } from '@/utils/datetime';
 import Pagination from './Pagination';
+import StaffShell from '@/components/support/StaffShell';
+import { DataTable, Row, Cell, StatusChip, RoleBadge, Av, FilterTabs, initialsOf } from '@/components/support/staffUi';
 import type { SupportUserRow, AccountStatus } from '@/types/api';
 
 const PAGE_SIZE = 15;
@@ -79,130 +81,153 @@ const SupportUsersMain = () => {
       <ThemeChanger />
       <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.users')} />
 
-      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
-        <div className="container">
-          {!isSupport ? (
+      {!isSupport ? (
+        <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
+          <div className="container">
             <div className="alert alert-danger">{t('common.restricted')}</div>
-          ) : (
+          </div>
+        </section>
+      ) : (
+        <StaffShell
+          active="users"
+          title={t('breadcrumbs.users')}
+          actions={
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, height: 44, padding: '0 16px',
+                background: 'var(--surface)', border: '1.5px solid var(--border-strong)',
+                borderRadius: '999px', minWidth: 260,
+              }}
+            >
+              <i className="fas fa-search" style={{ fontSize: 13, color: 'var(--fg-subtle)' }} aria-hidden />
+              <input
+                className="su-search"
+                placeholder={t('users.searchPlaceholder')}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+          }
+        >
+          <div style={{ marginBottom: 18 }}>
+            <FilterTabs
+              active={statusFilter}
+              onSelect={(k) => setStatusFilter(k as '' | AccountStatus)}
+              tabs={[
+                ['', t('filters.all')],
+                ['active', t('users.statusFilter.active')],
+                ['suspended', t('users.statusFilter.suspended')],
+                ['banned', t('users.statusFilter.banned')],
+              ]}
+            />
+          </div>
+
+          {isLoading && <p style={{ color: 'var(--fg-subtle)' }}>{t('common.loading')}</p>}
+          {!isLoading && rows.length === 0 && <p style={{ color: 'var(--fg-subtle)' }}>{t('users.empty')}</p>}
+
+          {rows.length > 0 && (
             <>
-              <div className="su-toolbar">
-                <input
-                  className="su-search"
-                  placeholder={t('users.searchPlaceholder')}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <div className="su-filter">
-                  {(['', 'active', 'suspended', 'banned'] as const).map((v) => (
-                    <button key={v} className={`su-tab ${statusFilter === v ? 'active' : ''}`} onClick={() => setStatusFilter(v)}>
-                      {v ? t(`users.statusFilter.${v}`) : t('filters.all')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
-              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('users.empty')}</p>}
-
-              {rows.length > 0 && (
-                <div className="su-table-wrap">
-                  <table className="su-table">
-                    <thead>
-                      <tr>
-                        <th>{t('table.user')}</th>
-                        <th>{t('table.email')}</th>
-                        <th>{t('table.role')}</th>
-                        <th>{t('table.status')}</th>
-                        <th className="su-th-actions">{t('table.actions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paged.map((u: SupportUserRow) => {
-                        const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || t('common.user');
-                        const isStaff = u.role === 'support' || u.role === 'admin';
-                        // Fase 8.3.3 — bloqueo por intentos fallidos (passta_id=2).
-                        // Ortogonal a `status`: puede coexistir con 'active'.
-                        const pwLocked = u.passtaid === 2;
-                        const pwBannedUntil = u.passwordbanneduntil ? new Date(u.passwordbanneduntil) : null;
-                        const pwInWindow = pwBannedUntil && pwBannedUntil > new Date();
-                        return (
-                          <tr key={u.cus_id}>
-                            <td>
-                              <div className="su-name">{name}</div>
-                              {u.handle && <div className="su-handle">@{u.handle}</div>}
-                            </td>
-                            <td className="su-email">{u.email}</td>
-                            <td>
-                              <span className={`su-role su-role-${u.role}`}>{u.role}</span>
-                            </td>
-                            <td>
-                              {/* Fase 8.3.3 fix: cuando hay pwLocked en cuenta 'active',
-                                  ocultamos el chip "Activo" porque la cuenta NO está
-                                  realmente activa (no puede entrar). Si está suspended/
-                                  banned, el chip del estado de soporte sigue mostrándose
-                                  porque ese es el estado dominante.  */}
-                              <div className="su-status-stack">
-                                {!(pwLocked && u.status === 'active') && (
-                                  <span className={`su-chip su-chip-${u.status}`} title={u.banreason || ''}>
-                                    {t(`accountStatus.${u.status}`)}
-                                  </span>
-                                )}
-                                {u.status === 'suspended' && u.banneduntil && (
-                                  <span className="su-until">{t('users.until', { date: dateFmt.short(u.banneduntil) })}</span>
-                                )}
-                                {pwLocked && (
-                                  <>
-                                    <span className="su-chip su-chip-pwlocked" title={t('users.failedAttempts', { count: u.failcount })}>
-                                      <i className="fas fa-lock" /> {t('users.passwordLock')}
-                                    </span>
-                                    <span className="su-until">
-                                      {pwInWindow
-                                        ? t('users.waitUntil', { time: dateFmt.time(pwBannedUntil) })
-                                        : t('users.requiresReset')}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                            <td>
-                              <div className="su-actions">
-                                {/* Sanciones de soporte solo aplican a usuarios no-staff. */}
-                                {!isStaff && u.status === 'active' && (
-                                  <button className="su-btn su-ban" onClick={() => openBan(u)} disabled={banUser.isPending}>
-                                    <i className="fas fa-ban" /> {t('common.sanction')}
-                                  </button>
-                                )}
-                                {!isStaff && u.status !== 'active' && (
-                                  <button className="su-btn su-unban" onClick={() => reactivate(u)} disabled={unbanUser.isPending}>
-                                    <i className="fas fa-undo" /> {t('users.reactivate')}
-                                  </button>
-                                )}
-                                {/* Fase 8.3.3 fix: bloqueo por contraseña aplica también
-                                    a staff. Si pwLocked, mostramos el botón sin importar
-                                    el rol. */}
-                                {pwLocked && (
-                                  <button className="su-btn su-unlock" onClick={() => unlockPwd(u)} disabled={unlockPassword.isPending}>
-                                    <i className="fas fa-key" /> {t('users.unlockPassword')}
-                                  </button>
-                                )}
-                                {/* Placeholder "—" solo si no hay ninguna acción disponible. */}
-                                {isStaff && !pwLocked && (
-                                  <span className="su-muted">—</span>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
-                </div>
-              )}
+              <DataTable
+                cols={[
+                  { label: t('table.user') },
+                  { label: t('table.email') },
+                  { label: t('table.role') },
+                  { label: t('table.status') },
+                  { label: t('table.actions'), right: true },
+                ]}
+              >
+                {paged.map((u: SupportUserRow) => {
+                  const name = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim() || t('common.user');
+                  const isStaff = u.role === 'support' || u.role === 'admin';
+                  // Fase 8.3.3 — bloqueo por intentos fallidos (passta_id=2).
+                  // Ortogonal a `status`: puede coexistir con 'active'.
+                  const pwLocked = u.passtaid === 2;
+                  const pwBannedUntil = u.passwordbanneduntil ? new Date(u.passwordbanneduntil) : null;
+                  const pwInWindow = pwBannedUntil && pwBannedUntil > new Date();
+                  return (
+                    <Row key={u.cus_id}>
+                      <Cell>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 11 }}>
+                          <Av init={initialsOf(name)} sm />
+                          <span>
+                            <span style={{ display: 'block', fontWeight: 600, color: 'var(--fg-strong)' }}>{name}</span>
+                            {u.handle && (
+                              <span style={{ color: 'var(--accent-hover)', fontSize: 12 }}>@{u.handle}</span>
+                            )}
+                          </span>
+                        </span>
+                      </Cell>
+                      <Cell muted>{u.email}</Cell>
+                      <Cell>
+                        <RoleBadge r={u.role} />
+                      </Cell>
+                      <Cell>
+                        {/* Fase 8.3.3 fix: cuando hay pwLocked en cuenta 'active',
+                            ocultamos el chip "Activo" porque la cuenta NO está
+                            realmente activa (no puede entrar). Si está suspended/
+                            banned, el chip del estado de soporte sigue mostrándose
+                            porque ese es el estado dominante.  */}
+                        <span style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                          {!(pwLocked && u.status === 'active') && (
+                            <span title={u.banreason || ''}>
+                              <StatusChip s={u.status}>{t(`accountStatus.${u.status}`)}</StatusChip>
+                            </span>
+                          )}
+                          {u.status === 'suspended' && u.banneduntil && (
+                            <span className="su-until">{t('users.until', { date: dateFmt.short(u.banneduntil) })}</span>
+                          )}
+                          {pwLocked && (
+                            <>
+                              <span title={t('users.failedAttempts', { count: u.failcount })}>
+                                <StatusChip s="suspended">
+                                  <i className="fas fa-lock" style={{ fontSize: 10 }} /> {t('users.passwordLock')}
+                                </StatusChip>
+                              </span>
+                              <span className="su-until">
+                                {pwInWindow
+                                  ? t('users.waitUntil', { time: dateFmt.time(pwBannedUntil) })
+                                  : t('users.requiresReset')}
+                              </span>
+                            </>
+                          )}
+                        </span>
+                      </Cell>
+                      <Cell right>
+                        <span style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          {/* Sanciones de soporte solo aplican a usuarios no-staff. */}
+                          {!isStaff && u.status === 'active' && (
+                            <button className="su-btn su-ban" onClick={() => openBan(u)} disabled={banUser.isPending}>
+                              <i className="fas fa-ban" /> {t('common.sanction')}
+                            </button>
+                          )}
+                          {!isStaff && u.status !== 'active' && (
+                            <button className="su-btn su-unban" onClick={() => reactivate(u)} disabled={unbanUser.isPending}>
+                              <i className="fas fa-undo" /> {t('users.reactivate')}
+                            </button>
+                          )}
+                          {/* Fase 8.3.3 fix: bloqueo por contraseña aplica también
+                              a staff. Si pwLocked, mostramos el botón sin importar
+                              el rol. */}
+                          {pwLocked && (
+                            <button className="su-btn su-unlock" onClick={() => unlockPwd(u)} disabled={unlockPassword.isPending}>
+                              <i className="fas fa-key" /> {t('users.unlockPassword')}
+                            </button>
+                          )}
+                          {/* Placeholder "—" solo si no hay ninguna acción disponible. */}
+                          {isStaff && !pwLocked && (
+                            <span style={{ color: 'var(--fg-subtle)' }}>—</span>
+                          )}
+                        </span>
+                      </Cell>
+                    </Row>
+                  );
+                })}
+              </DataTable>
+              <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
             </>
           )}
-        </div>
-      </section>
+        </StaffShell>
+      )}
 
       {banTarget && (
         <div className="su-overlay" role="dialog" aria-modal="true">
@@ -249,48 +274,12 @@ const SupportUsersMain = () => {
       )}
 
       <style jsx>{`
-        .su-toolbar { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
-        .su-search { flex: 1; min-width: 240px; padding: 11px 16px; border: 1px solid rgba(128,128,128,0.3); border-radius: 24px; }
-        .su-filter { display: flex; gap: 8px; flex-wrap: wrap; }
-        .su-tab { padding: 8px 16px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; font-size: 13px; }
-        .su-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
-        .su-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
-        .su-table { width: 100%; border-collapse: collapse; min-width: 720px; background: var(--clr-bg-white, #fff); }
-        .su-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
-        .su-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: middle; font-size: 14px; }
-        .su-table tbody tr:hover { background: rgba(108,92,231,0.04); }
-        .su-table tbody tr:last-child td { border-bottom: none; }
-        .su-name { font-weight: 600; }
-        .su-handle { font-size: 13px; color: #3b82f6; }
-        .su-email { opacity: 0.8; }
-        .su-muted { opacity: 0.4; }
-        .su-role { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 14px; text-transform: capitalize; background: rgba(128,128,128,0.15); }
-        .su-role-support, .su-role-admin { background: rgba(108,92,231,0.16); color: #6c5ce7; }
-        /* Fase 8.3.3 polish: stack vertical de chips + subtexto en la celda
-           de estado. align-items: flex-start mantiene chips pegados a la
-           izquierda sin estirarlos al ancho de la columna. */
-        .su-status-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-        .su-until { font-size: 12px; opacity: 0.7; }
-        /* Chips ahora con padding vertical mayor para igualar altura visual
-           de los botones de acción y verse balanceados en la misma fila. */
-        .su-chip {
-          font-size: 12px;
-          font-weight: 700;
-          padding: 6px 12px;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          white-space: nowrap;
-          line-height: 1;
-        }
-        .su-chip-active { background: rgba(34,197,94,0.15); color: #16a34a; }
-        .su-chip-suspended { background: rgba(245,158,11,0.18); color: #b8860b; }
-        .su-chip-banned { background: rgba(239,68,68,0.16); color: #dc2626; }
-        .su-chip-pwlocked { background: rgba(245,158,11,0.18); color: #b8860b; }
-        /* Acciones: alineadas verticalmente con flex; align-items: center
-           para que un único botón quede centrado respecto a la fila. */
-        .su-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        /* Buscador-pill: el input vive dentro del label-pill del slot actions. */
+        .su-search { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font: var(--text-body-sm); color: var(--fg); }
+        .su-search::placeholder { color: var(--fg-subtle); }
+        /* Subtexto bajo el chip de estado (suspensión / bloqueo). */
+        .su-until { font: var(--text-caption); color: var(--fg-subtle); }
+        /* Botones de acción de fila, en tono Kiosqui. */
         .su-btn {
           border: none;
           cursor: pointer;
@@ -300,30 +289,31 @@ const SupportUsersMain = () => {
           gap: 6px;
           padding: 8px 14px;
           border-radius: 999px;
-          font-size: 13px;
+          font: var(--text-body-sm);
+          font-weight: 600;
           white-space: nowrap;
           line-height: 1;
         }
         .su-btn:disabled { opacity: 0.6; cursor: default; }
-        .su-ban { background: rgba(239,68,68,0.12); color: #dc2626; }
-        .su-unban { background: rgba(34,197,94,0.12); color: #16a34a; }
-        .su-unlock { background: rgba(245,158,11,0.15); color: #b8860b; }
+        .su-ban { background: var(--danger-bg); color: var(--danger); }
+        .su-unban { background: var(--green-100); color: var(--green-800); }
+        .su-unlock { background: var(--warning-bg); color: #9a5a12; }
         .su-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .su-modal { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 24px; width: 100%; max-width: 460px; }
-        .su-modal h5 { margin: 0 0 4px; }
-        .su-modal-sub { opacity: 0.7; font-size: 14px; margin: 0 0 14px; }
+        .su-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; width: 100%; max-width: 460px; box-shadow: var(--shadow-lg); }
+        .su-modal h5 { margin: 0 0 4px; font-family: var(--font-display); color: var(--fg-strong); }
+        .su-modal-sub { color: var(--fg-muted); font: var(--text-body-sm); margin: 0 0 14px; }
         .su-radio-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-        .su-radio-row label { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .su-radio-row label.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .su-radio-row label { flex: 1; min-width: 150px; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 10px 12px; cursor: pointer; font: var(--text-body-sm); color: var(--fg); display: flex; align-items: center; gap: 8px; }
+        .su-radio-row label.active { border-color: var(--lav-500); background: var(--lav-100); }
         .su-days { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-        .su-days label { font-size: 14px; font-weight: 600; }
-        .su-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
-        .su-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
-        .su-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
-        .su-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
+        .su-days label { font: var(--text-label); color: var(--fg-strong); }
+        .su-day { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--fg-muted); cursor: pointer; font: var(--text-body-sm); }
+        .su-day.active { background: var(--navy-800); color: var(--cream); border-color: transparent; }
+        .su-days input { width: 80px; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 7px 10px; background: var(--surface); color: var(--fg); }
+        .su-modal textarea { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 10px; resize: vertical; background: var(--surface); color: var(--fg); }
         .su-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
-        .su-ghost { background: transparent; border: 1px solid rgba(128,128,128,0.4); padding: 9px 18px; border-radius: 24px; }
-        .su-ban-full { background: #dc2626; color: #fff; padding: 9px 18px; border-radius: 24px; }
+        .su-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--fg-muted); padding: 9px 18px; border-radius: 999px; }
+        .su-ban-full { background: var(--danger); color: #fff; padding: 9px 18px; border-radius: 999px; }
       `}</style>
     </main>
   );

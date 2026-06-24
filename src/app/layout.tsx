@@ -6,6 +6,7 @@ import '../style/index.scss';
 import '../style/kiosqui/colors_and_type.css';
 import '../style/kiosqui/components.css';
 import '../style/kiosqui/bridge.css';
+import '../style/kiosqui/staff.css';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function RootLayout({

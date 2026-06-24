@@ -1,4 +1,13 @@
 {
+  "nav": {
+    "portalStaff": "Portal staff",
+    "tickets": "Tickets",
+    "verif": "Verificaciones",
+    "reports": "Denuncias",
+    "users": "Usuarios",
+    "admin": "Configuración",
+    "images": "Imágenes"
+  },
   "breadcrumbs": {
     "support": "Soporte",
     "myTickets": "Mis tickets",
@@ -107,6 +116,8 @@
     }
   },
   "tickets": {
+    "sub": "Todos los tickets de soporte. Filtrá por estado o asignación.",
+    "count": "tickets",
     "empty": "No hay tickets que coincidan."
   },
   "ticketDetail": {
@@ -125,6 +136,8 @@
     "closed": "Este ticket esta cerrado."
   },
   "reports": {
+    "title": "Denuncias",
+    "sub": "Contenido reportado por la comunidad. Revisalo y resolvelo.",
     "status": {
       "pending": "Pendientes",
       "resolved": "Resueltas",
@@ -196,6 +209,8 @@
     "rejectRequest": "Rechazar solicitud",
     "rejectPlaceholder": "Motivo del rechazo (lo vera el usuario)",
     "rejecting": "Rechazando...",
-    "confirmReject": "Confirmar rechazo"
+    "confirmReject": "Confirmar rechazo",
+    "subtitle": "Cola de solicitudes de verificacion de identidad. Revisa los documentos antes de aprobar.",
+    "privacyNote": "Los documentos son privados y solo se usan para validar identidad."
   }
 }

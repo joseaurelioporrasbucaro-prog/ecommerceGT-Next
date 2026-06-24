@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
-import Breadcrumbs from '@/utils/Breadcrumbs';
+import StaffShell from '@/components/support/StaffShell';
 import { ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { usePricingConfig } from '@/hooks/api/usePricingConfig';
@@ -128,14 +128,21 @@ const AdminConfigMain: React.FC = () => {
     return (
       <main>
         <ThemeChanger />
-        <Breadcrumbs breadcrumbTitle={t('config.shortTitle')} breadcrumbSubTitle={t('common.adminOnly')} />
-        <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
-          <div className="container">
-            <p style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.6 }}>
-              <i className="fas fa-lock" /> {t('common.adminOnlyMessage')}
-            </p>
-          </div>
-        </section>
+        <StaffShell active="admin" title={t('config.shortTitle')} sub={t('common.adminOnly')}>
+          <p
+            style={{
+              padding: '40px 20px',
+              textAlign: 'center',
+              color: 'var(--fg-muted)',
+              display: 'flex',
+              gap: 9,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <i className="fas fa-lock" /> {t('common.adminOnlyMessage')}
+          </p>
+        </StaffShell>
       </main>
     );
   }
@@ -143,291 +150,270 @@ const AdminConfigMain: React.FC = () => {
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs
-        breadcrumbTitle={t('config.title')}
-        breadcrumbSubTitle={t('config.subtitle')}
-      />
-      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
-        <div className="container">
-          <div className="ac-intro mb-30">
-            <p>
-              {t('config.intro')}
-            </p>
+      <StaffShell active="admin" title={t('config.title')} sub={t('config.subtitle')}>
+        <div style={{ maxWidth: 680 }}>
+          {/* Banner informativo: contexto de la propagación de cache. */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 11,
+              padding: '14px 18px',
+              marginBottom: 22,
+              borderRadius: 'var(--r-md)',
+              background: 'var(--accent-soft)',
+              color: 'var(--fg)',
+            }}
+          >
+            <i className="fas fa-circle-info" style={{ color: 'var(--lav-700)', marginTop: 2 }} />
+            <span style={{ font: 'var(--text-body-sm)', lineHeight: 1.55 }}>{t('config.intro')}</span>
           </div>
 
-          <div className="ac-grid">
-            {FIELDS.map((field) => {
-              const liveValue = currentByKey[field.key];
-              const draftValue = draft[field.key] ?? '';
-              const isDirty = String(liveValue) !== draftValue;
-              const isSaving =
-                updateMut.isPending && updateMut.variables?.key === field.key;
+          {/* Grupo: tarifas de pauta (los 3 campos numéricos reales). */}
+          <div
+            style={{
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--r-lg)',
+              background: 'var(--surface)',
+              boxShadow: 'var(--shadow-sm)',
+              padding: 24,
+              marginBottom: 20,
+            }}
+          >
+            <h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 600,
+                fontSize: 18,
+                color: 'var(--fg-strong)',
+                margin: '0 0 18px',
+              }}
+            >
+              {t('config.shortTitle')}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {FIELDS.map((field) => {
+                const liveValue = currentByKey[field.key];
+                const draftValue = draft[field.key] ?? '';
+                const isDirty = String(liveValue) !== draftValue;
+                const isSaving =
+                  updateMut.isPending && updateMut.variables?.key === field.key;
 
-              return (
-                <div key={field.key} className={`ac-card ${isDirty ? 'is-dirty' : ''}`}>
-                  <div className="ac-card-head">
-                    <h3>{t(field.labelKey)}</h3>
-                    <span className="ac-current">
-                      {t('config.current')}: <strong>Q {dateFmt.number(liveValue, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</strong>
-                    </span>
-                  </div>
+                return (
+                  <div
+                    key={field.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 16,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                      <div style={{ font: 'var(--text-label)', color: 'var(--fg-strong)' }}>
+                        {t(field.labelKey)}
+                      </div>
+                      <div
+                        style={{
+                          font: 'var(--text-caption)',
+                          color: 'var(--fg-muted)',
+                          marginTop: 4,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {t(field.descriptionKey)}
+                      </div>
+                      <div
+                        style={{
+                          font: 'var(--text-caption)',
+                          color: 'var(--fg-subtle)',
+                          marginTop: 6,
+                        }}
+                      >
+                        {t('config.current')}:{' '}
+                        <strong style={{ color: 'var(--fg-strong)' }}>
+                          Q{' '}
+                          {dateFmt.number(liveValue, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4,
+                          })}
+                        </strong>
+                      </div>
+                    </div>
 
-                  <p className="ac-desc">{t(field.descriptionKey)}</p>
-
-                  <div className="ac-input-row">
-                    <span className="ac-prefix">{field.prefix}</span>
-                    <input
-                      type="number"
-                      step={field.step}
-                      min={field.min}
-                      value={draftValue}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, [field.key]: e.target.value }))
-                      }
-                      disabled={isSaving}
-                    />
-                  </div>
-
-                  <div className="ac-actions">
-                    <button
-                      type="button"
-                      className="ac-btn ac-btn-ghost"
-                      onClick={() => handleReset(field)}
-                      disabled={!isDirty || isSaving}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                        gap: 10,
+                      }}
                     >
-                      {t('config.discard')}
-                    </button>
-                    <button
-                      type="button"
-                      className="ac-btn ac-btn-primary"
-                      onClick={() => handleSave(field)}
-                      disabled={!isDirty || isSaving}
-                    >
-                      {isSaving ? (
-                        <>
-                          <i className="fal fa-spinner fa-spin" /> {t('config.saving')}
-                        </>
-                      ) : (
-                        <>
-                          <i className="fal fa-save" /> {t('config.saveChange')}
-                        </>
-                      )}
-                    </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          className="kq-input"
+                          type="number"
+                          step={field.step}
+                          min={field.min}
+                          value={draftValue}
+                          onChange={(e) =>
+                            setDraft((d) => ({ ...d, [field.key]: e.target.value }))
+                          }
+                          disabled={isSaving}
+                          style={{ width: 130, height: 44, textAlign: 'right' }}
+                        />
+                        <span
+                          style={{
+                            font: 'var(--text-body-sm)',
+                            color: 'var(--fg-muted)',
+                            minWidth: 18,
+                          }}
+                        >
+                          {field.prefix}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="kq-btn kq-btn--ghost kq-btn--sm"
+                          onClick={() => handleReset(field)}
+                          disabled={!isDirty || isSaving}
+                        >
+                          {t('config.discard')}
+                        </button>
+                        <button
+                          type="button"
+                          className="kq-btn kq-btn--action kq-btn--sm"
+                          onClick={() => handleSave(field)}
+                          disabled={!isDirty || isSaving}
+                        >
+                          {isSaving ? (
+                            <>
+                              <i className="fal fa-spinner fa-spin" /> {t('config.saving')}
+                            </>
+                          ) : (
+                            <>
+                              <i className="fal fa-save" /> {t('config.saveChange')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {/* WP-7 — moneda en que se muestran los precios de los planes. */}
-          <div className="ac-card ac-currency-card">
-            <div className="ac-card-head">
-              <h3>Moneda de los planes</h3>
-              <span className="ac-current">
-                {t('config.current')}:{' '}
-                <strong>{current.plansCurrency === 'GTQ' ? 'Quetzales (Q)' : 'Dólares (US$)'}</strong>
-              </span>
-            </div>
-            <p className="ac-desc">
-              Define en qué moneda se muestran los precios en /pricing-plan. Cambia
-              el símbolo mostrado; asegurate de que los montos de los planes estén
-              cargados en esa moneda.
+          <div
+            style={{
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--r-lg)',
+              background: 'var(--surface)',
+              boxShadow: 'var(--shadow-sm)',
+              padding: 24,
+              marginBottom: 20,
+            }}
+          >
+            <h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 600,
+                fontSize: 18,
+                color: 'var(--fg-strong)',
+                margin: '0 0 6px',
+              }}
+            >
+              Moneda de los planes
+            </h3>
+            <p style={{ font: 'var(--text-body-sm)', color: 'var(--fg-muted)', margin: '0 0 16px', lineHeight: 1.55 }}>
+              Define en qué moneda se muestran los precios en /pricing-plan. Cambia el símbolo
+              mostrado; asegurate de que los montos de los planes estén cargados en esa moneda.
             </p>
-            <div className="ac-currency-toggle" role="group" aria-label="Moneda de los planes">
-              <button
-                type="button"
-                className={current.plansCurrency === 'USD' ? 'active' : ''}
-                onClick={() => handleSetPlansCurrency('USD')}
-                disabled={updateMut.isPending}
-              >
-                US$ Dólares
-              </button>
-              <button
-                type="button"
-                className={current.plansCurrency === 'GTQ' ? 'active' : ''}
-                onClick={() => handleSetPlansCurrency('GTQ')}
-                disabled={updateMut.isPending}
-              >
-                Q Quetzales
-              </button>
+            <div
+              style={{
+                font: 'var(--text-caption)',
+                color: 'var(--fg-subtle)',
+                marginBottom: 14,
+              }}
+            >
+              {t('config.current')}:{' '}
+              <strong style={{ color: 'var(--fg-strong)' }}>
+                {current.plansCurrency === 'GTQ' ? 'Quetzales (Q)' : 'Dólares (US$)'}
+              </strong>
+            </div>
+            <div
+              role="group"
+              aria-label="Moneda de los planes"
+              style={{
+                display: 'inline-flex',
+                padding: 5,
+                background: 'var(--surface-sunk)',
+                border: '1.5px solid var(--border-strong)',
+                borderRadius: 999,
+              }}
+            >
+              {(
+                [
+                  ['USD', 'US$ Dólares'],
+                  ['GTQ', 'Q Quetzales'],
+                ] as Array<['USD' | 'GTQ', string]>
+              ).map(([cur, label]) => {
+                const on = current.plansCurrency === cur;
+                return (
+                  <button
+                    key={cur}
+                    type="button"
+                    onClick={() => handleSetPlansCurrency(cur)}
+                    disabled={updateMut.isPending}
+                    style={{
+                      border: 'none',
+                      padding: '9px 20px',
+                      borderRadius: 999,
+                      fontWeight: 700,
+                      font: 'var(--text-body-sm)',
+                      cursor: updateMut.isPending ? 'not-allowed' : 'pointer',
+                      opacity: updateMut.isPending ? 0.5 : 1,
+                      background: on ? 'var(--navy-800)' : 'transparent',
+                      color: on ? 'var(--cream)' : 'var(--fg-muted)',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="ac-footnote mt-30">
-            <p>
-              <i className="fal fa-info-circle" /> {t('config.footnotePrefix')}{' '}
-              <code>ecom.platform_config.updated_by</code> {t('config.footnoteSuffix')}{' '}
-              <code>cus_id</code>.
-            </p>
-          </div>
+          <p
+            style={{
+              font: 'var(--text-caption)',
+              color: 'var(--fg-subtle)',
+              display: 'flex',
+              gap: 7,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <i className="fal fa-info-circle" /> {t('config.footnotePrefix')}{' '}
+            <code style={codeStyle}>ecom.platform_config.updated_by</code>{' '}
+            {t('config.footnoteSuffix')} <code style={codeStyle}>cus_id</code>.
+          </p>
         </div>
-      </section>
-
-      <style jsx>{`
-        .ac-intro {
-          background: var(--clr-bg-gray, #f9f9f9);
-          border-left: 3px solid var(--clr-theme-1, #2785ff);
-          padding: 14px 18px;
-          border-radius: 6px;
-          font-size: 14px;
-          line-height: 1.55;
-        }
-        .ac-intro p {
-          margin: 0;
-        }
-        .ac-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 18px;
-        }
-        .ac-card {
-          background: var(--clr-bg-white, #fff);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 12px;
-          padding: 22px;
-          transition: border-color 0.2s;
-        }
-        .ac-card.is-dirty {
-          border-color: var(--accent);
-          box-shadow: 0 0 0 3px var(--accent-soft);
-        }
-        .ac-card-head {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          gap: 12px;
-          margin-bottom: 8px;
-          flex-wrap: wrap;
-        }
-        .ac-card h3 {
-          font-size: 16px;
-          font-weight: 700;
-          margin: 0;
-          color: var(--clr-common-heading);
-        }
-        .ac-current {
-          font-size: 12px;
-          color: var(--clr-common-body-text);
-          opacity: 0.85;
-        }
-        .ac-current strong {
-          color: var(--clr-common-heading);
-        }
-        .ac-desc {
-          font-size: 13px;
-          line-height: 1.55;
-          color: var(--clr-common-body-text);
-          margin: 0 0 18px;
-        }
-        .ac-input-row {
-          display: flex;
-          align-items: center;
-          gap: 0;
-          margin-bottom: 14px;
-        }
-        .ac-prefix {
-          background: var(--clr-bg-gray, #f0f1f3);
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-right: none;
-          border-radius: 8px 0 0 8px;
-          padding: 10px 14px;
-          font-weight: 700;
-          color: var(--clr-common-heading);
-        }
-        .ac-input-row input {
-          flex: 1;
-          padding: 10px 14px;
-          border: 1px solid var(--clr-common-border, #e0e2e5);
-          border-radius: 0 8px 8px 0;
-          font-size: 15px;
-          background: var(--clr-bg-white, #fff);
-          color: var(--clr-common-heading);
-          font-weight: 600;
-        }
-        .ac-input-row input:focus {
-          outline: none;
-          border-color: var(--clr-theme-1, #2785ff);
-        }
-        .ac-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-        }
-        .ac-btn {
-          padding: 8px 16px;
-          border-radius: 7px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          border: 1px solid transparent;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          transition: all 0.15s;
-        }
-        .ac-btn:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-        }
-        .ac-btn-ghost {
-          background: transparent;
-          border-color: var(--clr-common-border, #e0e2e5);
-          color: var(--clr-common-body-text);
-        }
-        .ac-btn-ghost:hover:not(:disabled) {
-          border-color: #ef4444;
-          color: #ef4444;
-        }
-        .ac-btn-primary {
-          background: var(--clr-theme-1, #2785ff);
-          color: #fff;
-        }
-        .ac-btn-primary:hover:not(:disabled) {
-          filter: brightness(1.05);
-        }
-        .ac-currency-card {
-          margin-top: 18px;
-          max-width: 480px;
-        }
-        .ac-currency-toggle {
-          display: inline-flex;
-          padding: 5px;
-          background: var(--surface-sunk, #f0f1f3);
-          border: 1.5px solid var(--border-strong, #d4c8b6);
-          border-radius: 999px;
-        }
-        .ac-currency-toggle button {
-          border: none;
-          background: transparent;
-          color: var(--fg-muted);
-          padding: 9px 20px;
-          border-radius: 999px;
-          font-weight: 700;
-          font-size: 13px;
-          cursor: pointer;
-          transition: 0.2s;
-        }
-        .ac-currency-toggle button.active {
-          background: var(--navy-800);
-          color: var(--cream);
-        }
-        .ac-currency-toggle button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .ac-footnote {
-          font-size: 12.5px;
-          opacity: 0.7;
-        }
-        .ac-footnote code {
-          background: var(--clr-bg-gray, #f0f1f3);
-          padding: 1px 6px;
-          border-radius: 4px;
-          font-size: 12px;
-        }
-      `}</style>
+      </StaffShell>
     </main>
   );
+};
+
+const codeStyle: React.CSSProperties = {
+  background: 'var(--surface-sunk)',
+  padding: '1px 6px',
+  borderRadius: 'var(--r-xs)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 12,
+  color: 'var(--lav-700)',
 };
 
 export default AdminConfigMain;

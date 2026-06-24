@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
+import StaffShell from '@/components/support/StaffShell';
 import { ApiFetch, ApiError } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import { resolveAssetUrl } from '@/hooks/api/useSiteAssets';
@@ -98,99 +99,119 @@ const AdminImagesMain: React.FC = () => {
   const rows = listQuery.data ?? [];
 
   return (
-    <main>
+    <>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle={t('images.title')} breadcrumbSubTitle={t('images.subtitle')} />
+      <StaffShell active="images" title={t('images.title')} sub={t('images.subtitle')}>
+        <div
+          style={{
+            display: 'flex', alignItems: 'flex-start', gap: 11, padding: '14px 18px', marginBottom: 22,
+            borderRadius: 'var(--r-md)', background: 'var(--accent-soft)', color: 'var(--fg)',
+          }}
+        >
+          <i className="fas fa-circle-info" style={{ color: 'var(--lav-700)', marginTop: 2 }} aria-hidden />
+          <span style={{ font: 'var(--text-body-sm)' }}>{t('images.banner')}</span>
+        </div>
 
-      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
-        <div className="container">
-          <div className="ai-intro">
-            <h5><i className="fas fa-image" /> {t('images.title')}</h5>
-            <p>
-              {t('images.intro')}
-            </p>
-          </div>
+        {listQuery.isLoading && (
+          <p style={{ font: 'var(--text-body-sm)', color: 'var(--fg-subtle)' }}>{t('common.loading')}</p>
+        )}
+        {rows.length === 0 && !listQuery.isLoading && (
+          <p style={{ font: 'var(--text-body-sm)', color: 'var(--fg-subtle)' }}>{t('images.empty')}</p>
+        )}
 
-          {listQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
-          {rows.length === 0 && !listQuery.isLoading && <p style={{ opacity: 0.6 }}>{t('images.empty')}</p>}
-
-          <div className="ai-grid">
-            {rows.map((row: SiteAssetRow) => {
-              const previewUrl = resolveAssetUrl(row.asset_url);
-              const isUploading = uploadingKey === row.asset_key;
-              return (
-                <div key={row.asset_key} className="ai-card">
-                  <div className="ai-preview">
-                    {previewUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={previewUrl} alt={row.asset_label ?? row.asset_key} />
-                    ) : (
-                      <div className="ai-preview-empty"><i className="fas fa-image" /></div>
-                    )}
-                  </div>
-                  <div className="ai-info">
-                    <code className="ai-key">{row.asset_key}</code>
-                    <strong>{row.asset_label ?? row.asset_key}</strong>
-                    <span className="ai-dims">
-                      {row.width && row.height ? `${row.width}x${row.height}` : t('images.noDimensions')}
-                    </span>
-                    {row.updated_by_name && (
-                      <span className="ai-meta">
-                        {t('images.updatedBy', {
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
+          {rows.map((row: SiteAssetRow) => {
+            const previewUrl = resolveAssetUrl(row.asset_url);
+            const isUploading = uploadingKey === row.asset_key;
+            return (
+              <div
+                key={row.asset_key}
+                style={{
+                  border: '1px solid var(--border)', borderRadius: 'var(--r-lg)',
+                  background: 'var(--surface)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden',
+                  display: 'flex', flexDirection: 'column',
+                }}
+              >
+                <div
+                  style={{
+                    aspectRatio: '16 / 9', background: 'var(--surface-sunk)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--fg-subtle)', position: 'relative',
+                  }}
+                >
+                  {previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previewUrl}
+                      alt={row.asset_label ?? row.asset_key}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <i className="fas fa-image" style={{ fontSize: 34 }} aria-hidden />
+                      <div style={{ font: 'var(--text-caption)', marginTop: 6 }}>{t('images.noImage')}</div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 5, flex: 1 }}>
+                  <code
+                    style={{
+                      alignSelf: 'flex-start', font: 'var(--text-caption)', fontFamily: 'var(--font-mono)',
+                      color: 'var(--lav-700)', background: 'var(--lav-100)', padding: '2px 8px',
+                      borderRadius: 'var(--r-xs)',
+                    }}
+                  >
+                    {row.asset_key}
+                  </code>
+                  <strong style={{ font: 'var(--text-body-sm)', color: 'var(--fg-strong)', marginTop: 2 }}>
+                    {row.asset_label ?? row.asset_key}
+                  </strong>
+                  <span style={{ font: 'var(--text-caption)', color: 'var(--fg-muted)' }}>
+                    {row.width && row.height
+                      ? t('images.recommended', { w: row.width, h: row.height })
+                      : t('images.noDimensions')}
+                  </span>
+                  <span style={{ font: 'var(--text-caption)', color: 'var(--fg-subtle)', marginTop: 'auto', paddingTop: 6 }}>
+                    {row.updated_by_name
+                      ? t('images.updatedBy', {
                           name: row.updated_by_name,
                           date: dateFmt.short(row.updated_at),
-                        })}
-                      </span>
-                    )}
-                  </div>
-                  <div className="ai-actions">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={(el) => { fileInputs.current[row.asset_key] = el; }}
-                      style={{ display: 'none' }}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleFile(row.asset_key, f);
-                        e.target.value = ''; // reset
-                      }}
-                    />
-                    <button
-                      type="button"
-                      className="ai-btn"
-                      onClick={() => fileInputs.current[row.asset_key]?.click()}
-                      disabled={isUploading || updateMut.isPending}
-                    >
-                      {isUploading ? <><i className="fas fa-spinner fa-spin" /> {t('images.uploading')}</> : <><i className="fas fa-upload" /> {t('images.changeImage')}</>}
-                    </button>
-                  </div>
+                        })
+                      : t('images.neverUpdated')}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+                <div style={{ padding: '0 16px 16px' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={(el) => { fileInputs.current[row.asset_key] = el; }}
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFile(row.asset_key, f);
+                      e.target.value = ''; // reset
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="kq-btn kq-btn--outline kq-btn--sm"
+                    style={{ width: '100%', display: 'flex', gap: 8 }}
+                    onClick={() => fileInputs.current[row.asset_key]?.click()}
+                    disabled={isUploading || updateMut.isPending}
+                  >
+                    {isUploading ? (
+                      <><i className="fas fa-spinner fa-spin" style={{ fontSize: 12 }} /> {t('images.uploading')}</>
+                    ) : (
+                      <><i className="fas fa-upload" style={{ fontSize: 12 }} /> {t('images.changeImage')}</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </section>
-
-      <style jsx>{`
-        .ai-intro { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; background: rgba(108,92,231,0.04); }
-        .ai-intro h5 { display: flex; align-items: center; gap: 9px; margin: 0 0 6px; }
-        .ai-intro p { margin: 0; font-size: 14px; opacity: 0.85; }
-        .ai-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-        .ai-card { border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; padding: 14px; background: var(--clr-bg-white, #fff); display: flex; flex-direction: column; gap: 12px; }
-        .ai-preview { aspect-ratio: 16/9; background: rgba(128,128,128,0.08); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .ai-preview img { width: 100%; height: 100%; object-fit: contain; }
-        .ai-preview-empty { color: rgba(128,128,128,0.4); font-size: 36px; }
-        .ai-info { display: flex; flex-direction: column; gap: 3px; }
-        .ai-key { font-size: 11px; color: #b91c1c; background: rgba(239,68,68,0.08); padding: 2px 8px; border-radius: 6px; align-self: flex-start; font-family: monospace; }
-        .ai-info strong { font-size: 14px; margin-top: 2px; }
-        .ai-dims { font-size: 12px; opacity: 0.65; }
-        .ai-meta { font-size: 11px; opacity: 0.55; margin-top: 2px; }
-        .ai-actions { display: flex; }
-        .ai-btn { flex: 1; background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 9px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-        .ai-btn:hover:not(:disabled) { opacity: 0.92; }
-        .ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-      `}</style>
-    </main>
+      </StaffShell>
+    </>
   );
 };
 

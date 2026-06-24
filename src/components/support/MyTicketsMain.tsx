@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
 import Breadcrumbs from '@/utils/Breadcrumbs';
@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
 import { useMyTickets, useCreateTicket } from '@/hooks/api/useTickets';
 import { useDateFmt } from '@/utils/datetime';
+import { DataTable, Row, Cell, StatusChip } from '@/components/support/staffUi';
 import type { TicketStatus, MyTicketRow } from '@/types/api';
 
 const CATEGORIES = [
@@ -20,6 +21,7 @@ const CATEGORIES = [
 
 const MyTicketsMain = () => {
   const t = useTranslations('support');
+  const router = useRouter();
   const dateFmt = useDateFmt();
   const { data, isLoading } = useMyTickets();
   const create = useCreateTicket();
@@ -58,20 +60,26 @@ const MyTicketsMain = () => {
           {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('myTickets.empty')}</p>}
 
           {rows.length > 0 && (
-            <div className="mt-list">
+            <DataTable
+              minWidth={620}
+              cols={[
+                { label: '#' },
+                { label: t('table.subject') },
+                { label: t('table.category') },
+                { label: t('table.status') },
+                { label: t('table.updated'), right: true },
+              ]}
+            >
               {rows.map((ticket: MyTicketRow) => (
-                <Link key={ticket.ticket_id} href={`/soporte/tickets/${ticket.ticket_id}`} className="mt-card">
-                  <div className="mt-card-main">
-                    <span className={`mt-status mt-status-${ticket.status}`}>{t(`status.${ticket.status}`)}</span>
-                    <span className="mt-subject">{ticket.subject}</span>
-                  </div>
-                  <div className="mt-card-meta">
-                    <span className="mt-cat">{ticket.category}</span>
-                    <span className="mt-date">{dateFmt.short(ticket.updated_at)}</span>
-                  </div>
-                </Link>
+                <Row key={ticket.ticket_id} onClick={() => router.push(`/soporte/tickets/${ticket.ticket_id}`)}>
+                  <Cell mono muted>#{ticket.ticket_id}</Cell>
+                  <Cell strong>{ticket.subject}</Cell>
+                  <Cell muted>{ticket.category}</Cell>
+                  <Cell><StatusChip s={ticket.status}>{t(`status.${ticket.status}`)}</StatusChip></Cell>
+                  <Cell right muted mono>{dateFmt.short(ticket.updated_at)}</Cell>
+                </Row>
               ))}
-            </div>
+            </DataTable>
           )}
         </div>
       </section>
@@ -100,27 +108,15 @@ const MyTicketsMain = () => {
 
       <style jsx>{`
         .mt-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 12px; }
-        .mt-new { background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 10px 20px; border-radius: 24px; font-weight: 600; cursor: pointer; }
-        .mt-list { display: flex; flex-direction: column; gap: 12px; }
-        .mt-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; text-decoration: none; color: inherit; background: var(--clr-bg-white, #fff); transition: 0.2s; }
-        .mt-card:hover { border-color: var(--clr-theme-1, #6c5ce7); }
-        .mt-card-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .mt-subject { font-weight: 600; }
-        .mt-card-meta { display: flex; align-items: center; gap: 14px; font-size: 13px; opacity: 0.7; white-space: nowrap; }
-        .mt-cat { text-transform: capitalize; }
-        .mt-status { font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 20px; white-space: nowrap; }
-        .mt-status-open { background: rgba(245,158,11,0.18); color: #b8860b; }
-        .mt-status-in_progress { background: rgba(59,130,246,0.16); color: #2563eb; }
-        .mt-status-resolved { background: rgba(34,197,94,0.16); color: #16a34a; }
-        .mt-status-closed { background: rgba(128,128,128,0.18); color: #777; }
+        .mt-new { background: var(--navy-800); color: var(--cream); border: none; padding: 10px 20px; border-radius: var(--r-pill, 999px); font-weight: 600; cursor: pointer; }
         .mt-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .mt-modal { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 24px; width: 100%; max-width: 480px; }
-        .mt-modal h5 { margin: 0 0 8px; }
-        .mt-label { display: block; font-weight: 600; margin: 12px 0 6px; font-size: 14px; }
-        .mt-modal input, .mt-modal select, .mt-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; }
+        .mt-modal { background: var(--surface); color: var(--fg); border: 1px solid var(--border); border-radius: var(--r-lg, 14px); padding: 24px; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); }
+        .mt-modal h5 { margin: 0 0 8px; color: var(--fg-strong); }
+        .mt-label { display: block; font-weight: 600; margin: 12px 0 6px; font-size: 14px; color: var(--fg-strong); }
+        .mt-modal input, .mt-modal select, .mt-modal textarea { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--r-sm, 8px); padding: 10px; background: var(--surface); color: var(--fg); }
         .mt-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-        .mt-ghost { background: transparent; border: 1px solid rgba(128,128,128,0.4); padding: 9px 18px; border-radius: 24px; cursor: pointer; }
-        .mt-send { background: var(--clr-theme-1, #6c5ce7); color: #fff; border: none; padding: 9px 18px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+        .mt-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--fg); padding: 9px 18px; border-radius: var(--r-pill, 999px); cursor: pointer; }
+        .mt-send { background: var(--green); color: #fff; border: none; padding: 9px 18px; border-radius: var(--r-pill, 999px); font-weight: 600; cursor: pointer; }
         .mt-send:disabled { opacity: 0.6; }
       `}</style>
     </main>

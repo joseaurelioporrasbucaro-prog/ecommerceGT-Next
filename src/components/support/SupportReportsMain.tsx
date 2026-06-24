@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import ThemeChanger from '@/components/home/ThemeChanger';
-import Breadcrumbs from '@/utils/Breadcrumbs';
 import { useAuth } from '@/utils/AuthContext';
 import { toast } from 'react-toastify';
 import { ApiError } from '@/utils/Api';
@@ -11,9 +10,18 @@ import { useSupportReports, useResolveReport, useMessageContext } from '@/hooks/
 import { useBanUser } from '@/hooks/api/useSupportUsers';
 import { useDateFmt } from '@/utils/datetime';
 import Pagination from './Pagination';
-import type { SupportReportRow, ConversationContextMessage } from '@/types/api';
+import StaffShell from '@/components/support/StaffShell';
+import { DataTable, Row, Cell, StatusChip, FilterTabs } from '@/components/support/staffUi';
+import type { SupportReportRow, ConversationContextMessage, ReportType } from '@/types/api';
 
 const PAGE_SIZE = 15;
+
+// Color del chip de tipo de contenido (solo color; el label sigue traducido).
+const TYPE_CHIP: Record<ReportType, { bg: string; fg: string }> = {
+  comment: { bg: 'var(--lav-200)', fg: 'var(--lav-700)' },
+  message: { bg: 'var(--green-100)', fg: 'var(--green-800)' },
+  publication: { bg: 'var(--navy-100)', fg: 'var(--navy-700)' },
+};
 
 const contentHref = (r: SupportReportRow): string | null => {
   if (r.report_type === 'publication') return `/publications/${r.content_id}`;
@@ -46,17 +54,17 @@ const ConversationModal = ({ messageId, onClose }: { messageId: number; onClose:
         <div className="sr-convo-actions"><button className="sr-btn sr-dismiss" onClick={onClose}>{t('common.close')}</button></div>
       </div>
       <style jsx>{`
-        .sr-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .sr-convo { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 22px; width: 100%; max-width: 560px; max-height: 80vh; display: flex; flex-direction: column; }
-        .sr-convo h5 { margin: 0 0 14px; }
+        .sr-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(20,24,40,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .sr-convo { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: 22px; width: 100%; max-width: 560px; max-height: 80vh; display: flex; flex-direction: column; }
+        .sr-convo h5 { margin: 0 0 14px; font-family: var(--font-display); color: var(--fg-strong); }
         .sr-convo-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .sr-bubble { border: 1px solid rgba(128,128,128,0.2); border-radius: 10px; padding: 10px 12px; }
-        .sr-bubble.reported { border-color: #dc2626; background: rgba(239,68,68,0.06); }
-        .sr-bubble-head { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
-        .sr-bubble p { margin: 0; white-space: pre-wrap; }
-        .sr-reported-tag { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; color: #dc2626; }
+        .sr-bubble { border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; background: var(--surface-sunk); }
+        .sr-bubble.reported { border-color: var(--danger); background: var(--danger-bg); }
+        .sr-bubble-head { display: flex; justify-content: space-between; font: var(--text-caption); color: var(--fg-muted); margin-bottom: 4px; }
+        .sr-bubble p { margin: 0; white-space: pre-wrap; color: var(--fg); }
+        .sr-reported-tag { display: inline-block; margin-top: 6px; font: var(--text-caption); font-weight: 700; color: var(--danger); }
         .sr-convo-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
-        .sr-btn { border: none; cursor: pointer; font-weight: 600; padding: 8px 16px; border-radius: 8px; background: rgba(128,128,128,0.15); }
+        .sr-btn { border: 1px solid var(--border-strong); cursor: pointer; font-weight: 600; padding: 8px 16px; border-radius: 999px; background: var(--surface); color: var(--fg-muted); }
       `}</style>
     </div>
   );
@@ -118,97 +126,138 @@ const SupportReportsMain = () => {
   const rows = data ?? [];
   const paged = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  const cols = [
+    { label: t('table.type') },
+    { label: t('table.content') },
+    { label: t('table.author') },
+    { label: t('table.reason') },
+    { label: t('table.date') },
+    ...(status === 'pending' ? [{ label: t('table.actions'), right: true }] : []),
+  ];
+
   return (
     <main>
       <ThemeChanger />
-      <Breadcrumbs breadcrumbTitle={t('breadcrumbs.support')} breadcrumbSubTitle={t('breadcrumbs.reports')} />
+      <StaffShell active="reports" title={t('reports.title')} sub={t('reports.sub')}>
+        {!isSupport ? (
+          <div
+            style={{
+              padding: '14px 18px', borderRadius: 'var(--r-md)',
+              background: 'var(--danger-bg)', color: 'var(--danger)',
+              font: 'var(--text-body-sm)', fontWeight: 600,
+            }}
+          >
+            {t('common.restricted')}
+          </div>
+        ) : (
+          <>
+            <div style={{ marginBottom: 18 }}>
+              <FilterTabs
+                active={status}
+                onSelect={(k) => setStatus(k as 'pending' | 'resolved' | 'dismissed')}
+                tabs={(['pending', 'resolved', 'dismissed'] as const).map((v) => [v, t(`reports.status.${v}`)])}
+              />
+            </div>
 
-      <section className="creator-area pb-90" style={{ paddingTop: 40 }}>
-        <div className="container">
-          {!isSupport ? (
-            <div className="alert alert-danger">{t('common.restricted')}</div>
-          ) : (
-            <>
-              <div className="sr-filter">
-                {(['pending', 'resolved', 'dismissed'] as const).map((v) => (
-                  <button key={v} className={`sr-tab ${status === v ? 'active' : ''}`} onClick={() => setStatus(v)}>{t(`reports.status.${v}`)}</button>
-                ))}
-              </div>
+            {isLoading && <p style={{ color: 'var(--fg-subtle)' }}>{t('common.loading')}</p>}
+            {!isLoading && rows.length === 0 && <p style={{ color: 'var(--fg-subtle)' }}>{t('reports.empty')}</p>}
 
-              {isLoading && <p style={{ opacity: 0.6 }}>{t('common.loading')}</p>}
-              {!isLoading && rows.length === 0 && <p style={{ opacity: 0.6 }}>{t('reports.empty')}</p>}
-
-              {rows.length > 0 && (
-                <div className="sr-table-wrap">
-                  <table className="sr-table">
-                    <thead>
-                      <tr>
-                        <th>{t('table.type')}</th><th>{t('table.content')}</th><th>{t('table.author')}</th><th>{t('table.reason')}</th><th>{t('table.date')}</th>
-                        {status === 'pending' && <th>{t('table.actions')}</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paged.map((r: SupportReportRow) => {
-                        const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || t('common.user');
-                        const href = contentHref(r);
-                        // Fase 10.6: la publicación asociada está pautada.
-                        const remaining = r.active_camp_remaining != null ? Number(r.active_camp_remaining) : null;
-                        const isPautada = remaining !== null && remaining > 0;
-                        return (
-                          <tr key={`${r.report_type}-${r.report_id}`} className={isPautada ? 'sr-row-pautada' : ''}>
-                            <td>
-                              <span className={`sr-chip sr-chip-${r.report_type}`}>{t(`reports.type.${r.report_type}`)}</span>
-                              {isPautada && (
-                                <span className="sr-chip sr-chip-pautada" title={t('reports.activeCampaignTitle', { amount: remaining!.toFixed(2) })}>
-                                  <i className="fas fa-bolt" /> {t('reports.promoted', { amount: remaining!.toFixed(2) })}
-                                </span>
-                              )}
-                            </td>
-                            <td className="sr-content">
-                              <span className="sr-excerpt">{r.content_excerpt || t('reports.noText')}</span>
-                              {r.report_type === 'message' ? (
-                                <button className="sr-view" onClick={() => setConvoMsgId(r.content_id)}>{t('reports.viewConversation')}</button>
-                              ) : href ? (
-                                <Link className="sr-view" href={href} target="_blank">{t('common.view')}</Link>
-                              ) : null}
-                            </td>
-                            <td>
-                              <Link className="sr-author" href={`/creator-profile/${r.author_id}`} target="_blank">
-                                {author}{r.author_handle ? ` @${r.author_handle}` : ''}
-                              </Link>
-                            </td>
-                            <td>
-                              <span className="sr-reason">{r.reason}</span>
-                              {r.detail && <div className="sr-detail">{r.detail}</div>}
-                            </td>
-                            <td className="sr-date">{dateFmt.short(r.created_at)}</td>
-                            {status === 'pending' && (
-                              <td>
-                                <div className="sr-actions">
-                                  <button className="sr-btn sr-dismiss" onClick={() => act(r, 'dismiss')} disabled={resolve.isPending} title={t('reports.dismiss')}>
-                                    <i className="fas fa-check" /> {t('reports.dismiss')}
-                                  </button>
-                                  <button className="sr-btn sr-delete" onClick={() => act(r, 'delete')} disabled={resolve.isPending} title={t('reports.deleteContent')}>
-                                    <i className="fas fa-trash" /> {t('reports.delete')}
-                                  </button>
-                                  <button className="sr-btn sr-sanction" onClick={() => { setBanRow(r); setBanStatus('suspended'); setBanReason(''); }} title={t('reports.sanctionAuthor')}>
-                                    <i className="fas fa-ban" /> {t('reports.sanctionAuthor')}
-                                  </button>
-                                </div>
-                              </td>
+            {rows.length > 0 && (
+              <>
+                <DataTable cols={cols} minWidth={860}>
+                  {paged.map((r: SupportReportRow) => {
+                    const author = `${r.author_first ?? ''} ${r.author_last ?? ''}`.trim() || t('common.user');
+                    const href = contentHref(r);
+                    // Fase 10.6: la publicación asociada está pautada.
+                    const remaining = r.active_camp_remaining != null ? Number(r.active_camp_remaining) : null;
+                    const isPautada = remaining !== null && remaining > 0;
+                    const typeChip = TYPE_CHIP[r.report_type];
+                    return (
+                      <Row key={`${r.report_type}-${r.report_id}`}>
+                        <Cell>
+                          <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex', padding: '2px 10px', borderRadius: '999px',
+                                background: typeChip.bg, color: typeChip.fg, font: 'var(--text-caption)', fontWeight: 700,
+                              }}
+                            >
+                              {t(`reports.type.${r.report_type}`)}
+                            </span>
+                            {isPautada && (
+                              <span
+                                title={t('reports.activeCampaignTitle', { amount: remaining!.toFixed(2) })}
+                                style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px',
+                                  borderRadius: '999px', background: 'linear-gradient(135deg,var(--lav-500),var(--lav-600))',
+                                  color: '#fff', font: 'var(--text-caption)', fontWeight: 700,
+                                  boxShadow: '0 2px 6px rgba(109,98,207,0.3)',
+                                }}
+                              >
+                                <i className="fas fa-bolt" style={{ fontSize: 9 }} /> {t('reports.promoted', { amount: remaining!.toFixed(2) })}
+                              </span>
                             )}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </section>
+                          </span>
+                        </Cell>
+                        <Cell strong>
+                          <span style={{ display: 'block', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {r.content_excerpt || t('reports.noText')}
+                          </span>
+                          {r.report_type === 'message' ? (
+                            <button
+                              type="button"
+                              onClick={() => setConvoMsgId(r.content_id)}
+                              style={{ font: 'var(--text-caption)', color: 'var(--lav-700)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              {t('reports.viewConversation')}
+                            </button>
+                          ) : href ? (
+                            <Link href={href} target="_blank" style={{ font: 'var(--text-caption)', color: 'var(--lav-700)', fontWeight: 600, textDecoration: 'none' }}>
+                              {t('common.view')}
+                            </Link>
+                          ) : null}
+                        </Cell>
+                        <Cell muted>
+                          <Link href={`/creator-profile/${r.author_id}`} target="_blank" style={{ color: 'var(--accent-hover)', textDecoration: 'none' }}>
+                            {author}{r.author_handle ? ` @${r.author_handle}` : ''}
+                          </Link>
+                        </Cell>
+                        <Cell>
+                          <StatusChip s="open">
+                            <i className="fas fa-flag" style={{ fontSize: 9 }} /> {r.reason}
+                          </StatusChip>
+                          {r.detail && <div style={{ font: 'var(--text-caption)', color: 'var(--fg-subtle)', marginTop: 4 }}>{r.detail}</div>}
+                        </Cell>
+                        <Cell muted mono>{dateFmt.short(r.created_at)}</Cell>
+                        {status === 'pending' && (
+                          <Cell right>
+                            <span style={{ display: 'inline-flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button className="kq-btn kq-btn--outline kq-btn--sm" onClick={() => act(r, 'dismiss')} disabled={resolve.isPending} title={t('reports.dismiss')}>
+                                <i className="fas fa-check" /> {t('reports.dismiss')}
+                              </button>
+                              <button className="kq-btn kq-btn--ghost kq-btn--sm" style={{ color: 'var(--danger)' }} onClick={() => act(r, 'delete')} disabled={resolve.isPending} title={t('reports.deleteContent')}>
+                                <i className="fas fa-trash" /> {t('reports.delete')}
+                              </button>
+                              <button className="kq-btn kq-btn--ghost kq-btn--sm" onClick={() => { setBanRow(r); setBanStatus('suspended'); setBanReason(''); }} title={t('reports.sanctionAuthor')}>
+                                <i className="fas fa-ban" /> {t('reports.sanctionAuthor')}
+                              </button>
+                            </span>
+                          </Cell>
+                        )}
+                      </Row>
+                    );
+                  })}
+                </DataTable>
+                {paged.length > 0 && (
+                  <div style={{ marginTop: 18 }}>
+                    <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </StaffShell>
 
       {convoMsgId != null && <ConversationModal messageId={convoMsgId} onClose={() => setConvoMsgId(null)} />}
 
@@ -246,52 +295,24 @@ const SupportReportsMain = () => {
       )}
 
       <style jsx>{`
-        .sr-filter { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
-        .sr-tab { padding: 8px 18px; border-radius: 24px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-weight: 600; }
-        .sr-tab.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
-        .sr-table-wrap { overflow-x: auto; border: 1px solid var(--clr-common-border, #e0e2e5); border-radius: 12px; }
-        .sr-table { width: 100%; border-collapse: collapse; min-width: 860px; background: var(--clr-bg-white, #fff); }
-        .sr-table thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; padding: 14px 16px; border-bottom: 1px solid var(--clr-common-border, #e0e2e5); }
-        .sr-table tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(128,128,128,0.12); vertical-align: top; font-size: 14px; }
-        .sr-table tbody tr:hover { background: rgba(108,92,231,0.04); }
-        .sr-chip { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
-        .sr-chip + .sr-chip { margin-left: 6px; }
-        .sr-chip-comment { background: rgba(59,130,246,0.14); color: #2563eb; }
-        .sr-chip-message { background: rgba(0,184,148,0.16); color: #00b894; }
-        .sr-chip-publication { background: rgba(245,158,11,0.18); color: #b8860b; }
-        /* Fase 10.6: chip dorado para denuncias sobre publicaciones pautadas */
-        .sr-chip-pautada { background: linear-gradient(135deg, var(--lav-500), var(--lav-600)); color: #fff; box-shadow: 0 2px 6px rgba(109,98,207,0.3); }
-        .sr-chip-pautada :global(i) { font-size: 9px; }
-        .sr-row-pautada { background: rgba(181, 172, 239, 0.08); }
-        .sr-row-pautada td:first-child { border-left: 3px solid var(--lav-500); }
-        .sr-content { max-width: 300px; }
-        .sr-excerpt { display: block; overflow: hidden; text-overflow: ellipsis; }
-        .sr-view { font-size: 12px; color: var(--clr-theme-1, #6c5ce7); background: none; border: none; padding: 0; cursor: pointer; }
-        .sr-author { color: #3b82f6; text-decoration: none; }
-        .sr-reason { text-transform: capitalize; font-weight: 600; }
-        .sr-detail { font-size: 12px; opacity: 0.65; }
-        .sr-date { white-space: nowrap; opacity: 0.7; }
-        .sr-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .sr-btn { border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; font-size: 13px; white-space: nowrap; }
-        .sr-btn:disabled { opacity: 0.6; cursor: default; }
-        .sr-dismiss { background: rgba(34,197,94,0.12); color: #16a34a; }
-        .sr-delete { background: rgba(239,68,68,0.12); color: #dc2626; }
-        .sr-sanction { background: rgba(245,158,11,0.16); color: #b8860b; }
-        .sr-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .sr-modal { background: var(--clr-bg-white, #fff); border-radius: 14px; padding: 24px; width: 100%; max-width: 460px; }
-        .sr-modal h5 { margin: 0 0 4px; }
-        .sr-modal-sub { opacity: 0.7; font-size: 14px; margin: 0 0 14px; }
+        .sr-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(20,24,40,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .sr-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: 24px; width: 100%; max-width: 460px; }
+        .sr-modal h5 { margin: 0 0 4px; font-family: var(--font-display); color: var(--fg-strong); }
+        .sr-modal-sub { color: var(--fg-muted); font: var(--text-body-sm); margin: 0 0 14px; }
         .sr-radio-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-        .sr-radio-row label { flex: 1; min-width: 150px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .sr-radio-row label.active { border-color: var(--clr-theme-1, #6c5ce7); background: rgba(108,92,231,0.06); }
+        .sr-radio-row label { flex: 1; min-width: 150px; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 10px 12px; cursor: pointer; font: var(--text-body-sm); color: var(--fg); display: flex; align-items: center; gap: 8px; }
+        .sr-radio-row label.active { border-color: var(--lav-500); background: var(--accent-soft); }
         .sr-days { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .sr-days label { font-size: 14px; font-weight: 600; }
-        .sr-day { padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(128,128,128,0.3); background: transparent; cursor: pointer; font-size: 13px; }
-        .sr-day.active { background: var(--clr-theme-1, #6c5ce7); color: #fff; border-color: transparent; }
-        .sr-days input { width: 80px; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 7px 10px; }
-        .sr-modal textarea { width: 100%; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 10px; resize: vertical; }
+        .sr-days label { font: var(--text-body-sm); font-weight: 600; color: var(--fg-strong); }
+        .sr-day { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--fg-muted); cursor: pointer; font: var(--text-caption); font-weight: 600; }
+        .sr-day.active { background: var(--navy-800); color: var(--cream); border-color: transparent; }
+        .sr-days input { width: 80px; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 7px 10px; background: var(--surface); color: var(--fg); }
+        .sr-modal textarea { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 10px; resize: vertical; background: var(--surface); color: var(--fg); }
         .sr-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
-        .sr-sanction-full { background: #dc2626; color: #fff; padding: 9px 18px; border-radius: 24px; }
+        .sr-btn { border: 1px solid var(--border-strong); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 999px; font: var(--text-body-sm); white-space: nowrap; }
+        .sr-btn:disabled { opacity: 0.6; cursor: default; }
+        .sr-dismiss { background: var(--surface); color: var(--fg-muted); }
+        .sr-sanction-full { background: var(--danger); color: #fff; border-color: transparent; }
       `}</style>
     </main>
   );
