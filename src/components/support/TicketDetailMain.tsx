@@ -37,13 +37,42 @@ const TicketDetailMain = ({ id }: { id: string }) => {
     );
   };
 
+  // El detalle lo ve tanto el staff como el DUEÑO del ticket (desde "Mis tickets").
+  // El sidebar de staff solo se muestra al staff; el dueño ve un marco simple sin sidebar.
+  const titleNode = t('ticketDetail.breadcrumb', { id });
+  const backLink = (
+    <Link
+      href={staff ? '/soporte/tickets-admin' : '/soporte/tickets'}
+      style={{ font: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none' }}
+    >
+      {t('common.back')}
+    </Link>
+  );
+  const renderFrame = (children: React.ReactNode, sub?: React.ReactNode) =>
+    staff ? (
+      <StaffShell active="tickets" title={titleNode} sub={sub} actions={backLink}>
+        {children}
+      </StaffShell>
+    ) : (
+      <section style={{ background: 'var(--bg)', minHeight: '60vh' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 16px 48px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 22, flexWrap: 'wrap' }}>
+            <div>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, letterSpacing: '-.02em', color: 'var(--fg-strong)', margin: '0 0 4px' }}>{titleNode}</h1>
+              {sub && <p style={{ font: 'var(--text-body-sm)', color: 'var(--fg-muted)', margin: 0 }}>{sub}</p>}
+            </div>
+            {backLink}
+          </div>
+          {children}
+        </div>
+      </section>
+    );
+
   if (isLoading) {
     return (
       <main>
         <ThemeChanger />
-        <StaffShell active="tickets" title={t('ticketDetail.breadcrumb', { id })}>
-          <p style={{ color: 'var(--fg-muted)' }}>{t('ticketDetail.loading')}</p>
-        </StaffShell>
+        {renderFrame(<p style={{ color: 'var(--fg-muted)' }}>{t('ticketDetail.loading')}</p>)}
       </main>
     );
   }
@@ -51,7 +80,7 @@ const TicketDetailMain = ({ id }: { id: string }) => {
     return (
       <main>
         <ThemeChanger />
-        <StaffShell active="tickets" title={t('ticketDetail.breadcrumb', { id })}>
+        {renderFrame(
           <div
             style={{
               border: '1px solid var(--danger)', background: 'var(--danger-bg)', color: 'var(--danger)',
@@ -59,8 +88,8 @@ const TicketDetailMain = ({ id }: { id: string }) => {
             }}
           >
             {t('ticketDetail.loadError')}
-          </div>
-        </StaffShell>
+          </div>,
+        )}
       </main>
     );
   }
@@ -71,19 +100,7 @@ const TicketDetailMain = ({ id }: { id: string }) => {
   return (
     <main>
       <ThemeChanger />
-      <StaffShell
-        active="tickets"
-        title={t('ticketDetail.breadcrumb', { id: ticket.ticket_id })}
-        sub={ticket.subject}
-        actions={
-          <Link
-            href={staff ? '/soporte/tickets-admin' : '/soporte/tickets'}
-            style={{ font: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--accent)', textDecoration: 'none' }}
-          >
-            {t('common.back')}
-          </Link>
-        }
-      >
+      {renderFrame(
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }} className="td-grid">
           {/* Hilo de mensajes */}
           <div>
@@ -218,8 +235,9 @@ const TicketDetailMain = ({ id }: { id: string }) => {
               </div>
             </div>
           </div>
-        </div>
-      </StaffShell>
+        </div>,
+        ticket.subject,
+      )}
 
       <style jsx>{`
         @media (max-width: 820px) {

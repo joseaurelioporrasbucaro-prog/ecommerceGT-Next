@@ -424,3 +424,35 @@ Gaps NUEVOS / decisiones (para Design + backend):
   copy tuteo pre-existente en `VerifyAccountTab` (`Verifica`, `Sube el RTU`, `Puedes
   corregir`) que NO se tocó por ser fuera de alcance del skin → pasarlo en un barrido de
   copy/i18n (Fase 14).
+
+### Del handoff #17 — Portal de Soporte (staff) + Admin (Batch F) (2026-06-24, Claude Code)
+
+Base compartida nueva (`StaffShell` sidebar + `DataTable`/`StatusChip`/`RoleBadge`/`Av`/
+`FilterTabs` en `staffUi.tsx` + `staff.css`), aplicada a 8 pantallas vía workflow con
+verificación adversarial por archivo. `batch_f/` + HTML + handoff **commiteados** primero
+(la lección de Batch E aplicada → esta vez los agentes sí leyeron el mockup). `tsc` +
+`next build` OK; medición sintética del shell (sidebar 240, activo navy, content min-width:0).
+
+Gaps NUEVOS / decisiones (para Design + backend):
+- [F-1] ⚠️ **Usuarios: faltan la columna "Pub." y el filtro "Staff" del mockup.**
+  `SupportUserRow` no trae conteo de publicaciones y el estado de filtro es solo
+  `''|active|suspended|banned` (sin `staff`). Se omitieron para no inventar dato/estado. →
+  backend: exponer conteo de pubs por usuario; producto: decidir si se agrega agrupación "Staff".
+- [F-2] ⚠️ **Admin · Configuración: el mockup tiene un "Guardar cambios" global; la pantalla
+  real guarda POR CAMPO** (cada campo tiene su save + la moneda aplica al instante). No hay
+  handler global, así que NO se agregó el botón del header (sería fabricar lógica). → decisión
+  Design/backend: ¿unificar a guardado global (requiere hook/endpoint nuevo) o el mockup adopta
+  el guardado por campo?
+- [F-3] **Admin · Imágenes: no existe "dimensiones recomendadas" separadas** de las
+  `width/height` ya almacenadas; la línea "recomendado" usa el tamaño real. Si las recomendadas
+  deben diferir, backend debe exponer un campo aparte.
+- [F-4] **Detalle de ticket lo ve el DUEÑO además del staff.** `/soporte/tickets/[id]` se abre
+  desde "Mis tickets". Se hizo el `StaffShell` **condicional**: staff = sidebar; dueño = marco
+  simple sin sidebar (siguiendo la regla de que no-staff no ve el portal staff). Los controles
+  de estado/asignar/nota-interna ya estaban gateados por `viewerIsStaff`. → confirmar con Design
+  que esa vista del dueño es la deseada.
+- [F-5] **Denuncias: la pantalla real es un superset del mockup.** El mockup modela solo
+  publicaciones; el real maneja 3 tipos (comentario/mensaje/publicación) con pill de tipo,
+  badge de campaña "pautada", modal de conversación y 3 acciones (Descartar / Eliminar
+  contenido / Sancionar autor) con reembolso de campaña. Se preservó todo lo real (no se
+  colapsó al shape del mockup).
