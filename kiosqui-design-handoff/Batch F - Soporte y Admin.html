@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosqui — Batch F · Soporte (staff) y Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#e8e3da}
+  .f-row:hover{background:var(--surface-sunk)}
+  /* Swap de logo de la cabecera según tema */
+  .kq-logo-dark{display:none}
+  [data-theme="dark"] .kq-logo-light{display:none}
+  [data-theme="dark"] .kq-logo-dark{display:inline}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="batch_b/ProfileScreen.jsx"></script>
+<script type="text/babel" src="batch_f/SupportShell.jsx"></script>
+<script type="text/babel" src="batch_f/TicketScreens.jsx"></script>
+<script type="text/babel" src="batch_f/AdminScreens.jsx"></script>
+<script type="text/babel">
+function DarkF({children}) {
+  return <div data-theme="dark" style={{width:"100%", height:"100%"}}>{children}</div>;
+}
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="tickets" title="Cola de tickets (staff) — /soporte/tickets-admin" subtitle="Sidebar del portal staff + data-table densa con filtros por estado y asignación, chips de estado (abierto=warn · en progreso=lavanda · resuelto=verde · cerrado=neutral), assignee con avatar, paginación.">
+        <DCArtboard id="tickets-light" label="Cola de tickets" width={1400} height={840}><TicketsScreen/></DCArtboard>
+        <DCArtboard id="tickets-dark" label="Cola de tickets · dark" width={1400} height={840}><DarkF><TicketsScreen/></DarkF></DCArtboard>
+      </DCSection>
+      <DCSection id="ticket-detail" title="Detalle de ticket — TicketDetailMain" subtitle="Hilo de conversación staff↔usuario (mensajes de soporte en lavanda, notas internas en ámbar), panel lateral de control (estado + asignar), responder con toggle de nota interna.">
+        <DCArtboard id="td-light" label="Detalle de ticket" width={1400} height={820}><TicketDetailScreen/></DCArtboard>
+        <DCArtboard id="td-dark" label="Detalle de ticket · dark" width={1400} height={820}><DarkF><TicketDetailScreen/></DarkF></DCArtboard>
+      </DCSection>
+      <DCSection id="verif" title="Verificaciones — SupportVerificationsMain" subtitle="Cola de solicitudes DPI/RTU con archivos (frente/reverso), aprobar (verde) / rechazar (rojo). Chips pendiente=warn · aprobado=verde · rechazado=danger.">
+        <DCArtboard id="verif-light" label="Verificaciones" width={1400} height={620}><VerificationsScreen/></DCArtboard>
+        <DCArtboard id="verif-dark" label="Verificaciones · dark" width={1400} height={620}><DarkF><VerificationsScreen/></DarkF></DCArtboard>
+      </DCSection>
+      <DCSection id="reports" title="Denuncias — SupportReportsMain" subtitle="Publicaciones reportadas con motivo, conteo de reportes y acciones (ver / ocultar).">
+        <DCArtboard id="reports-light" label="Denuncias" width={1400} height={580}><ReportsScreen/></DCArtboard>
+        <DCArtboard id="reports-dark" label="Denuncias · dark" width={1400} height={580}><DarkF><ReportsScreen/></DarkF></DCArtboard>
+      </DCSection>
+      <DCSection id="users" title="Usuarios — SupportUsersMain" subtitle="Gestión de cuentas con buscador, filtros, badges de rol (admin=navy · agente=lavanda · usuario=neutral) y estado de cuenta (activo/suspendido/baneado).">
+        <DCArtboard id="users-light" label="Usuarios" width={1400} height={620}><UsersScreen/></DCArtboard>
+        <DCArtboard id="users-dark" label="Usuarios · dark" width={1400} height={620}><DarkF><UsersScreen/></DarkF></DCArtboard>
+      </DCSection>
+      <DCSection id="admin" title="Admin · Configuración — /admin (AdminConfigMain)" subtitle="Parámetros del sistema agrupados (Publicaciones, Pauta, Modelo 3D) con toggles verdes y campos numéricos. Reemplaza el #2785ff hardcodeado por tokens.">
+        <DCArtboard id="admin-light" label="Admin · Configuración" width={1400} height={860}><AdminConfigScreen/></DCArtboard>
+        <DCArtboard id="admin-dark" label="Admin · Configuración · dark" width={1400} height={860}><DarkF><AdminConfigScreen/></DarkF></DCArtboard>
+      </DCSection>
+      <DCSection id="images" title="Admin · Imágenes — AdminImagesMain (CMS-lite)" subtitle="Grid de site-assets: preview, asset_key (código), label, resolución recomendada, quién actualizó y botón Cambiar imagen. Incluye estado 'sin imagen'.">
+        <DCArtboard id="images-light" label="Admin · Imágenes" width={1400} height={760}><ImagesScreen/></DCArtboard>
+        <DCArtboard id="images-dark" label="Admin · Imágenes · dark" width={1400} height={760}><DarkF><ImagesScreen/></DarkF></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
