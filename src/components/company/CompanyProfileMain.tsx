@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import ProfileBreadCamb from '@/components/Creator-Profile/ProfileBreadCamb';
 import PublicationCard from '@/components/publications/PublicationCard';
 import { useCompanyProfile } from '@/hooks/api/useCompanyProfile';
 import { useCompanyPublications } from '@/hooks/api/useCompanyPublications';
@@ -59,8 +58,6 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
 
   return (
     <>
-      <ProfileBreadCamb singleCreator={{ name: tradeName }} />
-
       <section className="cp-area pb-90">
         {/* PORTADA decorativa (navy con halo lavanda, uniforme para toda empresa). */}
         <div className="cp-cover" aria-hidden />
@@ -74,7 +71,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           {company && (
             <div className="cp-grid">
               {/* ── Columna izquierda: tarjeta de empresa (se superpone a la portada) ── */}
-              <div className="cp-company-card kq-card" style={{ padding: 24, textAlign: 'center' }}>
+              <div className="cp-company-card kq-card" style={{ padding: '0 22px 24px', textAlign: 'center' }}>
                 {/* Marco BLANCO de la foto: mantiene visible un logo navy sobre la portada navy. */}
                 <div className="cp-photo-frame">
                   <div className="cp-photo">
@@ -269,17 +266,23 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
         /* ── Tarjeta de empresa (columna izquierda) ── */
         .cp-company-card {
           margin-top: -72px;
+          /* La foto se superpone con margen negativo: el kq-card recorta overflow,
+             hay que dejarlo visible para que la foto sobresalga sobre la portada. */
+          overflow: visible;
         }
         /* Marco BLANCO de la foto (requerido: un logo navy queda visible sobre
            la portada navy). El frame es surface; adentro la foto va con --r-md. */
         .cp-photo-frame {
+          position: relative;
           width: 150px;
           height: 150px;
-          margin: 0 auto 16px;
+          /* Margen superior negativo: la foto sobresale por encima del borde de la
+             tarjeta y queda flotando sobre la portada (igual que el mockup). */
+          margin: -58px auto 16px;
           padding: 6px;
           background: var(--surface, #fff);
           border-radius: var(--r-lg, 16px);
-          box-shadow: var(--shadow-md, 0 8px 24px rgba(30, 45, 74, 0.12));
+          box-shadow: var(--shadow-sm, 0 2px 8px rgba(30, 45, 74, 0.1));
         }
         .cp-photo {
           width: 100%;
@@ -293,7 +296,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
           justify-content: center;
           width: 100%;
           height: 100%;
-          font-size: 56px;
+          font-size: 46px;
           color: var(--cream, #f8f4ee);
           background: linear-gradient(135deg, var(--lav-500, #b5acef), var(--navy-800, #1e2d4a));
         }
