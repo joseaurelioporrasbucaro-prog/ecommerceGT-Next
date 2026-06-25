@@ -6,8 +6,8 @@
 import React from "react";
 import { useTopSellers } from "@/hooks/api/useTopSellers";
 import type { TopSellerRow } from "@/types/api";
-import defaultCover from "../../../public/assets/img/profile/profile-cover/profile-cover-big-1.jpg";
-import CreatorSingle from "@/components/creators/CreatorSingle";
+import { getBackendUrl } from "@/utils/backendUrl";
+import RankingSellerCard from "./RankingSellerCard";
 import RankingExplainerBox from "./RankingExplainerBox";
 
 const RankingDirectoryPanel: React.FC = () => {
@@ -40,11 +40,17 @@ const RankingDirectoryPanel: React.FC = () => {
       )}
       <div className="row wow fadeInUp">
         {sellers.map((s: TopSellerRow, i: number) => (
-          <CreatorSingle
+          <RankingSellerCard
             key={s.id}
-            creator={s}
             rank={i + 1}
-            defaultCover={defaultCover}
+            name={`${s.firstname ?? ""} ${s.lastname ?? ""}`.trim() || "Vendedor"}
+            handle={s.handle}
+            avatarUrl={s.imagenu ? getBackendUrl(s.imagenu) : null}
+            publications={s.totalpubs}
+            followers={s.followers}
+            rating={s.avgrating}
+            reviews={s.numreviews}
+            profileId={s.id}
           />
         ))}
       </div>
