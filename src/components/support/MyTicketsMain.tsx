@@ -97,8 +97,8 @@ const MyTicketsMain = () => {
             <label className="mt-label">{t('myTickets.description')}</label>
             <textarea rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder={t('myTickets.descriptionPlaceholder')} />
             <div className="mt-modal-actions">
-              <button className="mt-ghost" onClick={() => setOpen(false)}>{t('common.cancel')}</button>
-              <button className="mt-send" onClick={submit} disabled={create.isPending}>
+              <button type="button" className="kq-btn kq-btn--outline" onClick={() => setOpen(false)}>{t('common.cancel')}</button>
+              <button type="button" className="kq-btn kq-btn--action" onClick={submit} disabled={create.isPending}>
                 {create.isPending ? t('myTickets.creating') : t('myTickets.create')}
               </button>
             </div>
@@ -115,9 +115,6 @@ const MyTicketsMain = () => {
         .mt-label { display: block; font-weight: 600; margin: 12px 0 6px; font-size: 14px; color: var(--fg-strong); }
         .mt-modal input, .mt-modal select, .mt-modal textarea { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--r-sm, 8px); padding: 10px; background: var(--surface); color: var(--fg); }
         .mt-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-        .mt-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--fg); padding: 9px 18px; border-radius: var(--r-pill, 999px); cursor: pointer; }
-        .mt-send { background: var(--green); color: #fff; border: none; padding: 9px 18px; border-radius: var(--r-pill, 999px); font-weight: 600; cursor: pointer; }
-        .mt-send:disabled { opacity: 0.6; }
       `}</style>
     </main>
   );
