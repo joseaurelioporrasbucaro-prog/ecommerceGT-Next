@@ -20,6 +20,7 @@ import { useDateFmt } from '@/utils/datetime';
 import type {
   ConversationMessage,
   MessageReportReason,
+  PublicationImage,
 } from '@/types/api';
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
@@ -135,12 +136,23 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
   const propertyQuery = usePublicationDetail(pubId);
   const pub = propertyQuery.data;
   const propTitle = pub?.pub_title ?? inboxItem?.pub_title ?? t('property.fallbackTitle');
-  const propThumb = useMemo(() => {
-    const first = pub?.images?.[0];
-    if (!first) return null;
-    const path = getPublicationImagePath(first);
-    return path ? getBackendUrl(path) : null;
+  // La galería del detalle salta imágenes faltantes; el thumb del chat reusa esa
+  // idea: lista de URLs válidas y, si la actual falla (404 — ej. el primer archivo
+  // ya no existe en el backend), pasa a la siguiente (onError). Si se agotan, cae
+  // al placeholder de cámara en vez de quedar como imagen rota.
+  const propThumbs = useMemo(() => {
+    const imgs = pub?.images;
+    if (!imgs) return [] as string[];
+    return imgs
+      .map((img: PublicationImage) => getPublicationImagePath(img))
+      .filter((path: string) => Boolean(path))
+      .map((path: string) => getBackendUrl(path));
   }, [pub]);
+  const [thumbIdx, setThumbIdx] = useState(0);
+  useEffect(() => {
+    setThumbIdx(0);
+  }, [pubId]);
+  const propThumb = propThumbs[thumbIdx] ?? null;
   const propHasGlb = (pub?.imagesglb?.length ?? 0) > 0;
   const propPrice = useMemo(() => {
     if (pub?.pubdet_price == null) return '';
@@ -181,7 +193,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
       <div className="conversation-property">
         {propThumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={propThumb} alt={propTitle} className="cp-thumb cp-thumb-img" />
+          <img
+            src={propThumb}
+            alt={propTitle}
+            className="cp-thumb cp-thumb-img"
+            onError={() => setThumbIdx((i) => i + 1)}
+          />
         ) : (
           <span className="cp-thumb" aria-hidden="true"><i className="fal fa-camera" /></span>
         )}
