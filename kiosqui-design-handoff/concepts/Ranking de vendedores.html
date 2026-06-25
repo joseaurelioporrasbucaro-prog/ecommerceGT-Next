@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosqui — Ranking de vendedores (sin portada)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--cream);font-family:var(--font-body);color:var(--fg)}
+  .wrap{max-width:1240px;margin:0 auto;padding:40px 28px 80px}
+  .tabs{display:inline-flex;gap:4px;padding:4px;background:var(--sand-100);border-radius:var(--r-pill);margin-bottom:24px}
+  .tab{display:flex;align-items:center;gap:9px;padding:11px 22px;border-radius:var(--r-pill);border:none;cursor:pointer;
+    font:var(--text-label);font-family:var(--font-display);background:transparent;color:var(--ink-600)}
+  .tab.active{background:var(--navy-800);color:var(--cream);box-shadow:var(--shadow-sm)}
+  .tab.active i{color:var(--green-400)}
+  .intro{display:flex;gap:16px;padding:20px 24px;border-radius:var(--r-lg);background:#fff;border:1px solid var(--border);
+    border-left:4px solid var(--navy-800);margin-bottom:36px}
+  .intro-ic{width:48px;height:48px;flex-shrink:0;border-radius:var(--r-md);background:var(--navy-800);color:var(--green-400);
+    display:flex;align-items:center;justify-content:center;font-size:20px}
+  .intro h3{font:var(--text-h4);font-family:var(--font-display);color:var(--fg-strong);margin:0 0 5px}
+  .intro p{font:var(--text-body-sm);color:var(--fg-muted);margin:0;max-width:780px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+  .lbl{font:var(--text-overline);letter-spacing:var(--tracking-overline);text-transform:uppercase;color:var(--lav-700);margin:48px 0 16px;display:block}
+  /* shared */
+  .av{border-radius:50%;background:linear-gradient(135deg,var(--navy-700),var(--navy-900));color:var(--cream);
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700}
+  .stats{display:flex;border-top:1px solid var(--border)}
+  .stat{flex:1;text-align:center;padding:14px 4px}
+  .stat + .stat{border-left:1px solid var(--border)}
+  .stat .n{font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:var(--fg-strong);line-height:1}
+  .stat .k{font:var(--text-caption);color:var(--fg-muted);margin-top:5px}
+  .star{color:var(--green-600)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="tabs">
+    <button class="tab active"><i class="fas fa-trophy"></i> Vendedores destacados</button>
+    <button class="tab"><i class="fas fa-star"></i> Mejor calificados</button>
+  </div>
+  <div class="intro">
+    <div class="intro-ic"><i class="fas fa-trophy"></i></div>
+    <div>
+      <h3>Vendedores destacados</h3>
+      <p>Top 20 vendedores ordenados del mejor al peor según un score que mezcla popularidad (seguidores, vistas) con calidad (reseñas, calificación). La posición de cada uno es su número en el ranking.</p>
+    </div>
+  </div>
+
+  <!-- ============ OPCIÓN A — Avatar central, medalla flotante ============ -->
+  <span class="lbl">Opción A · Avatar protagonista (sin portada)</span>
+  <div class="grid" id="gridA"></div>
+
+  <!-- ============ OPCIÓN B — Podio: cinta de rango + banda de color por posición ============ -->
+  <span class="lbl">Opción B · Podio con cinta de rango (top 3 con color)</span>
+  <div class="grid" id="gridB"></div>
+
+  <!-- ============ OPCIÓN C — Horizontal tipo leaderboard (lista) ============ -->
+  <span class="lbl">Opción C · Leaderboard horizontal (lista compacta)</span>
+  <div id="listC" style="display:flex;flex-direction:column;gap:12px"></div>
+
+</div>
+
+<script>
+const sellers = [
+  {rank:1, name:"Jose Aurelio", handle:"jose", pubs:2, foll:1, rating:"5.0", init:"J"},
+  {rank:2, name:"Ezequiel Arriaga", handle:"ezequiel", pubs:1, foll:0, rating:"4.0", init:"E"},
+  {rank:3, name:"Aurelio Porras", handle:"aurelio", pubs:10, foll:0, rating:null, init:"A"},
+  {rank:4, name:"Santiago Miche", handle:"santiago", pubs:2, foll:0, rating:null, init:"S"},
+];
+const medal = ["#e8b923","#b8c0cc","#cd8b5e"]; // oro, plata, bronce (solo cinta top-3, no portada)
+
+function stat(n,k){return `<div class="stat"><div class="n">${n}</div><div class="k">${k}</div></div>`;}
+function ratingCell(r){return r ? `<div class="stat"><div class="n">${r}<i class="fas fa-star star" style="font-size:13px;margin-left:3px"></i></div><div class="k">Rating</div></div>` : `<div class="stat"><div class="n" style="color:var(--ink-300)">—</div><div class="k">Rating</div></div>`;}
+
+/* ---- Opción A ---- */
+document.getElementById('gridA').innerHTML = sellers.map(s=>`
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden">
+    <div style="padding:26px 20px 18px;text-align:center;position:relative">
+      <span style="position:absolute;left:16px;top:16px;display:inline-flex;align-items:center;gap:5px;
+        padding:5px 11px;border-radius:var(--r-pill);font:var(--text-label);font-size:12px;
+        background:var(--navy-800);color:var(--cream)">#${s.rank}</span>
+      <div class="av" style="width:84px;height:84px;font-size:30px;margin:0 auto 14px;border:3px solid var(--lav-200)">${s.init}</div>
+      <div style="font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:var(--fg-strong)">${s.name}</div>
+      <div style="font:var(--text-body-sm);color:var(--lav-700);font-weight:600">@${s.handle}</div>
+    </div>
+    <div class="stats">${stat(s.pubs,"Public.")}${stat(s.foll,"Seguidores")}${ratingCell(s.rating)}</div>
+    <div style="padding:16px"><button class="kq-btn kq-btn--action" style="width:100%;display:flex;gap:8;justify-content:center"><i class="fas fa-arrow-right" style="font-size:13px"></i> Ver perfil</button></div>
+  </div>`).join('');
+
+/* ---- Opción B ---- */
+document.getElementById('gridB').innerHTML = sellers.map(s=>{
+  const top3 = s.rank<=3;
+  const c = top3 ? medal[s.rank-1] : null;
+  return `
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden">
+    <div style="height:6px;background:${top3?c:'var(--lav-300)'}"></div>
+    <div style="padding:24px 20px 18px;text-align:center;position:relative">
+      <div style="position:relative;width:88px;margin:0 auto 14px">
+        <div class="av" style="width:88px;height:88px;font-size:32px${top3?`;border:3px solid ${c}`:''}">${s.init}</div>
+        <span style="position:absolute;-webkit-box-align:center;right:-6px;bottom:-6px;width:34px;height:34px;border-radius:50%;
+          display:flex;align-items:center;justify-content:center;font:var(--text-label);font-size:13px;
+          border:3px solid #fff;background:${top3?c:'var(--navy-800)'};color:${top3?'#3a2e00':'var(--cream)'}">
+          ${top3?`<i class="fas fa-medal"></i>`:`#${s.rank}`}</span>
+      </div>
+      <div style="font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:var(--fg-strong)">${s.name}</div>
+      <div style="font:var(--text-body-sm);color:var(--lav-700);font-weight:600">@${s.handle}</div>
+    </div>
+    <div class="stats">${stat(s.pubs,"Public.")}${stat(s.foll,"Seguidores")}${ratingCell(s.rating)}</div>
+    <div style="padding:16px"><button class="kq-btn ${top3?'kq-btn--action':'kq-btn--outline'}" style="width:100%;justify-content:center">Ver perfil</button></div>
+  </div>`;
+}).join('');
+
+/* ---- Opción C ---- */
+document.getElementById('listC').innerHTML = sellers.map(s=>{
+  const top3 = s.rank<=3; const c = top3?medal[s.rank-1]:null;
+  return `
+  <div style="display:flex;align-items:center;gap:20px;background:#fff;border:1px solid var(--border);
+    border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:16px 22px">
+    <div style="width:40px;text-align:center;font:var(--text-h2);font-family:var(--font-display);font-weight:800;
+      color:${top3?c:'var(--ink-300)'};flex-shrink:0">${s.rank}</div>
+    <div class="av" style="width:56px;height:56px;font-size:20px;flex-shrink:0${top3?`;border:2.5px solid ${c}`:''}">${s.init}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:var(--fg-strong);display:flex;align-items:center;gap:8px">
+        ${s.name} ${top3?'<i class="fas fa-medal" style="color:'+c+';font-size:15px"></i>':''}</div>
+      <div style="font:var(--text-body-sm);color:var(--lav-700);font-weight:600">@${s.handle}</div>
+    </div>
+    <div style="display:flex;gap:34px;align-items:center">
+      <div style="text-align:center;min-width:50px"><div class="n" style="font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:var(--fg-strong)">${s.pubs}</div><div class="k" style="font:var(--text-caption);color:var(--fg-muted)">Public.</div></div>
+      <div style="text-align:center;min-width:64px"><div class="n" style="font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:var(--fg-strong)">${s.foll}</div><div class="k" style="font:var(--text-caption);color:var(--fg-muted)">Seguidores</div></div>
+      <div style="text-align:center;min-width:54px"><div class="n" style="font:var(--text-h4);font-family:var(--font-display);font-weight:700;color:${s.rating?'var(--fg-strong)':'var(--ink-300)'}">${s.rating?s.rating+'<i class="fas fa-star star" style="font-size:12px;margin-left:2px"></i>':'—'}</div><div class="k" style="font:var(--text-caption);color:var(--fg-muted)">Rating</div></div>
+    </div>
+    <button class="kq-btn kq-btn--action kq-btn--sm" style="flex-shrink:0;margin-left:8px">Ver perfil</button>
+  </div>`;
+}).join('');
+</script>
+</body>
+</html>
