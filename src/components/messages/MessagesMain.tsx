@@ -170,8 +170,9 @@ const MessagesMain: React.FC = () => {
           background: var(--surface);
         }
         .msg-sidebar-head {
-          padding: 20px 16px 14px;
-          border-bottom: 1px solid var(--border);
+          /* Sin linea divisora: el titulo se agrupa con el buscador con aire
+             (mockup Batch A), no pegado ni separado por un borde. */
+          padding: 22px 16px 14px;
           flex-shrink: 0;
         }
         .msg-sidebar-title {

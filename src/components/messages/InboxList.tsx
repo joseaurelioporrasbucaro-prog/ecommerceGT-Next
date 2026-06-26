@@ -204,7 +204,7 @@ const InboxList: React.FC<InboxListProps> = ({ items, activePubId, activeContact
         /* Lista */
         .inbox-list {
           list-style: none;
-          padding: 0;
+          padding: 6px 8px;
           margin: 0;
           overflow-y: auto;
           flex: 1;
@@ -297,8 +297,11 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           display: flex;
           gap: 10px;
           align-items: center;
-          padding: 10px 14px;
-          border-bottom: 1px solid var(--border);
+          padding: 12px 12px;
+          /* Tarjeta redondeada con aire (mockup Batch A): sin linea divisoria,
+             la activa se resalta en lavanda con esquinas redondeadas. */
+          border-radius: var(--r-md, 12px);
+          margin-bottom: 2px;
           cursor: pointer;
           color: var(--fg-strong);
           text-decoration: none;
