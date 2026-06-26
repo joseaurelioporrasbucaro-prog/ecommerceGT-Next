@@ -1,6 +1,6 @@
 {
   "main": {
-    "chats": "Chats",
+    "chats": "Mensajes",
     "loading": "Cargando...",
     "loadError": "No se pudieron cargar los chats.",
     "emptyTitle": "Selecciona una conversacion",

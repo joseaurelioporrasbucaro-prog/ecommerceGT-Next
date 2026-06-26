@@ -90,33 +90,40 @@ const HeaderTwo = ({ compact = false }: HeaderTwoProps) => {
               )}
 
               <div className="kq-nav-cta">
-                <LanguageSwitcher className="header-lang d-none d-sm-inline-flex" />
+                {/* Handoff #19 — en compact (/messages) el header es minimal
+                    (avatar + logo + campana + hamburguesa): se ocultan idioma,
+                    theme toggle, login y Publicar (accesibles desde el menú). */}
+                {!compact && (
+                  <>
+                    <LanguageSwitcher className="header-lang d-none d-sm-inline-flex" />
 
-                {/* Theme toggle — ambos íconos en DOM; CSS muestra uno por tema
-                    (evita mismatch de hidratación con resolvedTheme). */}
-                <button
-                  type="button"
-                  className="kq-icon-btn kq-theme-toggle"
-                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                  aria-label="Cambiar tema"
-                >
-                  <i className="fas fa-moon" />
-                  <i className="fas fa-sun" />
-                </button>
+                    {/* Theme toggle — ambos íconos en DOM; CSS muestra uno por tema
+                        (evita mismatch de hidratación con resolvedTheme). */}
+                    <button
+                      type="button"
+                      className="kq-icon-btn kq-theme-toggle"
+                      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                      aria-label="Cambiar tema"
+                    >
+                      <i className="fas fa-moon" />
+                      <i className="fas fa-sun" />
+                    </button>
 
-                {!user && (
-                  <Link className="kq-ghost-btn d-none d-sm-inline-flex" href="/login">
-                    Iniciar sesión
-                  </Link>
+                    {!user && (
+                      <Link className="kq-ghost-btn d-none d-sm-inline-flex" href="/login">
+                        Iniciar sesión
+                      </Link>
+                    )}
+
+                    <Link
+                      className="fill-btn fill-btn-sm kq-publish-btn d-none d-sm-inline-flex"
+                      href={user ? "/upload" : "/login?from=/upload"}
+                    >
+                      <i className="fas fa-plus" aria-hidden="true" />
+                      Publicar
+                    </Link>
+                  </>
                 )}
-
-                <Link
-                  className="fill-btn fill-btn-sm kq-publish-btn d-none d-sm-inline-flex"
-                  href={user ? "/upload" : "/login?from=/upload"}
-                >
-                  <i className="fas fa-plus" aria-hidden="true" />
-                  Publicar
-                </Link>
 
                 {user && <NotificationBell />}
 

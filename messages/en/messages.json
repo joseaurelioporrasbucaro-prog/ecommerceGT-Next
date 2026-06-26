@@ -1,6 +1,6 @@
 {
   "main": {
-    "chats": "Chats",
+    "chats": "Messages",
     "loading": "Loading...",
     "loadError": "Chats could not be loaded.",
     "emptyTitle": "Select a conversation",
