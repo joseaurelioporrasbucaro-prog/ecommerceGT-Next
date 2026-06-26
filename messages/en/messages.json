@@ -82,6 +82,7 @@
     "eyebrow": "Listing",
     "view": "View listing",
     "model3d": "3D model",
+    "withContact": "with {name}",
     "fallbackTitle": "This listing"
   }
 }

@@ -279,7 +279,10 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
             <span className="inbox-time">{formattedTime}</span>
           </span>
           <span className="inbox-sub">
-            <span className="inbox-pub-title">{item.pub_title}</span>
+            <span className="inbox-pub-title">
+              <i className="fas fa-home" style={{ fontSize: 10, marginRight: 5 }} aria-hidden />
+              {item.pub_title}
+            </span>
             {hasUnread && (
               <span className="inbox-count">
                 {item.unread_conversation > 9 ? '9+' : item.unread_conversation}

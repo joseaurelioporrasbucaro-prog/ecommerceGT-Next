@@ -204,7 +204,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
         )}
         <div className="cp-info">
           <span className="cp-title">{propTitle}</span>
-          <span className="cp-sub">{propSub}</span>
+          <span className="cp-sub">{propSub} · {t('property.withContact', { name: contactName })}</span>
         </div>
         <Link
           href={`/publications/${pubId}`}

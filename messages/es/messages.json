@@ -82,6 +82,7 @@
     "eyebrow": "Publicacion",
     "view": "Ver publicacion",
     "model3d": "Modelo 3D",
+    "withContact": "con {name}",
     "fallbackTitle": "Esta publicacion"
   }
 }
