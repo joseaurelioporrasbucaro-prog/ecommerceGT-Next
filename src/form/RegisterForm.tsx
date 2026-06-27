@@ -97,6 +97,15 @@ const RegisterForm = () => {
     ),
   });
 
+  // Programa de referidos Q50 — el codigo viaja en ?ref= y se envia en el registro.
+  // Se lee de window (cliente) para no requerir <Suspense> de useSearchParams.
+  const [referralCode, setReferralCode] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setReferralCode(new URLSearchParams(window.location.search).get("ref"));
+    }
+  }, []);
+
   // 2. Configuración de Formik
   const formik = useFormik<RegisterFormValues>({
     initialValues: {
@@ -126,6 +135,9 @@ const RegisterForm = () => {
           isBusiness: values.isBusiness,
           locale,
         };
+        if (referralCode && referralCode.trim()) {
+          payload.referralCode = referralCode.trim();
+        }
         const normalizedHandle = values.handle.trim().toLowerCase();
         if (normalizedHandle) {
           payload.handle = normalizedHandle;

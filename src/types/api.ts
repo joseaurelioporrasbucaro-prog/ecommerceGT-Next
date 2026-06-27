@@ -371,6 +371,23 @@ export interface RegisterPayload extends Record<string, unknown> {
   busTName?: string;
   busName?: string;
   locale?: string;
+  /** Programa de referidos Q50 — código del invitador (llega por ?ref= en /register). */
+  referralCode?: string;
+}
+
+/** Programa de referidos Q50 — `GET /referrals/me` (auth). */
+export interface ReferralSummary {
+  code: string;
+  link: string;
+  activatedCount: number;
+  pendingCount: number;
+  earnedCredit: number;
+}
+
+/** Validación pública de un código — `GET /referrals/validate/:code`. */
+export interface ReferralValidation {
+  valid: boolean;
+  referrerName: string | null;
 }
 
 // ============================================================================

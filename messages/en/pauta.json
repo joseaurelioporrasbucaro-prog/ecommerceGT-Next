@@ -116,7 +116,9 @@
       "copy": "Copy",
       "soonBadge": "Coming soon",
       "loginPrompt": "Sign in to get your invitation link.",
-      "login": "Sign in"
+      "login": "Sign in",
+      "copied": "Link copied.",
+      "copyError": "Could not copy the link."
     },
     "share": {
       "whatsapp": "WhatsApp",
@@ -126,13 +128,16 @@
     "soon": "The referral program will be available soon.",
     "progress": {
       "none": "You do not have activated referrals yet.",
-      "hint": "The credit is added automatically when your friend makes their first ad purchase."
+      "hint": "The credit is added automatically when your friend makes their first ad purchase.",
+      "active": "{count} activated referrals.",
+      "pending": "{count} pending their first ad purchase."
     },
     "balance": {
       "label": "Your ad balance",
       "gift": "Includes the credit from your referrals",
       "cta": "Use in Ads"
-    }
+    },
+    "shareText": "I am inviting you to Kiosqui: sign up with my link and we both get Q50 of ad credit."
   },
   "builder": {
     "stepPublication": "Listing to promote",

@@ -116,7 +116,9 @@
       "copy": "Copiar",
       "soonBadge": "Proximamente",
       "loginPrompt": "Inicia sesion para obtener tu enlace de invitacion.",
-      "login": "Iniciar sesion"
+      "login": "Iniciar sesion",
+      "copied": "Enlace copiado.",
+      "copyError": "No se pudo copiar el enlace."
     },
     "share": {
       "whatsapp": "WhatsApp",
@@ -126,13 +128,16 @@
     "soon": "El programa de referidos se activara pronto.",
     "progress": {
       "none": "Aun no tienes referidos activados.",
-      "hint": "El credito se acredita automaticamente cuando tu amigo hace su primera compra de pauta."
+      "hint": "El credito se acredita automaticamente cuando tu amigo hace su primera compra de pauta.",
+      "active": "{count} referidos activados.",
+      "pending": "{count} pendientes de su primera compra de pauta."
     },
     "balance": {
       "label": "Tu saldo de pauta",
       "gift": "Incluye el credito de tus referidos",
       "cta": "Usar en Pauta"
-    }
+    },
+    "shareText": "Te invito a Kiosqui: registrate con mi enlace y los dos ganamos Q50 de credito de pauta."
   },
   "builder": {
     "stepPublication": "Publicación a promocionar",

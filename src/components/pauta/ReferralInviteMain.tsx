@@ -1,22 +1,18 @@
 "use client";
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/utils/AuthContext';
 import { useAdCredit } from '@/hooks/api/useCampaigns';
+import { useMyReferrals } from '@/hooks/api/useReferrals';
 
 /**
- * Handoff #10 §2 — /invite (referidos Q50).
- *
- * CÁSCARA UI: el backend de referidos todavía NO existe (ver §4 del feedback y el
- * prompt para Codex). Por eso:
- *  - El saldo viene del crédito real (`useAdCredit`, el mismo de /pauta).
- *  - El código/enlace es una VISTA PREVIA derivada del handle del usuario; no es el
- *    código definitivo (Codex lo generará). Copiar/compartir muestran un aviso
- *    "próximamente" — mismo patrón que el botón Recargar de PautaMain — para no
- *    repartir un enlace que aún no canjea.
- *  - El progreso de referidos arranca en cero (sin endpoint todavía).
+ * /invite (referidos Q50) — cableado al backend real (GET /referrals/me).
+ *  - Código + link reales del usuario; el link es /register?ref=CODE.
+ *  - Copiar usa el portapapeles; compartir abre WhatsApp / Facebook / correo.
+ *  - El progreso (activados / pendientes) viene del endpoint.
+ *  - El saldo de pauta sigue viniendo de useAdCredit (el mismo de /pauta).
  */
 
 const fmtQ = (n: number) => `Q ${Number(n || 0).toLocaleString('es-GT')}`;
@@ -38,22 +34,38 @@ const ReferralInviteMain: React.FC = () => {
   const { user } = useAuth();
   const credit = useAdCredit();
   const availableCredit = Number(credit.data?.credit || 0);
-
-  // Código de vista previa (placeholder) — el definitivo lo genera el backend.
-  const code = useMemo(() => {
-    if (!user) return '';
-    return user.handle ? user.handle.toUpperCase() : `U${user.id}`;
-  }, [user]);
+  const referrals = useMyReferrals();
+  const summary = referrals.data;
+  const code = summary?.code ?? '';
 
   const [origin, setOrigin] = useState('https://kiosqui.com');
   useEffect(() => {
     if (typeof window !== 'undefined') setOrigin(window.location.origin);
   }, []);
 
-  const inviteLink = code ? `${origin}/invite/${code}` : '';
+  // Link real /register?ref=CODE en el origin actual (funciona local + prod).
+  const inviteLink = code ? `${origin}/register?ref=${code}` : '';
 
-  // Backend de referidos aún no disponible → aviso (consistente con Recargar).
-  const notifySoon = () => toast.info(t('invite.soon'));
+  const copyLink = () => {
+    if (!inviteLink || typeof navigator === 'undefined' || !navigator.clipboard) return;
+    navigator.clipboard.writeText(inviteLink).then(
+      () => toast.success(t('invite.link.copied')),
+      () => toast.error(t('invite.link.copyError')),
+    );
+  };
+
+  const shareTo = (key: string) => {
+    if (!inviteLink) return;
+    const msg = encodeURIComponent(`${t('invite.shareText')} ${inviteLink}`);
+    const url = encodeURIComponent(inviteLink);
+    const targets: Record<string, string> = {
+      whatsapp: `https://wa.me/?text=${msg}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      email: `mailto:?subject=${encodeURIComponent(t('invite.banner.title'))}&body=${msg}`,
+    };
+    const target = targets[key];
+    if (target) window.open(target, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <main className="invite-page">
@@ -80,7 +92,6 @@ const ReferralInviteMain: React.FC = () => {
         {/* ── Enlace de invitación ── */}
         <div className="iv-link-head">
           <span className="iv-link-label">{t('invite.link.label')}</span>
-          <span className="iv-soon">{t('invite.link.soonBadge')}</span>
         </div>
 
         {user ? (
@@ -94,7 +105,7 @@ const ReferralInviteMain: React.FC = () => {
                 aria-label={t('invite.link.label')}
                 onFocus={(e) => e.currentTarget.select()}
               />
-              <button type="button" className="iv-copy" onClick={notifySoon}>
+              <button type="button" className="iv-copy" onClick={copyLink}>
                 <i className="fas fa-copy" />
                 <span>{t('invite.link.copy')}</span>
               </button>
@@ -102,7 +113,7 @@ const ReferralInviteMain: React.FC = () => {
 
             <div className="iv-share">
               {SHARE.map((s) => (
-                <button key={s.key} type="button" className="iv-share-btn" onClick={notifySoon}>
+                <button key={s.key} type="button" className="iv-share-btn" onClick={() => shareTo(s.key)}>
                   <i className={s.icon} style={{ color: s.color }} />
                   <span>{t(`invite.share.${s.key}`)}</span>
                 </button>
@@ -118,10 +129,18 @@ const ReferralInviteMain: React.FC = () => {
 
         {/* ── Progreso de referidos (estado cero — sin datos de backend) ── */}
         <div className="iv-progress">
-          <div className="iv-progress-num">0</div>
+          <div className="iv-progress-num">{summary?.activatedCount ?? 0}</div>
           <div className="iv-progress-info">
-            <span className="iv-progress-title">{t('invite.progress.none')}</span>
-            <span className="iv-progress-sub">{t('invite.progress.hint')}</span>
+            <span className="iv-progress-title">
+              {summary && summary.activatedCount > 0
+                ? t('invite.progress.active', { count: summary.activatedCount })
+                : t('invite.progress.none')}
+            </span>
+            <span className="iv-progress-sub">
+              {summary && summary.pendingCount > 0
+                ? t('invite.progress.pending', { count: summary.pendingCount })
+                : t('invite.progress.hint')}
+            </span>
           </div>
         </div>
 

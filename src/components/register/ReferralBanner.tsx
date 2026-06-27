@@ -2,20 +2,22 @@
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useValidateReferralCode } from '@/hooks/api/useReferrals';
 
-// Handoff #11 §2 — banner "te invitaron" en /register cuando llega ?ref=CODE.
-// Sin backend de referidos no podemos resolver el nombre/avatar del invitador
-// (necesita GET /referrals/validate/:code), así que mostramos la versión
-// genérica honesta. El código viaja en la URL; el submit lo enviará como
-// `referredBy` cuando el backend lo acepte (TODO backend).
+// Banner "te invitaron" en /register cuando llega ?ref=CODE. Resuelve el nombre
+// del invitador vía GET /referrals/validate/:code; si no se valida (o no hay
+// nombre), cae al texto genérico. El código viaja en la URL y RegisterForm lo
+// envia como referralCode en el submit.
 const ReferralBanner: React.FC = () => {
   const t = useTranslations('auth');
   const ref = useSearchParams().get('ref');
+  const validation = useValidateReferralCode(ref);
   if (!ref) return null;
+  const referrerName = validation.data?.valid ? validation.data.referrerName : null;
   return (
     <div className="kq-ref-banner">
       <span className="kq-ref-icon" aria-hidden="true"><i className="fas fa-gift" /></span>
-      <p>{t('referralBanner.text')}</p>
+      <p>{referrerName ? t('referralBanner.textNamed', { name: referrerName }) : t('referralBanner.text')}</p>
       <style jsx>{`
         .kq-ref-banner {
           display: flex;
