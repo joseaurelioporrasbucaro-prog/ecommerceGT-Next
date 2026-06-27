@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosqui — Batch G · Empresa (lado dueño)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#e8e3da}
+  .kq-logo-dark{display:none}
+  [data-theme="dark"] .kq-logo-light{display:none}
+  [data-theme="dark"] .kq-logo-dark{display:inline}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="batch_b/ProfileScreen.jsx"></script>
+<script type="text/babel" src="batch_g/CompanyOwnerScreens.jsx"></script>
+<script type="text/babel">
+function DarkG({children}) {
+  return <div data-theme="dark" style={{width:"100%", height:"100%"}}>{children}</div>;
+}
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="company-owner" title="Mi empresa — /company (CompanyMain, lado dueño)" subtitle="Reusa la identidad del perfil público (portada navy→lavanda + foto enmarcada con 'Cambiar logo') y debajo el form de datos (nombre legal/comercial, dirección, teléfono, mostrar empleados). Re-skin: dorado → navy/lavanda.">
+        <DCArtboard id="comp-ok" label="Mi empresa · admin" width={1180} height={840}><CompanyOwnerScreen/></DCArtboard>
+        <DCArtboard id="comp-readonly" label="Mi empresa · solo lectura (no-admin)" width={1180} height={840}><CompanyOwnerScreen state="readonly"/></DCArtboard>
+        <DCArtboard id="comp-empty" label="Sin empresa" width={1180} height={520}><CompanyOwnerScreen state="empty"/></DCArtboard>
+        <DCArtboard id="comp-dark" label="Mi empresa · dark" width={1180} height={840}><DarkG><CompanyOwnerScreen/></DarkG></DCArtboard>
+        <DCArtboard id="comp-mobile" label="Mi empresa · mobile" width={390} height={760}><CompanyOwnerMobile/></DCArtboard>
+        <DCArtboard id="comp-mobile-dark" label="Mi empresa · mobile · dark" width={390} height={760}><DarkG><CompanyOwnerMobile/></DarkG></DCArtboard>
+      </DCSection>
+      <DCSection id="company-team" title="Gestión de equipo — /company/equipo (CompanyTeamMain)" subtitle="Slots del plan + tabla densa de miembros (rol Admin lavanda, límite de publicaciones editable, quitar en rojo) + invitaciones pendientes (warning) + sumar miembros (buscar usuario existente | invitar por email, dos columnas). En mobile la tabla pasa a cards y los bloques se apilan.">
+        <DCArtboard id="team-light" label="Equipo · admin" width={1080} height={1080}><CompanyTeamScreen/></DCArtboard>
+        <DCArtboard id="team-dark" label="Equipo · dark" width={1080} height={1080}><DarkG><CompanyTeamScreen/></DarkG></DCArtboard>
+        <DCArtboard id="team-mobile" label="Equipo · mobile (cards)" width={390} height={1180}><CompanyTeamMobile/></DCArtboard>
+        <DCArtboard id="team-mobile-dark" label="Equipo · mobile · dark" width={390} height={1180}><DarkG><CompanyTeamMobile/></DarkG></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
