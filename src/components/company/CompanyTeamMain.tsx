@@ -89,18 +89,29 @@ const CompanyTeamMain = () => {
                 <Link href="/company" className="tm-back">
                   <i className="fal fa-arrow-left" /> {t('companySettings.title')}
                 </Link>
-                <span className="tm-slots">{t('team.slots', { used: members.length, limit: userLimit })}</span>
+                <span className="tm-slots">
+                  <i className="fas fa-users" aria-hidden /> {t('team.slots', { used: members.length, limit: userLimit })}
+                </span>
               </div>
 
-              {/* Miembros */}
+              {/* Miembros (tabla densa en desktop, cards en mobile) */}
               <div className="tm-card kq-card">
-                <h3 className="tm-title">{t('team.members')}</h3>
+                <div className="tm-card-head">
+                  <h3 className="tm-title">{t('team.members')}</h3>
+                </div>
+                {isAdmin && (
+                  <div className="tm-thead">
+                    <span>{t('team.members')}</span>
+                    <span>{t('stats.publications')}</span>
+                    <span className="tm-thead-end">{t('team.remove')}</span>
+                  </div>
+                )}
                 <div className="tm-table">
                   {members.map((m: CompanyTeamMember) => {
                     const isSelf = m.cusid === user?.id;
                     const initial = (m.firstname || m.lastname || '?').charAt(0).toUpperCase();
                     return (
-                      <div key={m.cusid} className="tm-row">
+                      <div key={m.cusid} className={`tm-row${isAdmin ? '' : ' tm-row--read'}`}>
                         <div className="tm-person">
                           <span className="tm-avatar" aria-hidden>{initial}</span>
                           <div className="tm-person-text">
@@ -116,7 +127,7 @@ const CompanyTeamMain = () => {
                         {isAdmin ? (
                           <>
                             <div className="tm-limit">
-                              <label>{t('stats.publications')}</label>
+                              <label className="tm-limit-label">{t('stats.publications')}</label>
                               <div className="tm-limit-row">
                                 <input
                                   type="number"
@@ -130,12 +141,24 @@ const CompanyTeamMain = () => {
                                 />
                                 <button
                                   type="button"
-                                  className="kq-btn kq-btn--action kq-btn--sm tm-mini-btn"
+                                  className="kq-btn kq-btn--outline kq-btn--sm tm-mini-btn"
                                   onClick={() => handleSaveLimit(m.cusid)}
                                   disabled={setLimit.isPending}
                                 >
                                   {t('team.save')}
                                 </button>
+                                {!m.isadmin && !isSelf && (
+                                  <button
+                                    type="button"
+                                    className="kq-btn kq-btn--ghost kq-btn--sm tm-remove-mobile"
+                                    onClick={() => removeEmployee.mutate(m.cusid)}
+                                    disabled={removeEmployee.isPending}
+                                    title={t('team.removeFromCompany')}
+                                    aria-label={t('team.remove')}
+                                  >
+                                    <i className="fal fa-user-times" />
+                                  </button>
+                                )}
                               </div>
                               <span className="tm-used">
                                 {t('team.used')}: {m.pubused}
@@ -143,21 +166,23 @@ const CompanyTeamMain = () => {
                               </span>
                             </div>
                             <div className="tm-action">
-                              {!m.isadmin && !isSelf && (
+                              {!m.isadmin && !isSelf ? (
                                 <button
                                   type="button"
-                                  className="tm-remove"
+                                  className="kq-btn kq-btn--ghost kq-btn--sm tm-remove"
                                   onClick={() => removeEmployee.mutate(m.cusid)}
                                   disabled={removeEmployee.isPending}
                                   title={t('team.removeFromCompany')}
                                 >
                                   <i className="fal fa-user-times" /> {t('team.remove')}
                                 </button>
+                              ) : (
+                                <span className="tm-dash" aria-hidden>—</span>
                               )}
                             </div>
                           </>
                         ) : (
-                          <span className="tm-used">
+                          <span className="tm-used tm-used--read">
                             {t('team.publicationUsage', { used: m.pubused, limit: m.publimit != null ? ` / ${m.publimit}` : '' })}
                           </span>
                         )}
@@ -170,12 +195,14 @@ const CompanyTeamMain = () => {
               {/* Pendientes */}
               {pending.length > 0 && (
                 <div className="tm-card kq-card">
-                  <h3 className="tm-title">{t('team.pendingInvitations')}</h3>
+                  <div className="tm-card-head">
+                    <h3 className="tm-title">{t('team.pendingInvitations')}</h3>
+                  </div>
                   <div className="tm-table">
                     {pending.map((p: CompanyPendingInvite) => {
                       const pInitial = (p.firstname || p.lastname || '?').charAt(0).toUpperCase();
                       return (
-                      <div key={p.invid} className="tm-row">
+                      <div key={p.invid} className="tm-row tm-row--pending">
                         <div className="tm-person">
                           <span className="tm-avatar tm-avatar-pending" aria-hidden>{pInitial}</span>
                           <div className="tm-person-text">
@@ -186,11 +213,11 @@ const CompanyTeamMain = () => {
                             <span className="tm-email">{p.email}</span>
                           </div>
                         </div>
-                        <div className="tm-action">
+                        <div className="tm-action tm-action--pending">
                           {isAdmin && (
                             <button
                               type="button"
-                              className="tm-remove"
+                              className="kq-btn kq-btn--ghost kq-btn--sm tm-remove"
                               onClick={() => cancelInvitation.mutate(p.invid)}
                               disabled={cancelInvitation.isPending}
                             >
@@ -205,87 +232,98 @@ const CompanyTeamMain = () => {
                 </div>
               )}
 
-              {/* Agregar miembros (solo admin) */}
+              {/* Sumar miembros (solo admin): dos columnas en desktop, apilado en mobile */}
               {isAdmin && (
                 <div className="tm-card kq-card">
-                  <h3 className="tm-title">{t('team.inviteExisting')}</h3>
+                  <div className="tm-card-head">
+                    <h3 className="tm-title">{t('team.inviteExisting')}</h3>
+                  </div>
                   {!canInviteMore && (
                     <p className="tm-note">
                       {t('team.limitReached')}{' '}
                       <Link href="/pricing-plan">{t('team.upgrade')}</Link> {t('team.addMore')}
                     </p>
                   )}
-                  <div className="tm-search-wrap">
-                    <input
-                      className="kq-input tm-input"
-                      placeholder={t('team.searchPlaceholder')}
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      disabled={!canInviteMore}
-                    />
-                    {search.trim().length >= 2 && (
-                      <ul className="tm-search-results">
-                        {buyersQuery.isLoading && <li className="tm-search-empty">{t('team.searching')}</li>}
-                        {!buyersQuery.isLoading && buyers.length === 0 && (
-                          <li className="tm-search-empty">{t('team.noResults')}</li>
+                  <div className="tm-invite-grid">
+                    {/* Columna izquierda: buscar usuario existente */}
+                    <div className="tm-invite-col">
+                      <h4 className="tm-subtitle">{t('team.inviteExisting')}</h4>
+                      <div className="tm-search-wrap">
+                        <input
+                          className="kq-input tm-input"
+                          placeholder={t('team.searchPlaceholder')}
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          disabled={!canInviteMore}
+                        />
+                        {search.trim().length >= 2 && (
+                          <ul className="tm-search-results">
+                            {buyersQuery.isLoading && <li className="tm-search-empty">{t('team.searching')}</li>}
+                            {!buyersQuery.isLoading && buyers.length === 0 && (
+                              <li className="tm-search-empty">{t('team.noResults')}</li>
+                            )}
+                            {buyers.map((b: BuyerSearchResult) => (
+                              <li key={b.cusId} className="tm-search-item">
+                                <div className="tm-person-text">
+                                  <span className="tm-name">{b.firstName} {b.lastName}</span>
+                                  <span className="tm-email">{b.email}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="kq-btn kq-btn--outline kq-btn--sm tm-mini-btn"
+                                  onClick={() => handleInviteExisting(b.cusId)}
+                                  disabled={!canInviteMore || inviteExisting.isPending}
+                                >
+                                  {t('team.invite')}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                        {buyers.map((b: BuyerSearchResult) => (
-                          <li key={b.cusId} className="tm-search-item">
-                            <div>
-                              <span className="tm-name">{b.firstName} {b.lastName}</span>
-                              <span className="tm-email">{b.email}</span>
-                            </div>
-                            <button
-                              type="button"
-                              className="kq-btn kq-btn--action kq-btn--sm tm-mini-btn"
-                              onClick={() => handleInviteExisting(b.cusId)}
-                              disabled={!canInviteMore || inviteExisting.isPending}
-                            >
-                              {t('team.invite')}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  <form onSubmit={handleAddEmployee}>
-                    <h4 className="tm-subtitle">{t('team.inviteByEmail')}</h4>
-                    <div className="tm-row2">
-                      <input
-                        className="kq-input tm-input"
-                        placeholder={t('team.firstName')}
-                        value={emp.firstName}
-                        onChange={(e) => setEmp({ ...emp, firstName: e.target.value })}
-                        disabled={!canInviteMore}
-                        required
-                      />
-                      <input
-                        className="kq-input tm-input"
-                        placeholder={t('team.lastName')}
-                        value={emp.lastName}
-                        onChange={(e) => setEmp({ ...emp, lastName: e.target.value })}
-                        disabled={!canInviteMore}
-                        required
-                      />
+                      </div>
                     </div>
-                    <input
-                      className="kq-input tm-input"
-                      type="email"
-                      placeholder={t('team.email')}
-                      value={emp.email}
-                      onChange={(e) => setEmp({ ...emp, email: e.target.value })}
-                      disabled={!canInviteMore}
-                      required
-                    />
-                    <button
-                      type="submit"
-                      className="kq-btn kq-btn--action tm-btn mt-10"
-                      disabled={!canInviteMore || addEmployee.isPending}
-                    >
-                      {addEmployee.isPending ? t('team.sending') : t('team.inviteEmployee')}
-                    </button>
-                  </form>
+
+                    {/* Columna derecha: invitar por correo */}
+                    <div className="tm-invite-col">
+                      <form onSubmit={handleAddEmployee}>
+                        <h4 className="tm-subtitle">{t('team.inviteByEmail')}</h4>
+                        <div className="tm-row2">
+                          <input
+                            className="kq-input tm-input"
+                            placeholder={t('team.firstName')}
+                            value={emp.firstName}
+                            onChange={(e) => setEmp({ ...emp, firstName: e.target.value })}
+                            disabled={!canInviteMore}
+                            required
+                          />
+                          <input
+                            className="kq-input tm-input"
+                            placeholder={t('team.lastName')}
+                            value={emp.lastName}
+                            onChange={(e) => setEmp({ ...emp, lastName: e.target.value })}
+                            disabled={!canInviteMore}
+                            required
+                          />
+                        </div>
+                        <input
+                          className="kq-input tm-input"
+                          type="email"
+                          placeholder={t('team.email')}
+                          value={emp.email}
+                          onChange={(e) => setEmp({ ...emp, email: e.target.value })}
+                          disabled={!canInviteMore}
+                          required
+                        />
+                        <button
+                          type="submit"
+                          className="kq-btn kq-btn--action tm-btn"
+                          disabled={!canInviteMore || addEmployee.isPending}
+                        >
+                          <i className="fal fa-paper-plane" /> {addEmployee.isPending ? t('team.sending') : t('team.inviteEmployee')}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
                 </div>
               )}
             </>
@@ -294,67 +332,115 @@ const CompanyTeamMain = () => {
       </section>
 
       <style jsx>{`
+        .team-area :global(.container) {
+          max-width: 960px;
+        }
+        /* ── Top: link "Mi empresa" + badge de slots navy ── */
         .tm-top {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 20px;
+          margin-bottom: 22px;
           flex-wrap: wrap;
           gap: 10px;
         }
         .tm-back {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           font-family: var(--font-display);
           font-weight: 600;
-          color: var(--accent-hover, #8a7fe3);
+          color: var(--lav-700, #6d62cf);
           text-decoration: none;
         }
-        .tm-back i {
-          margin-right: 6px;
+        .tm-back:hover {
+          color: var(--lav-600, #8076e0);
         }
         .tm-slots {
-          background: var(--lav-200, #ddd8f8);
-          color: var(--lav-700, #6d62cf);
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          background: var(--navy-800, #1e2d4a);
+          color: var(--cream, #f8f4ee);
           font-family: var(--font-display);
           font-size: 13px;
           font-weight: 700;
-          padding: 5px 14px;
+          padding: 6px 15px;
           border-radius: var(--r-pill, 999px);
         }
+        .tm-slots i {
+          font-size: 12px;
+          color: var(--green-400, #b6d96a);
+        }
+        /* ── Tarjetas: head hundido (overline) + cuerpo ── */
         .tm-card {
-          padding: 26px 24px;
-          margin-bottom: 26px;
+          padding: 0;
+          margin-bottom: 24px;
+          overflow: hidden;
+        }
+        .tm-card-head {
+          padding: 16px 22px;
+          border-bottom: 1px solid var(--border, #e6ddcf);
+          background: var(--surface-sunk, #f1ebe0);
         }
         .tm-title {
           font-family: var(--font-display);
           font-weight: 700;
-          font-size: 20px;
+          font-size: 18px;
           color: var(--fg-strong, #22252a);
-          margin-bottom: 16px;
+          margin: 0;
         }
         .tm-subtitle {
           font-family: var(--font-display);
           font-weight: 700;
-          font-size: 16px;
+          font-size: 15px;
           color: var(--fg-strong, #22252a);
-          margin: 22px 0 12px;
+          margin: 0 0 12px;
         }
-        .tm-row {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          padding: 16px 0;
+        /* ── Cabecera de columnas (overline) ── */
+        .tm-thead {
+          display: grid;
+          grid-template-columns: 1fr 200px 110px;
+          gap: 16px;
+          padding: 10px 22px;
+          background: var(--surface-sunk, #f1ebe0);
           border-bottom: 1px solid var(--border, #e6ddcf);
-          flex-wrap: wrap;
+          font-family: var(--font-display);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: var(--tracking-overline, 0.08em);
+          text-transform: uppercase;
+          color: var(--fg-subtle, #9aa0a8);
+        }
+        .tm-thead-end {
+          text-align: right;
+        }
+        .tm-table {
+          padding: 0 22px;
+        }
+        /* ── Fila = grid denso en desktop ── */
+        .tm-row {
+          display: grid;
+          grid-template-columns: 1fr 200px 110px;
+          gap: 16px;
+          align-items: center;
+          padding: 15px 0;
+          border-bottom: 1px solid var(--border, #e6ddcf);
+        }
+        .tm-row--read {
+          grid-template-columns: 1fr auto;
+        }
+        .tm-row--pending {
+          grid-template-columns: 1fr auto;
         }
         .tm-row:last-child {
           border-bottom: none;
         }
         .tm-person {
-          flex: 1 1 220px;
-          min-width: 200px;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 13px;
+          min-width: 0;
         }
         .tm-person-text {
           min-width: 0;
@@ -371,10 +457,11 @@ const CompanyTeamMain = () => {
           color: var(--cream, #f8f4ee);
           font-family: var(--font-display);
           font-weight: 700;
-          font-size: 17px;
+          font-size: 16px;
         }
         .tm-avatar-pending {
-          background: linear-gradient(135deg, var(--lav-500, #b5acef), var(--navy-800, #1e2d4a));
+          background: var(--surface-sunk, #f1ebe0);
+          color: var(--fg-muted, #5c616a);
         }
         .tm-name {
           display: flex;
@@ -388,88 +475,109 @@ const CompanyTeamMain = () => {
         .tm-email {
           display: block;
           font-size: 13px;
-          color: var(--accent-hover, #8a7fe3);
-          font-weight: 600;
+          color: var(--fg-muted, #5c616a);
+          margin-top: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .tm-limit {
-          width: 230px;
-          flex-shrink: 0;
+          min-width: 0;
+        }
+        .tm-limit-label {
+          display: none;
         }
         .tm-action {
-          width: 130px;
-          flex-shrink: 0;
           display: flex;
           justify-content: flex-end;
-        }
-        .tm-limit label {
-          display: block;
-          font-size: 12px;
-          color: var(--fg-muted, #5c616a);
-          margin-bottom: 4px;
+          align-items: center;
         }
         .tm-limit-row {
           display: flex;
-          gap: 8px;
+          gap: 7px;
+          align-items: center;
         }
         .tm-limit-input.tm-limit-input {
-          width: 90px;
+          width: 84px;
+          height: 40px;
           margin-bottom: 0;
-          padding: 9px 10px;
+          padding: 0 10px;
         }
         .tm-used {
           display: block;
           font-size: 12px;
+          color: var(--fg-subtle, #9aa0a8);
+          margin-top: 5px;
+        }
+        .tm-used--read {
+          margin-top: 0;
+          text-align: right;
+          font-size: 13px;
           color: var(--fg-muted, #5c616a);
-          margin-top: 4px;
         }
         .tm-mini-btn {
           flex-shrink: 0;
         }
-        .tm-remove {
-          background: transparent;
-          border: 1.5px solid var(--danger, #c0392b);
+        /* Botón "Quitar" ghost rojo (desktop) y su variante icono (mobile, oculta en desktop). */
+        .tm-remove.tm-remove {
           color: var(--danger, #c0392b);
-          padding: 8px 16px;
-          border-radius: var(--r-pill, 999px);
-          font-family: var(--font-display);
-          font-weight: 600;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.16s ease, color 0.16s ease;
+        }
+        .tm-remove.tm-remove:hover:not(:disabled) {
+          background: var(--warning-bg, #faecd4);
         }
         .tm-remove i {
           margin-right: 5px;
         }
-        .tm-remove:hover:not(:disabled) {
-          background: var(--danger, #c0392b);
-          color: #fff;
+        .tm-remove-mobile {
+          display: none;
         }
-        .tm-remove:disabled {
-          opacity: 0.45;
-          cursor: default;
+        .tm-remove-mobile.tm-remove-mobile {
+          color: var(--danger, #c0392b);
+        }
+        .tm-remove-mobile i {
+          margin: 0;
+        }
+        .tm-dash {
+          color: var(--fg-subtle, #9aa0a8);
+          font-size: 13px;
         }
         .tm-note {
           color: var(--fg-muted, #5c616a);
           font-size: 14px;
-          margin-bottom: 14px;
+          margin: 16px 22px 0;
         }
         .tm-note :global(a) {
-          color: var(--accent-hover, #8a7fe3);
+          color: var(--lav-700, #6d62cf);
           font-weight: 600;
         }
+        /* ── Bloque invitar: dos columnas en desktop ── */
+        .tm-invite-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          padding: 22px;
+        }
+        .tm-invite-col {
+          min-width: 0;
+        }
         .tm-search-wrap {
-          margin-bottom: 14px;
+          margin-bottom: 0;
         }
         .tm-input.tm-input {
           margin-bottom: 12px;
         }
         .tm-row2 {
-          display: flex;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
           gap: 12px;
+        }
+        .tm-btn.tm-btn {
+          width: 100%;
+          justify-content: center;
         }
         .tm-search-results {
           list-style: none;
-          margin: -4px 0 0;
+          margin: -2px 0 0;
           padding: 6px;
           border: 1px solid var(--border, #e6ddcf);
           border-radius: var(--r-md, 12px);
@@ -481,6 +589,7 @@ const CompanyTeamMain = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 10px;
           padding: 8px 10px;
           border-radius: var(--r-sm, 8px);
         }
@@ -501,6 +610,103 @@ const CompanyTeamMain = () => {
           font-weight: 700;
           color: var(--fg-strong, #22252a);
           margin-bottom: 20px;
+        }
+
+        /* ════════ MOBILE (≤480): tabla → cards apiladas, invitar apilado ════════ */
+        @media (max-width: 480px) {
+          .tm-slots {
+            margin: 0 auto;
+          }
+          .tm-top {
+            justify-content: center;
+          }
+          /* Cabecera de columnas no aplica a cards. */
+          .tm-thead {
+            display: none;
+          }
+          .tm-table {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          /* Cada miembro = card apilada (cabecera + divisor + control de límite). */
+          .tm-row {
+            display: block;
+            border: 1px solid var(--border, #e6ddcf);
+            border-radius: var(--r-md, 12px);
+            box-shadow: var(--shadow-xs, 0 1px 2px rgba(30, 45, 74, 0.05));
+            padding: 14px 16px;
+          }
+          .tm-row:last-child {
+            border-bottom: 1px solid var(--border, #e6ddcf);
+          }
+          .tm-person {
+            margin-bottom: 12px;
+          }
+          .tm-email {
+            font-size: 12px;
+          }
+          /* Bloque de límite separado por divisor superior. */
+          .tm-limit {
+            padding-top: 12px;
+            border-top: 1px solid var(--border, #e6ddcf);
+          }
+          .tm-limit-label {
+            display: block;
+            font-size: 12px;
+            color: var(--fg-muted, #5c616a);
+            margin-bottom: 5px;
+          }
+          .tm-limit-row {
+            align-items: stretch;
+          }
+          .tm-limit-input.tm-limit-input {
+            flex: 1;
+            width: auto;
+            height: 42px;
+          }
+          /* En mobile el "Quitar" textual de la columna acción se oculta:
+             se usa el botón-icono dentro del bloque de límite. */
+          .tm-action {
+            display: none;
+          }
+          .tm-remove-mobile {
+            display: inline-flex;
+            flex-shrink: 0;
+          }
+          /* Fila de solo lectura (no-admin): uso de publicaciones bajo el nombre. */
+          .tm-row--read {
+            display: block;
+          }
+          .tm-row--read .tm-person {
+            margin-bottom: 8px;
+          }
+          .tm-used--read {
+            text-align: left;
+          }
+          /* Pendientes como card; acción visible. */
+          .tm-row--pending {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .tm-row--pending .tm-person {
+            flex: 1;
+            margin-bottom: 0;
+          }
+          .tm-action--pending {
+            display: flex;
+          }
+          .tm-note {
+            margin: 14px 16px 0;
+          }
+          /* Invitar: una sola columna (buscar arriba, correo abajo). */
+          .tm-invite-grid {
+            grid-template-columns: 1fr;
+            gap: 22px;
+            padding: 18px 16px;
+          }
         }
       `}</style>
     </>

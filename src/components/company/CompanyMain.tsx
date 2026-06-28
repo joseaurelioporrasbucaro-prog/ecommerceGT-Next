@@ -86,130 +86,189 @@ const CompanyMain = () => {
     <>
       <Breadcrumbs breadcrumbTitle={t('companySettings.breadcrumbTitle')} breadcrumbSubTitle={t('companySettings.breadcrumbSubtitle')} />
 
-      <section className="company-area pt-50 pb-80">
-        <div className="container">
-          {!user && (
+      <section className="company-area">
+        {!user && (
+          <div className="cm-shell">
             <div className="cm-info-note">
               {t('companySettings.loginPrefix')} <Link href="/login?from=/company">{t('companySettings.loginLink')}</Link> {t('companySettings.loginSuffix')}
             </div>
-          )}
+          </div>
+        )}
 
-          {user && companyQuery.isLoading && (
+        {user && companyQuery.isLoading && (
+          <div className="cm-shell">
             <div className="cm-state-msg">{t('company.loading')}</div>
-          )}
+          </div>
+        )}
 
-          {user && companyQuery.isError && (
-            <div className="cm-empty kq-card">
+        {user && companyQuery.isError && (
+          <div className="cm-shell">
+            <div className="cm-empty">
+              <span className="cm-empty-icon" aria-hidden>
+                <i className="fas fa-building" />
+              </span>
               <h3>{t('companySettings.noCompanyTitle')}</h3>
-              <p>
-                {t('companySettings.noCompanyText')}
-              </p>
-              <Link href="/pricing-plan" className="kq-btn kq-btn--action">{t('companySettings.viewPlans')}</Link>
+              <p>{t('companySettings.noCompanyText')}</p>
+              <Link href="/pricing-plan" className="kq-btn kq-btn--action kq-btn--lg cm-empty-cta">
+                <i className="fas fa-gem" /> {t('companySettings.viewPlans')}
+              </Link>
             </div>
-          )}
+          </div>
+        )}
 
-          {user && company && (
-            <div className="row justify-content-center">
-              <div className="col-lg-8">
-                <div className="cm-card kq-card">
-                  <div className="cm-head">
-                    <h3 className="cm-title">{t('companySettings.title')}</h3>
-                    {isAdmin && (
-                      <Link href="/company/equipo" className="cm-link">
-                        <i className="fal fa-users" /> {t('companySettings.manageTeam')}
-                      </Link>
+        {user && company && (
+          <>
+            {/* Portada navy -> lavanda (misma identidad del perfil publico). */}
+            <div className="cm-cover" aria-hidden />
+
+            <div className="cm-container">
+              {/* Encabezado: foto enmarcada en blanco superpuesta a la portada. */}
+              <div className="cm-header">
+                <div className="cm-photo-frame">
+                  <span className="cm-photo">
+                    {logoPath ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={getBackendUrl(logoPath)} alt={form.btname || t('companySettings.logo')} />
+                    ) : (
+                      <i className="fas fa-building" aria-hidden />
                     )}
-                  </div>
-
-                  {!isAdmin && (
-                    <p className="cm-note">
-                      {t('companySettings.adminOnly')}
-                    </p>
+                  </span>
+                  {isAdmin && (
+                    <label
+                      className="cm-photo-cam"
+                      title={logoUploading ? t('companySettings.uploading') : t('companySettings.changeLogo')}
+                    >
+                      <i className="fas fa-camera" aria-hidden />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoPick}
+                        disabled={logoUploading}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
                   )}
+                </div>
+                <div className="cm-header-text">
+                  <div className="cm-header-name">
+                    <h1>{form.btname || t('companySettings.title')}</h1>
+                    {/* Sin check de verificado: useCompany (tipo Company) no expone `verified`
+                        — el dato vive en useCompanyProfile (perfil público), no acá. No se
+                        renderiza un check incondicional para no afirmar verificación falsa. */}
+                  </div>
+                  {form.bname && <div className="cm-header-legal">{form.bname}</div>}
+                </div>
+              </div>
 
-                  <form onSubmit={handleSaveCompany}>
-                    <label className="cm-label">{t('companySettings.logo')}</label>
-                    <div className="cm-logo-row">
-                      <span className="cm-logo-frame">
+              {/* Tarjeta "Datos de la empresa". */}
+              <div className="cm-card kq-card">
+                <div className="cm-head">
+                  <h3 className="cm-title">{t('companySettings.title')}</h3>
+                  {isAdmin && (
+                    <Link href="/company/equipo" className="cm-link">
+                      <i className="fas fa-users" /> {t('companySettings.manageTeam')}
+                    </Link>
+                  )}
+                </div>
+
+                {!isAdmin && (
+                  <div className="cm-banner">
+                    <i className="fas fa-lock" aria-hidden /> {t('companySettings.adminOnly')}
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveCompany}>
+                  <div className="cm-grid">
+                    <div className="cm-grid-full">
+                      <label className="cm-label">{t('companySettings.logo')}</label>
+                      <div className="cm-logo-row">
                         <span className="cm-logo">
                           {logoPath ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={getBackendUrl(logoPath)} alt="logo" />
                           ) : (
-                            (form.btname?.[0] ?? 'E').toUpperCase()
+                            <i className="fas fa-building" aria-hidden />
                           )}
                         </span>
-                      </span>
-                      {isAdmin && (
-                        <label className="cm-btn-file kq-btn kq-btn--outline kq-btn--sm">
-                          {logoUploading ? t('companySettings.uploading') : t('companySettings.changeLogo')}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoPick}
-                            disabled={logoUploading}
-                            style={{ display: 'none' }}
-                          />
-                        </label>
-                      )}
+                        {isAdmin && (
+                          <label className="cm-btn-file kq-btn kq-btn--outline kq-btn--sm">
+                            <i className="fas fa-upload" aria-hidden /> {logoUploading ? t('companySettings.uploading') : t('companySettings.changeLogo')}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleLogoPick}
+                              disabled={logoUploading}
+                              style={{ display: 'none' }}
+                            />
+                          </label>
+                        )}
+                      </div>
                     </div>
 
-                    <label className="cm-label">{t('companySettings.legalName')}</label>
-                    <input
-                      className="cm-input kq-input"
-                      value={form.bname}
-                      onChange={(e) => setForm({ ...form, bname: e.target.value })}
-                      disabled={!isAdmin}
-                      required
-                    />
-                    <label className="cm-label">{t('companySettings.tradeName')}</label>
-                    <input
-                      className="cm-input kq-input"
-                      value={form.btname}
-                      onChange={(e) => setForm({ ...form, btname: e.target.value })}
-                      disabled={!isAdmin}
-                      required
-                    />
-                    <label className="cm-label">{t('companySettings.address')}</label>
-                    <input
-                      className="cm-input kq-input"
-                      value={form.baddress}
-                      onChange={(e) => setForm({ ...form, baddress: e.target.value })}
-                      disabled={!isAdmin}
-                    />
-                    <label className="cm-label">{t('companySettings.phone')}</label>
-                    <input
-                      className="cm-input kq-input"
-                      value={form.bphone}
-                      onChange={(e) => setForm({ ...form, bphone: e.target.value })}
-                      disabled={!isAdmin}
-                    />
-
-                    <label className="cm-check">
+                    <div className="cm-field">
+                      <label className="cm-label">{t('companySettings.legalName')}</label>
                       <input
-                        type="checkbox"
-                        checked={showEmployees}
-                        onChange={(e) => setShowEmployees(e.target.checked)}
+                        className="cm-input kq-input"
+                        value={form.bname}
+                        onChange={(e) => setForm({ ...form, bname: e.target.value })}
+                        disabled={!isAdmin}
+                        required
+                      />
+                    </div>
+                    <div className="cm-field">
+                      <label className="cm-label">{t('companySettings.tradeName')}</label>
+                      <input
+                        className="cm-input kq-input"
+                        value={form.btname}
+                        onChange={(e) => setForm({ ...form, btname: e.target.value })}
+                        disabled={!isAdmin}
+                        required
+                      />
+                    </div>
+                    <div className="cm-field">
+                      <label className="cm-label">{t('companySettings.address')}</label>
+                      <input
+                        className="cm-input kq-input"
+                        value={form.baddress}
+                        onChange={(e) => setForm({ ...form, baddress: e.target.value })}
                         disabled={!isAdmin}
                       />
-                      <span>{t('companySettings.showEmployees')}</span>
-                    </label>
+                    </div>
+                    <div className="cm-field">
+                      <label className="cm-label">{t('companySettings.phone')}</label>
+                      <input
+                        className="cm-input kq-input"
+                        value={form.bphone}
+                        onChange={(e) => setForm({ ...form, bphone: e.target.value })}
+                        disabled={!isAdmin}
+                      />
+                    </div>
+                  </div>
 
-                    {isAdmin && (
-                      <button
-                        type="submit"
-                        className="cm-save kq-btn kq-btn--action mt-20"
-                        disabled={updateCompany.isPending}
-                      >
-                        {updateCompany.isPending ? t('companySettings.saving') : t('companySettings.save')}
-                      </button>
-                    )}
-                  </form>
-                </div>
+                  <label className="cm-check">
+                    <input
+                      type="checkbox"
+                      checked={showEmployees}
+                      onChange={(e) => setShowEmployees(e.target.checked)}
+                      disabled={!isAdmin}
+                    />
+                    <span>{t('companySettings.showEmployees')}</span>
+                  </label>
+
+                  {isAdmin && (
+                    <button
+                      type="submit"
+                      className="cm-save kq-btn kq-btn--action"
+                      disabled={updateCompany.isPending}
+                    >
+                      {updateCompany.isPending ? t('companySettings.saving') : t('companySettings.save')}
+                    </button>
+                  )}
+                </form>
               </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </section>
 
       {logoCropSrc && (
@@ -225,141 +284,345 @@ const CompanyMain = () => {
       )}
 
       <style jsx>{`
-        /* Estado de carga (texto centrado) y nota informativa de login. */
+        /* ── Shell para estados sin empresa (login / cargando / vacío) ── */
+        .cm-shell {
+          max-width: 860px;
+          margin: 0 auto;
+          padding: 40px 28px 64px;
+        }
         .cm-state-msg {
           text-align: center;
-          padding: 40px 0 0;
-          color: var(--fg-muted, #5c616a);
+          color: var(--fg-muted);
         }
+        /* Nota informativa de login (reusa el patrón de alerta existente). */
         .cm-info-note {
           background: var(--accent-soft);
-          border: 1px solid var(--border, #e6ddcf);
-          border-radius: var(--r-md, 12px);
+          border: 1px solid var(--border);
+          border-radius: var(--r-md);
           padding: 14px 18px;
-          color: var(--fg-strong, #22252a);
-          font-size: 14px;
+          color: var(--fg-strong);
+          font: var(--text-body-sm);
         }
         .cm-info-note :global(a) {
-          color: var(--accent-hover, #8a7fe3);
+          color: var(--lav-700);
           font-weight: 600;
           text-decoration: none;
         }
-        /* La superficie/borde/radio/sombra los aporta .kq-card; aquí solo el aire. */
-        .cm-card {
-          padding: 30px 28px;
+        /* ── Estado vacío: sin empresa (isError) ── */
+        .cm-empty {
+          text-align: center;
+          padding: 40px 8px;
         }
-        .cm-head {
+        .cm-empty-icon {
+          width: 88px;
+          height: 88px;
+          border-radius: var(--r-pill);
+          margin: 0 auto 20px;
+          background: var(--accent-soft);
+          color: var(--lav-700);
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          margin-bottom: 18px;
-          flex-wrap: wrap;
-          gap: 10px;
+          justify-content: center;
+          font-size: 36px;
         }
-        .cm-title {
+        .cm-empty h3 {
           font-family: var(--font-display);
           font-weight: 700;
-          font-size: 22px;
-          color: var(--fg-strong, #22252a);
-          margin: 0;
+          font-size: 28px;
+          color: var(--fg-strong);
+          margin: 0 0 10px;
         }
-        .cm-link {
-          font-weight: 600;
-          color: var(--accent-hover, #8a7fe3);
-          text-decoration: none;
+        .cm-empty p {
+          font: var(--text-body);
+          color: var(--fg-muted);
+          max-width: 420px;
+          margin: 0 auto 26px;
         }
-        .cm-link i {
-          margin-right: 6px;
-        }
-        .cm-note {
-          color: var(--fg-muted, #5c616a);
-          font-size: 14px;
-          margin-bottom: 14px;
-        }
-        .cm-label {
-          display: block;
-          font-family: var(--font-display);
-          font-weight: 600;
-          font-size: 14px;
-          margin: 14px 0 6px;
-          color: var(--fg-strong, #22252a);
-        }
-        /* Anchura/altura/estado disabled; el resto del estilo lo aporta .kq-input. */
-        .cm-input {
-          width: 100%;
-        }
-        .cm-input:disabled {
-          opacity: 0.6;
-          background: var(--surface-sunk, #f1ebe0);
-        }
-        .cm-check {
-          display: flex;
+        .cm-empty :global(.cm-empty-cta) {
+          display: inline-flex;
           align-items: center;
-          gap: 10px;
-          margin: 20px 0 4px;
-          font-weight: 500;
-          color: var(--fg-strong, #22252a);
-          cursor: pointer;
+          gap: 8px;
         }
-        .cm-check input {
-          width: 18px;
-          height: 18px;
-          flex-shrink: 0;
-          accent-color: var(--accent, #b5acef);
+
+        /* ── Portada navy → lavanda (misma identidad del perfil público) ── */
+        .cm-cover {
+          height: 200px;
+          background:
+            radial-gradient(circle at 80% 20%, rgba(181, 172, 239, 0.3), transparent 55%),
+            linear-gradient(120deg, var(--navy-700, #283a5c), var(--navy-800, #1e2d4a) 55%, #45407e);
         }
-        .cm-logo-row {
+        .cm-container {
+          max-width: 860px;
+          margin: 0 auto;
+          padding: 0 28px 64px;
+        }
+
+        /* ── Encabezado: foto enmarcada que se monta sobre la portada ── */
+        .cm-header {
           display: flex;
-          align-items: center;
-          gap: 18px;
-          margin-bottom: 6px;
+          align-items: flex-end;
+          gap: 22px;
+          margin-top: -58px;
+          margin-bottom: 18px;
         }
-        /* Marco BLANCO del logo: mantiene visible un logo navy sobre la tarjeta. */
-        .cm-logo-frame {
-          width: 90px;
-          height: 90px;
-          padding: 5px;
+        /* Marco BLANCO del logo: un logo navy queda visible sobre la portada navy.
+           overflow visible para que el badge de cámara sobresalga del marco. */
+        .cm-photo-frame {
+          position: relative;
+          width: 140px;
+          height: 140px;
           flex-shrink: 0;
-          background: var(--surface, #fff);
-          border-radius: var(--r-lg, 16px);
+          padding: 6px;
+          background: var(--surface);
+          border-radius: var(--r-lg);
           box-shadow: var(--shadow-sm);
+          overflow: visible;
         }
-        .cm-logo {
+        .cm-photo {
           width: 100%;
           height: 100%;
-          border-radius: var(--r-md, 12px);
+          border-radius: var(--r-md);
           overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
           background: linear-gradient(135deg, var(--lav-500, #b5acef), var(--navy-800, #1e2d4a));
           color: var(--cream, #f8f4ee);
+          font-size: 44px;
+        }
+        .cm-photo :global(img) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        /* Badge de cámara verde para abrir el cropper. */
+        .cm-photo-cam {
+          position: absolute;
+          right: -6px;
+          bottom: -6px;
+          width: 38px;
+          height: 38px;
+          border-radius: var(--r-pill);
+          background: var(--green-500);
+          color: var(--navy-900);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          border: 3px solid var(--surface);
+          font-size: 14px;
+          margin: 0;
+        }
+        .cm-header-text {
+          padding-bottom: 8px;
+          min-width: 0;
+        }
+        .cm-header-name {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .cm-header-name h1 {
           font-family: var(--font-display);
-          font-size: 32px;
           font-weight: 700;
+          font-size: 26px;
+          color: var(--fg-strong);
+          margin: 0;
+        }
+        .cm-verified {
+          color: var(--green-600);
+          font-size: 15px;
+        }
+        .cm-header-legal {
+          font: var(--text-body-sm);
+          color: var(--fg-muted);
+        }
+
+        /* ── Tarjeta "Datos de la empresa" (.kq-card aporta superficie/borde/radio/sombra) ── */
+        .cm-card {
+          padding: 28px;
+        }
+        .cm-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 6px;
+        }
+        .cm-title {
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 20px;
+          color: var(--fg-strong);
+          margin: 0;
+        }
+        .cm-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font: var(--text-label);
+          color: var(--lav-700);
+          text-decoration: none;
+        }
+        /* Banner solo-lectura (no-admin) en --warning-bg, texto #9a5a12. */
+        .cm-banner {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 11px 15px;
+          margin-top: 14px;
+          border-radius: var(--r-md);
+          background: var(--warning-bg);
+          color: #9a5a12;
+          font: var(--text-body-sm);
+        }
+        /* Form: 2 columnas en desktop. */
+        .cm-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0 18px;
+        }
+        .cm-grid-full {
+          grid-column: 1 / -1;
+        }
+        .cm-label {
+          display: block;
+          font: var(--text-label);
+          color: var(--fg-strong);
+          margin: 16px 0 7px;
+        }
+        /* Anchura/altura/disabled; el resto lo aporta .kq-input. */
+        .cm-input {
+          width: 100%;
+          height: 50px;
+        }
+        .cm-input:disabled {
+          opacity: 0.6;
+          background: var(--surface-sunk);
+        }
+        /* ── Logo dentro del form (placeholder lavanda → navy) ── */
+        .cm-logo-row {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .cm-logo {
+          width: 64px;
+          height: 64px;
+          flex-shrink: 0;
+          border-radius: var(--r-md);
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, var(--lav-500, #b5acef), var(--navy-800, #1e2d4a));
+          color: #fff;
+          font-size: 24px;
         }
         .cm-logo :global(img) {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
-        /* El botón cambiar-logo usa .kq-btn; solo neutralizamos el margen de label. */
+        /* El botón cambiar-logo usa .kq-btn; neutralizamos el margen de label. */
         .cm-btn-file {
           margin: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
         }
-        .cm-empty {
-          text-align: center;
-          padding: 48px 28px;
+        /* ── Checkbox "Mostrar empleados" (accent-color lav-600) ── */
+        .cm-check {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          margin: 20px 0 0;
+          font: var(--text-body-sm);
+          color: var(--fg);
+          cursor: pointer;
         }
-        .cm-empty h3 {
-          font-family: var(--font-display);
-          color: var(--fg-strong, #22252a);
-          margin-bottom: 12px;
+        .cm-check input {
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
+          accent-color: var(--lav-600);
         }
-        .cm-empty p {
-          color: var(--fg-muted, #5c616a);
-          max-width: 520px;
-          margin: 0 auto 24px;
+        .cm-save {
+          margin-top: 24px;
         }
+
+        /* ── Responsive mobile (≤480px) ── */
+        @media (max-width: 480px) {
+          .cm-cover {
+            height: 120px;
+          }
+          .cm-container {
+            padding: 0 18px 40px;
+          }
+          /* Foto centrada sobre la franja. */
+          .cm-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+            margin-top: -52px;
+          }
+          .cm-photo-frame {
+            width: 104px;
+            height: 104px;
+            padding: 5px;
+          }
+          .cm-photo {
+            font-size: 36px;
+          }
+          .cm-photo-cam {
+            right: -4px;
+            bottom: -4px;
+            width: 34px;
+            height: 34px;
+            font-size: 13px;
+          }
+          .cm-header-text {
+            padding-bottom: 0;
+          }
+          .cm-header-name {
+            justify-content: center;
+          }
+          .cm-header-name h1 {
+            font-size: 20px;
+          }
+          .cm-card {
+            padding: 20px;
+          }
+          /* Link "Gestionar equipo" como botón full-width. */
+          .cm-head {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .cm-link {
+            justify-content: center;
+            padding: 12px;
+            border-radius: var(--r-md);
+            background: var(--accent-soft);
+          }
+          /* Form a una sola columna. */
+          .cm-grid {
+            grid-template-columns: 1fr;
+          }
+          .cm-check {
+            align-items: flex-start;
+          }
+          .cm-check input {
+            margin-top: 2px;
+          }
+          /* Guardar full-width. */
+          .cm-save {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+        /* A partir de ~720px vuelve a 2 columnas (regla general del handoff §3). */
       `}</style>
     </>
   );
