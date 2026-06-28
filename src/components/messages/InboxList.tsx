@@ -275,7 +275,12 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
         </span>
         <span className="inbox-meta">
           <span className="inbox-row-top">
-            <strong className="inbox-name">{item.contact_name}</strong>
+            <span className="inbox-name-wrap">
+              <strong className="inbox-name">{item.contact_name}</strong>
+              {item.contact_verified && (
+                <i className="fas fa-check-circle inbox-verified" aria-hidden />
+              )}
+            </span>
             <span className="inbox-time">{formattedTime}</span>
           </span>
           <span className="inbox-sub">
@@ -342,12 +347,23 @@ const InboxRow: React.FC<InboxRowProps> = ({ item, isActive }) => {
           align-items: baseline;
           gap: 6px;
         }
+        :global(.inbox-name-wrap) {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          min-width: 0;
+        }
         :global(.inbox-name) {
           font-size: 14px;
           font-weight: 700;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+        :global(.inbox-verified) {
+          color: var(--green-600);
+          font-size: 11px;
+          flex-shrink: 0;
         }
         :global(.inbox-row.has-unread .inbox-name) {
           font-weight: 800;

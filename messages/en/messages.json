@@ -19,6 +19,7 @@
   },
   "conversation": {
     "defaultTitle": "Conversation",
+    "verified": "Verified",
     "loading": "Loading messages...",
     "loadError": "The conversation could not be loaded.",
     "sendError": "The message could not be sent.",

@@ -11,7 +11,8 @@
     "likes": "Likes",
     "followers": "Followers",
     "following": "Following",
-    "reviews": "Reviews"
+    "reviews": "Reviews",
+    "rating": "Rating"
   },
   "seller": {
     "fallback": "Seller",

@@ -89,7 +89,8 @@
     "email": "Email",
     "role": "Role",
     "document": "Document",
-    "files": "Files"
+    "files": "Files",
+    "publications": "Pub."
   },
   "pagination": {
     "summary": "{from}-{to} of {total}",

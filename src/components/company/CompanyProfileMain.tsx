@@ -136,7 +136,7 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                 )}
 
                 <Link
-                  href="/messages"
+                  href={company.contactCusId ? `/messages?with=${company.contactCusId}` : '/messages'}
                   className="kq-btn kq-btn--action cp-contact-btn"
                 >
                   <i className="fas fa-paper-plane" /> {t('company.contact')}
@@ -150,9 +150,25 @@ const CompanyProfileMain = ({ id }: { id: string }) => {
                     <div style={statNum}>{fmtCount(toInt(company.membercount))}</div>
                     <div style={statLabel}>{t('company.employees')}</div>
                   </div>
-                  <div className="cp-stat">
+                  <div className="cp-stat cp-stat--border">
                     <div style={statNum}>{fmtCount(toInt(company.totalpublis))}</div>
                     <div style={statLabel}>{t('stats.publications')}</div>
+                  </div>
+                  {/* Rediseño Kiosqui — calificación: estrella verde + promedio (1
+                      decimal); "—" si aún no hay reseñas. Reseñas entre paréntesis. */}
+                  <div className="cp-stat">
+                    <div style={statNum}>
+                      {toInt(company.reviews) > 0 ? (
+                        <>
+                          <i className="fas fa-star" style={{ color: 'var(--green-600)', fontSize: 19, marginRight: 5, verticalAlign: 'baseline' }} />
+                          {Number(company.rating).toFixed(1)}
+                        </>
+                      ) : '—'}
+                    </div>
+                    <div style={statLabel}>
+                      {t('stats.rating')}
+                      {toInt(company.reviews) > 0 ? ` (${toInt(company.reviews)})` : ''}
+                    </div>
                   </div>
                 </div>
 

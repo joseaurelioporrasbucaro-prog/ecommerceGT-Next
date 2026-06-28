@@ -133,6 +133,7 @@ const SupportUsersMain = () => {
                   { label: t('table.email') },
                   { label: t('table.role') },
                   { label: t('table.status') },
+                  { label: t('table.publications') },
                   { label: t('table.actions'), right: true },
                 ]}
               >
@@ -190,6 +191,11 @@ const SupportUsersMain = () => {
                               </span>
                             </>
                           )}
+                        </span>
+                      </Cell>
+                      <Cell>
+                        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: 'var(--fg-strong)' }}>
+                          {u.pubCount ?? 0}
                         </span>
                       </Cell>
                       <Cell right>

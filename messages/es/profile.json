@@ -11,7 +11,8 @@
     "likes": "Likes",
     "followers": "Seguidores",
     "following": "Siguiendo",
-    "reviews": "Resenas"
+    "reviews": "Resenas",
+    "rating": "Calificacion"
   },
   "seller": {
     "fallback": "Vendedor",

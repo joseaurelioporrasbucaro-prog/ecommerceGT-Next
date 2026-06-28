@@ -243,6 +243,8 @@ export interface SupportUserRow {
   passtaid: number;
   failcount: number;
   passwordbanneduntil: string | null;
+  /** Rediseño Kiosqui — conteo de publicaciones del usuario (columna "Pub."). */
+  pubCount: number;
 }
 
 /** Fila de solicitud de verificación para el portal de soporte (Fase 8.2). */
@@ -888,6 +890,8 @@ export interface InboxItem {
   contact_image: string | null;
   last_msg_date: string;
   unread_conversation: number;
+  /** Rediseño Kiosqui — true si el contacto está verificado (check ✓). */
+  contact_verified?: boolean;
 }
 
 export interface ConversationMessage {
@@ -1092,6 +1096,11 @@ export interface CompanyProfileData {
   totalpublis: number | string;
   // Fase 8.1 — verificación de identidad (el check dorado solo si verified)
   verified: boolean;
+  // Rediseño Kiosqui — rating ponderado por reseña + conteo, y cusid de contacto.
+  rating: number | string;
+  reviews: number | string;
+  /** cus_id del admin/dueño con quien iniciar el chat (`/messages?with=`). */
+  contactCusId: number | null;
 }
 
 /** Respuesta de `GET /company-profile/:id`. */
@@ -1230,6 +1239,8 @@ export interface InboxItem {
   contact_image: string | null;
   last_msg_date: string;
   unread_conversation: number;
+  /** Rediseño Kiosqui — true si el contacto está verificado (check ✓). */
+  contact_verified?: boolean;
 }
 
 /** Reacción agregada por emoji en un mensaje (Fase 6.2). */

@@ -32,6 +32,7 @@ interface InboxItemLite {
   contact_name: string;
   contact_image: string | null;
   pub_title: string;
+  contact_verified?: boolean;
 }
 
 interface ConversationViewProps {
@@ -183,6 +184,14 @@ const ConversationView: React.FC<ConversationViewProps> = ({ pubId, contactId, i
           />
           <span className="conversation-contact-name">
             <strong>{contactName}</strong>
+            {inboxItem?.contact_verified && (
+              <i
+                className="fas fa-check-circle"
+                title={t('conversation.verified')}
+                style={{ color: 'var(--green-600)', fontSize: 14, marginLeft: 6 }}
+                aria-hidden
+              />
+            )}
           </span>
         </Link>
       </header>

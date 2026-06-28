@@ -19,6 +19,7 @@
   },
   "conversation": {
     "defaultTitle": "Conversacion",
+    "verified": "Verificado",
     "loading": "Cargando mensajes...",
     "loadError": "No se pudo cargar la conversacion.",
     "sendError": "No se pudo enviar el mensaje.",
