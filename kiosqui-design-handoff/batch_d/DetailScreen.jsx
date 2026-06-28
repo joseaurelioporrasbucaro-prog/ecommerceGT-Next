@@ -101,11 +101,15 @@ function DetailScreen() {
             <div style={{position:"sticky", top:0}}>
               <div style={{background:"var(--surface)", border:"1px solid var(--border)",
                 borderRadius:"var(--r-lg)", boxShadow:"var(--shadow-md)", padding:24}}>
-                <div style={{display:"flex", alignItems:"baseline", gap:10}}>
+                <div style={{display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap"}}>
                   <span style={{fontFamily:"var(--font-display)", fontWeight:700, fontSize:30,
                     color:"var(--fg-strong)", letterSpacing:"-.02em"}}>Q 1,850,000</span>
+                  <span style={{display:"inline-flex", alignItems:"center", gap:6, padding:"4px 11px",
+                    borderRadius:"999px", background:"var(--green-100)", color:"var(--green-800)",
+                    fontFamily:"var(--font-display)", fontWeight:700, fontSize:14}}>
+                    <i className="fas fa-dollar-sign" style={{fontSize:11}}></i> 237,000</span>
                 </div>
-                <div style={{font:"var(--text-body-sm)", color:"var(--fg-subtle)", marginBottom:20}}>US$ 237,000 · Precio de venta</div>
+                <div style={{font:"var(--text-body-sm)", color:"var(--fg-subtle)", marginBottom:20, marginTop:4}}>Precio de venta</div>
 
                 <div style={{display:"flex", alignItems:"center", gap:12, padding:"14px 0",
                   borderTop:"1px solid var(--border)", borderBottom:"1px solid var(--border)", marginBottom:18}}>
@@ -141,6 +145,12 @@ function DetailScreen() {
                     <i className="fas fa-share-alt"></i> Compartir</button>
                 </div>
               </div>
+              {/* Denunciar — acción discreta, fuera de la card */}
+              <button style={{display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                width:"100%", marginTop:14, padding:"10px", background:"none", border:"none",
+                cursor:"pointer", color:"var(--fg-subtle)", font:"var(--text-body-sm)", fontWeight:600,
+                fontFamily:"var(--font-body)"}}>
+                <i className="far fa-flag" style={{fontSize:13}}></i> Denunciar publicación</button>
             </div>
           </div>
         </div>

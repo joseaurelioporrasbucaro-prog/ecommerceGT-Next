@@ -9,6 +9,7 @@ function KqHeader({compact}) {
         background:"linear-gradient(135deg,var(--navy-700),var(--navy-900))", color:"var(--cream)",
         fontFamily:"var(--font-display)", fontWeight:700, fontSize:14, flexShrink:0}}>AR</button>
       <img src="assets/logo-transparent.png" alt="Kiosqui" style={{height:34}} className="kq-logo-light"/>
+      <img src="assets/logo-cream-transparent.png" alt="Kiosqui" style={{height:34}} className="kq-logo-dark"/>
       {!compact && (
         <div style={{flex:1, maxWidth:420, display:"flex", alignItems:"center", gap:10, height:42,
           padding:"0 16px", background:"var(--surface)", border:"1.5px solid var(--border-strong)",

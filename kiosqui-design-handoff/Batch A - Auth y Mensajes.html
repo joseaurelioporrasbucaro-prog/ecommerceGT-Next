@@ -25,6 +25,7 @@
 <script type="text/babel" src="design-canvas.jsx"></script>
 <script type="text/babel" src="batch_a/AuthScreens.jsx"></script>
 <script type="text/babel" src="batch_a/MessagesScreen.jsx"></script>
+<script type="text/babel" src="batch_a/MessagesMobile.jsx"></script>
 <script type="text/babel">
 function Dark({children}) {
   return <div data-theme="dark" style={{width:"100%", height:"100%"}}>{children}</div>;
@@ -42,6 +43,11 @@ function App() {
       <DCSection id="messages" title="Mensajes — /messages" subtitle="HeaderTwo compact (sin buscador) + lista de conversaciones + hilo con contexto de la propiedad y acceso al modelo 3D.">
         <DCArtboard id="msgs" label="Mensajes" width={1440} height={900}><MessagesScreen/></DCArtboard>
         <DCArtboard id="msgs-dark" label="Mensajes · dark" width={1440} height={900}><Dark><MessagesScreen/></Dark></DCArtboard>
+      </DCSection>
+      <DCSection id="messages-mobile" title="Mensajes mobile — patrón lista → hilo (Batch A.1)" subtitle="Una vista a la vez: la bandeja ocupa toda la pantalla; al tocar una conversación se navega al hilo con botón volver, contexto de propiedad compacto (lavanda) y botón 3D.">
+        <DCArtboard id="m-inbox" label="Mobile · bandeja" width={390} height={844}><MessagesMobileInbox/></DCArtboard>
+        <DCArtboard id="m-thread" label="Mobile · hilo" width={390} height={844}><MessagesMobileThread/></DCArtboard>
+        <DCArtboard id="m-thread-dark" label="Mobile · hilo · dark" width={390} height={844}><Dark><MessagesMobileThread/></Dark></DCArtboard>
       </DCSection>
     </DesignCanvas>
   );

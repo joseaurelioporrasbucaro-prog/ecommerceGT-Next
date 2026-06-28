@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosqui — Batch E · Configuración de cuenta y Perfil de empresa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#e8e3da}
+  .kq-badge-feat{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+    font:var(--text-label);font-size:12px;color:#fff;white-space:nowrap;
+    background:linear-gradient(135deg,var(--lav-500),var(--lav-600));
+    box-shadow:0 4px 16px rgba(109,98,207,.5), 0 0 0 3px rgba(181,172,239,.25)}
+  .kq-badge-feat i{font-size:11px}
+  [data-theme="dark"] .kq-badge-feat{background:linear-gradient(135deg,var(--lav-400),var(--lav-500));color:var(--navy-900)}
+  .kq-badge-type{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;
+    font:var(--text-label);font-size:12px;white-space:nowrap;background:var(--navy-100);color:var(--navy-700)}
+  [data-theme="dark"] .kq-badge-type{background:rgba(248,244,238,.10);color:var(--cream)}
+  .pub-card.is-featured{box-shadow:0 0 0 1.5px var(--lav-400), var(--shadow-sm)!important}
+  /* Swap de logo de la cabecera según tema */
+  .kq-logo-dark{display:none}
+  [data-theme="dark"] .kq-logo-light{display:none}
+  [data-theme="dark"] .kq-logo-dark{display:inline}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="batch_b/ProfileScreen.jsx"></script>
+<script type="text/babel" src="batch_card/CardV21.jsx"></script>
+<script type="text/babel" src="batch_d/ListingScreen.jsx"></script>
+<script type="text/babel" src="batch_e/AccountScreen.jsx"></script>
+<script type="text/babel" src="batch_e/CompanyScreen.jsx"></script>
+<script type="text/babel">
+function DarkE({children}) {
+  return <div data-theme="dark" style={{width:"100%", height:"100%"}}>{children}</div>;
+}
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="account" title="Configuración de cuenta — /creator-profile-info" subtitle="Columna izquierda: portada + avatar + nombre verificado + menú vertical (Info personal / Cuenta / Notificaciones / Métodos de pago / Verificar). Columna derecha: la tab activa. Incluye Zona de peligro.">
+        <DCArtboard id="acc-personal" label="Cuenta · Información personal" width={1180} height={1180}><AccountScreen tab="personal"/></DCArtboard>
+        <DCArtboard id="acc-verify" label="Cuenta · Verificar cuenta (DPI)" width={1180} height={760}><AccountScreen tab="verificar"/></DCArtboard>
+        <DCArtboard id="acc-pago" label="Cuenta · Métodos de pago" width={1180} height={640}><AccountScreen tab="pago"/></DCArtboard>
+        <DCArtboard id="acc-dark" label="Cuenta · dark" width={1180} height={1180}><DarkE><AccountScreen tab="personal"/></DarkE></DCArtboard>
+      </DCSection>
+      <DCSection id="company" title="Perfil de empresa — /company/[id]" subtitle="Portada + tarjeta de empresa (logo cuadrado navy, verificado verde, dirección, antigüedad) + stats + tabs Publicaciones (grid card v2.1) / Empleados. NOTA: re-skineado de dorado → navy + check verde (decisión a confirmar).">
+        <DCArtboard id="comp-pubs" label="Empresa · Publicaciones" width={1240} height={900}><CompanyScreen tab="publicaciones"/></DCArtboard>
+        <DCArtboard id="comp-emp" label="Empresa · Empleados" width={1240} height={760}><CompanyScreen tab="empleados"/></DCArtboard>
+        <DCArtboard id="comp-dark" label="Empresa · dark" width={1240} height={900}><DarkE><CompanyScreen tab="publicaciones"/></DarkE></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosqui — Batch D · Listado, Detalle y Comentarios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#e8e3da}
+  [data-theme="dark"] img.kq-logo-light{content:url("assets/logo-cream-transparent.png")}
+  /* Badges de marca (lavanda glow + tipo) compartidos por el batch */
+  .kq-badge-feat{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+    font:var(--text-label);font-size:12px;color:#fff;white-space:nowrap;
+    background:linear-gradient(135deg,var(--lav-500),var(--lav-600));
+    box-shadow:0 4px 16px rgba(109,98,207,.5), 0 0 0 3px rgba(181,172,239,.25)}
+  .kq-badge-feat i{font-size:11px}
+  [data-theme="dark"] .kq-badge-feat{background:linear-gradient(135deg,var(--lav-400),var(--lav-500));color:var(--navy-900)}
+  [data-theme="dark"] .kq-badge-feat i{color:var(--navy-900)}
+  .kq-badge-type{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;
+    font:var(--text-label);font-size:12px;white-space:nowrap;
+    background:var(--navy-100);color:var(--navy-700)}
+  [data-theme="dark"] .kq-badge-type{background:rgba(248,244,238,.10);color:var(--cream)}
+  .pub-card.is-featured{box-shadow:0 0 0 1.5px var(--lav-400), var(--shadow-sm)!important}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="batch_b/ProfileScreen.jsx"></script>
+<script type="text/babel" src="batch_card/CardV21.jsx"></script>
+<script type="text/babel" src="batch_d/ListingScreen.jsx"></script>
+<script type="text/babel" src="batch_d/DetailScreen.jsx"></script>
+<script type="text/babel" src="batch_d/CommentsView.jsx"></script>
+<script type="text/babel">
+function DarkD({children}) {
+  return <div data-theme="dark" style={{width:"100%", height:"100%"}}>{children}</div>;
+}
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="listing" title="Listado de publicaciones — /publications (PRIORIDAD)" subtitle="Barra de filtros cohesiva (tipo · departamento/municipio · precio Q/US$ · cuartos · baños · tamaño · amenidades · orden) + chips activos removibles + contador + toggle lista↔mapa + estado vacío. Nota técnica: requiere filtrado SERVER-SIDE, no client-side.">
+        <DCArtboard id="list-grid" label="Listado · grid (tarjetas v2.1) ★ recomendado" width={1440} height={980}><ListingScreen grid/></DCArtboard>
+        <DCArtboard id="list-light" label="Listado · lista (filas)" width={1440} height={940}><ListingScreen/></DCArtboard>
+        <DCArtboard id="list-map" label="Listado · split mapa" width={1440} height={940}><ListingScreen map/></DCArtboard>
+        <DCArtboard id="list-grid-dark" label="Listado · grid · dark" width={1440} height={980}><DarkD><ListingScreen grid/></DarkD></DCArtboard>
+        <DCArtboard id="list-empty" label="Listado · estado vacío" width={1440} height={680}><ListingScreen empty/></DCArtboard>
+      </DCSection>
+      <DCSection id="detail" title="Detalle de publicación — /publications/[id]" subtitle="Galería protagonista + botón modelo 3D · precio/título/ubicación jerárquico · specs con íconos · amenidades · card del vendedor (rating verde, verificado, Enviar mensaje verde) · mapa · barra sticky inferior.">
+        <DCArtboard id="detail-light" label="Detalle" width={1440} height={1180}><DetailScreen/></DCArtboard>
+        <DCArtboard id="detail-dark" label="Detalle · dark" width={1440} height={1180}><DarkD><DetailScreen/></DarkD></DCArtboard>
+      </DCSection>
+      <DCSection id="comments" title="Comentarios / Preguntas (en el detalle)" subtitle="Patrón pregunta→respuesta: respuestas del vendedor destacadas (lavanda + chip Vendedor), composer pill on-brand, likes/responder, colapso de hilos y estado vacío.">
+        <DCArtboard id="comments-light" label="Preguntas" width={820} height={900}><CommentsView/></DCArtboard>
+        <DCArtboard id="comments-empty" label="Preguntas · vacío" width={820} height={520}><CommentsView empty/></DCArtboard>
+        <DCArtboard id="comments-dark" label="Preguntas · dark" width={820} height={900}><DarkD><CommentsView/></DarkD></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

@@ -13,10 +13,69 @@ function QAvatar({init, seller}) {
   );
 }
 
-function QThread({q}) {
+/* Acciones (like / responder) reutilizables */
+function QActions({likes, liked}) {
   return (
-    <div style={{padding:"20px 0", borderBottom:"1px solid var(--border)"}}>
-      {/* Pregunta */}
+    <div style={{display:"flex", gap:18, font:"var(--text-body-sm)", color:"var(--fg-muted)"}}>
+      <button style={{display:"flex", alignItems:"center", gap:7, background:"none", border:"none",
+        cursor:"pointer", color: liked?"var(--lav-700)":"var(--fg-muted)", fontWeight:600,
+        fontFamily:"var(--font-body)", font:"var(--text-body-sm)"}}>
+        <i className={(liked?"fas":"far")+" fa-thumbs-up"} style={{fontSize:13}}></i> {likes||0}</button>
+      <button style={{display:"flex", alignItems:"center", gap:7, background:"none", border:"none",
+        cursor:"pointer", color:"var(--fg-muted)", fontWeight:600, fontFamily:"var(--font-body)", font:"var(--text-body-sm)"}}>
+        <i className="far fa-comment" style={{fontSize:13}}></i> Responder</button>
+      <button style={{background:"none", border:"none", cursor:"pointer", color:"var(--fg-subtle)",
+        marginLeft:"auto"}}><i className="fas fa-ellipsis-h"></i></button>
+    </div>
+  );
+}
+
+/* Una respuesta (NIVEL 1) — vendedor destacada o comunidad normal.
+   Regla: máximo 2 niveles. Una respuesta-a-respuesta NO se indenta más:
+   se queda en este mismo nivel (como Instagram/portales), opcionalmente
+   con "↳ @mención" para indicar a quién responde. */
+function QReply({r}) {
+  if (r.seller) {
+    return (
+      <div style={{display:"flex", gap:12, padding:"13px 15px", background:"var(--accent-soft)",
+        borderRadius:"var(--r-md)", borderLeft:"3px solid var(--lav-500)"}}>
+        <QAvatar init={r.init} seller/>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
+            <span style={{font:"var(--text-label)", color:"var(--fg-strong)"}}>{r.name}</span>
+            <span style={{display:"inline-flex", alignItems:"center", gap:5, padding:"2px 9px",
+              borderRadius:"999px", background:"var(--lav-500)", color:"#fff",
+              font:"var(--text-caption)", fontWeight:700}}>
+              <i className="fas fa-home" style={{fontSize:9}}></i> Vendedor</span>
+            <span style={{font:"var(--text-caption)", color:"var(--fg-subtle)"}}>· {r.time}</span>
+          </div>
+          <p style={{font:"var(--text-body)", color:"var(--fg)", margin:"6px 0 8px"}}>{r.text}</p>
+          <QActions likes={r.likes} liked={r.liked}/>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{display:"flex", gap:12}}>
+      <QAvatar init={r.init}/>
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{display:"flex", alignItems:"center", gap:8}}>
+          <span style={{font:"var(--text-label)", color:"var(--fg-strong)"}}>{r.name}</span>
+          <span style={{font:"var(--text-caption)", color:"var(--fg-subtle)"}}>· {r.time}</span>
+        </div>
+        <p style={{font:"var(--text-body)", color:"var(--fg)", margin:"6px 0 8px"}}>
+          {r.to && <span style={{color:"var(--lav-700)", fontWeight:600}}>@{r.to} </span>}{r.text}</p>
+        <QActions likes={r.likes} liked={r.liked}/>
+      </div>
+    </div>
+  );
+}
+
+function QThread({q}) {
+  const replies = q.replies || [];
+  return (
+    <div style={{padding:"22px 0", borderBottom:"1px solid var(--border)"}}>
+      {/* Pregunta (nivel 0) */}
       <div style={{display:"flex", gap:14}}>
         <QAvatar init={q.init}/>
         <div style={{flex:1, minWidth:0}}>
@@ -25,46 +84,23 @@ function QThread({q}) {
             <span style={{font:"var(--text-caption)", color:"var(--fg-subtle)"}}>· {q.time}</span>
           </div>
           <p style={{font:"var(--text-body)", color:"var(--fg)", margin:"6px 0 10px"}}>{q.text}</p>
-          <div style={{display:"flex", gap:18, font:"var(--text-body-sm)", color:"var(--fg-muted)"}}>
-            <button style={{display:"flex", alignItems:"center", gap:7, background:"none", border:"none",
-              cursor:"pointer", color: q.liked?"var(--lav-700)":"var(--fg-muted)", fontWeight:600,
-              fontFamily:"var(--font-body)", font:"var(--text-body-sm)"}}>
-              <i className={(q.liked?"fas":"far")+" fa-thumbs-up"} style={{fontSize:13}}></i> {q.likes}</button>
-            <button style={{display:"flex", alignItems:"center", gap:7, background:"none", border:"none",
-              cursor:"pointer", color:"var(--fg-muted)", fontWeight:600, fontFamily:"var(--font-body)", font:"var(--text-body-sm)"}}>
-              <i className="far fa-comment" style={{fontSize:13}}></i> Responder</button>
-            <button style={{background:"none", border:"none", cursor:"pointer", color:"var(--fg-subtle)",
-              marginLeft:"auto"}}><i className="fas fa-ellipsis-h"></i></button>
-          </div>
-
-          {/* Respuesta del vendedor destacada */}
-          {q.answer && (
-            <div style={{display:"flex", gap:12, marginTop:16, padding:"14px 16px",
-              background:"var(--accent-soft)", borderRadius:"var(--r-md)",
-              borderLeft:"3px solid var(--lav-500)"}}>
-              <QAvatar init={q.answer.init} seller/>
-              <div style={{flex:1, minWidth:0}}>
-                <div style={{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                  <span style={{font:"var(--text-label)", color:"var(--fg-strong)"}}>{q.answer.name}</span>
-                  <span style={{display:"inline-flex", alignItems:"center", gap:5, padding:"2px 9px",
-                    borderRadius:"999px", background:"var(--lav-500)", color:"#fff",
-                    font:"var(--text-caption)", fontWeight:700}}>
-                    <i className="fas fa-home" style={{fontSize:9}}></i> Vendedor</span>
-                  <span style={{font:"var(--text-caption)", color:"var(--fg-subtle)"}}>· {q.answer.time}</span>
-                </div>
-                <p style={{font:"var(--text-body)", color:"var(--fg)", margin:"6px 0 0"}}>{q.answer.text}</p>
-              </div>
-            </div>
-          )}
-
-          {q.more && (
-            <button style={{marginTop:12, background:"none", border:"none", cursor:"pointer",
-              color:"var(--lav-700)", font:"var(--text-body-sm)", fontWeight:600,
-              fontFamily:"var(--font-body)", display:"flex", alignItems:"center", gap:7}}>
-              <i className="fas fa-chevron-down" style={{fontSize:11}}></i> Ver {q.more} respuestas más</button>
-          )}
+          <QActions likes={q.likes} liked={q.liked}/>
         </div>
       </div>
+
+      {/* Respuestas (NIVEL 1) — UNA sola sangría, todas alineadas aquí */}
+      {replies.length > 0 && (
+        <div style={{marginLeft:56, marginTop:14, display:"flex", flexDirection:"column", gap:14}}>
+          {replies.map((r,i)=><QReply key={i} r={r}/>)}
+        </div>
+      )}
+
+      {q.more && (
+        <button style={{marginLeft:56, marginTop:14, background:"none", border:"none", cursor:"pointer",
+          color:"var(--lav-700)", font:"var(--text-body-sm)", fontWeight:600,
+          fontFamily:"var(--font-body)", display:"flex", alignItems:"center", gap:7}}>
+          <i className="fas fa-chevron-down" style={{fontSize:11}}></i> Ver {q.more} respuestas más</button>
+      )}
     </div>
   );
 }
@@ -72,15 +108,22 @@ function QThread({q}) {
 const dQuestions = [
   {init:"CR", name:"Carlos Ramírez", time:"hace 2 días", likes:4, liked:true,
    text:"¿La casa cuenta con pozo propio o solo servicio municipal de agua? Y ¿el precio es negociable?",
-   answer:{init:"AM", name:"Andrea Móvil", time:"hace 1 día",
-     text:"¡Hola Carlos! Tiene cisterna con bomba y servicio municipal. El precio tiene un margen de negociación, con gusto lo vemos en una visita."},
+   replies:[
+     {init:"AM", name:"Andrea Móvil", time:"hace 1 día", seller:true, likes:2,
+      text:"¡Hola Carlos! Tiene cisterna con bomba y servicio municipal. El precio tiene un margen de negociación, con gusto lo vemos en una visita."},
+     // respuesta-a-respuesta: se queda en ESTE mismo nivel (no se indenta más), con @mención
+     {init:"CR", name:"Carlos Ramírez", time:"hace 1 día", to:"Andrea", likes:0,
+      text:"Perfecto, ¿podríamos coordinar una visita el sábado por la mañana?"},
+   ],
    more:2},
   {init:"LM", name:"Lucía Martínez", time:"hace 3 días", likes:1,
    text:"¿Aceptan financiamiento bancario? ¿La propiedad ya está inscrita en el Registro?"},
   {init:"JP", name:"Jorge Pérez", time:"hace 5 días", likes:7,
    text:"¿Qué incluye la cuota de mantenimiento del condominio y de cuánto es mensual?",
-   answer:{init:"AM", name:"Andrea Móvil", time:"hace 4 días",
-     text:"Incluye seguridad 24/7, áreas verdes y mantenimiento de calles. La cuota es de Q 850 mensuales."}},
+   replies:[
+     {init:"AM", name:"Andrea Móvil", time:"hace 4 días", seller:true, likes:3,
+      text:"Incluye seguridad 24/7, áreas verdes y mantenimiento de calles. La cuota es de Q 850 mensuales."},
+   ]},
 ];
 
 function CommentsView({empty}) {
@@ -94,7 +137,7 @@ function CommentsView({empty}) {
           <span style={{font:"var(--text-body)", color:"var(--fg-subtle)"}}>{empty?"0":"12"}</span>
         </div>
         <p style={{font:"var(--text-body-sm)", color:"var(--fg-muted)", margin:"0 0 22px"}}>
-          Preguntá lo que necesites saber sobre esta propiedad. El vendedor responde directamente.</p>
+          Preguntá lo que necesites saber sobre esta propiedad. El vendedor o la comunidad te responde.</p>
 
         {/* Composer pill */}
         <div style={{display:"flex", gap:13, marginBottom:14}}>
@@ -131,4 +174,4 @@ function CommentsView({empty}) {
   );
 }
 
-Object.assign(window, {CommentsView, QThread, QAvatar, dQuestions});
+Object.assign(window, {CommentsView, QThread, QReply, QActions, QAvatar, dQuestions});

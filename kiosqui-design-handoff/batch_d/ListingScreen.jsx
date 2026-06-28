@@ -46,12 +46,18 @@ function DListRow({p}) {
           </div>
           <span className="kq-badge-type" style={{flexShrink:0}}>{p.op}</span>
         </div>
-        <div style={{display:"flex", gap:18, rowGap:10, flexWrap:"wrap", marginTop:"auto", paddingTop:18,
-          color:"var(--fg-muted)", font:"var(--text-body-sm)"}}>
-          {p.beds>0 && <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-bed" style={{color:"var(--navy-500)"}}></i> {p.beds} hab.</span>}
-          {p.baths>0 && <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-bath" style={{color:"var(--navy-500)"}}></i> {p.baths} baños</span>}
-          <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-vector-square" style={{color:"var(--navy-500)"}}></i> {p.m2} m²</span>
-          {p.park>0 && <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-car" style={{color:"var(--navy-500)"}}></i> {p.park} parqueos</span>}
+        <div style={{display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:16,
+          marginTop:"auto", paddingTop:18, flexWrap:"wrap"}}>
+          <div style={{display:"flex", gap:18, rowGap:10, flexWrap:"wrap",
+            color:"var(--fg-muted)", font:"var(--text-body-sm)"}}>
+            {p.beds>0 && <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-bed" style={{color:"var(--navy-500)"}}></i> {p.beds} hab.</span>}
+            {p.baths>0 && <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-bath" style={{color:"var(--navy-500)"}}></i> {p.baths} baños</span>}
+            <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-vector-square" style={{color:"var(--navy-500)"}}></i> {p.m2} m²</span>
+            {p.park>0 && <span style={{display:"flex", gap:8, alignItems:"center", whiteSpace:"nowrap"}}><i className="fas fa-car" style={{color:"var(--navy-500)"}}></i> {p.park} parqueos</span>}
+          </div>
+          <button className="kq-btn kq-btn--action kq-btn--sm" onClick={(e)=>e.stopPropagation()}
+            style={{display:"flex", gap:8, flexShrink:0, whiteSpace:"nowrap"}}>
+            <i className="fas fa-comment-dots" style={{fontSize:13}}></i> Enviar mensaje</button>
         </div>
       </div>
     </div>
