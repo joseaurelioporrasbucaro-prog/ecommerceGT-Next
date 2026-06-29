@@ -2621,8 +2621,13 @@ de marca antes del lanzamiento.
   + `twitter-image.tsx`, `ImageResponse` de `next/server`), localizada es/en, sin
   depender de un asset estático. Se quitaron las refs muertas al `.jpg` en metadata.
   Verificado: render 200 `image/png` 1200x630 válido en ambos locales.
-- 🟡 Endpoint público `/sitemap-data` en backend para incluir
-  publicaciones individuales en sitemap.
+- ✅ ~~Endpoint público `/sitemap-data` en backend para incluir
+  publicaciones individuales en sitemap.~~ — HECHO 2026-06-28. Backend
+  `GET /sitemap-data` ({id, slug}, `pubsta_id NOT IN (3,4)`, con slug, cap 20000);
+  `sitemap.xml/route.ts` lo consume y emite `/{locale}/publications/{slug}` con
+  hreflang. Verificado e2e: 30 URLs de publicaciones en el sitemap. **Con esto
+  Fase 18 queda 100% cerrada** (solo quedaría partir el sitemap en índice si se
+  superan ~25k publicaciones × 2 locales).
 - ✅ ~~Metadata específico en `/publications/[id]`~~ — entregado en Fase 18.1.
 - ✅ ~~Schema.org JSON-LD para Listing en publicaciones~~ — entregado en Fase 18.1.
 
