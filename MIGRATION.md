@@ -2616,11 +2616,11 @@ de marca antes del lanzamiento.
 - Apunta al sitemap.
 
 **Pendientes (no bloquean launch):**
-- 🟡 Imagen `/assets/img/og-default.jpg` 1200x630 con branding KIOSQUI
-  hay que crearla. Referenciada en metadata pero el archivo no existe
-  → al compartir RUTAS GENERALES (home, /faq, etc.) la preview saldrá
-  vacía. Las publicaciones individuales ya usan su primera foto como
-  og:image (ver F18.1).
+- ✅ ~~Imagen `/assets/img/og-default.jpg` 1200x630 con branding KIOSQUI~~ —
+  RESUELTO 2026-06-28 con OG image **dinámica** (`src/app/[locale]/opengraph-image.tsx`
+  + `twitter-image.tsx`, `ImageResponse` de `next/server`), localizada es/en, sin
+  depender de un asset estático. Se quitaron las refs muertas al `.jpg` en metadata.
+  Verificado: render 200 `image/png` 1200x630 válido en ambos locales.
 - 🟡 Endpoint público `/sitemap-data` en backend para incluir
   publicaciones individuales en sitemap.
 - ✅ ~~Metadata específico en `/publications/[id]`~~ — entregado en Fase 18.1.
