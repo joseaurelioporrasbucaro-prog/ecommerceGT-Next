@@ -52,20 +52,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: DEFAULT_TITLE,
     description: DEFAULT_DESC,
-    images: [
-      {
-        url: '/assets/img/og-default.jpg',
-        width: 1200,
-        height: 630,
-        alt: SITE_NAME,
-      },
-    ],
+    // La imagen OG la genera por convención `src/app/[locale]/opengraph-image.tsx`
+    // (marca Kiosqui, localizada). Antes apuntaba a un .jpg estático inexistente.
   },
   twitter: {
     card: 'summary_large_image',
     title: DEFAULT_TITLE,
     description: DEFAULT_DESC,
-    images: ['/assets/img/og-default.jpg'],
+    // twitter:image lo aporta `src/app/[locale]/twitter-image.tsx`.
   },
   // Handoff #13 §1 — favicon de Kiosqui (lente "Q" lavanda + apertura verde).
   // Se registra por CONVENCIÓN de archivos: src/app/icon.png (512) y
