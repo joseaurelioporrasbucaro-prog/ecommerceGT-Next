@@ -5,9 +5,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Breadcrumbs from '@/utils/Breadcrumbs';
 import { ApiError } from '@/utils/Api';
-import { usePublicationCategories } from '@/hooks/api/useCatalogs';
-import { usePublications } from '@/hooks/api/usePublications';
-import type { AnyPublicationListItem } from '@/types/api';
+import { usePublicationCategories, useCities, useMunicipalities } from '@/hooks/api/useCatalogs';
+import {
+  useInfinitePublications,
+  usePublicationsMap,
+  type PublicationsMapEntry,
+} from '@/hooks/api/usePublications';
+import type { AnyPublicationListItem, City, Municipality, PublicationCategory } from '@/types/api';
 import PublicationCard from './PublicationCard';
 import {
   useFeaturedPublications,
@@ -17,6 +21,9 @@ import {
 import PublicationsBar, { type PublicationFilters } from './PublicationsBar';
 import PropertiesMap from './PropertiesMap';
 import { type SortOption } from './publicationUtils';
+
+// País del catálogo (`cat_country`). Mismo valor que usa PublicationsBar.
+const GUATEMALA = 502;
 
 // H12 — vista por defecto = GRID. Se conserva lista (filas) y mapa.
 type ViewMode = 'grid' | 'list' | 'map';
@@ -115,6 +122,23 @@ const SponsoredFeedCard = ({ pub }: { pub: FeaturedPublication }) => {
   );
 };
 
+/**
+ * Normaliza un nombre de ubicación para compararlo: sin espacios sobrantes,
+ * en minúsculas y sin tildes.
+ *
+ * Lo de las tildes importa porque el mismo departamento puede haber quedado
+ * guardado como "Sacatepéquez" o "Sacatepequez" según de dónde venga el dato,
+ * y una comparación cruda los daría por distintos. Mismo criterio que usa el
+ * backend para normalizar handles.
+ */
+function normalizeLocation(value: string | null | undefined): string {
+  return (value ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, ''); // marcas diacríticas que NFD dejó sueltas
+}
+
 function matchesSearch(publication: AnyPublicationListItem, search: string): boolean {
   const normalizedSearch = search.trim().toLowerCase();
   if (!normalizedSearch) return true;
@@ -164,7 +188,6 @@ const PublicationsMain = () => {
     category: initialCategory,
     search: initialSearch,
   });
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
   // H12 — modo de visualización del catálogo: grid (default), lista o mapa.
   // La preferencia se recuerda en localStorage (`kq:listView`). El estado
@@ -201,12 +224,83 @@ const PublicationsMain = () => {
     );
   }, [searchParams]);
 
-  const publicationsQuery = usePublications();
   const categoriesQuery = usePublicationCategories();
+
+  // ── Filtros server-side ─────────────────────────────────────────────────────
+  // La barra guarda las DESCRIPCIONES que eligió el usuario ("Guatemala",
+  // "Casa"); el backend filtra por ID de catálogo. Acá se traduce una cosa en
+  // la otra. Los catálogos ya están en la caché de React Query porque la barra
+  // los pide con los mismos hooks, así que esto no agrega requests.
+  const citiesQuery = useCities(GUATEMALA);
+  const selectedCity = (citiesQuery.data ?? []).find(
+    (c: City) => c.description === filters.location,
+  );
+  const municipalitiesQuery = useMunicipalities(selectedCity ? selectedCity.city : null);
+  const selectedMunicipality = (municipalitiesQuery.data ?? []).find(
+    (m: Municipality) => m.description === filters.municipality,
+  );
+  const selectedCategory = (categoriesQuery.data ?? []).find(
+    (c: PublicationCategory) => c.pubgen_description === filters.category,
+  );
+
+  const serverFilters = useMemo(
+    () => ({
+      cityId: selectedCity?.city ?? null,
+      townId: selectedMunicipality?.municipality ?? null,
+      categoryId: selectedCategory?.pubgen_id ?? null,
+      priceMin: filters.priceMin,
+      priceMax: filters.priceMax,
+      roomsMin: filters.roomsMin,
+      bathsMin: filters.bathsMin,
+      sizeMin: filters.sizeMin,
+      q: filters.search,
+      amenityIds: filters.amenityIds,
+    }),
+    [
+      selectedCity?.city,
+      selectedMunicipality?.municipality,
+      selectedCategory?.pubgen_id,
+      filters.priceMin,
+      filters.priceMax,
+      filters.roomsMin,
+      filters.bathsMin,
+      filters.sizeMin,
+      filters.search,
+      filters.amenityIds,
+    ],
+  );
+
+  // Scroll infinito paginado por cursor. El orden va al servidor: con
+  // paginación no se puede ordenar en el cliente, porque solo se tiene la
+  // página actual y el resto todavía no llegó.
+  const publicationsQuery = useInfinitePublications(serverFilters, filters.sort, PAGE_SIZE);
+
+  // El resumen por municipio cumple DOS funciones, y por eso se pide siempre y
+  // no solo en la vista de mapa:
+  //   1. Los pines del mapa, con el total real de cada municipio (si usara las
+  //      publicaciones cargadas, mostraría los 12 de la primera tanda).
+  //   2. El contador de resultados. Con paginación, `filteredAndSorted.length`
+  //      es "lo que llevo cargado", no "cuántas hay" — decía 12 aunque hubiera
+  //      600. La suma de los conteos del resumen sí es el total.
+  // Cuesta ~800 bytes y usa exactamente los mismos filtros que el listado.
+  const mapSummaryQuery = usePublicationsMap(serverFilters);
+  const mapSummary = mapSummaryQuery.data;
+  const totalResultados = useMemo(
+    () =>
+      mapSummary
+        ? mapSummary.reduce((acc: number, fila: PublicationsMapEntry) => acc + fila.count, 0)
+        : undefined,
+    [mapSummary],
+  );
   // Patrocinados (campañas) para intercalar en el feed.
   const featuredQuery = useFeaturedPublications(SPONSORED_POOL);
 
-  const publications = publicationsQuery.data ?? [];
+  // Las páginas ya llegaron filtradas y ordenadas por el servidor; acá solo se
+  // aplanan en una lista continua para el grid.
+  const publications = useMemo(
+    () => (publicationsQuery.data?.pages ?? []).flatMap((page) => page.items),
+    [publicationsQuery.data],
+  );
   const categories = categoriesQuery.data ?? [];
   const sponsored = useMemo(() => featuredQuery.data ?? [], [featuredQuery.data]);
   const sponsoredIds = useMemo(
@@ -215,10 +309,18 @@ const PublicationsMain = () => {
   );
 
   // Filtrar primero, ordenar después.
-  // Fase 19 — sumamos filtros avanzados client-side (precio min/max,
-  // habitaciones mín, baños mín, tamaño mín, ubicación). Strings vacíos /
-  // NaN se ignoran. Para ubicación buscamos coincidencia parcial
-  // case-insensitive en country/city/town.
+  //
+  // ⚠️ Este filtrado ya NO es el mecanismo principal: el backend devuelve la
+  // lista filtrada (ver el usePublications de arriba). Se conserva como red de
+  // seguridad, por dos motivos concretos:
+  //   1. Mientras los catálogos cargan, todavía no se resolvió el ID del
+  //      departamento y la request sale sin ese filtro. Sin esta segunda pasada
+  //      se verían por un instante publicaciones de otros departamentos.
+  //   2. Con `placeholderData` se muestran los resultados del filtro anterior
+  //      mientras llegan los nuevos, y esos ya no corresponden al filtro actual.
+  // Sobre datos ya filtrados por el servidor no descarta nada, así que es
+  // barato. Los criterios de las dos capas tienen que decir lo mismo: si se
+  // cambia uno, cambiar el otro.
   const filteredAndSorted = useMemo(() => {
     const priceMin = Number(filters.priceMin) || 0;
     const priceMax = Number(filters.priceMax) || Number.POSITIVE_INFINITY;
@@ -228,8 +330,8 @@ const PublicationsMain = () => {
     // H12 — ubicación por catálogo: departamento y municipio llegan como las
     // descripciones del catálogo; las matcheamos por substring sobre los
     // campos de texto de la publicación (city/town/country).
-    const departmentQuery = (filters.location || '').trim().toLowerCase();
-    const municipalityQuery = (filters.municipality || '').trim().toLowerCase();
+    const departmentQuery = normalizeLocation(filters.location);
+    const municipalityQuery = normalizeLocation(filters.municipality);
     const requiredAmenities = filters.amenityIds || [];
 
     const filtered = publications.filter((publication: AnyPublicationListItem) => {
@@ -254,14 +356,30 @@ const PublicationsMain = () => {
       const size = Number(publication.sizee) || 0;
       if (size < sizeMin) return false;
 
-      // Ubicación: substring case-insensitive en country/city/town.
-      if (departmentQuery || municipalityQuery) {
-        const loc = [publication.country, publication.city, publication.town]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        if (departmentQuery && !loc.includes(departmentQuery)) return false;
-        if (municipalityQuery && !loc.includes(municipalityQuery)) return false;
+      // Ubicación: cada nivel se compara contra SU PROPIO campo.
+      //
+      // Antes se concatenaban country + city + town en un solo string y se
+      // buscaba el término por substring sobre esa mezcla. Eso hacía que un
+      // nivel matcheara contra otro: filtrando departamento "Guatemala"
+      // entraban publicaciones de CUALQUIER departamento, porque el país
+      // también se llama Guatemala y estaba en el mismo blob. Reportado con
+      // una publicación de San Lucas Sacatepéquez apareciendo en el filtro
+      // de Guatemala.
+      //
+      // El substring además cruzaba niveles al revés: el municipio "San Lucas
+      // Sacatepéquez" contiene el nombre del departamento, así que filtrar por
+      // departamento "Sacatepéquez" colaba municipios homónimos de otros
+      // departamentos.
+      //
+      // `location` es el departamento (viene de useCities → cat_city, que en
+      // la publicación es `city`) y `municipality` es el municipio (cat_town →
+      // `town`). Ambos salen del MISMO catálogo que guarda la publicación, así
+      // que la comparación correcta es de igualdad, no de substring.
+      if (departmentQuery && normalizeLocation(publication.city) !== departmentQuery) {
+        return false;
+      }
+      if (municipalityQuery && normalizeLocation(publication.town) !== municipalityQuery) {
+        return false;
       }
 
       // Fase 19.5 — amenidades: la publicación debe tener TODAS las
@@ -279,7 +397,11 @@ const PublicationsMain = () => {
 
       return true;
     });
-    return applySort(filtered, filters.sort);
+    // Sin `applySort`: el orden lo resuelve el servidor. Reordenar acá sería
+    // peor que inútil — solo se tiene la página actual, así que ordenaría un
+    // pedazo del resultado y las tandas siguientes entrarían desordenadas
+    // respecto de las anteriores.
+    return filtered;
   }, [
     filters.category,
     filters.search,
@@ -322,21 +444,15 @@ const PublicationsMain = () => {
     [hasActiveFilters, filteredAndSorted, sponsoredIds],
   );
 
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [
-    filters.category,
-    filters.search,
-    filters.sort,
-    filters.priceMin,
-    filters.priceMax,
-    filters.roomsMin,
-    filters.bathsMin,
-    filters.sizeMin,
-    filters.location,
-    filters.municipality,
-    filters.amenityIds,
-  ]);
+  // Ya no hace falta resetear un contador al cambiar de filtro: cada
+  // combinación de filtros y orden es su propia queryKey, así que React Query
+  // arranca esa búsqueda desde la primera página sola. Ese reseteo manual era
+  // justamente donde se colaba el bug de "cambié el filtro y sigo viendo
+  // resultados del anterior".
+
+  // El sentinel ahora PIDE la página siguiente en vez de revelar más de un
+  // array ya descargado. Visualmente es el mismo scroll infinito de siempre.
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = publicationsQuery;
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -345,8 +461,11 @@ const PublicationsMain = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, organicBase.length));
+        // El guard de isFetchingNextPage no es opcional: sin él, mientras la
+        // request está en vuelo el sentinel sigue visible y dispara una tanda
+        // por cada frame en que se intersecta.
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
         }
       },
       { rootMargin: '200px' },
@@ -354,10 +473,10 @@ const PublicationsMain = () => {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [organicBase.length]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const visibleOrganic = organicBase.slice(0, visibleCount);
-  const hasMore = visibleCount < organicBase.length;
+  const visibleOrganic = organicBase;
+  const hasMore = Boolean(hasNextPage);
 
   // Feed final renderizado en el grid (orgánicas + patrocinados intercalados).
   const feed: FeedEntry[] = hasActiveFilters
@@ -403,7 +522,7 @@ const PublicationsMain = () => {
             key={categories.length}
             filters={filters}
             categories={categories}
-            resultCount={isLoading || error ? undefined : filteredAndSorted.length}
+            resultCount={isLoading || error ? undefined : totalResultados}
             onFiltersChange={setFilters}
             viewMode={viewMode}
             onViewChange={changeView}
@@ -464,7 +583,7 @@ const PublicationsMain = () => {
                     ))}
                   </div>
                   <div className="pub-mapcanvas">
-                    <PropertiesMap publications={filteredAndSorted} />
+                    <PropertiesMap publications={filteredAndSorted} summary={mapSummary} />
                   </div>
                 </div>
               )}

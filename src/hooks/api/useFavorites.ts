@@ -22,8 +22,17 @@ interface DetailSnapshot {
   data: PublicationDetail;
 }
 
+/**
+ * Snapshot de UNA entrada de caché del listado. Hay una por combinación de
+ * filtros (la clave lleva el query string), así que se guardan todas.
+ */
+interface PublicationsSnapshot {
+  queryKey: QueryKey;
+  data: AnyPublicationListItem[];
+}
+
 interface FavoriteMutationContext {
-  previousPublications?: AnyPublicationListItem[];
+  previousPublications: PublicationsSnapshot[];
   previousDetails: DetailSnapshot[];
   previousFavorites?: FavoriteItem[];
 }
@@ -89,8 +98,16 @@ export function useToggleFavorite(pubId: number) {
       await queryClient.cancelQueries({ queryKey: PUBLICATION_DETAIL_QUERY_KEY });
       await queryClient.cancelQueries({ queryKey: MY_FAVORITES_QUERY_KEY });
 
-      const previousPublications =
-        queryClient.getQueryData<AnyPublicationListItem[]>(PUBLICATIONS_QUERY_KEY);
+      // El listado dejó de vivir en UNA sola entrada de caché: desde que los
+      // filtros se resuelven en el backend, la clave lleva el query string
+      // (`['publications', '?cityId=1000']`), así que hay una entrada por
+      // combinación de filtros. Con `getQueryData(PUBLICATIONS_QUERY_KEY)` —
+      // que exige coincidencia EXACTA — no encontraríamos ninguna y el
+      // corazón de favoritos dejaría de pintarse al instante, sin error
+      // visible. Mismo patrón que ya se usa abajo para los detalles.
+      const previousPublications = queryClient
+        .getQueriesData<AnyPublicationListItem[]>({ queryKey: PUBLICATIONS_QUERY_KEY })
+        .flatMap(([queryKey, data]) => (data ? [{ queryKey, data }] : []));
       const previousDetails = queryClient
         .getQueriesData<PublicationDetail>({ queryKey: PUBLICATION_DETAIL_QUERY_KEY })
         .flatMap(([queryKey, data]) => (data ? [{ queryKey, data }] : []));
@@ -98,13 +115,15 @@ export function useToggleFavorite(pubId: number) {
         queryClient.getQueryData<FavoriteItem[]>(MY_FAVORITES_QUERY_KEY);
 
       if (user) {
-        queryClient.setQueryData<AnyPublicationListItem[]>(
-          PUBLICATIONS_QUERY_KEY,
-          (currentItems: AnyPublicationListItem[] | undefined) =>
-            currentItems?.map((item: AnyPublicationListItem) =>
-              item.id === pubId ? withToggledFavorite(item, user.id) : item,
-            ),
-        );
+        previousPublications.forEach(({ queryKey }) => {
+          queryClient.setQueryData<AnyPublicationListItem[]>(
+            queryKey,
+            (currentItems: AnyPublicationListItem[] | undefined) =>
+              currentItems?.map((item: AnyPublicationListItem) =>
+                item.id === pubId ? withToggledFavorite(item, user.id) : item,
+              ),
+          );
+        });
 
         previousDetails.forEach(({ queryKey }) => {
           queryClient.setQueryData<PublicationDetail>(queryKey, (currentDetail: PublicationDetail | undefined) =>
@@ -124,7 +143,9 @@ export function useToggleFavorite(pubId: number) {
         return;
       }
 
-      queryClient.setQueryData(PUBLICATIONS_QUERY_KEY, context.previousPublications);
+      context.previousPublications.forEach(({ queryKey, data }) => {
+        queryClient.setQueryData(queryKey, data);
+      });
       queryClient.setQueryData(MY_FAVORITES_QUERY_KEY, context.previousFavorites);
       context.previousDetails.forEach(({ queryKey, data }) => {
         queryClient.setQueryData(queryKey, data);
