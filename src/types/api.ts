@@ -450,11 +450,6 @@ export interface PublicationStatus {
   pubsta_description: string;
 }
 
-export interface PasswordStatus {
-  passta_id: number;
-  passta_description: string;
-}
-
 // ============================================================================
 // Publicaciones
 // ============================================================================

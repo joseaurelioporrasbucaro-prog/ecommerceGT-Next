@@ -4329,6 +4329,57 @@ Tests totales: 8 → **13 pasando** en `npm test`.
 
 ---
 
+### Fase 8.3.3 — Bloqueo por contraseña, y por qué hay DOS columnas de estado ✅
+
+> **Leer esto antes de "arreglar" la duplicación.** Que `customer` tenga
+> `passta_id` y `cus_account_status` a la vez **no es un descuido**: son dos
+> cosas distintas y la separación fue deliberada. Esta sección existe porque la
+> decisión no estaba escrita en ningún lado y ya costó re-derivarla leyendo
+> código y fechas de commits (2026-08-12).
+
+**Las dos columnas:**
+
+| Columna | Qué representa | Quién la mueve | Cómo se libera |
+| --- | --- | --- | --- |
+| `passta_id` | Bloqueo por **intentos fallidos de contraseña** | El sistema: 5 fallos → `passta_id=2` + 30 min | `POST /recoverypass`, o soporte con `POST /support/users/:id/unlock-password` |
+| `cus_account_status` | **Estado de la cuenta** (`active`/`inactive`/`suspended`/`banned`/`pending_deletion`/`deleted`) | Soporte, y el propio usuario al desactivar/eliminar | Según el estado (ver Fases 8.3.1 y 12.1) |
+
+Son **ortogonales**: una cuenta perfectamente activa puede tener el bloqueo de
+contraseña puesto, y una cuenta suspendida por soporte puede tener la
+contraseña sin bloquear. Meterlas en un solo campo obligaría a inventar estados
+combinados (`active_pero_con_password_bloqueada`) que no le sirven a nadie.
+
+**El incidente que lo originó (Aurelio, 2026-06-03):** 5 fallos de contraseña
+dejaban `passta_id=2`, pero el portal `/soporte/usuarios` solo operaba sobre
+`cus_account_status` — así que **soporte no podía desbloquear**. El usuario
+quedaba trabado y desde el panel se lo veía como activo.
+
+**Se evaluaron dos salidas, el mismo día:**
+
+1. **Unificar** todo en `cus_account_status` y eliminar `passta_id`
+   (rama `feat/unify-account-status` del backend + `claude/hardcore-spence-cd51f8`
+   del frontend).
+2. **Mantenerlas separadas** y darle a soporte un endpoint que entienda
+   `passta_id`.
+
+**Se eligió la 2**, que es la que está en `master` desde el commit `b9abf9f`.
+Las ramas de la opción 1 quedaron sin mergear y **no hay que fusionarlas**: hoy
+darían conflictos en los tres archivos que tocan y revertirían esta decisión
+más todo lo construido encima.
+
+**Lo que hay que saber para no romperlo:**
+
+- El bloqueo de contraseña **no se libera solo** al vencer `cus_banned_until`:
+  la única vía es restablecer la contraseña. Es anti-abuso a propósito.
+- `supportUnlockPassword` opera sobre `passta_id`, no sobre el estado de cuenta.
+- Frontend: `LoginFrom.tsx` lee `res.idpwd` (`1` = normal, `5` = debe cambiar
+  contraseña). Ese valor sale de `passta_id`.
+- La interface `PasswordStatus` de `src/types/api.ts` se eliminó el 2026-08-12:
+  tenía 0 usos y el frontend no llama ni a `/cat/passta` ni a `/changestatus`.
+  El backend sigue exponiendo ambos endpoints para el frontend legacy.
+
+---
+
 ### Fase 8.3.1 — Suspensión con duración + apelación ✅
 
 Mejoras a la sanción de usuarios (Fase 8.3):
