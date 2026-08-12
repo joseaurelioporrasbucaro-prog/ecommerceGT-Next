@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { ApiFetch } from '@/utils/Api';
 import type {
   AnyPublicationListItem,
@@ -79,12 +79,171 @@ function normalizeSellerInfo(row: SellerInfoRow | undefined): SellerInfo | null 
   };
 }
 
-export function usePublications() {
-  return useQuery({
-    queryKey: PUBLICATIONS_QUERY_KEY,
-    queryFn: () => ApiFetch.get<AnyPublicationListItem[]>('/publications'),
+/**
+ * Filtros que resuelve el BACKEND.
+ *
+ * La ubicación y la categoría van por ID de catálogo, no por nombre: comparar
+ * nombres fue el bug que hacía que el departamento "Guatemala" dejara pasar
+ * publicaciones de todo el país (el país se llama igual). Con IDs no hay
+ * ambigüedad posible ni problemas de tildes.
+ */
+export interface PublicationServerFilters {
+  /** Departamento (`cat_city`). */
+  cityId?: number | null;
+  /** Municipio (`cat_town`). */
+  townId?: number | null;
+  /** Categoría (`cat_publication_gender`). */
+  categoryId?: number | null;
+  priceMin?: string;
+  priceMax?: string;
+  roomsMin?: string;
+  bathsMin?: string;
+  sizeMin?: string;
+  /** Búsqueda de texto libre. */
+  q?: string;
+  /** La publicación debe tener TODAS estas amenidades. */
+  amenityIds?: number[];
+}
+
+/**
+ * Arma el query string, omitiendo lo vacío.
+ *
+ * Sin filtros devuelve '' y la request queda idéntica a la de siempre — que es
+ * justo lo que necesita `HeaderSearch`, que busca sobre el catálogo completo.
+ */
+function buildPublicationsQuery(filters?: PublicationServerFilters): string {
+  if (!filters) return '';
+
+  const params = new URLSearchParams();
+
+  const addNumber = (key: string, value: string | number | null | undefined) => {
+    if (value === null || value === undefined || value === '') return;
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) params.set(key, String(parsed));
+  };
+
+  addNumber('cityId', filters.cityId);
+  addNumber('townId', filters.townId);
+  addNumber('categoryId', filters.categoryId);
+  addNumber('priceMin', filters.priceMin);
+  addNumber('priceMax', filters.priceMax);
+  addNumber('roomsMin', filters.roomsMin);
+  addNumber('bathsMin', filters.bathsMin);
+  addNumber('sizeMin', filters.sizeMin);
+
+  const search = (filters.q ?? '').trim();
+  if (search) params.set('q', search);
+
+  if (filters.amenityIds && filters.amenityIds.length > 0) {
+    // Ordenadas para que el mismo set de amenidades produzca siempre la misma
+    // clave de caché, sin importar en qué orden las marcó el usuario.
+    params.set(
+      'amenities',
+      Array.from(new Set(filters.amenityIds)).sort((a, b) => a - b).join(','),
+    );
+  }
+
+  const queryString = params.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+/** Sobre paginado. El backend solo lo devuelve si se le manda `limit`. */
+interface PublicationsPage {
+  items: AnyPublicationListItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export type PublicationSort = 'recent' | 'price-asc' | 'price-desc';
+
+export const PUBLICATIONS_MAP_QUERY_KEY = ['publicationsMap'] as const;
+
+/** Una fila del resumen del mapa: un municipio con su conteo. */
+export interface PublicationsMapEntry {
+  cityId: number;
+  townId: number;
+  city: string;
+  town: string;
+  count: number;
+  minPrice: string | null;
+  maxPrice: string | null;
+}
+
+/**
+ * Listado con SCROLL INFINITO, paginado por cursor en el servidor.
+ *
+ * Es el reemplazo de descargar el catálogo entero y revelarlo de a poco: con
+ * 6000 publicaciones aquello pesaba 4.5 MB y tardaba ~4 s; esto trae 24 por
+ * tanda (~19 KB). El comportamiento visible es el mismo — el usuario scrollea
+ * y aparecen más.
+ *
+ * El cursor va por `pub_id`, no por fecha: ver el comentario de ORDENES en
+ * connPostgresDB.js. Sirve para no repetir ni saltear publicaciones cuando
+ * alguien publica algo mientras el usuario está scrolleando.
+ */
+export function useInfinitePublications(
+  filters?: PublicationServerFilters,
+  sort: PublicationSort = 'recent',
+  pageSize = 24,
+) {
+  const baseQuery = buildPublicationsQuery(filters);
+
+  return useInfiniteQuery({
+    // El orden entra en la clave: cambiarlo tiene que empezar de cero, no
+    // continuar con el cursor del orden anterior.
+    queryKey: [...PUBLICATIONS_QUERY_KEY, 'infinite', baseQuery, sort, pageSize] as const,
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams(baseQuery.replace(/^\?/, ''));
+      params.set('limit', String(pageSize));
+      params.set('sort', sort);
+      if (pageParam) params.set('cursor', pageParam);
+      return ApiFetch.get<PublicationsPage>(`/publications?${params.toString()}`);
+    },
+    getNextPageParam: (last) => (last.hasMore ? last.nextCursor : undefined),
     retry: false,
     staleTime: 60_000,
+    placeholderData: (previous) => previous,
+  });
+}
+
+/**
+ * Resumen por municipio para la vista de mapa.
+ *
+ * El mapa no puede usar el listado paginado (24 pines de 6000 publicaciones
+ * sería un mapa falso) pero tampoco necesita las publicaciones: las coordenadas
+ * se derivan del nombre del municipio. Con esto pesa ~800 bytes en vez de 4.5 MB.
+ */
+export function usePublicationsMap(filters?: PublicationServerFilters, enabled = true) {
+  const queryString = buildPublicationsQuery(filters);
+
+  return useQuery({
+    queryKey: [...PUBLICATIONS_MAP_QUERY_KEY, queryString] as const,
+    queryFn: () => ApiFetch.get<PublicationsMapEntry[]>(`/publications/map${queryString}`),
+    enabled,
+    retry: false,
+    staleTime: 60_000,
+  });
+}
+
+export function usePublications(filters?: PublicationServerFilters) {
+  const queryString = buildPublicationsQuery(filters);
+
+  return useQuery({
+    // El query string entra en la clave: hay una entrada de caché por
+    // combinación de filtros. Ojo — quien haga updates optimistas sobre el
+    // listado tiene que usar `getQueriesData`/`setQueriesData` por prefijo, no
+    // `getQueryData(PUBLICATIONS_QUERY_KEY)`, que exige coincidencia exacta
+    // (ver useFavorites.ts).
+    queryKey: [...PUBLICATIONS_QUERY_KEY, queryString] as const,
+    queryFn: () => ApiFetch.get<AnyPublicationListItem[]>(`/publications${queryString}`),
+    retry: false,
+    staleTime: 60_000,
+    // Mantiene en pantalla el resultado anterior mientras llega el nuevo. Sin
+    // esto, cada cambio de filtro vaciaría la grilla y haría parpadear la
+    // página — antes el filtrado era client-side e instantáneo, y esa fluidez
+    // no se debería perder por haberlo movido al servidor.
+    placeholderData: (previous) => previous,
   });
 }
 

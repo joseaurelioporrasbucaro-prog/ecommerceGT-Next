@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import type { AnyPublicationListItem } from '@/types/api';
+import type { PublicationsMapEntry } from '@/hooks/api/usePublications';
 import {
   getCoordsFromLocation,
   clusterByCoords,
@@ -55,6 +56,17 @@ const Popup = dynamic(
 
 interface Props {
   publications: AnyPublicationListItem[];
+  /**
+   * Resumen agregado por municipio (`GET /publications/map`).
+   *
+   * Cuando el listado se pagina, `publications` trae solo la tanda cargada y
+   * el mapa mostraría un puñado de pines sobre un catálogo de miles: un mapa
+   * que miente. Con el resumen se dibuja el total real de cada municipio.
+   *
+   * Se pasa desde /publications. Pantallas sin paginar (favoritos) siguen
+   * mandando solo `publications` y no cambian en nada.
+   */
+  summary?: PublicationsMapEntry[];
 }
 
 interface PubWithCoords {
@@ -62,17 +74,57 @@ interface PubWithCoords {
   __coords: [number, number];
 }
 
-const PropertiesMap: React.FC<Props> = ({ publications }) => {
+/** Marcador ya normalizado: sirva o no de un resumen o de publicaciones. */
+interface Marcador {
+  clave: string;
+  coords: [number, number];
+  count: number;
+  titulo: string;
+  precio: string;
+  lugar: string;
+  /** Solo cuando el marcador representa UNA publicación concreta. */
+  href?: string;
+  img?: string;
+}
+
+const PropertiesMap: React.FC<Props> = ({ publications, summary }) => {
   const t = useTranslations('publications');
-  // Geocodificar todas las publicaciones (memo: se recalcula solo cuando
-  // cambia la lista, que es lo deseable cuando los filtros aplican).
-  const clusters = useMemo(() => {
+
+  const marcadores = useMemo<Marcador[]>(() => {
+    // Modo agregado: un pin por municipio, con el conteo real del servidor.
+    if (summary) {
+      return summary.map((fila) => ({
+        clave: `s-${fila.cityId}-${fila.townId}`,
+        coords: getCoordsFromLocation('Guatemala', fila.city, fila.town),
+        count: fila.count,
+        titulo: fila.town || fila.city,
+        precio: fila.minPrice ? formatPrice(fila.minPrice, 'GTQ', '') : '',
+        lugar: fila.city,
+      }));
+    }
+
+    // Modo clásico: geocodificar cada publicación y agrupar las que caen en
+    // las mismas coordenadas (todas las de un municipio comparten punto).
     const withCoords: PubWithCoords[] = publications.map((pub) => ({
       pub,
       __coords: getCoordsFromLocation(pub.country, pub.city, pub.town),
     }));
-    return clusterByCoords(withCoords);
-  }, [publications]);
+
+    return clusterByCoords(withCoords).map((cluster) => {
+      const first = cluster.items[0].pub;
+      const firstImage = first.images?.[0]?.url || first.image;
+      return {
+        clave: `${cluster.coords[0]}-${cluster.coords[1]}`,
+        coords: cluster.coords,
+        count: cluster.items.length,
+        titulo: first.title,
+        precio: formatPrice(first.price, first.currency, t('card.priceConsult')),
+        lugar: first.town || first.city,
+        href: publicationPath(first),
+        img: firstImage ? getBackendUrl(getImageVariant(firstImage, 'card')) : undefined,
+      };
+    });
+  }, [publications, summary, t]);
 
   // Para que Leaflet inicialice bien los íconos default (los SVG vienen
   // del paquete pero Next no los sirve por path automático), parchamos
@@ -103,47 +155,39 @@ const PropertiesMap: React.FC<Props> = ({ publications }) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {clusters.map((cluster) => {
-          const count = cluster.items.length;
-          // En cada cluster, mostramos popup con la primera publicación y
-          // un mini-listado si hay más.
-          const first = cluster.items[0].pub;
-          const firstImage = first.images?.[0]?.url || first.image;
-          const imgSrc = firstImage
-            ? getBackendUrl(getImageVariant(firstImage, 'card'))
-            : '';
-
-          return (
-            <Marker key={`${cluster.coords[0]}-${cluster.coords[1]}`} position={cluster.coords}>
-              <Popup minWidth={220} maxWidth={260}>
-                <div className="pm-popup">
-                  {imgSrc && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imgSrc} alt={first.title} className="pm-popup-img" />
-                  )}
-                  <div className="pm-popup-title">{first.title}</div>
-                  <div className="pm-popup-price">
-                    {formatPrice(first.price, first.currency, t('card.priceConsult'))}
-                  </div>
-                  <div className="pm-popup-loc">
-                    <i className="fas fa-map-marker-alt" /> {first.town || first.city}
-                  </div>
-                  <Link href={publicationPath(first)} className="pm-popup-cta">
+        {marcadores.map((m) => (
+          <Marker key={m.clave} position={m.coords}>
+            <Popup minWidth={220} maxWidth={260}>
+              <div className="pm-popup">
+                {m.img && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={m.img} alt={m.titulo} className="pm-popup-img" />
+                )}
+                <div className="pm-popup-title">{m.titulo}</div>
+                {m.precio && <div className="pm-popup-price">{m.precio}</div>}
+                <div className="pm-popup-loc">
+                  <i className="fas fa-map-marker-alt" /> {m.lugar}
+                </div>
+                {/* El CTA solo existe cuando el pin es UNA publicación. En modo
+                    agregado el pin representa un municipio entero, así que no
+                    hay a qué detalle enlazar — se muestra el conteo. */}
+                {m.href && (
+                  <Link href={m.href} className="pm-popup-cta">
                     {t('card.viewProperty')}
                   </Link>
-                  {count > 1 && (
-                    <div className="pm-popup-more">
-                      {t('map.moreInArea', { count: count - 1 })}
-                    </div>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+                )}
+                {m.count > 1 && (
+                  <div className="pm-popup-more">
+                    {t('map.moreInArea', { count: m.href ? m.count - 1 : m.count })}
+                  </div>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
 
-      {publications.length === 0 && (
+      {marcadores.length === 0 && (
         <div className="pm-empty-overlay">
           <i className="fas fa-map-marked-alt" />
           <p>{t('map.empty')}</p>
