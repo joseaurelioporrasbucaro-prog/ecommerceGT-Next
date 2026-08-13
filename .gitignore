@@ -3,6 +3,9 @@ node_modules
 out
 build
 .env*.local
+# `.env*.local` NO cubre un `.env` pelado: si alguien crea ese archivo, se
+# commitea. Este repo estuvo público, así que el margen de error era cero.
+.env
 .DS_Store
 *.tsbuildinfo
 
