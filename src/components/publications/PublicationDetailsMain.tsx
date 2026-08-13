@@ -427,7 +427,14 @@ const PublicationDetailsMain = ({ id }: PublicationDetailsMainProps) => {
                           className={publication.isFavorite ? 'fas fa-heart' : 'far fa-heart'}
                           aria-hidden="true"
                         />
-                        <span>{t('favorite.add')}</span>
+                        {/* Antes esto era `t('favorite.add')` fijo: el botón decía
+                            "Guardar como favorito" TAMBIÉN cuando ya estaba
+                            guardado. El title y el aria-label sí cambiaban, y el
+                            corazón se rellenaba, pero eso es un detalle chico en
+                            un botón que tiene texto al lado — el usuario leía la
+                            misma frase después de hacer clic y concluía, con
+                            razón, que no había pasado nada. */}
+                        <span>{favoriteLabel}</span>
                       </button>
                       <button
                         type="button"

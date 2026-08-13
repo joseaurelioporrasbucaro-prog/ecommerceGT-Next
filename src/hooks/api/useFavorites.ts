@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
 import { ApiFetch } from '@/utils/Api';
 import { useAuth } from '@/utils/AuthContext';
 import {
@@ -35,7 +37,22 @@ interface FavoriteMutationContext {
   previousPublications: PublicationsSnapshot[];
   previousDetails: DetailSnapshot[];
   previousFavorites?: FavoriteItem[];
+  /** Estado ANTES del clic, para que el aviso diga si se guardó o se quitó. */
+  eraFavorita: boolean;
 }
+
+/**
+ * Compara ids de publicación sin depender del tipo.
+ *
+ * Los tipos de `src/types/api.ts` declaran `pub_id`/`id` como `number`, pero el
+ * backend los manda como STRING (`"14"`): `pub_id` es numeric/bigint en
+ * Postgres y el driver `pg` devuelve esas columnas como texto para no perder
+ * precisión. Hoy funciona de casualidad, porque todos los lados son strings;
+ * en cuanto alguien pasa un número —`publication?.pub_id ?? 0` cuando el
+ * detalle todavía no cargó, por ejemplo— el `===` falla en silencio y la
+ * actualización optimista deja de pintar.
+ */
+const mismoId = (a: unknown, b: unknown) => Number(a) === Number(b);
 
 function withToggledFavorite(
   item: AnyPublicationListItem,
@@ -51,7 +68,7 @@ function withToggledFavorite(
 }
 
 function toggleDetailFavorite(detail: PublicationDetail, pubId: number): PublicationDetail {
-  if (detail.pub_id !== pubId) {
+  if (!mismoId(detail.pub_id, pubId)) {
     return detail;
   }
 
@@ -81,6 +98,7 @@ export function useToggleFavorite(pubId: number) {
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const t = useTranslations('publications');
 
   return useMutation<ToggleFavoriteResponse, Error, void, FavoriteMutationContext>({
     mutationFn: () => {
@@ -114,13 +132,25 @@ export function useToggleFavorite(pubId: number) {
       const previousFavorites =
         queryClient.getQueryData<FavoriteItem[]>(MY_FAVORITES_QUERY_KEY);
 
+      // Se lee ANTES de tocar las cachés: después de la actualización optimista
+      // el estado ya está invertido y el aviso diría lo contrario de lo que pasó.
+      const eraFavorita =
+        previousDetails.some(
+          ({ data }) => mismoId(data.pub_id, pubId) && data.isFavorite,
+        ) ||
+        previousPublications.some(({ data }) =>
+          data.some(
+            (item) => mismoId(item.id, pubId) && 'isFavorite' in item && item.isFavorite,
+          ),
+        );
+
       if (user) {
         previousPublications.forEach(({ queryKey }) => {
           queryClient.setQueryData<AnyPublicationListItem[]>(
             queryKey,
             (currentItems: AnyPublicationListItem[] | undefined) =>
               currentItems?.map((item: AnyPublicationListItem) =>
-                item.id === pubId ? withToggledFavorite(item, user.id) : item,
+                mismoId(item.id, pubId) ? withToggledFavorite(item, user.id) : item,
               ),
           );
         });
@@ -132,13 +162,25 @@ export function useToggleFavorite(pubId: number) {
         });
 
         queryClient.setQueryData<FavoriteItem[]>(MY_FAVORITES_QUERY_KEY, (currentFavorites: FavoriteItem[] | undefined) =>
-          currentFavorites?.filter((favorite: FavoriteItem) => favorite.id !== pubId),
+          currentFavorites?.filter((favorite: FavoriteItem) => !mismoId(favorite.id, pubId)),
         );
       }
 
-      return { previousPublications, previousDetails, previousFavorites };
+      return { previousPublications, previousDetails, previousFavorites, eraFavorita };
+    },
+    // Confirmación explícita. El corazón cambia de relleno a contorno, pero eso
+    // solo se nota si uno lo está mirando: en el detalle el botón tiene texto al
+    // lado y sin aviso la acción se siente como que no hizo nada.
+    onSuccess: (_data, _variables, context) => {
+      toast.success(context?.eraFavorita ? t('favorite.removed') : t('favorite.saved'));
     },
     onError: (_error, _variables, context) => {
+      // Sin sesión no es un fallo: `mutationFn` ya mandó al login. Un toast de
+      // error encima solo confunde.
+      if (user) {
+        toast.error(t('favorite.failed'));
+      }
+
       if (!context) {
         return;
       }

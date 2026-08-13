@@ -122,8 +122,15 @@ const PautaMain = () => {
     return s;
   }, [campaigns.data]);
 
-  // Solo publicaciones activas (no borrador=1, no anulada=4) y sin campaña activa.
-  const allActivePubs = (myPubs.data ?? []).filter((p: MyPublicationItem) => p.pubsta_id !== 1 && p.pubsta_id !== 4);
+  // Solo publicaciones PUBLICADAS (pubsta 2) y sin campaña activa.
+  //
+  // Antes esto excluía 1 (Creada) y 4 (Anulada), pero dejaba pasar 3 (Vendida)
+  // y 5 (Pausada): se podía pagar una campaña para algo que ya se vendió. El
+  // backend ahora lo rechaza (createCampaign), así que este filtro es para que
+  // el usuario no llegue a elegirla y se coma un error después de armar toda la
+  // campaña. Lista blanca a propósito, igual que en el backend: un estado nuevo
+  // debe caer en "no promocionable" por defecto.
+  const allActivePubs = (myPubs.data ?? []).filter((p: MyPublicationItem) => p.pubsta_id === 2);
   const activePubs = allActivePubs.filter((p: MyPublicationItem) => !lockedPubIds.has(p.pub_id));
   const lockedCount = allActivePubs.length - activePubs.length;
 

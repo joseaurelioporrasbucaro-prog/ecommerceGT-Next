@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState } from 'react';
 import { useSearchUsers } from '@/hooks/api/useSearchUsers';
-import { usePublications } from '@/hooks/api/usePublications';
+import { useSearchPublications } from '@/hooks/api/usePublications';
 import { getBackendUrl } from '@/utils/backendUrl';
 import { generateInitialsAvatar } from '@/utils/avatarUtils';
 import { getImageVariant } from '@/utils/imageVariants';
@@ -23,8 +23,13 @@ const MAX_RESULTS = 5;
 
 /**
  * Buscador del navbar: busca usuarios (GET /search/users) y propiedades
- * (filtrando el listado público ya cacheado por título). Muestra un dropdown
- * con ambas secciones y navega al elegir.
+ * (GET /publications?q=…&limit=5). Muestra un dropdown con ambas secciones y
+ * navega al elegir.
+ *
+ * Las dos búsquedas son server-side. Antes la de propiedades no lo era: se
+ * bajaba el catálogo entero y se filtraba por título en el navegador. Como este
+ * componente vive en el header, eso ocurría en todas las páginas. Ver
+ * `useSearchPublications`.
  */
 const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propiedades...' }: HeaderSearchProps) => {
   const [query, setQuery] = useState('');
@@ -36,19 +41,18 @@ const HeaderSearch = ({ className = '', placeholder = 'Buscar usuarios o propied
   const enabled = normalized.length >= 2;
 
   const usersQuery = useSearchUsers(trimmed);
-  const publicationsQuery = usePublications();
+  const publicationsQuery = useSearchPublications(trimmed, MAX_RESULTS);
 
   const users = enabled ? (usersQuery.data?.users ?? []).slice(0, MAX_RESULTS) : [];
 
-  const publications = useMemo(() => {
-    if (!enabled) return [];
-    const all = publicationsQuery.data ?? [];
-    return all
-      // Excluye vendidas (pubsta 3) y anuladas (4): no deben buscarse.
-      .filter((p: AnyPublicationListItem) => p.pubstaId !== 3 && p.pubstaId !== 4)
-      .filter((p: AnyPublicationListItem) => p.title?.toLowerCase().includes(normalized))
-      .slice(0, MAX_RESULTS);
-  }, [enabled, normalized, publicationsQuery.data]);
+  // El servidor ya aplicó la búsqueda, el tope y el filtro de estado (el listado
+  // excluye vendidas y anuladas en el WHERE), así que acá no queda nada que
+  // filtrar. `enabled` se sigue mirando para no arrastrar el resultado anterior
+  // cuando el usuario borra lo que escribió.
+  const publications = useMemo(
+    () => (enabled ? (publicationsQuery.data ?? []) : []),
+    [enabled, publicationsQuery.data],
+  );
 
   const hasResults = users.length > 0 || publications.length > 0;
 

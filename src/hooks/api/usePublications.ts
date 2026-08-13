@@ -208,6 +208,45 @@ export function useInfinitePublications(
 }
 
 /**
+ * Búsqueda de propiedades para el dropdown del navbar.
+ *
+ * POR QUÉ EXISTE (2026-08-13): `HeaderSearch` llamaba a `usePublications()` sin
+ * argumentos, o sea `GET /publications` SIN paginar — el catálogo completo. Y
+ * `HeaderSearch` vive en el header, así que eso pasaba en TODAS las páginas,
+ * no sólo en el listado: con 6000 publicaciones son ~4.3 MB por página, encima
+ * de los 19 KB que la propia página ya trae paginados. Todo ese trabajo era
+ * para hacer un `title.includes(...)` en el navegador.
+ *
+ * Acá la búsqueda la hace Postgres, que además ya tiene el índice, y sólo
+ * viajan los 5 resultados que el dropdown muestra. De paso busca por lo mismo
+ * que la página de listado (título, descripción, dirección, departamento,
+ * municipio y categoría) en vez de sólo por título.
+ *
+ * `enabled` a partir de 2 caracteres, igual que `useSearchUsers`: sin eso la
+ * primera letra dispararía una consulta que no le sirve a nadie.
+ */
+export function useSearchPublications(query: string, limit = 5) {
+  const texto = query.trim();
+  const enabled = texto.length >= 2;
+
+  return useQuery({
+    queryKey: [...PUBLICATIONS_QUERY_KEY, 'search', texto, limit] as const,
+    queryFn: async () => {
+      const params = new URLSearchParams({ q: texto, limit: String(limit), sort: 'recent' });
+      // Con `limit` el endpoint responde el sobre paginado, no el array pelado.
+      const page = await ApiFetch.get<PublicationsPage>(`/publications?${params.toString()}`);
+      return page.items;
+    },
+    enabled,
+    retry: false,
+    staleTime: 60_000,
+    // El listado ya excluye vendidas y anuladas en el WHERE, así que lo que
+    // llega acá es directamente mostrable.
+    placeholderData: (previous) => previous,
+  });
+}
+
+/**
  * Resumen por municipio para la vista de mapa.
  *
  * El mapa no puede usar el listado paginado (24 pines de 6000 publicaciones

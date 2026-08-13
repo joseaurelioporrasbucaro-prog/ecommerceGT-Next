@@ -28,7 +28,10 @@
   },
   "favorite": {
     "add": "Save as favorite",
-    "remove": "Remove from favorites"
+    "remove": "Remove from favorites",
+    "saved": "Saved to your favorites",
+    "removed": "Removed from your favorites",
+    "failed": "We couldn't update your favorites"
   },
   "features": {
     "address": "Address",

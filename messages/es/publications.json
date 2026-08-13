@@ -28,7 +28,10 @@
   },
   "favorite": {
     "add": "Guardar como favorito",
-    "remove": "Quitar de favoritos"
+    "remove": "Quitar de favoritos",
+    "saved": "Guardada en tus favoritos",
+    "removed": "Quitada de tus favoritos",
+    "failed": "No se pudo actualizar tus favoritos"
   },
   "features": {
     "address": "Dirección",

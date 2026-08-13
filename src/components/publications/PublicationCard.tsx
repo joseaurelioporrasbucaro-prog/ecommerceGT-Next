@@ -193,6 +193,15 @@ const PublicationCard = ({
       ? `${formatNumberValue(publication.sizee, '-')} m²`
       : '-';
 
+  // Parqueos en la tarjeta, sólo "para lo que aplique":
+  //   · nunca en terrenos (igual que el detalle, que ya lo esconde con !isLand),
+  //   · y sólo si hay al menos uno.
+  // Ese segundo filtro importa: `pubdet_parking` es varchar en la base, así que
+  // llega como "", "0", null o texto viejo. Mostrar "0" en una tarjeta chica
+  // ocupa lugar sin informar nada — quien no tiene parqueo no gana con leerlo.
+  const parkingCount = Number(publication.parking);
+  const showParking = !isLand && Number.isFinite(parkingCount) && parkingCount > 0;
+
   // Switch de divisa: SOLO con valores reales. El precio primario siempre va;
   // el alterno (otra moneda) solo si el backend lo provee (Fase 17 dual-divisa,
   // pendiente — ver feedback §2). Mientras tanto cada card muestra una sola
@@ -308,6 +317,12 @@ const PublicationCard = ({
                   <i className="fas fa-vector-square" aria-hidden="true"></i>
                   {sizeLabel}
                 </span>
+                {showParking && (
+                  <span title={t('features.parking')}>
+                    <i className="fas fa-car" aria-hidden="true"></i>
+                    {parkingCount}
+                  </span>
+                )}
               </>
             )}
             </div>
