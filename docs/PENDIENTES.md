@@ -97,18 +97,33 @@ Ahora la empresa sale del cliente de la sesión y se exige `cus_is_admin`, igual
 que en `addEmployee` e `inviteExistingUser`. El `busid` se sigue aceptando en el
 body para no romper al web ni a la app, pero se ignora y se registra en el log.
 
-### B2 · "Continuar con Google" (OAuth) 🟡
+### B2 · "Continuar con Google" (OAuth) 🟡 — decisiones cerradas
 
-Lo que hay que decidir antes de programar:
+**Decidido por Aurelio (2026-08-13):**
 
-- **Vinculación de cuentas**: si `juan@gmail.com` ya existe con contraseña y
-  luego entra con Google, ¿es la misma cuenta? Casi siempre sí, pero hay que
-  decidirlo — es donde más se equivoca la gente.
-- **`cus_password` es obligatoria** en el esquema: una cuenta de Google no
-  tiene. Hay que permitir el nulo o marcar el origen de la cuenta.
-- **La app móvil usa un flujo OAuth distinto** al del web; hay que coordinarlo.
-- **Beneficio real**: para esos usuarios desaparecen el bloqueo por contraseña,
-  el reset y la verificación por correo. Menos superficie que mantener.
+1. **Se unifica, no se duplica.** Si el correo de Google ya tiene cuenta, se
+   entra a **esa** cuenta. Crear una segunda con el mismo correo sería absurdo.
+2. **Se le pide que agregue una contraseña** después de entrar, para que no
+   quede atado solo a Google.
+
+**Lo que falta resolver antes de programar:**
+
+- **Verificar el correo de Google antes de unificar.** Google devuelve
+  `email_verified` en el token; si viniera `false` no se puede unificar, porque
+  sería una toma de cuenta ajena con solo registrar ese correo en Google.
+- **`cus_password` es `NOT NULL`** en el esquema. Mientras el usuario no ponga
+  una, hay que permitir el nulo o marcar el origen de la cuenta
+  (`cus_auth_provider`), y que el login por contraseña rechace esas cuentas con
+  un mensaje claro ("entrá con Google") en vez de "contraseña incorrecta".
+- **El pedido de contraseña no puede bloquear el primer ingreso**: se entra y se
+  ofrece agregarla después, o media plataforma abandona en el registro.
+- **La app móvil usa otro flujo OAuth** (nativo, no redirect web). Coordinarlo
+  con su desarrollador antes de tocar el endpoint.
+- **Interacción con el bloqueo por contraseña**: `passta_id` no aplica a quien
+  entra por Google. Revisar que el login OAuth no lo consulte (ver Fase 8.3.3).
+
+**Beneficio:** para esos usuarios desaparecen el bloqueo por contraseña, el
+reset y la verificación por correo. Menos superficie que mantener.
 
 ### B3 · Comunicación "encriptada" 🟡 (código listo, falta configurarlo)
 
@@ -173,6 +188,11 @@ de usuario como HTML. Hoy React escapa solo; el riesgo aparecería con
 
 ## D · Deuda técnica anotada
 
+- **Automatización de pruebas** 🟡 — el frontend no tiene **ninguna**
+  infraestructura de tests (0 archivos); el backend tiene 240 tests sobre ~21
+  de 156 rutas. Plan por hitos para Codex en
+  [`phases/plan-tests-codex.md`](./phases/plan-tests-codex.md); la revisión
+  final la hace Claude.
 - **CI en Node 20 (EOL)**: provoca la desincronización recurrente del
   `package-lock.json` entre npm 10 y npm 11. Alinear versiones.
 - **Suite de tests**: estable en 229 desde el 2026-08-13. La intermitencia venía
