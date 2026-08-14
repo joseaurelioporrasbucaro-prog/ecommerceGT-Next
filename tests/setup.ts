@@ -21,6 +21,23 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({}),
 }));
 
+// Codigo Aurelio - los formularios usan la navegación localizada, que por
+// debajo exige el App Router real. Se centraliza para que todos los specs vean
+// el mismo contrato de Link/router y ninguno arme una variante incompatible.
+vi.mock('@/i18n/navigation', () => ({
+  Link: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) =>
+    React.createElement('a', { ...props, href }, children),
+  useRouter: () => ({
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+    push: vi.fn(),
+    refresh: vi.fn(),
+    replace: vi.fn(),
+  }),
+  usePathname: () => '/',
+}));
+
 vi.mock('next-intl', () => ({
   NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => children,
   useLocale: () => 'es',
