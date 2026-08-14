@@ -4367,6 +4367,23 @@ Las ramas de la opción 1 quedaron sin mergear y **no hay que fusionarlas**: hoy
 darían conflictos en los tres archivos que tocan y revertirían esta decisión
 más todo lo construido encima.
 
+**Esas ramas se borraron el 2026-08-13.** Dejarlas vivas no preservaba nada
+—esta sección ya es el registro de la decisión— y sí le costaba tiempo a
+quien las encontraba: el desarrollador de la app móvil frenó su trabajo para
+analizar `feat/unify-account-status` y volvió a derivar, por su cuenta, que
+chocaba con el login. Los commits siguen existiendo aunque la rama no; si
+alguna vez hiciera falta mirarlos:
+
+| Rama borrada | Repo | Commit | Cómo recuperarla |
+| --- | --- | --- | --- |
+| `feat/unify-account-status` | backend | `e17f701` | `git checkout -b rescate e17f701` |
+| `claude/hardcore-spence-cd51f8` | frontend | (ya borrada) | — |
+
+Su único commit propio era justamente el refactor descartado: borra la tabla
+`cat_password_status` y la columna `passta_id`. El otro commit que traía
+(`583607a`, `sub_personalized` + `bus_id` en `subscriptions`) **ya está en
+master**, así que no había nada que rescatar.
+
 **Lo que hay que saber para no romperlo:**
 
 - El bloqueo de contraseña **no se libera solo** al vencer `cus_banned_until`:
