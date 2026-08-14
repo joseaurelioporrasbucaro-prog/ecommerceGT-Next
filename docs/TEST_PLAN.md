@@ -677,6 +677,23 @@ subject que contiene `Restablecer` y link `/es/forgot?token=`.
 
 ---
 
+## Infraestructura frontend — Hito 1
+
+### T-118 — Vitest descubre los specs del frontend — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/infraestructura/infraestructura.spec.tsx`
+
+**Esperado:** `npm test` ejecuta al menos un spec en `jsdom` y devuelve exit 0.
+Previene una configuración que instala el runner pero no descubre ningún archivo.
+
+### T-119 — Un componente real renderiza con los providers compartidos — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/infraestructura/infraestructura.spec.tsx`
+
+**Esperado:** `SupportTicketsMain` resuelve una consulta con React Query, muestra
+las claves del mock de `next-intl`, recibe un usuario de soporte configurable y
+deja el resultado en un caché aislado, sin hacer una llamada HTTP real.
+
+---
+
 ## Roadmap de automatización
 
 Orden sugerido para empezar:
@@ -712,4 +729,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-06-05 (Fase 14.4 — T-115..T-117 automated backend)
+**Última actualización:** 2026-08-13 (Hito 1 de automatización frontend — T-118..T-119)
