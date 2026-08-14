@@ -188,6 +188,15 @@ de usuario como HTML. Hoy React escapa solo; el riesgo aparecería con
 
 ## D · Deuda técnica anotada
 
+- **Labels huérfanos en los formularios de auth** 🟡 — hallazgo de los tests del
+  Hito 3, confirmado: `LoginFrom.tsx` tiene `<label htmlFor="m-id">` y el input
+  no tiene ningún `id`; `ForgotForm.tsx` usa `htmlFor` en tres labels y el
+  archivo no tiene un solo `id=`. Consecuencia: hacer clic en la etiqueta no
+  enfoca el campo, y un lector de pantalla no sabe qué campo está leyendo — o
+  sea, el login es difícil de usar para alguien con discapacidad visual.
+  Arreglo chico (agregar los `id` que faltan), pero toca formularios de auth,
+  así que va con su propio test.
+
 - **Automatización de pruebas** 🟡 — el frontend no tiene **ninguna**
   infraestructura de tests (0 archivos); el backend tiene 240 tests sobre ~21
   de 156 rutas. Plan por hitos para Codex en
