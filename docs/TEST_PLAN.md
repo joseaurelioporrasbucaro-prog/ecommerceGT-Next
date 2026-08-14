@@ -729,6 +729,44 @@ determinista; una foto existente siempre tiene prioridad.
 
 ---
 
+## Componentes frontend de alto riesgo — Hito 3
+
+### T-125 — Favoritos actualizan y revierten todas las cachés — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/hooks/useFavorites.spec.tsx`
+
+**Esperado:** el optimista alcanza todas las claves `['publications', ...]`
+aunque tengan filtros y aunque Postgres mande el id como string. Si la API
+falla, listado y favoritos regresan exactamente al snapshot anterior.
+
+### T-126 — PublicationCard refleja el listing real — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/components/PublicationCard.spec.tsx`
+
+**Esperado:** precio y símbolo respetan la moneda del listing; parqueos solo
+aparecen con un valor positivo y nunca en terrenos; el corazón refleja
+`isFavorite` y dos fallos de imagen terminan en el fallback visible.
+
+### T-127 — HeaderSearch no descarga el catálogo entero — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/components/HeaderSearch.spec.tsx`
+
+**Esperado:** una búsqueda de un carácter no llama a la API. A partir de dos,
+la consulta de propiedades incluye `limit=5` y la de usuarios conserva su
+endpoint específico.
+
+### T-128 — Pauta solo ofrece publicaciones promocionables — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/components/PautaMain.spec.tsx`
+
+**Esperado:** el selector incluye publicaciones con `pubsta_id=2`, pero omite
+vendidas (`3`) y pausadas (`5`) para impedir pagar una campaña inválida.
+
+### T-129 — Auth valida y no expone contraseñas — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/form/authForms.spec.tsx`
+
+**Esperado:** login, registro y recuperación detienen formatos inválidos antes
+de la red; los errores de negocio se muestran al usuario y la contraseña sigue
+siendo un input protegido, sin aparecer como texto ni dentro de logs.
+
+---
+
 ## Roadmap de automatización
 
 Orden sugerido para empezar:
@@ -764,4 +802,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-08-13 (Hito 2 de automatización frontend — T-120..T-124)
+**Última actualización:** 2026-08-14 (Hito 3 de automatización frontend — T-125..T-129)
