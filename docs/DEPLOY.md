@@ -32,7 +32,25 @@ response.cookie("token", token, { httpOnly: true, secure: false, sameSite: "lax"
 
 Si por lo que sea el backend tiene que vivir en otro dominio, hay que cambiar la cookie a `{ secure: true, sameSite: "none" }` — y ahí `secure: true` es obligatorio, los navegadores rechazan `SameSite=None` sin él. Ese cambio es de backend y hay que coordinarlo, porque también afecta a la app móvil.
 
-> Además, `secure: false` debería pasar a `true` en producción en cualquier escenario: hoy la cookie de sesión puede viajar por HTTP plano.
+> **Actualización 2026-08-13 — el código ya no hay que tocarlo, solo configurarlo.** Los atributos de la cookie viven ahora en `utils/sesionCliente.js`:
+>
+> - `secure` se prende **solo** cuando `NODE_ENV=production` (se puede forzar con `COOKIE_SECURE`).
+> - `sameSite` sale de **`COOKIE_SAMESITE`** (`lax` por defecto). Si se pone `none`, `secure` se fuerza a `true` porque los navegadores rechazan `SameSite=None` sin él.
+> - El borrado de la cookie usa los **mismos** atributos que el alta. Sin eso `clearCookie` no borra nada en producción y "cerrar sesión" no cierra nada.
+>
+> Entonces: con `api.kiosqui.com` no hay que configurar nada. Con el backend en otro dominio, `COOKIE_SAMESITE=none` en Render y listo.
+
+### 1b. HSTS — prenderlo DESPUÉS, y de a poco
+
+`HSTS_MAX_AGE` viene en `0` (apagado). Es la única cabecera de seguridad que **el usuario no puede deshacer**: el navegador se la guarda por ese tiempo y, si el dominio queda sin HTTPS válido, no hay forma de entrar ni de decirle que afloje.
+
+Orden seguro, una vez que el dominio definitivo sirva por HTTPS:
+
+1. `HSTS_MAX_AGE=300` (5 min). Verificar un día que nada se rompa.
+2. `HSTS_MAX_AGE=31536000` (1 año).
+3. `HSTS_INCLUDE_SUBDOMAINS=true` solo si **todos** los subdominios tienen HTTPS.
+
+Las otras tres cabeceras (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) ya van siempre y no tienen ese riesgo.
 
 ### 2. `TRUST_PROXY` (rate limits)
 

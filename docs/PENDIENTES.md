@@ -85,17 +85,17 @@ Hay que **rotar la contraseña en Postgres** y actualizar la env var.
 
 Aurelio pidió tratarla como fase aparte. Esto es lo que quedó abierto.
 
-### B1 · `POST /changeinfoc` no verifica de quién es la empresa 🔴
+### B1 · `POST /changeinfoc` no verificaba de quién era la empresa ✅ (2026-08-13)
 
-Verificado: el handler `changeInfoC` **nunca lee `request.user`**. Toma `busid`
-del body y escribe. Cualquiera con una cuenta puede reescribir el nombre, razón
-comercial, dirección, teléfono **y logo** de cualquier empresa — y como el
-handler borra el juego de imágenes anterior, también le borra el logo a la
-víctima.
+El handler **nunca leía `request.user`**: tomaba `busid` del body y escribía.
+Cualquiera con una cuenta podía reescribir nombre, razón comercial, dirección,
+teléfono **y logo** de cualquier empresa — y como el handler borra el juego de
+imágenes anterior, también le borraba el logo a la víctima. Confirmado
+reabriendo el agujero contra el test: la empresa ajena quedaba renombrada.
 
-Es la misma clase de agujero que se cerró en `/my-publications` el 2026-08-13,
-pero de **escritura**, así que es peor. El comentario del código ya lo reconoce
-("no se arregló acá") porque tocarlo cambia el contrato con el web y con la app.
+Ahora la empresa sale del cliente de la sesión y se exige `cus_is_admin`, igual
+que en `addEmployee` e `inviteExistingUser`. El `busid` se sigue aceptando en el
+body para no romper al web ni a la app, pero se ignora y se registra en el log.
 
 ### B2 · "Continuar con Google" (OAuth) 🟡
 
@@ -110,12 +110,38 @@ Lo que hay que decidir antes de programar:
 - **Beneficio real**: para esos usuarios desaparecen el bloqueo por contraseña,
   el reset y la verificación por correo. Menos superficie que mantener.
 
-### B3 · Comunicación "encriptada" — ya está, salvo dos cosas 🟢
+### B3 · Comunicación "encriptada" 🟡 (código listo, falta configurarlo)
 
 HTTPS/TLS ya encripta credenciales, cookies y cuerpo. Encriptar el payload por
 encima es un antipatrón: la llave viajaría en el bundle JS.
 
-Lo que sí falta: el **`secure: true` de A2**, y agregar **HSTS**.
+**Hecho el 2026-08-13:**
+
+- Los atributos de la cookie de sesión están centralizados en
+  `utils/sesionCliente.js`. `secure` **se prende solo en producción**
+  (`NODE_ENV`), y `sameSite` se configura con `COOKIE_SAMESITE`. Si se pone
+  `none`, `secure` se fuerza: los navegadores rechazan `SameSite=None` sin él.
+- El borrado usa **los mismos atributos** que el alta. Sin eso, `clearCookie`
+  no borra nada en producción y el "cerrar sesión" no cierra nada.
+- Se arregló que `deactivateAccount` y `deleteAccount` hacían
+  `clearCookie("jwt")` — una cookie que nadie setea nunca. Desactivar la cuenta
+  **no deslogueaba**: el JWT seguía en el navegador y `authMiddleware` sólo
+  valida la firma, no el estado de la cuenta.
+- Cabeceras `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`.
+
+**Falta configurar en Render, en este orden:**
+
+1. `HSTS_MAX_AGE` viene en `0` (apagado) **a propósito**: es la única cabecera
+   que el usuario no puede deshacer — el navegador la recuerda y si el dominio
+   queda sin HTTPS válido, no hay forma de entrar. Prender recién con el
+   dominio definitivo: `300` un día, después `31536000`.
+2. `COOKIE_SAMESITE` según A2: `lax` si el backend queda bajo `kiosqui.com`,
+   `none` si vive en otro dominio.
+
+> **Queda abierto:** la app móvil usa `Authorization: Bearer` con tokens de 30
+> días, que una cookie no borra. Desactivar la cuenta desde la app no invalida
+> su token. Arreglarlo de verdad implica revocación (access + refresh, o chequeo
+> de estado por request); está anotado en `utils/sesionCliente.js`.
 
 ### B4 · Inyección SQL — verificado, no hay ✅
 
