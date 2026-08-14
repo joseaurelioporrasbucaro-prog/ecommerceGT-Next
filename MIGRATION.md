@@ -162,6 +162,43 @@ El backend está estable y se comparte. La regla:
 - **Un PR por fase** apuntando a `main`. Permite revisión incremental.
 - En la descripción del PR se enlaza la sección correspondiente de este `MIGRATION.md`.
 
+#### Limpieza de ramas (2026-08-13)
+
+Se borraron **13 ramas remotas** del frontend y **1** del backend. Quedan sólo
+tres en cada repo: `main`/`master`, `develop` y `design/kiosqui-system`.
+
+**Por qué hubo que hacerlo dos veces.** La limpieza anterior (2026-08-12) usó
+el criterio *"borrar lo que esté contenido en main **o** ya exista en el
+remoto"*. Eso sirve para ramas **locales** —si está en el remoto, borrarla de
+tu máquina no pierde nada— pero aplicado tal cual **dejó el remoto intacto**:
+la parte "o ya existe en el remoto" convertía a las remotas en su propia
+excusa para sobrevivir. Se limpiaron 24 ramas locales y ninguna remota, y como
+`git branch` sin `-r` sólo muestra las locales, el resultado se veía limpio.
+
+El costo no fue teórico: dos meses después el desarrollador de la app móvil
+frenó su trabajo para analizar `feat/unify-account-status`, simular el merge y
+volver a derivar por su cuenta que chocaba con el login.
+
+**Criterio correcto, para la próxima:**
+
+1. Auditar **`git branch -r`**, no `git branch`. Son listas distintas.
+2. Una rama se borra si no tiene commits propios contra `main`
+   (`git rev-list --count origin/main..origin/rama` = 0). De las 16 del
+   frontend, **12 daban 0**: estaban enteras en `main`.
+3. Si tiene commits propios, revisar si su contenido ya llegó por otra vía
+   antes de asumir que se pierde algo. `fix/detail-comments-pauta-fidelity`
+   tenía 2 commits propios y su arreglo del favicon ya estaba **idéntico** en
+   `main`; además iba 41 commits atrás, así que mergearla habría borrado
+   ~10.000 líneas.
+4. Anotar el SHA antes de borrar. El commit sobrevive a la rama:
+   `git checkout -b rescate <sha>`.
+5. Los worktrees de `.claude/worktrees/` también dejan ramas locales colgadas
+   (`git worktree list` para verlas).
+
+Documentar una decisión **no reemplaza** cerrar la rama. Que la respuesta esté
+escrita acá no evita que el siguiente la encuentre en la lista y pierda medio
+día averiguando si sirve.
+
 ### 7.2. Estructura de carpetas
 
 - Renombres masivos (`Art-Details/` → `Publication-Details/`) se hacen **en la fase que toca esa carpeta**, no todos a la vez.
@@ -4377,7 +4414,14 @@ alguna vez hiciera falta mirarlos:
 | Rama borrada | Repo | Commit | Cómo recuperarla |
 | --- | --- | --- | --- |
 | `feat/unify-account-status` | backend | `e17f701` | `git checkout -b rescate e17f701` |
-| `claude/hardcore-spence-cd51f8` | frontend | (ya borrada) | — |
+| `claude/hardcore-spence-cd51f8` | frontend | `aa3d899` | `git checkout -b rescate aa3d899` |
+
+> Corrección: la primera versión de esta tabla decía que la rama del frontend
+> ya estaba borrada. **No lo estaba** — seguía en el remoto y se borró recién
+> el 2026-08-13, junto con el resto (ver "Limpieza de ramas" más abajo). Su
+> commit sólo agrega documentación de la Fase 8.3.2 —la opción que se
+> descartó— y elimina la interface `PasswordStatus`, que main ya había quitado
+> por su cuenta el 2026-08-12.
 
 Su único commit propio era justamente el refactor descartado: borra la tabla
 `cat_password_status` y la columna `passta_id`. El otro commit que traía
