@@ -2,6 +2,9 @@
 
 Tour de `src/` para navegar el frontend sin tener que abrir todo el repo.
 
+La infraestructura de pruebas vive en `tests/` y se configura desde
+`vitest.config.mts`.
+
 ## Mapa rápido
 
 ```text
@@ -182,6 +185,20 @@ Piezas genéricas del template y tipos antiguos. Reusar con cuidado; muchas sigu
 ### `src/data/`
 
 Datos estáticos del template o placeholders. El objetivo de la migración es reemplazarlos por hooks/API cuando una pantalla se vuelve real.
+
+## Pruebas frontend
+
+- `vitest.config.mts` — Vitest con `jsdom`, alias `@/` y cobertura V8.
+- `tests/setup.ts` — mocks compartidos de Next, `next-intl`, imágenes, tema y auth.
+- `tests/helpers/renderConProviders.tsx` — render con un `QueryClient` aislado y
+  `retry: false`.
+- `tests/helpers/AuthProviderDePrueba.tsx` — sesión configurable sin cookie ni
+  llamadas a `/me`.
+- `tests/<área>/*.spec.ts(x)` — specs agrupados por comportamiento.
+
+Los nombres y comentarios se escriben en español. Cada prueba nueva debe verse
+en rojo al romper deliberadamente la conducta que protege antes de aceptarse
+como válida.
 
 ## Naming
 
