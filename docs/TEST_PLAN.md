@@ -694,6 +694,41 @@ deja el resultado en un caché aislado, sin hacer una llamada HTTP real.
 
 ---
 
+## Utilidades puras frontend — Hito 2
+
+### T-120 — Variantes de imagen conservan la cadena de fallback — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/utils/imageVariants.spec.ts`
+
+**Esperado:** una imagen del backend produce su variante WebP y conserva el
+original y el placeholder como siguientes alternativas; URLs externas o ya
+procesadas no se reescriben.
+
+### T-121 — Utilidades de publicación toleran shapes reales — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/utils/publicationUtils.spec.ts`
+
+**Esperado:** ceros y strings numéricos no caen al fallback, las imágenes se
+normalizan sin duplicados y terreno/lote/solar se clasifican correctamente.
+
+### T-122 — URL de publicación prefiere slug con fallback a id — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/utils/publicationUrl.spec.ts`
+
+**Esperado:** slug y `pub_slug` son canónicos; ids numéricos o string mantienen
+compatibilidad legacy y valores ausentes no generan links inválidos.
+
+### T-123 — Rutas del backend se normalizan sin doble host — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/utils/backendUrl.spec.ts`
+
+**Esperado:** rutas relativas reciben `NEXT_PUBLIC_API_URL`, URLs absolutas se
+conservan y entradas vacías devuelven cadena vacía.
+
+### T-124 — Avatar genera iniciales estables y acentuadas — 🤖 AUTOMATED
+**Automatizado en:** `ecommerceGT-Next/tests/utils/avatarUtils.spec.ts`
+
+**Esperado:** nombres completos, vacíos, acentuados y sin foto producen un SVG
+determinista; una foto existente siempre tiene prioridad.
+
+---
+
 ## Roadmap de automatización
 
 Orden sugerido para empezar:
@@ -729,4 +764,4 @@ tests/
 
 ---
 
-**Última actualización:** 2026-08-13 (Hito 1 de automatización frontend — T-118..T-119)
+**Última actualización:** 2026-08-13 (Hito 2 de automatización frontend — T-120..T-124)

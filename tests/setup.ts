@@ -4,7 +4,7 @@ import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
 afterEach(() => {
-  cleanup();
+  if (typeof document !== 'undefined') cleanup();
 });
 
 vi.mock('next/navigation', () => ({
