@@ -186,6 +186,30 @@ de usuario como HTML. Hoy React escapa solo; el riesgo aparecería con
 
 ---
 
+### B5 · Índice único para el crédito de pauta 🟡
+
+Los reembolsos de campaña (`setCampaignStatus`, `finalizarCampanasDePublicacion`,
+`reconcileExpiredCampaignsForUser`) hacen `UPDATE cus_ad_credit + $2` directo.
+Hoy cada uno está protegido por su propia transición de estado + `FOR UPDATE`, y
+la creación concurrente por `pg_advisory_xact_lock`. Funciona, pero la garantía
+depende de que cada camino se acuerde de su guard.
+
+Ya existe el mecanismo correcto y no se usa acá: `ad_credit_movements`, con
+`UNIQUE (reason, ref_id)` y `ON CONFLICT DO NOTHING` — idempotente por
+construcción. Sólo lo usan los referidos, porque su `ref_id` tiene FK a
+`ecom.referrals(id)` y no puede apuntar a una campaña.
+
+**Qué falta:** migración que permita referenciar campañas (relajar la FK o
+agregar `camp_id`), y pasar los reembolsos por ahí. Beneficio doble:
+imposibilita el doble abono venga de donde venga, y da trazabilidad — hoy no hay
+forma de auditar por qué el crédito de alguien vale lo que vale.
+
+Complemento: índice único parcial
+`(pub_id) WHERE camp_status IN ('active','paused')`, que haría imposible tener
+dos campañas vivas por publicación aunque el código falle.
+
+---
+
 ## D · Deuda técnica anotada
 
 - **Labels huérfanos en los formularios de auth** 🟡 — hallazgo de los tests del
