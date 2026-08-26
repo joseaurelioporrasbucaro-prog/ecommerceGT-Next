@@ -70,7 +70,41 @@ defecto de libuv).
   La de `2026-08-13-estado-pausada.sql` ya la corrió Aurelio ✅.
 - **Backup de la BD** antes del primer deploy con migraciones.
 
-### A5 · Rotar `DB_PASSWORD` 🔴
+### A5 · Rotar TODOS los secretos 🔴🔴 — lo más urgente de esta lista
+
+Dos filtraciones distintas, las dos confirmadas:
+
+**1. `info.txt` del backend, versionado desde 2026-02-20.** Tenía en texto plano
+`JWT_SECRET`, `JWT_EMAIL_SECRET`, `DB_PASSWORD`, `EMAIL_USER` y una **contraseña
+de aplicación de Gmail**. Verificado el 2026-08-25: las cinco eran **idénticas a
+las del `.env` en uso**. Los valores ya se reemplazaron por marcadores
+(commit `d31912d`), pero **eso no des-filtra nada**: siguen en el historial de
+git, en cada clon y en cada copia local.
+
+La peor no es la de la base —apunta a localhost—, es el **`JWT_SECRET`**: con él
+se firma la sesión de cualquier usuario de la plataforma. Es toma de cuenta
+total, sin necesidad de contraseñas.
+
+**2. `DB_PASSWORD` en los logs de Render.** Hasta el 2026-08-13 el backend la
+imprimía en stdout al arrancar. El log ya se quitó, pero quedó escrita en el
+historial de logs de todos los deploys anteriores.
+
+**Qué hay que hacer, en este orden:**
+
+1. **Revocar la contraseña de aplicación de Gmail** — Cuenta de Google →
+   Seguridad → Contraseñas de aplicaciones. Es la única con alcance **fuera** del
+   proyecto: permite enviar correo como esa cuenta y las contraseñas de
+   aplicación saltan el 2FA.
+2. **Generar `JWT_SECRET` y `JWT_EMAIL_SECRET` nuevos**, y confirmar que
+   producción **no** esté usando los mismos valores. Ojo: rotar el `JWT_SECRET`
+   cierra la sesión de todos los usuarios, incluida la app móvil (tokens de 30
+   días). Es el costo, y vale la pena.
+3. **Rotar la contraseña de Postgres** y actualizar la env var de Render.
+
+> Reescribir el historial de git para borrar los valores es otra decisión: es
+> disruptivo para el equipo y **no sustituye la rotación**. Rotar primero.
+
+### A5b · (histórico) Rotar `DB_PASSWORD` por los logs
 
 Hasta el 2026-08-13 el backend imprimía la contraseña de Postgres en stdout al
 arrancar. **El log ya se quitó, pero eso no des-filtra el secreto**: quedó
