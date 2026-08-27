@@ -12,3 +12,9 @@ build
 
 # Claude Code worktrees (no versionar)
 .claude/worktrees/
+
+# Copias que crea macOS al duplicar un archivo ("archivo 2.tsx"). Se acumularon
+# 107 sueltas en el repo; son basura, nunca fuente. Verificado antes de
+# borrarlas: 106 idénticas byte a byte a su original y la restante un reporte
+# de coverage generado.
+*[ ]2.*
