@@ -55,6 +55,13 @@ const PautaMain = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card'); // Fase 10.3
   const [page, setPage] = useState(1); // Fase 10.2
 
+  // Codigo Aurelio (2026-08-25) — hoy en la zona del NAVEGADOR, que es la del
+  // usuario. `toISOString()` daría UTC y en Guatemala (UTC-6) eso adelanta el
+  // día a partir de las 18:00: el usuario no podría elegir "hoy" cada noche.
+  // `sv-SE` se usa sólo porque su formato de fecha ya es YYYY-MM-DD, que es lo
+  // que espera un <input type="date">.
+  const hoy = new Date().toLocaleDateString('sv-SE');
+
   const formatMoney = (value: number) =>
     `Q${dateFmt.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const formatMoneyShort = (value: number) =>
@@ -137,6 +144,13 @@ const PautaMain = () => {
   const submit = () => {
     if (!pubId) { toast.error(t('validation.publication')); return; }
     if ((Number(budget) || 0) < MIN_BUDGET) { toast.error(t('validation.minBudget', { amount: MIN_BUDGET })); return; }
+    // Se comparan como texto a propósito: las dos son YYYY-MM-DD, formato en el
+    // que el orden alfabético coincide con el cronológico. Pasarlas por `new
+    // Date()` las interpretaría como UTC y reintroduciría el corrimiento de día
+    // que el `hoy` de arriba justamente evita.
+    if (startDate && startDate < hoy) { toast.error(t('validation.startDatePast')); return; }
+    if (endDate && endDate < hoy) { toast.error(t('validation.endDatePast')); return; }
+    if (startDate && endDate && endDate < startDate) { toast.error(t('validation.endBeforeStart')); return; }
     if (paymentMethod === 'credit' && !creditCoversAll) {
       toast.error(t('validation.creditInsufficient', { credit: formatMoney(availableCredit) }));
       return;
@@ -400,11 +414,17 @@ const PautaMain = () => {
                 <div className="pa-grid2">
                   <div>
                     <label className="pa-label">{t('form.starts')}</label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                    {/* `min` evita que el calendario ofrezca días pasados. Es
+                        ayuda visual, no garantía: el navegador igual acepta un
+                        valor tecleado. La validación real está en submit() y,
+                        sobre todo, en el backend. */}
+                    <input type="date" min={hoy} value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                   </div>
                   <div>
                     <label className="pa-label">{t('form.ends')}</label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                    {/* El fin no puede ser antes del inicio elegido; si todavía
+                        no eligió inicio, el piso es hoy. */}
+                    <input type="date" min={startDate || hoy} value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                   </div>
                 </div>
               </div>

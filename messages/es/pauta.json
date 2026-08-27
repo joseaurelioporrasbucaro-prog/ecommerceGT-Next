@@ -20,7 +20,10 @@
   "validation": {
     "publication": "Selecciona una publicacion.",
     "minBudget": "El presupuesto minimo es Q{amount}.",
-    "creditInsufficient": "Tu credito ({credit}) no cubre el presupuesto. Elige otro metodo."
+    "creditInsufficient": "Tu credito ({credit}) no cubre el presupuesto. Elige otro metodo.",
+    "startDatePast": "La campaña no puede empezar antes de hoy.",
+    "endDatePast": "La campaña no puede terminar antes de hoy.",
+    "endBeforeStart": "La fecha de fin no puede ser anterior a la de inicio."
   },
   "toast": {
     "created": "Campana creada.",

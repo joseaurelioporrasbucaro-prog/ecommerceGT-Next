@@ -20,7 +20,10 @@
   "validation": {
     "publication": "Select a publication.",
     "minBudget": "The minimum budget is Q{amount}.",
-    "creditInsufficient": "Your credit ({credit}) does not cover the budget. Choose another method."
+    "creditInsufficient": "Your credit ({credit}) does not cover the budget. Choose another method.",
+    "startDatePast": "The campaign can't start before today.",
+    "endDatePast": "The campaign can't end before today.",
+    "endBeforeStart": "The end date can't be earlier than the start date."
   },
   "toast": {
     "created": "Campaign created.",
