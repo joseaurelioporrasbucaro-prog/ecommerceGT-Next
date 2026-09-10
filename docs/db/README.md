@@ -3,18 +3,40 @@
 Dos scripts que no modifican nada por sí solos y un registro de lo que salió al
 revisar la base para el salto a Centroamérica.
 
-| Archivo | Qué hace |
-|---|---|
-| `auditoria-esquema.sql` | Le pregunta a la BD viva qué tablas e índices le faltan. Seis `SELECT`, cero escrituras. |
-| `indices-recomendados.sql` | Los `CREATE INDEX CONCURRENTLY` para lo que la auditoría marque ALTA. |
+| Archivo | Qué hace | Dónde corre |
+|---|---|---|
+| `auditoria-pgadmin.sql` | Misma auditoría en **una sola consulta**. | pgAdmin, DBeaver, cualquier GUI |
+| `auditoria-esquema.sql` | Le pregunta a la BD qué tablas e índices le faltan. Seis `SELECT`. | solo `psql -f` |
+| `indices-recomendados.sql` | Los `CREATE INDEX CONCURRENTLY` para lo que salga ALTA. | ambos |
+
+**Desde pgAdmin:** abrí el Query Tool, pegá `auditoria-pgadmin.sql` completo y
+ejecutá (F5). Todo sale en una grilla, ordenado por prioridad.
+
+**Desde la terminal:**
 
 ```bash
 psql "$DATABASE_URL" -f docs/db/auditoria-esquema.sql        # diagnóstico
 psql "$DATABASE_URL" -f docs/db/indices-recomendados.sql     # solo lo que salga faltando
 ```
 
-Ambos quedaron probados contra PostgreSQL 16 cargando el `database.sql` del
-backend: la auditoría corre limpia y los índices se crean sin error.
+Las dos auditorías son de solo lectura: consultan los catálogos del sistema y no
+tocan ninguna tabla.
+
+Hay dos versiones porque `auditoria-esquema.sql` usa `\echo`, que es un
+meta-comando de psql y en pgAdmin da error; y porque las GUI muestran nada más
+la última grilla cuando mandás varios `SELECT` de una, así que las primeras
+cinco secciones se perderían sin que nadie lo note.
+
+Todo quedó probado contra PostgreSQL 16 cargando el `database.sql` del backend:
+las auditorías corren limpias y los 12 índices de prioridad alta se crean y
+desaparecen del reporte al repetirlo.
+
+> Ninguna de las dos usa `regclass::text` para nombrar tablas. Ese cast incluye
+> el esquema o no según el `search_path` de la conexión, así que el join contra
+> la lista de columnas calientes fallaba en silencio y marcaba **todo** como
+> prioridad baja — `messages.receiver_id` incluido. Ahora se resuelve por
+> `pg_class.relname`, que no depende de la conexión. Si adaptás estas consultas,
+> no vuelvas a `regclass`.
 
 ## Por qué hace falta preguntarle a la BD
 

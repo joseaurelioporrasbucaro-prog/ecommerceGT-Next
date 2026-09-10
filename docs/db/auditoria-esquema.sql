@@ -160,25 +160,26 @@ WITH calientes(tabla, columna, motivo) AS (VALUES
     ('seller_ratings','pub_id',        'estado de calificacion por publicacion')
 )
 SELECT CASE WHEN h.motivo IS NOT NULL THEN 'ALTA' ELSE 'baja' END AS prioridad,
-       c.conrelid::regclass::text AS tabla,
-       a.attname                  AS columna,
+       cl.relname AS tabla,
+       a.attname  AS columna,
        COALESCE(h.motivo, 'FK de catalogo o columna de baja cardinalidad') AS motivo,
-       pg_size_pretty(pg_total_relation_size(c.conrelid)) AS peso_tabla
+       pg_size_pretty(pg_total_relation_size(cl.oid)) AS peso_tabla
 FROM pg_constraint c
+JOIN pg_class cl ON cl.oid = c.conrelid
 JOIN pg_attribute a
   ON a.attrelid = c.conrelid
  AND a.attnum   = c.conkey[1]
 LEFT JOIN calientes h
-  ON h.tabla   = c.conrelid::regclass::text
+  ON h.tabla   = cl.relname
  AND h.columna = a.attname
 WHERE c.contype = 'f'
-  AND c.connamespace = 'ecom'::regnamespace
+  AND cl.relnamespace = 'ecom'::regnamespace
   AND NOT EXISTS (
       SELECT 1 FROM pg_index i
       WHERE i.indrelid = c.conrelid
         AND i.indkey[0] = c.conkey[1]
   )
-ORDER BY prioridad, pg_total_relation_size(c.conrelid) DESC, tabla, columna;
+ORDER BY prioridad, pg_total_relation_size(cl.oid) DESC, tabla, columna;
 
 \echo '=== 5. COLUMNAS DE MONEDA (listo para USD / Centroamérica) ================='
 
