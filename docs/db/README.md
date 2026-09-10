@@ -1,170 +1,173 @@
 # Revisión de esquema — qué hay acá y cómo usarlo
 
-Dos scripts que no modifican nada por sí solos y un registro de lo que salió al
-revisar la base para el salto a Centroamérica.
+Herramientas para contestar una pregunta: **¿mi base está al día con lo que el
+código espera?** Y el resultado de hacérsela a la base local el 2026-09-10.
 
 | Archivo | Qué hace | Dónde corre |
 |---|---|---|
-| `auditoria-pgadmin.sql` | Misma auditoría en **una sola consulta**. | pgAdmin, DBeaver, cualquier GUI |
-| `auditoria-esquema.sql` | Le pregunta a la BD qué tablas e índices le faltan. Seis `SELECT`. | solo `psql -f` |
-| `indices-recomendados.sql` | Los `CREATE INDEX CONCURRENTLY` para lo que salga ALTA. | ambos |
+| `comparar-con-database-sql.sh` | **La respuesta completa.** Crea un Postgres temporal con el `database.sql` del backend y lo compara contra tu base: esquema y catálogos. | terminal |
+| `migracion-2026-09-10.sql` | Pone una base existente al día con `database.sql` @ `ee9df52`. Idempotente, en una transacción. | pgAdmin o `psql -f` |
+| `indices-recomendados.sql` | 9 índices de rendimiento que **no** están en `database.sql`. `CONCURRENTLY`, uno por uno. | `psql -f`, o pgAdmin de a uno |
+| `auditoria-pgadmin.sql` | Diagnóstico rápido en **una sola consulta**. | pgAdmin, DBeaver, cualquier GUI |
+| `auditoria-esquema.sql` | El mismo diagnóstico en seis `SELECT`. | solo `psql -f` |
 | `revisar-historial-backend.sh` | Quién agregó cada tabla al `database.sql`, y qué se quedó afuera. | clon del backend |
 
-**Desde pgAdmin:** abrí el Query Tool, pegá `auditoria-pgadmin.sql` completo y
-ejecutá (F5). Todo sale en una grilla, ordenado por prioridad.
+## Resultado de la revisión (2026-09-10)
 
-**Desde la terminal:**
+Tu base local (`ecommercedb`) estaba **atrasada respecto del backend master**, y
+de una forma que rompe el web. Todo lo que faltaba es trabajo de cmiche entre el
+4-ago y el 9-sep que llegó a `database.sql` pero nunca a tu base:
+
+| Faltaba | Commit | Qué fallaba |
+|---|---|---|
+| `publications.pub_origin` | `d1d0742` (11-ago) | crear publicación (`savePublication`) |
+| vista `v_plan_efectivo` | `299c1eb` + `41bfb91` (3/4-sep) | gate de Subir (`checkerpub`), crear y editar publicación, Mi suscripción, equipo de empresa |
+| `business.sub_id` | `299c1eb` (3-sep) | cambiar de plan, agregar/invitar/quitar empleados |
+| `customer.cou_id` | `9532e41` (9-sep) | editar perfil (`updateMyBasics`, `changeInfoB`) |
+| `stories`, `story_views` | `39c4d51` (4-ago) | `/stories` — solo la app mobile |
+
+Además, cosas que no rompen pero divergen: 7 FK en `INTEGER` que el archivo
+declara `BIGINT` (`fc52386`), 5 `NOT NULL`, 3 FK, un `DEFAULT 0`, 8 índices del
+archivo, El Salvador (1 país, 14 departamentos, 262 municipios) y el typo
+`Bloqueda`.
+
+Lo que **no** faltaba: ninguna tabla huérfana, ninguna tabla tuya que el archivo
+no conozca, y `referrals`, `ad_credit_movements`, `company_invitations` y
+`publications_images_glb` están en los dos lados.
+
+**Cómo se verificó `migracion-2026-09-10.sql`:** sobre una copia de tu base
+(`pg_dump` → Postgres temporal), corrida dos veces. Después de aplicarla, la copia
+queda idéntica a una base creada desde cero con `database.sql`: mismo esquema y
+las 688 filas de catálogo iguales. Tus datos pasaban todas las restricciones
+nuevas (cero nulos y cero huérfanos) antes de escribirla.
+
+## Cómo saber si tu base está al día
 
 ```bash
-psql "$DATABASE_URL" -f docs/db/auditoria-esquema.sql        # diagnóstico
-psql "$DATABASE_URL" -f docs/db/indices-recomendados.sql     # solo lo que salga faltando
+cd "/Users/joseaurelioporras/Documents/Proyectos Git /ecommerceGTBackEnd" && git fetch origin master
+cd "/Users/joseaurelioporras/Documents/Proyectos Git /ecommerceGT-Next"
+./docs/db/comparar-con-database-sql.sh "/Users/joseaurelioporras/Documents/Proyectos Git /ecommerceGTBackEnd"
 ```
 
-Las dos auditorías son de solo lectura: consultan los catálogos del sistema y no
-tocan ninguna tabla.
+Toma la conexión del `.env` del backend (o de `PGHOST`/`PGDATABASE`/… si están
+definidas) y nunca imprime la contraseña. A tu base solo le hace `SELECT`, en una
+sesión de solo lectura. El Postgres temporal corre en `127.0.0.1:55439` y se
+borra al terminar; si el puerto está ocupado, `REF_PORT=55440`.
 
-Hay dos versiones porque `auditoria-esquema.sql` usa `\echo`, que es un
-meta-comando de psql y en pgAdmin da error; y porque las GUI muestran nada más
-la última grilla cuando mandás varios `SELECT` de una, así que las primeras
-cinco secciones se perderían sin que nadie lo note.
+Sale con código 0 si no hay diferencias. `<` es lo que dice `database.sql` y a tu
+base le falta; `>` es lo que tu base tiene y el archivo no.
 
-Todo quedó probado contra PostgreSQL 16 cargando el `database.sql` del backend:
-las auditorías corren limpias y los 12 índices de prioridad alta se crean y
-desaparecen del reporte al repetirlo.
+Ojo con las comillas: el directorio se llama `Proyectos Git ` **con un espacio
+al final**, así que sin comillas bash parte la ruta en dos.
 
-> Ninguna de las dos usa `regclass::text` para nombrar tablas. Ese cast incluye
-> el esquema o no según el `search_path` de la conexión, así que el join contra
-> la lista de columnas calientes fallaba en silencio y marcaba **todo** como
-> prioridad baja — `messages.receiver_id` incluido. Ahora se resuelve por
-> `pg_class.relname`, que no depende de la conexión. Si adaptás estas consultas,
-> no vuelvas a `regclass`.
+Este script reemplaza a las auditorías para la pregunta "¿qué me falta?": no
+depende de ninguna lista escrita a mano. Las auditorías siguen sirviendo para
+pgAdmin y para la prioridad de los índices, pero su inventario hay que
+mantenerlo cuando `database.sql` sume algo.
 
-## Por qué hace falta preguntarle a la BD
+## Por qué `database.sql` es la referencia
 
-No hay runner de migraciones. Cada fase se aplicó a mano con `ALTER`/`CREATE`
-sueltos anotados en `MIGRATION.md`, y ese registro **no está completo**:
-`referrals` y `ad_credit_movements` existen en la base viva —`docs/PENDIENTES.md`
-§B5 razona sobre sus columnas— pero no aparecen en ningún bloque SQL de
-`MIGRATION.md`. Si dos tablas se escaparon del registro, puede haber más.
+No hay runner de migraciones: cada fase se aplicó a mano con `ALTER`/`CREATE`
+sueltos. Hasta el 2026-09-09 el archivo ni siquiera corría desde cero (moría
+contra sus propias secuencias legacy). cmiche lo arregló y lo dejó idéntico a su
+base de desarrollo —`36b5418`, `fc52386`, `33b24c8`—, y la suite del backend
+(399 tests) corre contra una base recreada desde él. Desde ahí, **lo que dice
+`database.sql` es lo que el código espera.**
 
-Por eso la sección 2 de la auditoría lista **tablas que están en la BD y no
-figuran en ninguna documentación**. Esa consulta es la que contesta "¿qué creó
-otro dev que yo no tengo anotado?", y no depende de que mi inventario esté
-completo.
+`MIGRATION.md` del frontend no sirve como inventario: le faltan tablas.
+
+Dos trampas al adaptar estas consultas:
+
+- **No uses `conrelid::regclass::text` para nombrar tablas.** Incluye el esquema
+  o no según el `search_path` de la conexión, y un join contra una lista de
+  nombres falla en silencio. Usá `pg_class.relname`.
+- **`\echo` y varios `SELECT` seguidos no sirven en pgAdmin.** Es meta-comando de
+  psql, y las GUI muestran solo la última grilla. Por eso hay dos auditorías.
 
 ## Quién agregó qué
-
-`revisar-historial-backend.sh` se corre sobre un clon del backend, no sobre la
-base:
 
 ```bash
 ./docs/db/revisar-historial-backend.sh "/Users/joseaurelioporras/Documents/Proyectos Git /ecommerceGTBackEnd"
 ```
 
-Ojo con las comillas: el directorio se llama `Proyectos Git ` **con un espacio
-al final**, así que sin comillas bash parte la ruta en dos.
+**No le pases `git fetch --depth=N`**: sobre un clon completo eso lo vuelve
+shallow y trunca el historial. El script detecta el caso y avisa.
 
-Si el clon del backend es completo —el normal de trabajo— no hace falta nada
-antes. **No le pases `git fetch --depth=N`**: sobre un clon completo eso lo
-vuelve shallow y trunca el historial. El script detecta el caso y avisa.
+Sobre el historial completo (2026-02-18 → 2026-09-10, `techmindsgt`):
 
-Contesta cuatro cosas que el estado final del archivo no dice: quién tocó
-`database.sql`, qué commit introdujo cada tabla, qué tablas consulta el código
-sin que el script las defina —esas existen solo en la base de quien las creó a
-mano y se pierden al instalar en limpio— y qué índices se prometieron en un
-mensaje de commit sin llegar nunca al archivo.
-
-Sobre el historial que llega hasta el 2026-05-12 (remote personal viejo):
-
-- **cmiche (Cristóbal Miche)** creó `database.sql` completo el 24-abr en un solo
-  commit (`3190aae`): las 19 tablas fundacionales — catálogos, `customer`,
-  `business`, `publications`, `subscriptions`. **No volvió a tocar el archivo.**
-- **Aurelio** agregó las 5 siguientes entre el 29-abr y el 12-may:
-  `messages`, `publications_comments`, `comment_reports`, `seller_ratings`,
-  `comment_likes`.
+- **cmiche** creó `database.sql` el 24-abr (`3190aae`) con las 19 tablas
+  fundacionales. Volvió a él en agosto: `publications_images_glb` (29-may),
+  `stories` y `story_views` (4-ago), `pub_origin` (11-ago), plan por empresa y
+  `v_plan_efectivo` (3/4-sep), y la tanda del 9-sep que hizo que el archivo
+  corra desde cero y cargó El Salvador.
+- **Aurelio** agregó las otras 24 tablas entre el 29-abr y el 13-jun:
+  mensajería, comentarios, reseñas, notificaciones, seguidores, empresa,
+  verificación, soporte, pauta, auditoría, pagos, amenidades, recuperación de
+  contraseña y referidos.
 - **julio (jcgomez96)** nunca tocó `database.sql`.
-- Ningún DDL escondido en `.js`, y `database.sql` fue siempre el único `.sql`.
+- **Ninguna tabla huérfana**: todo lo que el código consulta está definido en el
+  archivo.
+- El commit `01096d7` anuncia el índice `idx_messages_pub_id`, que **nunca se
+  escribió**. Por eso `messages` no tiene un solo índice fuera de la PK, y es la
+  tabla del inbox y del contador de no leídos. `idx_messages_conversation`, en
+  `indices-recomendados.sql`, lo cubre.
 
-El commit `01096d7` anuncia en su mensaje "Inclusión del índice
-`idx_messages_pub_id`". `git log -S` sobre todo el historial confirma que ese
-índice **nunca se escribió**. Es la razón concreta por la que `messages` no
-tiene un solo índice hoy: se dio por hecho.
+Dos arreglos del 2026-09-10 al script: la sección 2 no rastreaba ninguna tabla
+porque el git de macOS no soporta `\b` en `-G`, y la sección 3 listaba palabras
+de comentarios ("con", "de", "contra") como tablas faltantes y no reconocía
+vistas ni CTEs.
 
-## Inventario esperado
+## Índices de rendimiento
 
-42 tablas en el esquema `ecom`: 24 del `database.sql` original, 16 agregadas
-entre las fases 6 y 22, y 2 (`referrals`, `ad_credit_movements`) que solo
-aparecen en `PENDIENTES.md`. La auditoría trae la lista con la fase que creó
-cada una.
+`indices-recomendados.sql` trae los 9 que siguen haciendo falta según las queries
+**actuales** de `connPostgresDB.js`: 4 de `messages`, 2 de
+`publications_favorites`, `publications (cus_id, pub_create_date)`,
+`seller_ratings (seller_id)` y `publications_detail (tow_id)`.
 
-## Índices que faltan sin importar el estado de la BD
+**`CREATE INDEX CONCURRENTLY` no corre dentro de una transacción.** Con
+`psql -f` anda, porque psql manda cada sentencia por separado. En pgAdmin **no**:
+el Query Tool manda todo el texto de una vez, Postgres lo trata como una
+transacción implícita y falla con *"cannot run inside a transaction block"*
+—verificado—. Ahí va de a una sentencia: seleccionarla y F5.
 
-Postgres **no** indexa la columna que referencia en una llave foránea. Solo el
-lado referenciado necesita un índice único; el que apunta queda sin nada salvo
-que se cree a mano. Ninguna de las FK del `database.sql` original lo tiene.
+Estos índices no están en `database.sql`, así que si los creás solo en tu base,
+`comparar-con-database-sql.sh` los va a marcar con `>` hasta que entren al
+archivo. Lo que corresponde es sumarlos a `database.sql` del backend para que
+los tengan todas las bases. Está anotado en `docs/PENDIENTES.md`.
 
-Las que pesan, verificadas contra las queries de `connPostgresDB.js`:
+Aparte: `idx_publications_pub_slug` sobra. `pub_slug` es `UNIQUE`, así que
+`publications_pub_slug_key` ya es un índice idéntico, y cada INSERT mantiene dos.
 
-- **`messages`** — sin un solo índice. `getUnreadCount` (`WHERE receiver_id = $1
-  AND is_read = false`) corre en cada poll del globito rojo y hoy es un scan
-  secuencial completo. `getInbox` filtra `sender_id = $1 OR receiver_id = $1` y
-  además corre una subconsulta correlacionada por conversación: varios scans de
-  la tabla entera por cada carga de la bandeja.
-- **`publications_favorites`** — `getPublications` resuelve `isFavorite` con una
-  subconsulta correlacionada que se ejecuta **una vez por fila del listado**. El
-  costo crece con el producto de las dos tablas, no con la suma.
-- **`publications_images.pub_id`** — `INNER JOIN` en todo listado, más la
-  subconsulta de imagen principal.
-- **`publications.cus_id`**, **`publications_detail.cit_id`/`tow_id`**,
-  **`publications_comments.cus_id`**, **`seller_ratings.seller_id`/`pub_id`**.
-
-Hoy no se nota porque el volumen es chico. Son scans: el tiempo crece con las
-filas, y se nota justo cuando entra tráfico.
-
-> Aparte, `getPublications` trae **todas** las publicaciones sin `LIMIT` ni
-> paginación (`ORDER BY p.pub_id`, sin corte). Los índices ayudan a los JOIN,
-> pero el listado completo en cada carga es un problema de la query, no del
-> esquema. Paginar es lo que de verdad lo arregla.
+> `getPublications` ya pagina server-side (`b6b23e2`), así que la advertencia
+> anterior sobre listar todo sin `LIMIT` no aplica más.
 
 ## Lo que falta para USD y Centroamérica
 
-**Moneda.** `publications_detail.pubdet_currency varchar(3) DEFAULT 'GTQ'` se
-agregó en la Fase 5 y el frontend ya la respeta (`formatPrice(price, currency)`).
-Lo que no existe todavía:
+Verificado contra el código el 2026-09-10.
 
-- `pubdet_price_alt` / `pubdet_currency_alt` — precio dual Q ⇄ US$. Los tipos del
-  frontend ya los declaran (`src/types/api.ts`, `priceAlt`/`currencyAlt`) y están
-  marcados **PENDIENTE en backend**. Hoy se leen defensivamente y siempre vienen
-  vacíos.
-- `subscriptions.sub_currency` — `sub_price numeric(10,2)` no dice en qué moneda
-  está. Los planes se muestran con `$` en el frontend por decisión de UI
-  (`TODO(currency-plan)`), no porque la BD diga USD. El admin ya puede cambiar el
-  símbolo con la key `plans_currency` de `platform_config`, pero eso cambia cómo
-  se ve, no lo que vale.
-- Pauta — `ad_campaigns.budget`, `spent` y `customer.cus_ad_credit` son
-  `NUMERIC(10,2)` sin moneda. Las tarifas de `platform_config`
-  (`ad_impression_cost`, `ad_click_cost`, `ad_min_budget`) están descritas en
-  quetzales en su propio campo `description`. Un crédito de pauta acumulado en Q
-  y gastado en US$ vale 7.8 veces de más.
+**Ya está:**
 
-**Geografía.** `cat_country` tiene una sola fila: Guatemala (`cou_id = 502`,
-`GTQ`), con 22 departamentos y 330 municipios colgando. La estructura ya soporta
-más países —`cat_city.cou_id` es FK a `cat_country`— pero no hay datos de
-ninguno, y `502` está hardcodeado en al menos cuatro componentes del frontend
-(`PublicationsBar`, `PublicationsMain`, `PautaMain`, `PersonalInfoTab`). El mapa
-depende de `src/utils/gtMunicipalityCoords.ts`, que solo trae coordenadas de
-municipios guatemaltecos.
+- `pubdet_currency` (Fase 5) y el precio dual `pubdet_price_alt` /
+  `pubdet_currency_alt` (Aurelio, `964ae3c`, 12-jun). El backend los guarda y
+  los devuelve como `priceAlt`/`currencyAlt`. Los comentarios "PENDIENTE
+  BACKEND" de `src/types/api.ts` están desactualizados.
+- El Salvador en el catálogo del backend (`cou_id = 503`, USD), con 14
+  departamentos y 262 municipios. Tu base lo tiene después de la migración.
+- `customer.cou_id`: el país del perfil.
 
-**Precisión.** `numeric(10,2)` tope en 99,999,999.99. Alcanza para inmuebles en
-ambas monedas; no es un bloqueante.
+**Falta:**
 
-## Lo que esta revisión no pudo ver
+- `subscriptions.sub_price` no dice en qué moneda está. El símbolo que muestra el
+  web sale de `platform_config.plans_currency`, que cambia cómo se ve, no lo que
+  vale.
+- Pauta sin moneda: `ad_campaigns.budget`, `spent` y `customer.cus_ad_credit`
+  son `NUMERIC(10,2)` pelados, y las tarifas de `platform_config` dicen "Q por
+  impresión" en prosa, dentro de `description`. Un crédito acumulado en Q y
+  gastado en US$ vale 7.8 veces de más.
+- El filtro de precio (`priceMin`/`priceMax`) compara `pubdet_price` sin mirar
+  la moneda: mezcla Q 1,000,000 con US$ 1,000,000.
+- En el web, `502` está hardcodeado en `PublicationsBar`, `PublicationsMain`,
+  `PautaMain` y `PersonalInfoTab`, y el mapa depende de
+  `src/utils/gtMunicipalityCoords.ts`, que solo trae municipios de Guatemala.
 
-El esquema autoritativo vive en `techmindsgt/ecommerceGTBackEnd`
-(`database.sql` + `docs/SCHEMA.md`), que esta sesión no alcanza. Lo de acá se
-reconstruyó desde `MIGRATION.md`, `docs/PENDIENTES.md`, los tipos del frontend y
-el `database.sql` del remote personal viejo, congelado en la Fase 4.4 (mayo
-2026) — 24 tablas y 4 índices, sin nada de la Fase 6 en adelante.
-
-Nada de esto afirma qué le falta a tu base concreta. Eso lo contesta la
-auditoría corriendo contra ella.
+`numeric(10,2)` topa en 99,999,999.99: alcanza para inmuebles en ambas monedas.

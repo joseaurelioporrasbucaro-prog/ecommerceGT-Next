@@ -40,12 +40,15 @@ echo ""
 
 echo "=== 2. QUÉ COMMIT INTRODUJO CADA TABLA ===================================="
 printf '%-34s %-9s %-18s %s\n' TABLA COMMIT AUTOR FECHA
-grep -ioE "CREATE TABLE +(IF NOT EXISTS +)?(ecom\.)?[a-zA-Z_]+" database.sql \
-  | sed -E 's/CREATE TABLE +//I; s/IF NOT EXISTS +//I; s/ecom\.//' \
+# Sin \b: el motor de regex del git de macOS no lo soporta y -G no encontraba
+# ninguna tabla. "( |\(|$)" corta el nombre igual y anda en los dos.
+sed 's/--.*//' database.sql \
+  | grep -ioE "CREATE (OR REPLACE )?(TABLE|VIEW) +(IF NOT EXISTS +)?(ecom\.)?[a-zA-Z_]+" \
+  | sed -E 's/CREATE (OR REPLACE )?(TABLE|VIEW) +//I; s/IF NOT EXISTS +//I; s/ecom\.//' \
   | tr 'A-Z' 'a-z' | sort -u \
   | while read -r t; do
-      info=$(git log --reverse --format='%h|%an|%ad' --date=short \
-             -G"CREATE TABLE( IF NOT EXISTS)?( ecom\.)? *$t\b" -- database.sql 2>/dev/null | head -1)
+      info=$(git log -i --reverse --format='%h|%an|%ad' --date=short \
+             -G"CREATE (OR REPLACE )?(TABLE|VIEW)( IF NOT EXISTS)?( ecom\.)? *$t( |\(|$)" -- database.sql 2>/dev/null | head -1)
       if [ -n "$info" ]; then
         printf '%-34s %-9s %-18s %s\n' "$t" "${info%%|*}" \
           "$(echo "$info" | cut -d'|' -f2)" "$(echo "$info" | cut -d'|' -f3)"
@@ -59,21 +62,30 @@ echo "=== 3. TABLAS QUE EL CÓDIGO CONSULTA Y EL SCRIPT NO DEFINE ==============
 echo "(cada una existe solo en la base de quien la creó a mano)"
 python3 - <<'PY'
 import re, glob, os
-sql = open('database.sql').read()
+sql = re.sub(r'--[^\n]*', '', open('database.sql').read())
+# Vistas también: v_plan_efectivo es una VIEW y el código la consulta.
 defined = set(m.lower() for m in re.findall(
-    r'CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:ecom\.)?([a-zA-Z_]+)', sql, re.I))
+    r'CREATE\s+(?:OR\s+REPLACE\s+)?(?:TABLE|VIEW|MATERIALIZED\s+VIEW)\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:ecom\.)?([a-zA-Z_]+)',
+    sql, re.I))
 code = ''
 for f in glob.glob('**/*.js', recursive=True):
-    if 'node_modules' in f: continue
-    try: code += open(f, encoding='utf-8', errors='ignore').read()
+    if 'node_modules' in f or f.startswith('tests/'): continue
+    try: code += open(f, encoding='utf-8', errors='ignore').read() + '\n'
     except OSError: pass
-ruido = {'select','where','set','values','a','b','c','d','p','m','u','pi','pd','sub',
-         'only','lateral','unnest','generate_series','json_build_object','table',
-         'distinct','dual','t','x','e','cte'}
+# Sin comentarios: "FROM con", "JOIN y"... salían de la prosa, no del SQL. El
+# (^|\s) evita cortar URLs como https://.
+code = re.sub(r'/\*.*?\*/', ' ', code, flags=re.S)
+code = re.sub(r'(^|\s)(//|--)[^\n]*', r'\1', code)
+# Los nombres de CTE (WITH pagina AS (...)) no son tablas.
+ctes = set(m.lower() for m in re.findall(
+    r'\b([a-zA-Z_]\w*)\s+AS\s+(?:NOT\s+)?(?:MATERIALIZED\s+)?\(', code, re.I))
+ruido = {'select','where','set','values','only','lateral','unnest','generate_series',
+         'json_build_object','jsonb_array_elements','table','distinct','dual'}
 refs = {}
 for m in re.finditer(r'\b(?:FROM|JOIN|INTO|UPDATE|DELETE\s+FROM)\s+(?:ecom\.)?([a-zA-Z_][a-zA-Z0-9_]*)', code, re.I):
     t = m.group(1).lower()
-    if t in ruido or t in defined: continue
+    if t in ruido or t in defined or t in ctes or len(t) <= 2: continue
+    if t.startswith('pg_') or t == 'information_schema': continue
     refs[t] = refs.get(t, 0) + 1
 if refs:
     for t, n in sorted(refs.items(), key=lambda x: -x[1]):

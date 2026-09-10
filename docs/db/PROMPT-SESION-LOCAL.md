@@ -1,5 +1,9 @@
 # Prompt para una sesión local de Claude Code
 
+> **Ya se ejecutó (2026-09-10).** El resultado y las herramientas corregidas
+> están en [`README.md`](./README.md). Queda como registro de qué se pidió; para
+> revisar la base de nuevo alcanza con `comparar-con-database-sql.sh`.
+
 Copiá todo lo que está debajo de la línea y pegalo en una sesión nueva de Claude
 Code corriendo en la Mac, con los dos repos accesibles.
 
