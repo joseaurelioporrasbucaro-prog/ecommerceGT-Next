@@ -8,6 +8,7 @@ revisar la base para el salto a Centroamérica.
 | `auditoria-pgadmin.sql` | Misma auditoría en **una sola consulta**. | pgAdmin, DBeaver, cualquier GUI |
 | `auditoria-esquema.sql` | Le pregunta a la BD qué tablas e índices le faltan. Seis `SELECT`. | solo `psql -f` |
 | `indices-recomendados.sql` | Los `CREATE INDEX CONCURRENTLY` para lo que salga ALTA. | ambos |
+| `revisar-historial-backend.sh` | Quién agregó cada tabla al `database.sql`, y qué se quedó afuera. | clon del backend |
 
 **Desde pgAdmin:** abrí el Query Tool, pegá `auditoria-pgadmin.sql` completo y
 ejecutá (F5). Todo sale en una grilla, ordenado por prioridad.
@@ -50,6 +51,38 @@ Por eso la sección 2 de la auditoría lista **tablas que están en la BD y no
 figuran en ninguna documentación**. Esa consulta es la que contesta "¿qué creó
 otro dev que yo no tengo anotado?", y no depende de que mi inventario esté
 completo.
+
+## Quién agregó qué
+
+`revisar-historial-backend.sh` se corre sobre un clon del backend, no sobre la
+base:
+
+```bash
+git fetch --depth=1000 origin master     # si el clon es shallow
+./docs/db/revisar-historial-backend.sh /ruta/a/ecommerceGTBackEnd
+```
+
+Contesta cuatro cosas que el estado final del archivo no dice: quién tocó
+`database.sql`, qué commit introdujo cada tabla, qué tablas consulta el código
+sin que el script las defina —esas existen solo en la base de quien las creó a
+mano y se pierden al instalar en limpio— y qué índices se prometieron en un
+mensaje de commit sin llegar nunca al archivo.
+
+Sobre el historial que llega hasta el 2026-05-12 (remote personal viejo):
+
+- **cmiche (Cristóbal Miche)** creó `database.sql` completo el 24-abr en un solo
+  commit (`3190aae`): las 19 tablas fundacionales — catálogos, `customer`,
+  `business`, `publications`, `subscriptions`. **No volvió a tocar el archivo.**
+- **Aurelio** agregó las 5 siguientes entre el 29-abr y el 12-may:
+  `messages`, `publications_comments`, `comment_reports`, `seller_ratings`,
+  `comment_likes`.
+- **julio (jcgomez96)** nunca tocó `database.sql`.
+- Ningún DDL escondido en `.js`, y `database.sql` fue siempre el único `.sql`.
+
+El commit `01096d7` anuncia en su mensaje "Inclusión del índice
+`idx_messages_pub_id`". `git log -S` sobre todo el historial confirma que ese
+índice **nunca se escribió**. Es la razón concreta por la que `messages` no
+tiene un solo índice hoy: se dio por hecho.
 
 ## Inventario esperado
 
