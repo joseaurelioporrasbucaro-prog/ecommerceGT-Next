@@ -4,6 +4,10 @@
 # ============================================================================
 # Uso:  ./docs/db/revisar-historial-backend.sh /ruta/al/clon/de/ecommerceGTBackEnd
 #
+# Si tu clon del backend es completo (el normal de trabajo), no hace falta nada
+# antes. NO le pases 'git fetch --depth=N': sobre un clon completo eso lo vuelve
+# shallow y te trunca el historial. El script avisa si detecta un clon shallow.
+#
 # Contesta cuatro cosas que el estado final del archivo no dice:
 #   1. Quién tocó database.sql y cuándo.
 #   2. Qué commit introdujo cada tabla, y de quién es.
@@ -20,7 +24,14 @@ cd "$REPO" || { echo "No existe el repo: $REPO"; exit 1; }
 
 echo "== Repo: $(pwd)"
 echo "== Rango del historial local: $(git log --format='%ad' --date=short | tail -1) → $(git log --format='%ad' --date=short | head -1)"
-echo "   (si el clon es shallow, corré antes: git fetch --depth=1000 origin master)"
+if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = "true" ]; then
+  echo ""
+  echo "   !! CLON SHALLOW — el historial está truncado y este reporte va a mentir."
+  echo "      Corré primero:  git fetch --depth=1000 origin master"
+else
+  echo "   Clon completo. NO uses 'git fetch --depth=N' acá: sobre un clon completo"
+  echo "   lo vuelve shallow y te trunca el historial. Con 'git fetch origin master' basta."
+fi
 echo ""
 
 echo "=== 1. QUIÉN TOCÓ database.sql ============================================"

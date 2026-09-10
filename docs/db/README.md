@@ -58,9 +58,15 @@ completo.
 base:
 
 ```bash
-git fetch --depth=1000 origin master     # si el clon es shallow
-./docs/db/revisar-historial-backend.sh /ruta/a/ecommerceGTBackEnd
+./docs/db/revisar-historial-backend.sh "/Users/joseaurelioporras/Documents/Proyectos Git /ecommerceGTBackEnd"
 ```
+
+Ojo con las comillas: el directorio se llama `Proyectos Git ` **con un espacio
+al final**, así que sin comillas bash parte la ruta en dos.
+
+Si el clon del backend es completo —el normal de trabajo— no hace falta nada
+antes. **No le pases `git fetch --depth=N`**: sobre un clon completo eso lo
+vuelve shallow y trunca el historial. El script detecta el caso y avisa.
 
 Contesta cuatro cosas que el estado final del archivo no dice: quién tocó
 `database.sql`, qué commit introdujo cada tabla, qué tablas consulta el código
