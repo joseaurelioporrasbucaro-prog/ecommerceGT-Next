@@ -68,6 +68,15 @@ defecto de libuv).
   `ecommerceGTBackEnd/docs/sql/`. La de índices del listado
   (`2026-08-11-indices-listado.sql`) es la que sostiene el rendimiento medido.
   La de `2026-08-13-estado-pausada.sql` ya la corrió Aurelio ✅.
+  **Antes que eso**, correr `docs/db/comparar-con-database-sql.sh` con
+  `DATABASE_URL` apuntando a producción: dice todo lo que le falta respecto de
+  `database.sql`, sin listas a mano. El 2026-09-10 la base local estaba atrasada
+  un mes —faltaban `v_plan_efectivo`, `pub_origin`, `business.sub_id`,
+  `customer.cou_id`, `stories` y más, y crear publicación daba 500—. Si la base
+  de Render ya existe, puede estar igual o peor, y
+  `docs/db/migracion-2026-09-10.sql` es el punto de partida (idempotente, en
+  una transacción). Si se crea de cero, `database.sql` alcanza: desde el
+  2026-09-09 corre entero.
 - **Backup de la BD** antes del primer deploy con migraciones.
 
 ### A5 · Rotar TODOS los secretos 🔴🔴 — lo más urgente de esta lista
@@ -217,6 +226,7 @@ de usuario como HTML. Hoy React escapa solo; el riesgo aparecería con
 | **17 · Paleta de marca** | 🟡 parcial | Faltan WP-3 filtros, WP-5 detalle, WP-6 upload, WP-7 pricing, y Batch C. Ver `PENDING_PHASE_BRAND_KIOSQUI.md` y `KIOSQUI_BRAND_GAPS.md`. |
 | **14 · i18n** | ✅ | Hecha. `next-intl` con `/es` y `/en`. |
 | **8.2 · Privacidad de verificación** | ✅ | `uploads/verification` devuelve 403 y la descarga va por endpoint autenticado de soporte. |
+| **Centroamérica + USD** | ⬜ siguiente | Aurelio la marcó como la fase que sigue a poner la base al día (2026-09-10). Ya está: precio dual Q/US$ (`964ae3c`), El Salvador en el catálogo del backend, `customer.cou_id`. Falta: moneda de planes y de pauta, filtro de precio que ignora la moneda, `502` hardcodeado en 4 componentes del web, mapa solo con municipios de Guatemala. Detalle verificado en [`db/README.md`](./db/README.md#lo-que-falta-para-usd-y-centroamérica). |
 
 ---
 
@@ -245,6 +255,20 @@ dos campañas vivas por publicación aunque el código falle.
 ---
 
 ## D · Deuda técnica anotada
+
+- **Índices de rendimiento fuera de `database.sql`** 🟡 — `messages` no tiene
+  un solo índice fuera de la PK (el `idx_messages_pub_id` que anunció `01096d7`
+  nunca se escribió), y tampoco los tienen `publications_favorites`,
+  `seller_ratings.seller_id` ni el listado de "mis publicaciones". Los 9 que
+  hacen falta según las queries actuales están en
+  [`db/indices-recomendados.sql`](./db/indices-recomendados.sql). Crearlos solo
+  en una base la desalinea del archivo; lo que corresponde es sumarlos a
+  `database.sql` del backend (coordinar con cmiche) y a la migración de prod.
+  De paso, sacar `idx_publications_pub_slug`: duplica el índice del `UNIQUE` de
+  `pub_slug`. (2026-09-10)
+- **"PENDIENTE BACKEND" desactualizado en `src/types/api.ts`** 🟢 — los
+  comentarios de `priceAlt`/`currencyAlt` dicen que falta el backend; existe
+  desde `964ae3c` (2026-06-12) y `GET /publications` ya los devuelve.
 
 - **Labels huérfanos en los formularios de auth** 🟡 — hallazgo de los tests del
   Hito 3, confirmado: `LoginFrom.tsx` tiene `<label htmlFor="m-id">` y el input
