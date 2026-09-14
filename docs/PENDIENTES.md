@@ -72,7 +72,9 @@ defecto de libuv).
   puede tener más cuota que la que da el plan de su empresa. A quien hoy tenga
   un override por encima del plan le baja el límite (no pierde publicaciones,
   pero no crea más): correr ANTES la consulta de verificación del final del
-  archivo para ver a quién le cambia. Correrla también en la base local.
+  archivo para ver a quién le cambia. En la base local ya está aplicada ✅
+  (2026-09-13: le bajó el límite a un solo usuario de prueba, de 50 a 10, que
+  no tenía publicaciones activas; el comparador dio 0 diferencias).
   **Antes que eso**, correr `docs/db/comparar-con-database-sql.sh` con
   `DATABASE_URL` apuntando a producción: dice todo lo que le falta respecto de
   `database.sql`, sin listas a mano. El 2026-09-10 la base local estaba atrasada
