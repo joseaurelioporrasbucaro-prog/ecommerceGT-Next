@@ -68,6 +68,11 @@ defecto de libuv).
   `ecommerceGTBackEnd/docs/sql/`. La de índices del listado
   (`2026-08-11-indices-listado.sql`) es la que sostiene el rendimiento medido.
   La de `2026-08-13-estado-pausada.sql` ya la corrió Aurelio ✅.
+  **Pendiente de correr: `2026-09-13-techo-del-plan.sql`** — un empleado no
+  puede tener más cuota que la que da el plan de su empresa. A quien hoy tenga
+  un override por encima del plan le baja el límite (no pierde publicaciones,
+  pero no crea más): correr ANTES la consulta de verificación del final del
+  archivo para ver a quién le cambia. Correrla también en la base local.
   **Antes que eso**, correr `docs/db/comparar-con-database-sql.sh` con
   `DATABASE_URL` apuntando a producción: dice todo lo que le falta respecto de
   `database.sql`, sin listas a mano. El 2026-09-10 la base local estaba atrasada

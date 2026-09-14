@@ -132,6 +132,7 @@ const CompanyTeamMain = () => {
                                 <input
                                   type="number"
                                   min={0}
+                                  max={subQuery.data?.pubPerUser}
                                   className="kq-input tm-limit-input"
                                   placeholder={t('team.plan')}
                                   value={valueFor(m.cusid, m.publimit)}
