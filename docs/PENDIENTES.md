@@ -128,6 +128,29 @@ Hay que **rotar la contraseña en Postgres** y actualizar la env var.
 
 Aurelio pidió tratarla como fase aparte. Esto es lo que quedó abierto.
 
+### B0 · Auditoría de cobertura del 2026-09-11 — 4 agujeros críticos (3 cerrados el 2026-09-13) 🟠
+
+Salieron de cruzar las 150 rutas de `server.js` contra los 44 specs (83 rutas no
+las toca ningún test) y leer los handlers de las que quedaron sin cubrir. Los
+cuatro están **verificados leyendo el código**, no solo reportados por un agente.
+
+| Ruta | Qué pasa | Estado |
+| --- | --- | --- |
+| `POST /changestatus` (server.js:238) | **Sin sesión**, cualquiera cambia el `passta_id` de cualquier cuenta: `update ecom.customer set passta_id=$1 where cus_id=$2` con `cusid` y `passtat` del body (connPostgresDB.js:464). Deja a cualquiera fuera de su cuenta. El web **no la usa** — falta confirmar si la usa mobile. **Aurelio decidió no tocarla hasta que responda Cristóbal.** | 🔴 abierto, esperando a mobile |
+| `POST /getemployees` (server.js:251) | **Sin sesión**, con un `busid` del body devuelve nombre, **correo** y `cus_is_admin` de todos los empleados de esa empresa (connPostgresDB.js:820). Los `bus_id` son cortos y enumerables. El hook `useEmployees` existe en `useCompany.ts` pero ninguna pantalla lo llama. | ✅ 2026-09-13: la ruta exige sesión y el `bus_id` sale de ella, como en B1 |
+| `POST /cat/cities` y `POST /cat/municipalities` (server.js:255-256) | `if (error) throw error` dentro del callback de `pg` (connPostgresDB.js:1166 y 1176) → excepción no capturada → **el proceso se cae**. Un `{"country":"abc"}` sin sesión tumba el backend, y se puede repetir en bucle. No hay `uncaughtException` ni `unhandledRejection` en todo el repo. Mismo patrón en 9 handlers más de catálogo. | ✅ 2026-09-13: los 11 responden 500 ante error de BD y 400 ante un id no numérico |
+| `POST /addpubl` (server.js:320) | El `await pool.query` de arriba no tiene `try/catch` (connPostgresDB.js:1185): un `idpubli` no numérico deja una promesa rechazada sin capturar y, en Node 22+, **mata el proceso**. Requiere sesión. | ✅ 2026-09-13: valida el id (400), verifica que la publicación exista (404) y ya no guarda favoritos con pub_id NULL |
+
+Los dos últimos son una **caída remota del backend**, no una fuga: en Render el
+proceso reinicia, pero se puede repetir. Cuentan como bloqueo de lanzamiento.
+
+Además, 6 hallazgos de severidad alta sin verificar todavía uno por uno:
+`/deleteimg` borra del disco la imagen de cualquiera (no mira dueño),
+`/update-avatar` y `/update-cover` aceptan una ruta del cliente y de ahí depende
+un borrado, XSS almacenado en `GET /viewer`, `/search-buyers` devuelve correos de
+todos los usuarios a cualquier sesión, y `GET /publication/:id` sigue sirviendo
+publicaciones anuladas.
+
 ### B1 · `POST /changeinfoc` no verificaba de quién era la empresa ✅ (2026-08-13)
 
 El handler **nunca leía `request.user`**: tomaba `busid` del body y escribía.
