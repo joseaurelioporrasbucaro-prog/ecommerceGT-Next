@@ -152,7 +152,7 @@ Los dos últimos son una **caída remota del backend**, no una fuga: en Render e
 proceso reinicia, pero se puede repetir. Cuentan como bloqueo de lanzamiento.
 
 Además, 6 hallazgos de severidad alta sin verificar todavía uno por uno:
-`/deleteimg` borra del disco la imagen de cualquiera (no mira dueño),
+`/deleteimg` borra del disco la imagen de cualquiera (no mira dueño — **verificado el 2026-09-28**: el handler pasa la `url` del body directo a `borrarJuegoDeImagen`, y las URLs de las fotos son públicas),
 `/update-avatar` y `/update-cover` aceptan una ruta del cliente y de ahí depende
 un borrado, XSS almacenado en `GET /viewer`, `/search-buyers` devuelve correos de
 todos los usuarios a cualquier sesión, y `GET /publication/:id` sigue sirviendo
