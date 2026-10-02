@@ -802,4 +802,33 @@ tests/
 
 ---
 
-**Última actualización:** 2026-08-14 (Hito 3 de automatización frontend — T-125..T-129)
+## Cobertura automatizada del backend — Hito 4
+
+Specs de `ecommerceGTBackEnd/tests/api/` que nacieron de la auditoría de cobertura
+del 2026-09-11 (83 de 150 rutas no las tocaba ningún test). Todos tienen, por
+ruta, los tres casos de la casa —sin sesión, sesión ajena y sesión propia— y
+cada test se vio en ROJO rompiendo a propósito el código que prueba.
+
+> **Pendiente:** el mapeo uno a uno de estos specs a los T-NN de arriba. Hasta
+> entonces, los casos de permisos de estas rutas se consideran 🤖 AUTOMATED
+> aunque su T-NN no lo diga.
+
+| Entrega | Spec | Qué previene |
+| --- | --- | --- |
+| 1 · 2026-09-13 | `security/caidas-y-empleados.spec.js` | Que un id inválido en `/cat/cities`, `/cat/municipalities` o `/addpubl` tumbe el proceso; que `/getemployees` filtre correos de otra empresa |
+| 2 · 2026-09-14 | `payments/metodos-permisos.spec.js` | Leer, borrar o elegir los métodos de pago de otro; exponer el token de la pasarela |
+| 2 · 2026-09-14 | `subscriptions/equipo-permisos.spec.js` | Cruzar empresas por ids del body, aceptar o cancelar invitaciones ajenas, pasarse del cupo de asientos |
+| 2 · 2026-09-14 | `campaigns/lecturas-y-config-permisos.spec.js` | Leer o reconciliar pauta ajena, acreditar dos veces el remanente, que un admin de empresa cambie precios de plataforma |
+| 2 · 2026-09-13 | `subscriptions/cuota-empleado-plan.spec.js` | Que un empleado tenga más cuota que la que da el plan de su empresa |
+| 3 · 2026-10-02 | `uploads/imagenes-permisos.spec.js` | Borrar documentos de verificación o assets del sitio ajenos, cambiar el avatar o la portada de otro, sacar un asset del directorio con `../` |
+| 3 · 2026-10-02 | `auth/credenciales-permisos.spec.js` | Cambiar la contraseña sin la actual, reusar códigos de recuperación o verificación |
+| 3 · 2026-10-02 | `auth/perfil-permisos.spec.js` | Tomar el handle de otro, editar el perfil ajeno, leer datos privados en el perfil público |
+| 3 · 2026-10-02 | `publications/ajenas-permisos.spec.js` | Editar, borrar o promocionar la publicación de otro, pausar o finalizar su campaña |
+| 3 · 2026-10-02 | `*-permisos-regresiones.spec.js` (4) | Que vuelvan los 6 bugs arreglados el 2026-10-02 (ver PENDIENTES §B0) |
+
+Los tests que demuestran bugs todavía sin arreglar (`*.bloqueo.spec.js`) no
+están en `develop`: viven en la rama `bloqueo/tanda-3-decisiones` del backend.
+
+---
+
+**Última actualización:** 2026-10-02 (cobertura automatizada del backend, Hito 4 entregas 1 a 3)

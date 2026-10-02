@@ -135,7 +135,7 @@ Hay que **rotar la contraseña en Postgres** y actualizar la env var.
 
 Aurelio pidió tratarla como fase aparte. Esto es lo que quedó abierto.
 
-### B0 · Auditoría de cobertura del 2026-09-11 — 4 agujeros críticos (3 cerrados el 2026-09-13) 🟠
+### B0 · Auditoría de cobertura del 2026-09-11 — críticos cerrados salvo los que esperan decisión 🟠
 
 Salieron de cruzar las 150 rutas de `server.js` contra los 44 specs (83 rutas no
 las toca ningún test) y leer los handlers de las que quedaron sin cubrir. Los
@@ -151,12 +151,44 @@ cuatro están **verificados leyendo el código**, no solo reportados por un agen
 Los dos últimos son una **caída remota del backend**, no una fuga: en Render el
 proceso reinicia, pero se puede repetir. Cuentan como bloqueo de lanzamiento.
 
-Además, 6 hallazgos de severidad alta sin verificar todavía uno por uno:
-`/deleteimg` borra del disco la imagen de cualquiera (no mira dueño — **verificado el 2026-09-28**: el handler pasa la `url` del body directo a `borrarJuegoDeImagen`, y las URLs de las fotos son públicas),
-`/update-avatar` y `/update-cover` aceptan una ruta del cliente y de ahí depende
-un borrado, XSS almacenado en `GET /viewer`, `/search-buyers` devuelve correos de
-todos los usuarios a cualquier sesión, y `GET /publication/:id` sigue sirviendo
-publicaciones anuladas.
+**Entrega 3 de tests (2026-10-02, backend `fc53480`)** — cuenta y subidas: 93
+tests nuevos en 16 rutas. Encontraron 16 bugs. **Seis quedaron arreglados**, cada
+uno con el test que lo demostraba en rojo y ahora protege contra la regresión:
+
+- ✅ `POST /campaigns`: una fecha inválida **tumbaba el proceso** (la introdujo
+  `a26f00f`, la validación de fechas pasadas de agosto).
+- ✅ `GET /viewer`: XSS almacenado por la URL del GLB. Se escapa la salida y la
+  escritura solo acepta `/uploads/...` con `" ' < > \`` codificados.
+- ✅ `/upload-site-asset`: ahora exige rol admin.
+- ✅ `/verify/:token`: era reutilizable y desbloqueaba cuentas bloqueadas.
+- ✅ `/changepwd`: aceptaba contraseñas vacías (ahora mínimo 8).
+- ✅ `PUT /handle`: guardar el mismo handle gastaba un cambio.
+
+**Cuatro esperan decisión de Aurelio** — sus tests en rojo están en la rama
+`bloqueo/tanda-3-decisiones` del backend:
+
+1. 🔴 **Fotos:** `/deleteimg` borra las fotos de cualquier publicación, y
+   `/update-avatar` y `/update-cover` aceptan rutas ajenas (la llamada siguiente
+   borra ese juego) o URLs de otro sitio. Falta decidir cómo registrar de quién
+   es cada archivo subido: las fotos recién subidas todavía no están en ninguna
+   publicación.
+2. 🟠 **Sesiones:** cambiar la contraseña no invalida las sesiones ya emitidas
+   (cookie de 1 h, Bearer de la app de 30 días).
+3. 🟡 **Tope de intentos:** en `/changepwd` la contraseña actual se puede adivinar
+   sin límite. Opciones: sumar al contador del login (bloquea la cuenta, y quien
+   robó la sesión podría bloquear a la dueña) o un tope propio que responda 429.
+4. 🟠 **Dirección:** `/infoCustomer/:id` devuelve la dirección exacta a
+   cualquiera, aunque el usuario tenga la ubicación oculta. El web no la usa;
+   **falta confirmar con Cristóbal si la usa la app** antes de sacarla.
+
+Siguen sin test, de la auditoría: `/search-buyers` (devuelve correos de todos
+los usuarios a cualquier sesión) y `GET /publication/:id` (sirve publicaciones
+anuladas) — van en la tanda 5.
+
+**Antes del deploy:** en producción, confirmar que ninguna fila de
+`publications_images_glb` tenga una `pubimaglb_url` fuera de `/uploads/`: desde
+`fc53480`, editar esa publicación respondería 400. En la base local hay 2 y las
+dos están bien.
 
 ### B1 · `POST /changeinfoc` no verificaba de quién era la empresa ✅ (2026-08-13)
 
