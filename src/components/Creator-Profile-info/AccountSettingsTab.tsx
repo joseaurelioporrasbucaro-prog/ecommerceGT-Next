@@ -1,13 +1,15 @@
 "use client"
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/utils/AuthContext';
-import { ApiFetch } from '@/utils/Api';
+import { ApiError, ApiFetch } from '@/utils/Api';
 import { toast } from 'react-toastify';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
 const AccountSettingsTab = () => {
-    const { user } = useAuth();
+    const { user, logout, setUserForgot } = useAuth();
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
 
     const formik = useFormik({
@@ -36,8 +38,26 @@ const AccountSettingsTab = () => {
                 });
                 toast.success(res.message || "¡Contraseña actualizada!");
                 resetForm();
-            } catch (error: any) {
-                toast.error(error.message || "Error al cambiar contraseña");
+            } catch (error: unknown) {
+                const mensaje = error instanceof ApiError ? error.message : "Error al cambiar contraseña";
+                // Al quinto intento fallido de la contraseña actual el backend deja
+                // la cuenta en "debe restablecer la contraseña" y cierra todas sus
+                // sesiones, incluida esta. Quedarse acá sería quedarse en una
+                // pantalla que ya responde 401 a todo: se limpia la sesión del
+                // cliente y se lleva a restablecerla, que es la única salida.
+                const debeRestablecer = error instanceof ApiError
+                    && error.status === 403
+                    && typeof error.body === 'object' && error.body !== null
+                    && (error.body as Record<string, unknown>).mustResetPassword === true;
+                if (debeRestablecer) {
+                    toast.error(mensaje, { autoClose: 8000 });
+                    const email = user?.email;
+                    await logout().catch(() => { });
+                    if (email && setUserForgot) setUserForgot({ email });
+                    router.push('/forgot');
+                    return;
+                }
+                toast.error(mensaje);
             } finally {
                 setLoading(false);
             }

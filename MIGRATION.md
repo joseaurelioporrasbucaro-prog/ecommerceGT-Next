@@ -4501,3 +4501,37 @@ ALTER TABLE ecom.customer
 - Tiempo total observado: ~1.2s en la corrida local final, por debajo del límite de 30s.
 
 **Nota:** el plan original pedía `docs/MIGRATION.md`, pero la bitácora real del repo es `MIGRATION.md` en la raíz. Se actualiza este archivo para mantener una sola fuente de verdad.
+
+### 2026-10-06 — Registro de subidas y sesiones que se cierran ✅
+
+Dos cambios de esquema del backend (`5c4662f`), por decisión de Aurelio sobre
+los bugs que encontró la entrega 3 de tests. El detalle está en
+`docs/PENDIENTES.md` §B0 y en `ecommerceGTBackEnd/docs/API_REFERENCE.md`.
+
+**Cambios en `database.sql`** (dentro de los `CREATE TABLE`, §12.1):
+
+- Tabla nueva `ecom.uploaded_files (upl_id, upl_key UNIQUE, cus_id BIGINT FK →
+  ecom.customer ON DELETE CASCADE, upl_created_at)`: de quién es cada juego de
+  archivos subido por `/upload`.
+- Columna nueva `customer.cus_sessions_valid_from TIMESTAMPTZ NULL`: desde
+  cuándo valen las sesiones de la cuenta.
+
+**Migración para BDs existentes** — en `ecommerceGTBackEnd/docs/sql/`, las dos
+idempotentes:
+
+- `2026-10-06-sesiones-validas-desde.sql` — agrega la columna. No cierra la
+  sesión de nadie.
+- `2026-10-06-registro-de-subidas.sql` — crea la tabla y registra lo ya subido,
+  deduciéndolo de dónde está usado. Un archivo queda registrado solo si TODAS
+  sus referencias apuntan a la misma persona; con dos candidatos no es de nadie.
+
+**Orden de despliegue:** migrar → desplegar → volver a correr
+`registro-de-subidas.sql` (recoge lo subido en el intervalo).
+
+**Frontend:** `AccountSettingsTab` maneja el 403 `mustResetPassword` de
+`/changepwd`: cierra la sesión del cliente y lleva a `/forgot`.
+
+**Verificado:** suite del backend 626/626 tres veces seguidas y con tres
+semillas aleatorias; 43 mutaciones dirigidas detectadas. Frontend: `tsc
+--noEmit` limpio y `next build` pasa.
+

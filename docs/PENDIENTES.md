@@ -68,7 +68,25 @@ defecto de libuv).
   `ecommerceGTBackEnd/docs/sql/`. La de índices del listado
   (`2026-08-11-indices-listado.sql`) es la que sostiene el rendimiento medido.
   La de `2026-08-13-estado-pausada.sql` ya la corrió Aurelio ✅.
-  **Pendiente de correr: `2026-09-13-techo-del-plan.sql`** — un empleado no
+  **Pendientes de correr, y EN ESTE ORDEN respecto del deploy** (el detalle
+  está en la cabecera de cada archivo):
+  1. `2026-10-06-sesiones-validas-desde.sql` y
+     `2026-10-06-registro-de-subidas.sql` — ANTES de desplegar el backend
+     `5c4662f` o posterior. El backend viejo los ignora.
+  2. Desplegar.
+  3. Volver a correr `2026-10-06-registro-de-subidas.sql`: recoge lo subido
+     entre el paso 1 y el 2. Mirar la consulta de verificación del final: lista
+     los archivos que quedaron sin dueño por tener dos candidatos.
+
+  Si se despliega antes de migrar el backend no se cae (avisa `BASE SIN MIGRAR`
+  en el log), pero avatar, portada, logo, `/deleteimg` y `/changepwd` responden
+  error hasta correrlas. En la base local ya están ✅ (2026-10-06: 37 archivos
+  registrados, ninguno en disputa).
+  **Avisar a Cristóbal antes de desplegar**: cambia el contrato de `/changepwd`
+  (la app tiene que guardar el `token` nuevo), aparecen `auth.session_expired`
+  e `image.not_owned`. Está en `docs/API_REFERENCE.md` del backend.
+
+  **También pendiente: `2026-09-13-techo-del-plan.sql`** — un empleado no
   puede tener más cuota que la que da el plan de su empresa. A quien hoy tenga
   un override por encima del plan le baja el límite (no pierde publicaciones,
   pero no crea más): correr ANTES la consulta de verificación del final del
@@ -164,22 +182,38 @@ uno con el test que lo demostraba en rojo y ahora protege contra la regresión:
 - ✅ `/changepwd`: aceptaba contraseñas vacías (ahora mínimo 8).
 - ✅ `PUT /handle`: guardar el mismo handle gastaba un cambio.
 
-**Cuatro esperan decisión de Aurelio** — sus tests en rojo están en la rama
-`bloqueo/tanda-3-decisiones` del backend:
+**Decisiones de Aurelio del 2026-10-06** — tres resueltas (backend `5c4662f`),
+una en espera:
 
-1. 🔴 **Fotos:** `/deleteimg` borra las fotos de cualquier publicación, y
-   `/update-avatar` y `/update-cover` aceptan rutas ajenas (la llamada siguiente
-   borra ese juego) o URLs de otro sitio. Falta decidir cómo registrar de quién
-   es cada archivo subido: las fotos recién subidas todavía no están en ninguna
-   publicación.
-2. 🟠 **Sesiones:** cambiar la contraseña no invalida las sesiones ya emitidas
-   (cookie de 1 h, Bearer de la app de 30 días).
-3. 🟡 **Tope de intentos:** en `/changepwd` la contraseña actual se puede adivinar
-   sin límite. Opciones: sumar al contador del login (bloquea la cuenta, y quien
-   robó la sesión podría bloquear a la dueña) o un tope propio que responda 429.
-4. 🟠 **Dirección:** `/infoCustomer/:id` devuelve la dirección exacta a
-   cualquiera, aunque el usuario tenga la ubicación oculta. El web no la usa;
-   **falta confirmar con Cristóbal si la usa la app** antes de sacarla.
+1. ✅ **Fotos:** tabla `ecom.uploaded_files`: `/upload` anota quién subió cada
+   archivo. `/deleteimg` solo borra lo propio; avatar, portada y logo (que tenía
+   el mismo agujero sin reportar) solo aceptan una foto propia o la que ya
+   estaba; `/changeinfob` ignora la imagen que no corresponde y guarda el resto.
+2. ✅ **Sesiones:** `customer.cus_sessions_valid_from`. Cambiar o restablecer la
+   contraseña cierra las demás sesiones; la que hace el cambio recibe una nueva.
+3. ✅ **Tope de intentos:** al quinto fallo de la contraseña actual en
+   `/changepwd` la cuenta queda en "debe restablecer", sin espera y con todas
+   las sesiones cerradas. Los intentos se reservan con un incremento atómico:
+   en paralelo tampoco se pasa de cinco.
+4. 🟠 **Dirección — EN ESPERA:** `/infoCustomer/:id` devuelve la dirección
+   exacta a cualquiera, aunque el usuario tenga la ubicación oculta. El web no
+   la usa; **falta confirmar con Cristóbal si la usa la app** antes de sacarla.
+   Sus 3 tests en rojo siguen en la rama `bloqueo/tanda-3-decisiones`.
+
+**Lo que dejó anotado la revisión de ese cambio** (no se hizo, a propósito):
+
+- 🟠 **Banear, suspender o dar de baja una cuenta no le cierra las sesiones**:
+  un usuario baneado sigue operando hasta 30 días con el token de la app. Ya
+  pasaba antes; ahora el arreglo es una línea por caso (mover
+  `cus_sessions_valid_from`). Amplía la decisión 2: **falta el OK de Aurelio.**
+- 🟡 Los fallos del contador de contraseña no vencen: cuatro fallos de login de
+  hace semanas dejan a la dueña a un error de tipeo del bloqueo en `/changepwd`.
+  Arreglo: guardar la fecha del último fallo y reiniciar pasada una hora.
+- 🟡 Un login en vuelo justo cuando se cambia la contraseña puede salir con una
+  sesión válida para la contraseña vieja. Ventana de milisegundos, no se puede
+  provocar a voluntad.
+- 🟡 Los archivos de una cuenta eliminada quedan publicados para siempre. Con
+  `uploaded_files` ya se puede saber cuáles son: falta borrarlos al anonimizar.
 
 Siguen sin test, de la auditoría: `/search-buyers` (devuelve correos de todos
 los usuarios a cualquier sesión) y `GET /publication/:id` (sirve publicaciones
