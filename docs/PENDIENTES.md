@@ -161,7 +161,7 @@ cuatro están **verificados leyendo el código**, no solo reportados por un agen
 
 | Ruta | Qué pasa | Estado |
 | --- | --- | --- |
-| `POST /changestatus` (server.js:238) | **Sin sesión**, cualquiera cambia el `passta_id` de cualquier cuenta: `update ecom.customer set passta_id=$1 where cus_id=$2` con `cusid` y `passtat` del body (connPostgresDB.js:464). Deja a cualquiera fuera de su cuenta. El web **no la usa** — falta confirmar si la usa mobile. **Aurelio decidió no tocarla hasta que responda Cristóbal.** | 🔴 abierto, esperando a mobile |
+| `POST /changestatus` | **Sin sesión**, cualquiera cambiaba el `passta_id` de cualquier cuenta. | ✅ 2026-10-13: eliminada. No la usaban ni el web ni la app (confirmado por mobile). |
 | `POST /getemployees` (server.js:251) | **Sin sesión**, con un `busid` del body devuelve nombre, **correo** y `cus_is_admin` de todos los empleados de esa empresa (connPostgresDB.js:820). Los `bus_id` son cortos y enumerables. El hook `useEmployees` existe en `useCompany.ts` pero ninguna pantalla lo llama. | ✅ 2026-09-13: la ruta exige sesión y el `bus_id` sale de ella, como en B1 |
 | `POST /cat/cities` y `POST /cat/municipalities` (server.js:255-256) | `if (error) throw error` dentro del callback de `pg` (connPostgresDB.js:1166 y 1176) → excepción no capturada → **el proceso se cae**. Un `{"country":"abc"}` sin sesión tumba el backend, y se puede repetir en bucle. No hay `uncaughtException` ni `unhandledRejection` en todo el repo. Mismo patrón en 9 handlers más de catálogo. | ✅ 2026-09-13: los 11 responden 500 ante error de BD y 400 ante un id no numérico |
 | `POST /addpubl` (server.js:320) | El `await pool.query` de arriba no tiene `try/catch` (connPostgresDB.js:1185): un `idpubli` no numérico deja una promesa rechazada sin capturar y, en Node 22+, **mata el proceso**. Requiere sesión. | ✅ 2026-09-13: valida el id (400), verifica que la publicación exista (404) y ya no guarda favoritos con pub_id NULL |
@@ -195,10 +195,14 @@ una en espera:
    `/changepwd` la cuenta queda en "debe restablecer", sin espera y con todas
    las sesiones cerradas. Los intentos se reservan con un incremento atómico:
    en paralelo tampoco se pasa de cinco.
-4. 🟠 **Dirección — EN ESPERA:** `/infoCustomer/:id` devuelve la dirección
-   exacta a cualquiera, aunque el usuario tenga la ubicación oculta. El web no
-   la usa; **falta confirmar con Cristóbal si la usa la app** antes de sacarla.
-   Sus 3 tests en rojo siguen en la rama `bloqueo/tanda-3-decisiones`.
+4. ✅ **Dirección** (2026-10-13): la app sí la muestra, así que el campo no se
+   saca: `/infoCustomer/:id` la devuelve en `null` cuando el usuario tiene la
+   ubicación oculta. Con la ubicación visible se sigue mostrando.
+   🟡 Queda de producto: el interruptor del web dice "Mostrar mi ubicación
+   (departamento y municipio)" pero encenderlo también publica la dirección
+   exacta. O se cambia ese texto, o la app deja de mostrarla.
+
+La rama `bloqueo/tanda-3-decisiones` se borró: no queda ningún test en rojo.
 
 **Lo que dejó anotado la revisión de ese cambio** (no se hizo, a propósito):
 
