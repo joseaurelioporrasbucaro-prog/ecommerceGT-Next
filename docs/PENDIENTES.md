@@ -206,10 +206,9 @@ La rama `bloqueo/tanda-3-decisiones` se borró: no queda ningún test en rojo.
 
 **Lo que dejó anotado la revisión de ese cambio** (no se hizo, a propósito):
 
-- 🟠 **Banear, suspender o dar de baja una cuenta no le cierra las sesiones**:
-  un usuario baneado sigue operando hasta 30 días con el token de la app. Ya
-  pasaba antes; ahora el arreglo es una línea por caso (mover
-  `cus_sessions_valid_from`). Amplía la decisión 2: **falta el OK de Aurelio.**
+- ✅ (2026-10-20, OK de Aurelio) **Banear, suspender, desactivar o pedir la
+  eliminación de la cuenta cierra todas sus sesiones**, también la de la app.
+  Antes el baneado seguía operando hasta 30 días con el token que tenía.
 - 🟡 Los fallos del contador de contraseña no vencen: cuatro fallos de login de
   hace semanas dejan a la dueña a un error de tipeo del bloqueo en `/changepwd`.
   Arreglo: guardar la fecha del último fallo y reiniciar pasada una hora.
@@ -219,9 +218,61 @@ La rama `bloqueo/tanda-3-decisiones` se borró: no queda ningún test en rojo.
 - 🟡 Los archivos de una cuenta eliminada quedan publicados para siempre. Con
   `uploaded_files` ya se puede saber cuáles son: falta borrarlos al anonimizar.
 
-Siguen sin test, de la auditoría: `/search-buyers` (devuelve correos de todos
-los usuarios a cualquier sesión) y `GET /publication/:id` (sirve publicaciones
-anuladas) — van en la tanda 5.
+**Tandas 4 y 5 (2026-10-20, backend `c219859`)** — soporte, verificación,
+tickets, lo social y lo público: 118 tests nuevos. De las 150 rutas quedan 3 sin
+mencionar en ningún test (`/contact`, `/submit-survey` y `/`), y las tres se
+probaron a mano con basura. Suite: **795/795**, también barajada. Arreglado, cada
+uno con su test en rojo contra el código anterior:
+
+- ✅ **Caída remota con cualquier sesión:** `/tickets`, `/addcomment` y
+  `/messages/send` tumbaban el proceso con `{"subject": 123}` (un `.trim()`
+  fuera del try). Ahora responden 400, y además hay una red general
+  (`utils/rutasAsync.js`): si cualquier otra ruta lanza fuera de su try, ese
+  pedido da 500 y el resto sigue atendiendo. Los errores salen en JSON, ya no
+  en la página HTML de Express.
+- ✅ **Antifraude:** el hash del DPI que se guarda al banear era el mismo para
+  todas las cuentas (se hasheaba `"[object Object]"`).
+- ✅ **Lo pausado se seguía publicando:** al pedir la eliminación de la cuenta,
+  sus publicaciones seguían en el listado, el mapa y el sitemap los 30 días. Y
+  `GET /publication/:id` servía las anuladas a cualquiera; ahora solo las ven
+  su dueño y soporte.
+- ✅ `/search-buyers` sin término o con `%` listaba cuentas: ahora pide 2
+  caracteres, `%`/`_` son texto y solo aparecen cuentas activas.
+- ✅ `/search/users` con `?q` repetido lanzaba; seguirse a uno mismo daba 500.
+
+**Esperan decisión** (no se tocaron porque cambian lo que reciben el web o la
+app):
+
+- 🟠 **`/search-buyers` devuelve el correo** de cada resultado a cualquier
+  sesión: con 2 letras se recorre la base. El web lo usa al invitar a alguien
+  al equipo y muestra el correo. *Recomendación:* devolver el correo
+  enmascarado (`j***@gmail.com`) y completo solo si el término es el correo
+  exacto. Hay que avisarle a la app.
+- 🟠 **`/appeal` (sin sesión) deja apelar en nombre de cualquier cuenta
+  sancionada** y responde distinto según exista la cuenta y su estado, así
+  que sirve para averiguar quién está baneado. También le gasta las 3
+  apelaciones diarias a la verdadera dueña. *Recomendación:* misma respuesta
+  siempre, y que la apelación se confirme con un link al correo.
+- 🟡 **Los archivos de verificación no tienen dueño:** `documentImage` es un
+  texto libre. Quien conozca el nombre de archivo de otro DPI puede
+  adjuntarlo a su propia solicitud (los nombres son `fecha-nombreoriginal`).
+  *Recomendación:* anotar `/upload-verification` en `uploaded_files`, como las
+  fotos.
+- 🟡 Se puede comentar en una publicación anulada o pausada, y responder un
+  comentario de **otra** publicación (`parent_id` no se cruza con `pub_id`):
+  la notificación le llega a alguien ajeno. Mismo caso que el `reply_to` de
+  mensajes arreglado el 2026-08-25.
+- 🟡 `/support/reports/resolve` borra el `contentId` que mande soporte, sin
+  cruzarlo con el `reportId`. Solo lo usa soporte, pero un error del panel
+  borraría otro contenido.
+- ⚪ Opcional: las filas viejas de `customer_audit_log` tienen ese hash basura.
+  No las usa nada todavía; si se quiere limpiar:
+  `UPDATE ecom.customer_audit_log SET dpi_hash = NULL WHERE dpi_hash = encode(sha256('[object object]'), 'hex');`
+
+**Para avisarle a la app:** una publicación anulada o pausada ahora es 404 en
+el detalle (salvo para su dueño), y banear, desactivar o eliminar la cuenta
+cierra la sesión del teléfono (llega `401 auth.session_expired`, que la app ya
+maneja).
 
 **Antes del deploy:** en producción, confirmar que ninguna fila de
 `publications_images_glb` tenga una `pubimaglb_url` fuera de `/uploads/`: desde

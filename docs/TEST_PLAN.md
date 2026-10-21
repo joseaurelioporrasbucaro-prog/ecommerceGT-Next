@@ -825,10 +825,19 @@ cada test se vio en ROJO rompiendo a propósito el código que prueba.
 | 3 · 2026-10-02 | `auth/perfil-permisos.spec.js` | Tomar el handle de otro, editar el perfil ajeno, leer datos privados en el perfil público |
 | 3 · 2026-10-02 | `publications/ajenas-permisos.spec.js` | Editar, borrar o promocionar la publicación de otro, pausar o finalizar su campaña |
 | 3 · 2026-10-02 | `*-permisos-regresiones.spec.js` (4) | Que vuelvan los 6 bugs arreglados el 2026-10-02 (ver PENDIENTES §B0) |
+| Decisiones · 2026-10-06 | `uploads/imagenes-propiedad.spec.js`, `auth/sesiones-y-tope.spec.js` | Usar o borrar fotos ajenas; que una sesión sobreviva al cambio de contraseña; adivinar la contraseña actual sin tope |
+| Decisiones · 2026-10-13 | `security/changestatus-y-direccion.spec.js` | Que vuelva `/changestatus`; publicar la dirección con la ubicación oculta |
+| 4 · 2026-10-20 | `security/sesiones-al-sancionar.spec.js` | Que un baneado, suspendido o dado de baja siga operando con su token |
+| 4 · 2026-10-20 | `security/caidas-por-texto.spec.js` | Que un texto que no es texto tumbe el proceso; que una ruta que lanza no responda o devuelva la página de Express |
+| 4 · 2026-10-20 | `security/hash-del-dpi.spec.js` | Que el registro antifraude guarde el mismo hash de DPI para todas las cuentas |
+| 4 · 2026-10-20 | `support/soporte-permisos.spec.js` | Entrar a 14 rutas de soporte sin el rol; leer o escribir tickets ajenos; ver notas internas; que el estado de verificación devuelva el DPI |
+| 5 · 2026-10-20 | `social/social-permisos.spec.js` | Borrar comentarios ajenos, listar correos con `/search-buyers`, comodines en las búsquedas; 19 lecturas públicas sin hashes ni correos |
+| 5 · 2026-10-20 | `publications/estados-visibles.spec.js` | Que lo anulado o pausado por eliminación de la cuenta siga en el listado, el mapa, el sitemap o el detalle |
 
-Los tests que demuestran bugs todavía sin arreglar (`*.bloqueo.spec.js`) no
-están en `develop`: viven en la rama `bloqueo/tanda-3-decisiones` del backend.
+Ya no hay tests en rojo esperando decisión: la rama `bloqueo/tanda-3-decisiones`
+se borró el 2026-10-13. De las 150 rutas, solo `/contact`, `/submit-survey` y `/`
+no aparecen en ningún spec.
 
 ---
 
-**Última actualización:** 2026-10-02 (cobertura automatizada del backend, Hito 4 entregas 1 a 3)
+**Última actualización:** 2026-10-20 (cobertura automatizada del backend, Hito 4 tandas 4 y 5)
